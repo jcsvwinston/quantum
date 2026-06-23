@@ -1,0 +1,9 @@
+[submodule "quark"]
+	path = quark
+	url = https://github.com/jcsvwinston/quark.git
+[submodule "orbit"]
+	path = orbit
+	url = https://github.com/jcsvwinston/orbit.git
+[submodule "nucleus"]
+	path = nucleus
+	url = https://github.com/jcsvwinston/nucleus.git
