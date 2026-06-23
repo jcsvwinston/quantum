@@ -1,0 +1,32 @@
+# --- Go ---
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+# El go.work SÍ se versiona (es un entregable de Fase 0); su .sum es derivado y
+# se regenera en cada build, así que se ignora para evitar ruido entre entornos.
+go.work.sum
+/bin/
+/dist/
+
+# --- Node / Docusaurus (el website/ unificado llega en Fase 2) ---
+node_modules/
+build/
+.docusaurus/
+.cache-loader/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp.*
+
+# --- Editor / OS ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# --- Claude Code (settings locales, no compartidos) ---
+.claude/settings.local.json
