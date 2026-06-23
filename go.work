@@ -1,0 +1,16 @@
+go 1.26.4
+
+// Conveniencia de desarrollo: enlaza los tres productos de la suite para
+// trabajarlos a la vez en local (mismo patrón que Orbit ya usa entre sus
+// cuatro módulos). Este go.work NO se publica como dependencia y NO debe tener
+// equivalente `replace` en los go.mod de los productos: en release cada módulo
+// resuelve sus dependencias por tag real. La directiva `go 1.26.4` es la más
+// alta de los tres (Quark va por 1.25.7; el workspace usa la mayor).
+use (
+	./quark
+	./nucleus
+	./orbit
+	./orbit/agent
+	./orbit/proto
+	./orbit/server
+)
