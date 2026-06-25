@@ -61,10 +61,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   (`../quark/website/docs`) — `npm run build` OK, sirve `/quantum/nucleus/` (20
   págs) y `/quantum/quark/` (41 págs); product switcher + paleta de marca aplicados.
   `node_modules/build/.docusaurus` gitignored.
-- **SIGUIENTE → seguir Fase 2**: (3) doble selector de versión + portar el histórico
-  versionado de Quark (tiene `versioned_docs`, 13 versiones); (4) instancia de Orbit
-  (depende de Fase 3: escribir sus docs); (5) deploy a GitHub Pages + redirects; y
-  pulir los broken-links (docs que enlazan a la raíz de su sección, sin índice).
+- **Fase 2 paso 5 (deploy) ✅ configurado**: `.github/workflows/deploy.yml` publica
+  el sitio en GitHub Pages del repo (`/quantum/`) en cada push a `main` (checkout con
+  submódulos + `npm ci` + build). Pages del repo ya en modo Actions.
+- **SIGUIENTE → seguir Fase 2**: (3) doble selector de versión + histórico de Quark
+  (13 versiones); (6) pulir broken-links (dar índice a la raíz de cada sección, vía
+  `plugin-client-redirects` — no se toca la fuente); retirar los Pages actuales de
+  Quark/Nucleus + redirects; (4) instancia de Orbit (depende de Fase 3).
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
