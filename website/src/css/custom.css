@@ -1,0 +1,32 @@
+/* Tokens de la marca Quantum aplicados al sitio (ver docs/brand/).
+   Acento = verde señal (#00A86B); display/código en monoespaciada. */
+:root {
+  --ifm-color-primary: #047a52;
+  --ifm-color-primary-dark: #04704a;
+  --ifm-color-primary-darker: #046944;
+  --ifm-color-primary-darkest: #035638;
+  --ifm-color-primary-light: #058a5e;
+  --ifm-color-primary-lighter: #069766;
+  --ifm-color-primary-lightest: #07b87d;
+  --ifm-code-font-size: 95%;
+  --ifm-font-family-monospace: ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
+    Consolas, monospace;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #2be49b;
+  --ifm-color-primary-dark: #1fe093;
+  --ifm-color-primary-darker: #14da8b;
+  --ifm-color-primary-darkest: #0fb574;
+  --ifm-color-primary-light: #46e8a8;
+  --ifm-color-primary-lighter: #5aebb0;
+  --ifm-color-primary-lightest: #86f0c4;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
+}
+
+/* El wordmark de la navbar en monoespaciada, como la marca. */
+.navbar__title {
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 500;
+}
