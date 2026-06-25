@@ -17,9 +17,11 @@ sobria de instrumento, no de marketing (cultura anti-hype heredada de Quark).
 
 Tres niveles cuantizados (longitudes distintas = la asimetría real de la suite; el
 central, Nucleus, es el host) y **el cuanto**: un punto de señal que reposa en un
-nivel y salta al siguiente. Asset: [`quantum-mark.svg`](quantum-mark.svg) — versión
-estática neutra para README/favicon; en el brand board el cuanto está animado
-(respetando `prefers-reduced-motion`).
+nivel y salta al siguiente. Assets estáticos (sin animación, para README/favicon/web):
+[`quantum-mark.svg`](quantum-mark.svg) (tema claro) y
+[`quantum-mark-dark.svg`](quantum-mark-dark.svg) (tema oscuro); en la portada se
+sirven con `<picture>` + `prefers-color-scheme`. En el brand board el cuanto está
+animado (respetando `prefers-reduced-motion`).
 
 Glifos por pilar (en el brand board): **Nucleus** = nivel lleno (host); **Quark** =
 partícula entre corchetes (suelta, independiente); **Orbit** = punto en arco ligado
