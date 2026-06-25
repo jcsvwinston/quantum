@@ -1,0 +1,144 @@
+/* Portada de la suite — estética "instrumento" (ver docs/brand/). */
+
+.hero {
+  position: relative;
+  padding: 5rem 1.5rem 3.5rem;
+  border-bottom: 0.5px solid var(--qtm-hairline);
+  background-image:
+    linear-gradient(to right, var(--qtm-grid) 0.5px, transparent 0.5px),
+    linear-gradient(to bottom, var(--qtm-grid) 0.5px, transparent 0.5px);
+  background-size: 34px 34px;
+  background-position: center top;
+}
+.heroInner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+.mark {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 1.25rem;
+}
+.title {
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 600;
+  font-size: clamp(2.4rem, 6vw, 3.2rem);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin: 0 0 0.6rem;
+}
+.title .em {
+  color: var(--qtm-signal);
+}
+.tagline {
+  font-size: 1.18rem;
+  line-height: 1.5;
+  color: var(--ifm-color-emphasis-800);
+  max-width: 40ch;
+  margin: 0 0 0.5rem;
+}
+.sub {
+  color: var(--ifm-color-emphasis-600);
+  max-width: 46ch;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 1.4rem 0 1.6rem;
+}
+.chip {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.72rem;
+  letter-spacing: 0.02em;
+  padding: 3px 9px;
+  border: 0.5px solid var(--qtm-hairline);
+  border-radius: 3px;
+  color: var(--ifm-color-emphasis-700);
+}
+.chip b {
+  color: var(--ifm-color-primary);
+  font-weight: 600;
+}
+.chipSuite {
+  border-color: color-mix(in srgb, var(--qtm-signal) 45%, var(--qtm-hairline));
+}
+.actions {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+/* ---- Tres pilares ---- */
+.pillars {
+  max-width: 960px;
+  margin: 3rem auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 768px) {
+  .pillars {
+    grid-template-columns: 1fr;
+  }
+}
+.pillar {
+  display: block;
+  padding: 1.4rem 1.4rem 1.5rem;
+  border: 0.5px solid var(--qtm-hairline);
+  border-radius: 8px;
+  background: var(--ifm-background-surface-color);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+  color: inherit;
+}
+.pillar:hover {
+  border-color: var(--ifm-color-primary);
+  transform: translateY(-2px);
+  text-decoration: none;
+  color: inherit;
+}
+.pillarHead {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.5rem;
+}
+.pillarGlyph {
+  width: 26px;
+  height: 26px;
+  flex: none;
+}
+.pillarName {
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.pillarVer {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.7rem;
+  color: var(--ifm-color-emphasis-600);
+  margin-left: auto;
+}
+.pillarRole {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ifm-color-emphasis-600);
+  margin-bottom: 0.5rem;
+}
+.pillarDesc {
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-800);
+  line-height: 1.5;
+  margin: 0;
+}
+.pillarSoon {
+  opacity: 0.7;
+  cursor: default;
+}
+.pillarSoon:hover {
+  border-color: var(--qtm-hairline);
+  transform: none;
+}

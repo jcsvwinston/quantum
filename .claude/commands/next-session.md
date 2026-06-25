@@ -95,9 +95,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `workspace_pins.nucleus` a ese tag y revisa si `modules.nucleus` sube. [QADR-0004]
 - **CI de integración**: aún no existe (llega en Fase 3); hoy el trío se verifica a
   mano con el `go build` de §1. `status: pre-fusion` en `versions.yaml` lo refleja.
-- **Docs unificadas (Fase 2) EN CURSO**: `website/` ya existe (Docusaurus 3.10.1) y
-  ensambla Nucleus+Quark; falta doble selector de versión, instancia de Orbit
-  (Fase 3) y el deploy/redirects. `cd website && npm install && npm run build`.
+- **Docs unificadas (Fase 2)**: `website/` (Docusaurus 3.10.1) ensambla Nucleus+Quark,
+  con doble selector de versión, **tema de marca pulido (UI/UX)** y **deploy live** en
+  https://jcsvwinston.github.io/quantum/. Pendiente: **búsqueda** (el plugin
+  `@easyops-cn/docusaurus-search-local` rompe el SSR con React 19 — reevaluar o usar
+  Algolia DocSearch), instancia de Orbit (Fase 3), retirar los Pages de los productos
+  + redirects. `cd website && npm install && npm run build`.
 
 ## 6. Cómo cerrar la sesión
 
