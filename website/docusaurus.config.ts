@@ -1,6 +1,21 @@
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import {themes as prismThemes} from 'prism-react-renderer';
+import * as fs from 'node:fs';
+
+// Lee el trío declarado en ../versions.yaml (sin dependencia de YAML: parse simple).
+// El número Quantum y los tags reales de cada producto se muestran en la navbar
+// (doble selector): versión de la suite arriba + versión real de cada módulo.
+const suiteYaml = fs.readFileSync('../versions.yaml', 'utf8');
+const modulesBlock = suiteYaml.match(/modules:\s*([\s\S]*?)\n\w/)?.[1] ?? suiteYaml;
+const pick = (name: string): string =>
+  (modulesBlock.match(new RegExp(`${name}:\\s*"?([^"#\\n]+)`))?.[1] ?? '').trim();
+const suite = {
+  quantum: (suiteYaml.match(/^quantum:\s*"?([^"#\n]+)/m)?.[1] ?? '').trim(),
+  nucleus: pick('nucleus'),
+  quark: pick('quark'),
+  orbit: pick('orbit'),
+};
 
 // Sitio de documentación unificado de la suite Quantum (Fase 2).
 // ENSAMBLA las docs de cada producto desde su submódulo — la fuente NO sale de
@@ -89,24 +104,33 @@ const config: Config = {
       },
       items: [
         {
+          // Selector "Quantum": el número de la suite arriba (de versions.yaml) y,
+          // como items, los tres pilares con su tag real (switcher + versión).
           type: 'dropdown',
-          label: 'Productos',
+          label: `Quantum ${suite.quantum}`,
           position: 'left',
           items: [
             {
               type: 'docSidebar',
               sidebarId: 'nucleusSidebar',
               docsPluginId: 'nucleus',
-              label: 'Nucleus · framework web',
+              label: `Nucleus · framework web · ${suite.nucleus}`,
             },
             {
               type: 'docSidebar',
               sidebarId: 'quarkSidebar',
               docsPluginId: 'quark',
-              label: 'Quark · ORM',
+              label: `Quark · ORM · ${suite.quark}`,
             },
-            {label: 'Orbit · admin (pronto)', to: '/'},
+            {label: `Orbit · admin · ${suite.orbit} (pronto)`, to: '/'},
           ],
+        },
+        {
+          // Selector de versión real de Quark (su histórico: 13 versiones).
+          // Aparece en las páginas de la instancia Quark.
+          type: 'docsVersionDropdown',
+          docsPluginId: 'quark',
+          position: 'right',
         },
         {
           href: 'https://github.com/jcsvwinston/quantum',

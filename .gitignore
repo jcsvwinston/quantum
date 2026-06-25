@@ -28,5 +28,11 @@ yarn-error.log*
 .vscode/
 *.swp
 
+# --- Docusaurus: histórico de versiones sincronizado en build (se regenera; la
+#     fuente vive en cada repo de producto, QADR-0003) ---
+website/*_versioned_docs/
+website/*_versioned_sidebars/
+website/*_versions.json
+
 # --- Claude Code (settings locales, no compartidos) ---
 .claude/settings.local.json
