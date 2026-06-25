@@ -91,6 +91,12 @@ const config: Config = {
       // declara `slug: /` (el de Nucleus sí), así que su raíz da 404 y a ella
       // apuntan los enlaces "home" internos de sus docs. Redirigimos a la primera
       // página, sin tocar la fuente de Quark (QADR-0003).
+      //
+      // OJO: este redirect es un fichero estático (meta-refresh), NO una ruta del
+      // router. Cubre el acceso DIRECTO a /quark/ (recarga, enlace externo), pero
+      // un <Link to="/quark/"> dentro del sitio navega por SPA y cae en el 404 del
+      // router. Por eso TODOS los enlaces internos a Quark apuntan a /quark/intro/
+      // (la portada, el footer y el dropdown vía docSidebar), no a la raíz pelada.
       '@docusaurus/plugin-client-redirects',
       {
         redirects: [{from: '/quark', to: '/quark/intro'}],
@@ -152,7 +158,7 @@ const config: Config = {
           title: 'Productos',
           items: [
             {label: 'Nucleus', to: '/nucleus/'},
-            {label: 'Quark', to: '/quark/'},
+            {label: 'Quark', to: '/quark/intro/'},
           ],
         },
         {
