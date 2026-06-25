@@ -46,10 +46,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `go.work`, `README`, `LICENSE`, `QADR-0001..0004` y los tres productos como
   submódulos pinneados al trío — `quark v1.1.5`, `orbit v0.1.0`, y `nucleus` al
   commit `8714882c` (post-`v0.9.0`, el que exige Orbit v0.1.0; ver `workspace_pins`).
-- **Fase 1 (identidad textual) ✅**: la portada (`README`) lleva tagline + la
-  narrativa de marca —el "átomo": Nucleus=núcleo, Quark=partícula, Orbit=órbita,
-  Quantum=el conjunto—. Pendiente solo lo **visual** (logo/paleta), que es trabajo
-  de diseño aparte, no de coordinación.
+- **Fase 1 ✅ COMPLETA**: identidad textual (tagline + narrativa en `README`) y
+  visual — marca **"el estado fijado"** (niveles de energía / estética de
+  osciloscopio; verde señal + mono). Assets en `docs/brand/`: brand board HTML,
+  `quantum-mark.svg` (logo/favicon) y guía de marca; el logo va en la portada.
+  Lo que queda es opcional y propio de Fase 2: derivar favicon real a tamaños y
+  llevar la paleta/tipografía al sitio como tokens.
 - **Trabajo colateral hecho** (en el repo de Nucleus, no aquí): doc-sync de la
   extracción del admin a Orbit (Nucleus ADR-019) — PRs nucleus #164–#167 mergeados
   (README, scaffold, SPEC, guías). Esto NO cambió APIs.
