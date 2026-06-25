@@ -66,9 +66,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   Actions, checkout con submódulos). `/quantum/` y `/quantum/nucleus/` → 200.
   `/quantum/quark/` (raíz) redirige a `/quantum/quark/intro` vía
   `@docusaurus/plugin-client-redirects` (el intro de Quark no declara `slug: /`,
-  el de Nucleus sí; no se toca la fuente, QADR-0003). Aprendido: el PRIMER workflow
-  de un repo no se registra al añadirlo — hizo falta un segundo push (PR #9) para
-  que GitHub lo activara.
+  el de Nucleus sí; no se toca la fuente, QADR-0003). **Matiz (PR #13):** ese
+  redirect es un fichero ESTÁTICO (meta-refresh), no una ruta del router —cubre el
+  acceso directo a `/quark/` pero un `<Link to="/quark/">` navega por SPA y cae en
+  el 404. Por eso TODOS los enlaces internos a Quark (portada, footer, dropdown)
+  van directos a `/quark/intro/`; nunca a la raíz pelada. Aprendido también: el
+  PRIMER workflow de un repo no se registra al añadirlo — hizo falta un segundo
+  push (PR #9) para que GitHub lo activara.
 - **Fase 2 paso 3 (doble selector) ✅**: navbar con selector «Quantum 0.1.0-dev»
   (de `versions.yaml`) + los tres pilares con su tag real, y selector de versión de
   Quark (Next + 13 versiones; el histórico se sincroniza en build desde su submódulo
