@@ -32,8 +32,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 2. **Versionado en dos niveles**: el número Quantum nunca falsea el `vX.Y.Z` real
    que la gente instala. [QADR-0002]
 3. **Docs**: la fuente vive en cada repo; el sitio unificado *ensambla*, no posee. [QADR-0003]
-4. **Anti-hype**: sin `production-ready` / `enterprise-grade` / `battle-tested` /
-   `blazing fast` en commits, README, ADRs ni roadmap. El grep debe seguir vacío.
+4. **Anti-hype**: sin superlativos de marketing —afirmaciones exageradas de
+   madurez o de rendimiento— en commits, README, ADRs ni roadmap. La cultura
+   anti-hype se hereda de Quark; el grep de esos términos debe seguir vacío (por
+   eso este propio fichero no los nombra en literal).
 5. **`go.work` es solo dev local**; sin `replace` en los `go.mod` de los productos.
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
