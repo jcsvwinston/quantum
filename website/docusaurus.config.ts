@@ -35,6 +35,9 @@ const config: Config = {
   organizationName: 'jcsvwinston',
   projectName: 'quantum',
 
+  // Expone el trío de versions.yaml a las páginas (la portada lo usa en sus chips).
+  customFields: {suite},
+
   // Las docs vienen de otros repos: los enlaces/anclas/imágenes que asuman su
   // baseUrl propio pueden no resolver aquí. No tumbamos el build por eso.
   onBrokenLinks: 'warn',
@@ -44,6 +47,9 @@ const config: Config = {
   i18n: {defaultLocale: 'es', locales: ['es']},
 
   markdown: {mermaid: true},
+  // Búsqueda: pendiente. @easyops-cn/docusaurus-search-local rompe el SSR con
+  // React 19 (Docusaurus 3.10). Reevaluar cuando el plugin lo soporte, o usar
+  // Algolia DocSearch.
   themes: ['@docusaurus/theme-mermaid'],
 
   presets: [

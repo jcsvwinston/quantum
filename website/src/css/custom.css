@@ -1,6 +1,22 @@
-/* Tokens de la marca Quantum aplicados al sitio (ver docs/brand/).
-   Acento = verde señal (#00A86B); display/código en monoespaciada. */
+/* ============================================================
+   Quantum — tema del sitio de docs unificado.
+   Marca "el estado fijado" (ver docs/brand/): instrumento de medida —
+   verde señal, monoespaciada para acentos técnicos, hairlines de 0.5px,
+   Swiss/minimal. Solo estética: el contenido de las docs NO se toca.
+   ============================================================ */
+
 :root {
+  /* Tipografía: stacks del sistema, sin webfonts. */
+  --ifm-font-family-base: system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --ifm-font-family-monospace: ui-monospace, "SF Mono", "JetBrains Mono",
+    "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace;
+  --ifm-heading-font-weight: 600;
+  --ifm-line-height-base: 1.65;
+  --ifm-code-font-size: 91%;
+  --ifm-code-border-radius: 4px;
+
+  /* Acento de marca: verde señal. */
   --ifm-color-primary: #047a52;
   --ifm-color-primary-dark: #04704a;
   --ifm-color-primary-darker: #046944;
@@ -8,25 +24,141 @@
   --ifm-color-primary-light: #058a5e;
   --ifm-color-primary-lighter: #069766;
   --ifm-color-primary-lightest: #07b87d;
-  --ifm-code-font-size: 95%;
-  --ifm-font-family-monospace: ui-monospace, "SF Mono", "JetBrains Mono", Menlo,
-    Consolas, monospace;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.08);
+
+  --ifm-toc-border-color: #e7eaef;
+  --ifm-hr-border-color: #e7eaef;
+  --ifm-navbar-shadow: none;
+  --docusaurus-highlighted-code-line-bg: rgba(4, 122, 82, 0.08);
+
+  --qtm-signal: #00a86b;
+  --qtm-hairline: #e7eaef;
+  --qtm-grid: rgba(45, 91, 142, 0.05);
+  --qtm-surface-2: #f2f5f9;
 }
 
 [data-theme='dark'] {
   --ifm-color-primary: #2be49b;
-  --ifm-color-primary-dark: #1fe093;
-  --ifm-color-primary-darker: #14da8b;
+  --ifm-color-primary-dark: #20e093;
+  --ifm-color-primary-darker: #15da8b;
   --ifm-color-primary-darkest: #0fb574;
   --ifm-color-primary-light: #46e8a8;
   --ifm-color-primary-lighter: #5aebb0;
   --ifm-color-primary-lightest: #86f0c4;
-  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
+  --ifm-background-color: #14171d;
+  --ifm-background-surface-color: #1b1f27;
+  --ifm-toc-border-color: #2a2f3a;
+  --ifm-hr-border-color: #2a2f3a;
+  --docusaurus-highlighted-code-line-bg: rgba(43, 228, 155, 0.1);
+
+  --qtm-signal: #2be49b;
+  --qtm-hairline: #2a2f3a;
+  --qtm-grid: rgba(111, 163, 220, 0.07);
+  --qtm-surface-2: #1b1f27;
 }
 
-/* El wordmark de la navbar en monoespaciada, como la marca. */
+/* ---- Navbar: barra de instrumento, hairline + blur ---- */
+.navbar {
+  border-bottom: 0.5px solid var(--qtm-hairline);
+  box-shadow: none;
+  -webkit-backdrop-filter: saturate(1.1) blur(8px);
+  backdrop-filter: saturate(1.1) blur(8px);
+  background: color-mix(in srgb, var(--ifm-background-surface-color) 86%, transparent);
+}
 .navbar__title {
   font-family: var(--ifm-font-family-monospace);
   font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.navbar__link {
+  font-size: 0.9rem;
+}
+.navbar__item.dropdown > .navbar__link {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.84rem;
+  letter-spacing: 0.01em;
+}
+
+/* ---- Headings: h1 en mono (acento técnico), resto en sans legible ---- */
+.markdown h1,
+article header h1,
+h1.hero__title {
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+h2,
+h3 {
+  letter-spacing: -0.01em;
+}
+
+/* ---- Code: hairline, sin sombra (estética de plano técnico) ---- */
+pre,
+.theme-code-block {
+  box-shadow: none !important;
+  border: 0.5px solid var(--qtm-hairline);
+}
+:not(pre) > code {
+  border: 0.5px solid var(--qtm-hairline);
+  background: var(--qtm-surface-2);
+}
+
+/* ---- Sidebar / menú ---- */
+.menu {
+  font-size: 0.9rem;
+}
+.menu__link {
+  transition: color 0.18s ease, background 0.18s ease;
+}
+.menu__link--active {
+  font-weight: 600;
+}
+
+/* ---- TOC, links, tablas ---- */
+.markdown a {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.table-of-contents {
+  font-size: 0.82rem;
+}
+table th {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+}
+
+/* ---- Admonitions y tarjetas: hairline, hover de acento ---- */
+.theme-admonition {
+  border: 0.5px solid var(--qtm-hairline);
+  border-radius: 6px;
+}
+.card {
+  border: 0.5px solid var(--qtm-hairline);
+  box-shadow: none;
+  transition: border-color 0.2s ease;
+}
+.card:hover {
+  border-color: var(--ifm-color-primary);
+}
+
+/* ---- Foco accesible: anillo de señal (WCAG) ---- */
+a:focus-visible,
+button:focus-visible,
+.menu__link:focus-visible,
+.navbar__link:focus-visible,
+.pagination-nav__link:focus-visible {
+  outline: 2px solid var(--qtm-signal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---- Respeta prefers-reduced-motion ---- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
