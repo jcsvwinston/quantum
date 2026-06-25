@@ -1,0 +1,459 @@
+<style>
+  /* ============================================================
+     QUANTUM — Brand board
+     Concepto: "El estado fijado" · niveles de energía cuantizados.
+     Autocontenido. Sin dependencias. Claro + oscuro. Fondo transparente.
+     ============================================================ */
+
+  .qtm {
+    /* Paleta — modo claro (por defecto) */
+    --qtm-ink:        #0E1116;   /* tinta principal */
+    --qtm-ink-soft:   #4A5366;   /* texto secundario */
+    --qtm-ink-faint:  #8A93A6;   /* hints / metadatos */
+    --qtm-line:       #D7DCE5;   /* líneas/bordes */
+    --qtm-line-soft:  #E8ECF2;   /* hairlines */
+    --qtm-paper:      #FBFCFE;   /* superficie 1 */
+    --qtm-paper-2:    #F2F5F9;   /* superficie 2 */
+
+    /* Acento: el "cuanto". Verde-fósforo de osciloscopio (señal), no morado IA. */
+    --qtm-signal:     #00A86B;   /* verde señal */
+    --qtm-signal-ink: #047A52;   /* verde señal sobre claro (texto/borde) */
+    --qtm-signal-bg:  #E4F6EE;   /* lavado de señal */
+
+    /* Acento secundario frío para diferenciar pilares sin "arcoíris" */
+    --qtm-cobalt:     #2D5BD6;
+    --qtm-cobalt-ink: #1E3F9C;
+
+    --qtm-radius: 4px;
+
+    /* Tipografía: stacks del sistema. Mono geométrica para lo técnico,
+       grotesca neutra para texto. Pairing concreto, sin webfonts. */
+    --qtm-mono: var(--font-mono, ui-monospace, "SF Mono", "JetBrains Mono",
+                "Cascadia Code", "Roboto Mono", Menlo, Consolas, monospace);
+    --qtm-sans: var(--font-sans, system-ui, -apple-system, "Segoe UI",
+                Roboto, Helvetica, Arial, sans-serif);
+
+    color: var(--qtm-ink);
+    font-family: var(--qtm-sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 8px 0 4px;
+    box-sizing: border-box;
+
+    /* Retícula técnica muy tenue de fondo (textura por repetición, no raster) */
+    background-image:
+      linear-gradient(to right,  var(--qtm-line-soft) 0.5px, transparent 0.5px),
+      linear-gradient(to bottom, var(--qtm-line-soft) 0.5px, transparent 0.5px);
+    background-size: 34px 34px;
+    background-position: -1px -1px;
+  }
+  .qtm *, .qtm *::before, .qtm *::after { box-sizing: border-box; }
+
+  @media (prefers-color-scheme: dark) {
+    .qtm {
+      --qtm-ink:        #EAEEF5;
+      --qtm-ink-soft:   #A4AEC2;
+      --qtm-ink-faint:  #6B7488;
+      --qtm-line:       #2A2F3A;
+      --qtm-line-soft:  #20242D;
+      --qtm-paper:      #14171D;
+      --qtm-paper-2:    #1B1F27;
+
+      --qtm-signal:     #2BE49B;   /* fósforo más brillante sobre negro */
+      --qtm-signal-ink: #54E9AB;
+      --qtm-signal-bg:  #0F2A20;
+
+      --qtm-cobalt:     #6E97FF;
+      --qtm-cobalt-ink: #93B2FF;
+    }
+  }
+
+  /* ---- Estructura del board ---- */
+  .qtm__frame {
+    border: 0.5px solid var(--qtm-line);
+    border-radius: var(--qtm-radius);
+    background: var(--qtm-paper);                                  /* respaldo */
+    background: color-mix(in srgb, var(--qtm-paper) 86%, transparent);
+    backdrop-filter: saturate(1.05);
+    overflow: hidden;
+  }
+
+  /* Barra superior tipo "instrumento" */
+  .qtm__topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 9px 14px;
+    border-bottom: 0.5px solid var(--qtm-line);
+    font-family: var(--qtm-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--qtm-ink-faint);
+  }
+  .qtm__topbar b { color: var(--qtm-ink-soft); font-weight: 500; }
+  .qtm__dot {
+    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--qtm-signal); margin-right: 7px; vertical-align: middle;
+    box-shadow: 0 0 0 3px var(--qtm-signal-bg);
+  }
+
+  /* ---- HERO ---- */
+  .qtm__hero {
+    display: grid;
+    grid-template-columns: 188px 1fr;
+    gap: 8px;
+    align-items: stretch;
+  }
+  @media (max-width: 560px) {
+    .qtm__hero { grid-template-columns: 1fr; }
+    .qtm__mark-cell { border-right: none !important;
+      border-bottom: 0.5px solid var(--qtm-line); }
+  }
+
+  .qtm__mark-cell {
+    display: flex; align-items: center; justify-content: center;
+    padding: 22px 12px;
+    border-right: 0.5px solid var(--qtm-line);
+    background: var(--qtm-paper-2);                                /* respaldo */
+    background:
+      radial-gradient(120% 120% at 50% 18%,
+        color-mix(in srgb, var(--qtm-signal) 7%, transparent), transparent 60%),
+      var(--qtm-paper-2);
+  }
+  .qtm__mark-cell svg { width: 132px; height: 132px; display: block; }
+
+  .qtm__hero-body { padding: 20px 22px 22px; }
+
+  .qtm__wordmark {
+    display: flex; align-items: baseline; gap: 2px;
+    font-family: var(--qtm-mono);
+    font-weight: 500;
+    font-size: 31px;
+    letter-spacing: -0.012em;
+    line-height: 1;
+    margin: 2px 0 0;
+  }
+  .qtm__wordmark .q   { color: var(--qtm-ink); position: relative; }
+  /* la "u" como nivel resaltado: subrayado de señal cuantizado */
+  .qtm__wordmark .rest { color: var(--qtm-ink); }
+  .qtm__wordmark .quantum-em {
+    color: var(--qtm-signal-ink);
+  }
+  .qtm__tag {
+    margin: 13px 0 0;
+    font-size: 14.5px;
+    line-height: 1.5;
+    color: var(--qtm-ink-soft);
+    max-width: 42ch;
+  }
+  .qtm__tag .em { color: var(--qtm-ink); font-weight: 500; }
+
+  .qtm__meta {
+    margin-top: 16px;
+    display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .qtm__chip {
+    font-family: var(--qtm-mono);
+    font-size: 10.5px; letter-spacing: 0.04em;
+    color: var(--qtm-ink-soft);
+    border: 0.5px solid var(--qtm-line);
+    border-radius: 3px;
+    padding: 3px 8px;
+    background: var(--qtm-paper);
+  }
+  .qtm__chip .k { color: var(--qtm-ink-faint); }
+  .qtm__chip .v { color: var(--qtm-signal-ink); }
+
+  /* ---- Pilares ---- */
+  .qtm__pillars {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 0.5px solid var(--qtm-line);
+  }
+  @media (max-width: 560px) { .qtm__pillars { grid-template-columns: 1fr; } }
+
+  .qtm__pillar {
+    padding: 14px 16px 15px;
+    border-right: 0.5px solid var(--qtm-line);
+    position: relative;
+  }
+  .qtm__pillar:last-child { border-right: none; }
+  @media (max-width: 560px) {
+    .qtm__pillar { border-right: none; border-bottom: 0.5px solid var(--qtm-line); }
+    .qtm__pillar:last-child { border-bottom: none; }
+  }
+  .qtm__pillar-head {
+    display: flex; align-items: center; gap: 9px; margin-bottom: 7px;
+  }
+  .qtm__pillar-glyph { width: 22px; height: 22px; flex: none; }
+  .qtm__pillar-name {
+    font-family: var(--qtm-mono); font-weight: 500;
+    font-size: 13.5px; letter-spacing: 0.01em; color: var(--qtm-ink);
+  }
+  .qtm__pillar-role {
+    font-family: var(--qtm-mono); font-size: 9.5px;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--qtm-ink-faint); margin-bottom: 6px;
+  }
+  .qtm__pillar-desc { font-size: 12.5px; color: var(--qtm-ink-soft); line-height: 1.45; }
+  .qtm__pillar-desc code {
+    font-family: var(--qtm-mono); font-size: 11.5px;
+    color: var(--qtm-ink); background: var(--qtm-paper-2);
+    padding: 0.5px 4px; border-radius: 3px;
+  }
+
+  /* ---- Sistema visual (paleta + tipo) ---- */
+  .qtm__system {
+    display: grid; grid-template-columns: 1fr 1fr;
+    border-top: 0.5px solid var(--qtm-line);
+  }
+  @media (max-width: 560px) { .qtm__system { grid-template-columns: 1fr; } }
+  .qtm__panel { padding: 14px 16px 16px; }
+  .qtm__panel + .qtm__panel { border-left: 0.5px solid var(--qtm-line); }
+  @media (max-width: 560px) {
+    .qtm__panel + .qtm__panel { border-left: none; border-top: 0.5px solid var(--qtm-line); }
+  }
+  .qtm__panel-title {
+    font-family: var(--qtm-mono); font-size: 9.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--qtm-ink-faint); margin: 0 0 11px;
+  }
+
+  .qtm__swatches { display: flex; gap: 0; border-radius: 3px; overflow: hidden;
+    border: 0.5px solid var(--qtm-line); }
+  /* hairline divisoria entre muestras para que tinta/papel no se fundan con el fondo */
+  .qtm__sw { flex: 1; height: 38px; position: relative;
+    box-shadow: inset -0.5px 0 0 var(--qtm-line); }
+  .qtm__sw:last-child { box-shadow: none; }
+  .qtm__swrow { display: flex; gap: 9px; margin-top: 9px; flex-wrap: wrap; }
+  .qtm__swlabel { font-family: var(--qtm-mono); font-size: 9.5px;
+    color: var(--qtm-ink-faint); display: flex; align-items: center; gap: 6px; }
+  .qtm__swkey { width: 9px; height: 9px; border-radius: 2px; border: 0.5px solid var(--qtm-line); }
+
+  .qtm__typerow { display: flex; align-items: baseline; gap: 10px; margin-bottom: 9px; }
+  .qtm__type-mono { font-family: var(--qtm-mono); font-weight: 500;
+    font-size: 19px; color: var(--qtm-ink); letter-spacing: -0.01em; }
+  .qtm__type-sans { font-family: var(--qtm-sans); font-size: 15px; color: var(--qtm-ink-soft); }
+  .qtm__type-tag { font-family: var(--qtm-mono); font-size: 9px; letter-spacing: 0.08em;
+    color: var(--qtm-ink-faint); text-transform: uppercase; }
+  .qtm__type-spec { font-family: var(--qtm-mono); font-size: 10.5px;
+    color: var(--qtm-ink-soft); line-height: 1.7; margin-top: 4px; }
+  .qtm__type-spec .v { color: var(--qtm-signal-ink); }
+
+  /* ---- Footer / firma ---- */
+  .qtm__foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 9px 14px; border-top: 0.5px solid var(--qtm-line);
+    font-family: var(--qtm-mono); font-size: 9.5px; letter-spacing: 0.08em;
+    color: var(--qtm-ink-faint); text-transform: uppercase;
+  }
+
+  /* ---- Animación: el cuanto que "salta" entre niveles. Muy sutil. ---- */
+  @media (prefers-reduced-motion: no-preference) {
+    .qtm-quantum { animation: qtm-leap 5.6s cubic-bezier(.7,0,.3,1) infinite; }
+    .qtm-trail   { animation: qtm-trail 5.6s cubic-bezier(.7,0,.3,1) infinite; }
+    .qtm-scan    { animation: qtm-scan 5.6s ease-in-out infinite; }
+  }
+  /* El punto reposa en un nivel, salta al siguiente, reposa, vuelve. Sin parpadeo. */
+  @keyframes qtm-leap {
+    0%, 26%   { transform: translateY(0); }
+    40%, 66%  { transform: translateY(-30px); }
+    80%, 100% { transform: translateY(0); }
+  }
+  @keyframes qtm-trail {
+    0%, 26%   { opacity: 0; transform: scaleY(0.1); }
+    33%       { opacity: 0.9; transform: scaleY(1); }
+    40%, 66%  { opacity: 0; transform: scaleY(0.1); }
+    73%       { opacity: 0.9; transform: scaleY(1); }
+    80%, 100% { opacity: 0; transform: scaleY(0.1); }
+  }
+  @keyframes qtm-scan {
+    0%, 100% { opacity: 0.18; } 50% { opacity: 0.42; }
+  }
+</style>
+
+<div class="qtm">
+  <div class="qtm__frame">
+
+    <!-- Topbar instrumento -->
+    <div class="qtm__topbar">
+      <span><span class="qtm__dot"></span><b>QUANTUM</b> · suite</span>
+      <span>identidad de marca · propuesta</span>
+    </div>
+
+    <!-- HERO -->
+    <div class="qtm__hero">
+      <div class="qtm__mark-cell">
+        <!-- SÍMBOLO: niveles de energía cuantizados + transición del cuanto.
+             3 niveles discretos = los 3 pilares / el trío certificado.
+             El punto (cuanto) salta entre niveles = "estado fijado" que cambia
+             solo en saltos discretos (releases). Construido en geometría pura. -->
+        <svg viewBox="0 0 120 120" role="img" aria-labelledby="qtm-mark-t qtm-mark-d">
+          <title id="qtm-mark-t">Quantum</title>
+          <desc id="qtm-mark-d">Tres niveles de energía cuantizados con una transición discreta.</desc>
+
+          <!-- marco sutil -->
+          <rect x="6" y="6" width="108" height="108" rx="7"
+                fill="none" stroke="var(--qtm-line)" stroke-width="1"/>
+
+          <!-- línea de escaneo vertical (eje de transición) -->
+          <line class="qtm-scan" x1="60" y1="20" x2="60" y2="100"
+                stroke="var(--qtm-signal)" stroke-width="1" stroke-dasharray="2 4"/>
+
+          <!-- NIVELES (3) — longitudes distintas = asimetría real de la suite.
+               n2 (medio) es Nucleus, el host: el más largo, centrado.
+               Cada nivel es discreto. -->
+          <!-- nivel inferior (n0) -->
+          <line x1="22" y1="86" x2="98" y2="86"
+                stroke="var(--qtm-ink-soft)" stroke-width="2.4" stroke-linecap="round"/>
+          <!-- nivel medio (n1) -->
+          <line x1="30" y1="60" x2="90" y2="60"
+                stroke="var(--qtm-ink-soft)" stroke-width="2.4" stroke-linecap="round"/>
+          <!-- nivel superior (n2) -->
+          <line x1="38" y1="34" x2="82" y2="34"
+                stroke="var(--qtm-ink-soft)" stroke-width="2.4" stroke-linecap="round"/>
+
+          <!-- estela de salto (entre nivel inferior y medio, en el eje) -->
+          <line class="qtm-trail" x1="60" y1="86" x2="60" y2="56"
+                stroke="var(--qtm-signal)" stroke-width="2" stroke-linecap="round"
+                style="transform-box: fill-box; transform-origin: 50% 100%;"/>
+
+          <!-- EL CUANTO: parte en el nivel inferior, salta. -->
+          <g class="qtm-quantum" style="transform-box: view-box;">
+            <circle cx="60" cy="86" r="5.4" fill="var(--qtm-signal)"/>
+            <circle cx="60" cy="86" r="9" fill="none"
+                    stroke="var(--qtm-signal)" stroke-width="1" opacity="0.4"/>
+          </g>
+
+          <!-- ticks de cuantización en el eje, marcando cada nivel -->
+          <g stroke="var(--qtm-ink-faint)" stroke-width="1" opacity="0.55">
+            <line x1="56" y1="34" x2="64" y2="34"/>
+            <line x1="56" y1="60" x2="64" y2="60"/>
+            <line x1="56" y1="86" x2="64" y2="86"/>
+          </g>
+        </svg>
+      </div>
+
+      <div class="qtm__hero-body">
+        <div class="qtm__wordmark" aria-label="Quantum">
+          <span class="q">Q</span><span class="quantum-em">u</span><span class="rest">antum</span>
+        </div>
+
+        <p class="qtm__tag">
+          Tres productos Go que avanzan por separado y se certifican
+          <span class="em">como un solo estado</span>: un trío de versiones probadas juntas.
+          <span class="em">Coordina, no contiene.</span>
+        </p>
+
+        <div class="qtm__meta">
+          <span class="qtm__chip"><span class="k">suite</span> <span class="v">v0.1.0-dev</span></span>
+          <span class="qtm__chip"><span class="k">nucleus</span> v0.9.0</span>
+          <span class="qtm__chip"><span class="k">quark</span> v1.1.5</span>
+          <span class="qtm__chip"><span class="k">orbit</span> v0.1.0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PILARES -->
+    <div class="qtm__pillars">
+      <!-- NUCLEUS -->
+      <div class="qtm__pillar">
+        <div class="qtm__pillar-head">
+          <svg class="qtm__pillar-glyph" viewBox="0 0 24 24" role="img" aria-label="Nucleus">
+            <!-- host: nivel central lleno + ticks -->
+            <rect x="2.5" y="2.5" width="19" height="19" rx="4" fill="none"
+                  stroke="var(--qtm-line)" stroke-width="1"/>
+            <line x1="6" y1="12" x2="18" y2="12" stroke="var(--qtm-ink)" stroke-width="2.4" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="2.2" fill="var(--qtm-signal)"/>
+          </svg>
+          <span class="qtm__pillar-name">Nucleus</span>
+        </div>
+        <div class="qtm__pillar-role">El anfitrión</div>
+        <div class="qtm__pillar-desc">Framework web MVC/REST, <code>stdlib-first</code>. Las apps se construyen sobre él; Orbit monta dentro.</div>
+      </div>
+
+      <!-- QUARK -->
+      <div class="qtm__pillar">
+        <div class="qtm__pillar-head">
+          <svg class="qtm__pillar-glyph" viewBox="0 0 24 24" role="img" aria-label="Quark">
+            <!-- partícula independiente: punto suelto + corchetes (suelto, no ligado) -->
+            <rect x="2.5" y="2.5" width="19" height="19" rx="4" fill="none"
+                  stroke="var(--qtm-line)" stroke-width="1"/>
+            <path d="M9 6 H7 V18 H9 M15 6 H17 V18 H15" fill="none"
+                  stroke="var(--qtm-ink)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="12" cy="12" r="2.6" fill="var(--qtm-cobalt)"/>
+          </svg>
+          <span class="qtm__pillar-name">Quark</span>
+        </div>
+        <div class="qtm__pillar-role">La capa de datos · suelta</div>
+        <div class="qtm__pillar-desc">ORM type-safe, seis dialectos SQL. Usable solo: <code>go get …/quark</code> y nada más.</div>
+      </div>
+
+      <!-- ORBIT -->
+      <div class="qtm__pillar">
+        <div class="qtm__pillar-head">
+          <svg class="qtm__pillar-glyph" viewBox="0 0 24 24" role="img" aria-label="Orbit">
+            <!-- ligado a Nucleus: punto en arco alrededor del núcleo -->
+            <rect x="2.5" y="2.5" width="19" height="19" rx="4" fill="none"
+                  stroke="var(--qtm-line)" stroke-width="1"/>
+            <circle cx="12" cy="12" r="2" fill="var(--qtm-ink)"/>
+            <path d="M12 5.2 A6.8 6.8 0 0 1 18.8 12" fill="none"
+                  stroke="var(--qtm-ink-soft)" stroke-width="1.4" stroke-linecap="round"/>
+            <circle cx="18.8" cy="12" r="2.2" fill="var(--qtm-signal)"/>
+          </svg>
+          <span class="qtm__pillar-name">Orbit</span>
+        </div>
+        <div class="qtm__pillar-role">La administración · ligada</div>
+        <div class="qtm__pillar-desc">Panel de admin que monta <code>in-process</code> sobre una app Nucleus. Su única dependencia dura.</div>
+      </div>
+    </div>
+
+    <!-- SISTEMA VISUAL -->
+    <div class="qtm__system">
+      <div class="qtm__panel">
+        <p class="qtm__panel-title">Paleta</p>
+        <div class="qtm__swatches">
+          <div class="qtm__sw" style="background:var(--qtm-ink)"></div>
+          <div class="qtm__sw" style="background:var(--qtm-ink-soft)"></div>
+          <div class="qtm__sw" style="background:var(--qtm-signal)"></div>
+          <div class="qtm__sw" style="background:var(--qtm-cobalt)"></div>
+          <div class="qtm__sw" style="background:var(--qtm-paper-2)"></div>
+        </div>
+        <div class="qtm__swrow">
+          <span class="qtm__swlabel"><span class="qtm__swkey" style="background:var(--qtm-ink)"></span>Tinta</span>
+          <span class="qtm__swlabel"><span class="qtm__swkey" style="background:var(--qtm-signal)"></span>Señal</span>
+          <span class="qtm__swlabel"><span class="qtm__swkey" style="background:var(--qtm-cobalt)"></span>Cobalto</span>
+          <span class="qtm__swlabel"><span class="qtm__swkey" style="background:var(--qtm-paper-2)"></span>Papel</span>
+        </div>
+      </div>
+
+      <div class="qtm__panel">
+        <p class="qtm__panel-title">Tipografía</p>
+        <div class="qtm__typerow">
+          <span class="qtm__type-mono">Quantum</span>
+          <span class="qtm__type-tag">mono · display</span>
+        </div>
+        <div class="qtm__typerow">
+          <span class="qtm__type-sans">Coordina, no contiene.</span>
+          <span class="qtm__type-tag">sans · texto</span>
+        </div>
+        <div class="qtm__type-spec">
+          display&nbsp;&nbsp;<span class="v">mono</span> · system<br/>
+          texto&nbsp;&nbsp;&nbsp;&nbsp;<span class="v">sans</span> · system · 400/500
+        </div>
+      </div>
+    </div>
+
+    <!-- FOOT -->
+    <div class="qtm__foot">
+      <span>física de partículas → arquitectura</span>
+      <span>set certificado · probado junto</span>
+    </div>
+
+  </div>
+</div>

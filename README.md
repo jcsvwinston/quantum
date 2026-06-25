@@ -1,6 +1,12 @@
+<p align="center">
+  <img src="docs/brand/quantum-mark.svg" alt="Quantum" width="88" height="88" />
+</p>
+
 # Quantum
 
 > **Framework web, ORM y panel de administración para Go: desarrollados por separado, coordinados como suite.**
+>
+> <sub>Identidad de la suite en [`docs/brand/`](docs/brand/) — concepto "el estado fijado".</sub>
 
 Quantum es la **suite** formada por tres productos Go que se desarrollan por
 separado y se presentan, coordinados, como un solo proyecto. El repo `quantum`
