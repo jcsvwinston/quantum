@@ -69,10 +69,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   el de Nucleus sí; no se toca la fuente, QADR-0003). Aprendido: el PRIMER workflow
   de un repo no se registra al añadirlo — hizo falta un segundo push (PR #9) para
   que GitHub lo activara.
-- **SIGUIENTE → seguir Fase 2**: (3) doble selector de versión + histórico de Quark
-  (13 versiones); (6) pulir broken-links (dar índice a la raíz de cada sección, vía
-  `plugin-client-redirects` — no se toca la fuente); retirar los Pages actuales de
-  Quark/Nucleus + redirects; (4) instancia de Orbit (depende de Fase 3).
+- **Fase 2 paso 3 (doble selector) ✅**: navbar con selector «Quantum 0.1.0-dev»
+  (de `versions.yaml`) + los tres pilares con su tag real, y selector de versión de
+  Quark (Next + 13 versiones; el histórico se sincroniza en build desde su submódulo
+  vía `website/sync-versions.mjs`, gitignored). Nucleus aún sin versionar (Fase 3).
+- **SIGUIENTE → cerrar Fase 2**: (4) instancia de Orbit (bloqueada por Fase 3 =
+  escribir sus docs); retirar los Pages actuales de Quark/Nucleus + redirects desde
+  ellos; pulir anclas/enlaces rotos heredados de las docs (son warnings, no bloquean).
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
