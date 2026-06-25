@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="docs/brand/quantum-mark.svg" alt="Quantum" width="88" height="88" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/quantum-mark-dark.svg" />
+    <img src="docs/brand/quantum-mark.svg" alt="Quantum" width="88" height="88" />
+  </picture>
 </p>
 
 # Quantum
@@ -27,10 +30,11 @@ uno, qué rol juega en la suite y cómo encajan.
 | **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.1.5` | [`quark/`](quark) | **Sí, en cualquier app Go** |
 | **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v0.1.0` | [`orbit/`](orbit) | No (requiere Nucleus) |
 
-Los nombres trazan un **átomo**, y cada uno encaja con su pieza: **Nucleus** es el
-**núcleo** (el framework anfitrión); **Quark**, la **partícula fundamental** (la
-capa de datos, usable suelta); y **Orbit**, lo que **orbita** alrededor (la
-administración que monta sobre Nucleus). **Quantum** es el conjunto.
+Los nombres vienen de la **física de partículas**: **Nucleus** es el **núcleo** (el
+framework anfitrión); **Quark**, la **partícula fundamental** (la capa de datos,
+usable suelta); y **Orbit**, lo que **orbita** el núcleo (la administración que
+monta sobre Nucleus). **Quantum** los fija como un solo **estado certificado** — un
+trío de versiones probadas juntas.
 
 ## Cómo encajan
 
