@@ -55,8 +55,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 - **Trabajo colateral hecho** (en el repo de Nucleus, no aquí): doc-sync de la
   extracción del admin a Orbit (Nucleus ADR-019) — PRs nucleus #164–#167 mergeados
   (README, scaffold, SPEC, guías). Esto NO cambió APIs.
-- **SIGUIENTE → Fase 2**: docs unificadas — Docusaurus multi-instancia en
-  `website/`, product switcher, doble selector de versión, deploy único en `/quantum/`.
+- **Fase 2 EN CURSO**: sitio Docusaurus unificado en `website/` (3.10.1, baseUrl
+  `/quantum/`). Hecho (pasos 1-2): esqueleto + dos instancias `plugin-content-docs`
+  que **ensamblan** las docs de Nucleus (`../nucleus/website/docs`) y Quark
+  (`../quark/website/docs`) — `npm run build` OK, sirve `/quantum/nucleus/` (20
+  págs) y `/quantum/quark/` (41 págs); product switcher + paleta de marca aplicados.
+  `node_modules/build/.docusaurus` gitignored.
+- **SIGUIENTE → seguir Fase 2**: (3) doble selector de versión + portar el histórico
+  versionado de Quark (tiene `versioned_docs`, 13 versiones); (4) instancia de Orbit
+  (depende de Fase 3: escribir sus docs); (5) deploy a GitHub Pages + redirects; y
+  pulir los broken-links (docs que enlazan a la raíz de su sección, sin índice).
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -76,7 +84,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `workspace_pins.nucleus` a ese tag y revisa si `modules.nucleus` sube. [QADR-0004]
 - **CI de integración**: aún no existe (llega en Fase 3); hoy el trío se verifica a
   mano con el `go build` de §1. `status: pre-fusion` en `versions.yaml` lo refleja.
-- **Sin remoto de docs unificado** todavía (Fase 2). El `website/` no existe aún.
+- **Docs unificadas (Fase 2) EN CURSO**: `website/` ya existe (Docusaurus 3.10.1) y
+  ensambla Nucleus+Quark; falta doble selector de versión, instancia de Orbit
+  (Fase 3) y el deploy/redirects. `cd website && npm install && npm run build`.
 
 ## 6. Cómo cerrar la sesión
 
