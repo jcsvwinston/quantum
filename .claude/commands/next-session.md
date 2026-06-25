@@ -61,9 +61,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   (`../quark/website/docs`) — `npm run build` OK, sirve `/quantum/nucleus/` (20
   págs) y `/quantum/quark/` (41 págs); product switcher + paleta de marca aplicados.
   `node_modules/build/.docusaurus` gitignored.
-- **Fase 2 paso 5 (deploy) ✅ configurado**: `.github/workflows/deploy.yml` publica
-  el sitio en GitHub Pages del repo (`/quantum/`) en cada push a `main` (checkout con
-  submódulos + `npm ci` + build). Pages del repo ya en modo Actions.
+- **Fase 2 paso 5 (deploy) ✅ LIVE**: el sitio está publicado en
+  https://jcsvwinston.github.io/quantum/ (`.github/workflows/deploy.yml`, Pages vía
+  Actions, checkout con submódulos). `/quantum/` y `/quantum/nucleus/` → 200.
+  `/quantum/quark/` (raíz) redirige a `/quantum/quark/intro` vía
+  `@docusaurus/plugin-client-redirects` (el intro de Quark no declara `slug: /`,
+  el de Nucleus sí; no se toca la fuente, QADR-0003). Aprendido: el PRIMER workflow
+  de un repo no se registra al añadirlo — hizo falta un segundo push (PR #9) para
+  que GitHub lo activara.
 - **SIGUIENTE → seguir Fase 2**: (3) doble selector de versión + histórico de Quark
   (13 versiones); (6) pulir broken-links (dar índice a la raíz de cada sección, vía
   `plugin-client-redirects` — no se toca la fuente); retirar los Pages actuales de

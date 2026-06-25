@@ -65,6 +65,16 @@ const config: Config = {
         editUrl: 'https://github.com/jcsvwinston/quark/edit/main/website/',
       },
     ],
+    [
+      // La instancia de Quark no genera su raíz (`/quark/`): el intro de Quark no
+      // declara `slug: /` (el de Nucleus sí), así que su raíz da 404 y a ella
+      // apuntan los enlaces "home" internos de sus docs. Redirigimos a la primera
+      // página, sin tocar la fuente de Quark (QADR-0003).
+      '@docusaurus/plugin-client-redirects',
+      {
+        redirects: [{from: '/quark', to: '/quark/intro'}],
+      },
+    ],
   ],
 
   themeConfig: {
