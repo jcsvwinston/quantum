@@ -58,7 +58,9 @@ export default function Home(): ReactNode {
       desc: 'Framework web MVC/REST, stdlib-first. Las apps montan sobre él; Orbit monta dentro.',
     },
     {
-      name: 'Quark', role: 'la capa de datos · suelto', ver: suite.quark, to: '/quark/',
+      // A /quark/intro/ (ruta real), no a /quark/ (la raíz de Quark es solo un
+      // redirect estático: 404 en navegación SPA). Ver docusaurus.config.ts.
+      name: 'Quark', role: 'la capa de datos · suelto', ver: suite.quark, to: '/quark/intro/',
       glyph: <QuarkGlyph />,
       desc: 'ORM type-safe para seis motores SQL. Usable en solitario en cualquier app Go.',
     },
@@ -94,7 +96,7 @@ export default function Home(): ReactNode {
           </div>
           <div className={styles.actions}>
             <Link className="button button--primary button--lg" to="/nucleus/">Nucleus&nbsp;→</Link>
-            <Link className="button button--secondary button--lg" to="/quark/">Quark&nbsp;→</Link>
+            <Link className="button button--secondary button--lg" to="/quark/intro/">Quark&nbsp;→</Link>
           </div>
         </div>
       </header>
