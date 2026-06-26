@@ -1,0 +1,52 @@
+name: CI de integración (trío Quantum)
+
+# Plano de CI "de integración" del paraguas (ver docs/ROADMAP.md §6): verifica que
+# el TRÍO fijado por los submódulos + go.work —el conjunto que versions.yaml
+# certifica— COMPILA y pasa `go vet` junto. No re-ejecuta la suite de cada producto
+# (eso vive en el CI por-repo de cada uno, p.ej. la matriz de 6 motores de Quark):
+# aquí solo se garantiza que el set declarado encaja. El root del workspace NO es un
+# módulo, por eso se usan patrones explícitos por producto.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Una corrida por rama; un push nuevo cancela la anterior en curso.
+concurrency:
+  group: integration-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Los seis módulos del go.work (el root no es módulo → patrones explícitos).
+  MODULES: ./quark/... ./nucleus/... ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/server/...
+
+jobs:
+  build:
+    name: build + vet del set fijado
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout (con submódulos — son el trío fijado)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go (versión declarada en go.work)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.work
+          cache-dependency-path: '**/go.sum'
+
+      - name: Trío fijado (traza de los pins frente a versions.yaml)
+        run: git submodule status
+
+      - name: Build del trío junto
+        run: go build $MODULES
+
+      - name: Vet del trío junto
+        run: go vet $MODULES
