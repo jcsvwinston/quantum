@@ -15,6 +15,7 @@ type Props = WrapperProps<typeof LogoType>;
 const PRODUCTS: ReadonlyArray<readonly [string, string]> = [
   ['/quark/', 'Quark'],
   ['/nucleus/', 'Nucleus'],
+  ['/orbit/', 'Orbit'],
 ];
 
 export default function NavbarLogoWrapper(props: Props): ReactNode {

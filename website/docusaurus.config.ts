@@ -23,7 +23,7 @@ const suite = {
 // que apunta al `website/docs` del submódulo correspondiente.
 //   - Nucleus → ../nucleus/website/docs   (sirve en /quantum/nucleus/)
 //   - Quark   → ../quark/website/docs      (sirve en /quantum/quark/)
-//   - Orbit   → pendiente: aún no tiene website/docs (se escribe en Fase 3).
+//   - Orbit   → ../orbit/website/docs      (sirve en /quantum/orbit/)
 const config: Config = {
   title: 'Quantum',
   tagline:
@@ -87,6 +87,16 @@ const config: Config = {
       },
     ],
     [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'orbit',
+        path: '../orbit/website/docs',
+        routeBasePath: 'orbit',
+        sidebarPath: './sidebarsOrbit.ts',
+        editUrl: 'https://github.com/jcsvwinston/orbit/edit/main/website/',
+      },
+    ],
+    [
       // La instancia de Quark no genera su raíz (`/quark/`): el intro de Quark no
       // declara `slug: /` (el de Nucleus sí), así que su raíz da 404 y a ella
       // apuntan los enlaces "home" internos de sus docs. Redirigimos a la primera
@@ -134,7 +144,12 @@ const config: Config = {
               docsPluginId: 'quark',
               label: `Quark · ORM · ${suite.quark}`,
             },
-            {label: `Orbit · admin · ${suite.orbit} (pronto)`, to: '/'},
+            {
+              type: 'docSidebar',
+              sidebarId: 'orbitSidebar',
+              docsPluginId: 'orbit',
+              label: `Orbit · admin · ${suite.orbit}`,
+            },
           ],
         },
         {
@@ -159,6 +174,7 @@ const config: Config = {
           items: [
             {label: 'Nucleus', to: '/nucleus/'},
             {label: 'Quark', to: '/quark/intro/'},
+            {label: 'Orbit', to: '/orbit/'},
           ],
         },
         {

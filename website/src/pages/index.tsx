@@ -65,9 +65,9 @@ export default function Home(): ReactNode {
       desc: 'ORM type-safe para seis motores SQL. Usable en solitario en cualquier app Go.',
     },
     {
-      name: 'Orbit', role: 'la administración · pronto', ver: suite.orbit, to: null,
+      name: 'Orbit', role: 'la administración', ver: suite.orbit, to: '/orbit/',
       glyph: <OrbitGlyph />,
-      desc: 'Panel de admin que monta in-process en Nucleus. Su documentación llega en una fase posterior.',
+      desc: 'Panel de admin que monta in-process en Nucleus: Data Studio, feed en vivo, sesiones, RBAC y métricas.',
     },
   ];
 

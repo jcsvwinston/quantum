@@ -4,7 +4,7 @@
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
 quantum: "0.1.0-dev"        # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-06-22
-status: pre-fusion          # aún sin CI de integración que verifique el set (llega en Fase 3)
+status: pre-fusion          # CI de integración ya en verde; falta certificar el trío (pines a tag) para Quantum 0.1.0
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 modules:
@@ -13,21 +13,26 @@ modules:
   orbit:   "v0.1.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work` compile
-# el trío. Coinciden con la versión publicada de `modules`, EXCEPTO nucleus:
-# Orbit v0.1.0 consume API de Nucleus (nucleus.EventBus, nucleus.SQLEvent)
-# introducida DESPUÉS de v0.9.0, y Nucleus aún no ha taggeado esa línea. Para que
-# el workspace compile, el submódulo nucleus se fija al commit exacto contra el
-# que se publicó Orbit v0.1.0 (la pseudo-version que Orbit pinea en su go.mod).
-# v0.9.0 sigue siendo la versión real PUBLICADA de Nucleus; el commit fijado es
-# pre-release de la futura v0.9.1.
+# el trío. Coinciden con la versión publicada de `modules`, EXCEPTO nucleus y orbit:
+# - Nucleus: Orbit v0.1.0 consume API de Nucleus (nucleus.EventBus, nucleus.SQLEvent)
+#   introducida DESPUÉS de v0.9.0, y Nucleus aún no ha taggeado esa línea. Para que
+#   el workspace compile, el submódulo nucleus se fija al commit exacto contra el
+#   que se publicó Orbit v0.1.0 (la pseudo-version que Orbit pinea en su go.mod).
+#   v0.9.0 sigue siendo la versión real PUBLICADA de Nucleus; el commit fijado es
+#   pre-release de la futura v0.9.1.
+# - Orbit: el pin va un commit por DELANTE de v0.1.0; ese commit solo añade las
+#   docs (website/docs) que el sitio unificado ensambla — el código Go es idéntico
+#   a v0.1.0, que sigue siendo la versión PUBLICADA (modules.orbit). Se limpiará a
+#   tag cuando Orbit saque su próximo release (con release-please, Fase 3).
 workspace_pins:
   quark:   "v1.1.5"                                  # = tag
   nucleus: "v0.9.1-0.20260621031917-8714882cc7f9"    # commit 8714882c (post-v0.9.0; lo exige Orbit v0.1.0)
-  orbit:   "v0.1.0"                                  # = tag
+  orbit:   "v0.1.1-0.20260626130546-de14c201d370"    # commit de14c20 = v0.1.0 + docs (código idéntico a v0.1.0)
 
 notes: >
   Trío declarado al crear el paraguas (Fase 0). Las versiones de `modules` son
   las reales publicadas de cada módulo; `workspace_pins` es lo que el go.work
   checkea para compilar. El primer set VERIFICADO por CI de integración será
   Quantum 0.1.0 en la Fase 3; ahí Nucleus taggeará la línea que Orbit ya consume
-  y `workspace_pins.nucleus` pasará a ser un tag igual que los otros dos.
+  y tanto `workspace_pins.nucleus` como `workspace_pins.orbit` pasarán a ser tags.
+  La CI de integración ya existe (.github/workflows/integration.yml, en verde).
