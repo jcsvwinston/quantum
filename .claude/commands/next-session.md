@@ -40,7 +40,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-06-24)
+## 3. Estado al cierre (2026-06-26)
 
 - **Fase 0 ✅ COMPLETA y mergeada** (PR #1): repo paraguas con `versions.yaml`,
   `go.work`, `README`, `LICENSE`, `QADR-0001..0004` y los tres productos como
@@ -77,9 +77,28 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   (de `versions.yaml`) + los tres pilares con su tag real, y selector de versión de
   Quark (Next + 13 versiones; el histórico se sincroniza en build desde su submódulo
   vía `website/sync-versions.mjs`, gitignored). Nucleus aún sin versionar (Fase 3).
-- **SIGUIENTE → cerrar Fase 2**: (4) instancia de Orbit (bloqueada por Fase 3 =
-  escribir sus docs); retirar los Pages actuales de Quark/Nucleus + redirects desde
-  ellos; pulir anclas/enlaces rotos heredados de las docs (son warnings, no bloquean).
+- **Fase 2 pulido ✅**: tema de marca (PR #12), navbar contextual «Quantum · Quark»
+  (swizzle de `@theme/Navbar/Logo`, PR #16), fix del 404 de Quark en navegación SPA
+  (PR #13) y enlace al sitio en el About del repo + README (PR #15).
+- **Fase 3 EN CURSO** (arrancada 2026-06-26):
+  - **(1) CI de integración ✅** (PR #17): `.github/workflows/integration.yml` hace
+    `go build`+`go vet` de los seis patrones del workspace tras checkout de
+    submódulos (el plano "de integración" del ROADMAP §6; sustituye la verificación
+    a mano). Verde en PR y en main.
+  - **(2) Docs de Orbit ✅** (orbit#1 + PR #18): primera instancia Docusaurus de
+    Orbit — 9 páginas (intro con `slug:/`, quick-start, configuration, features,
+    how-it-works + cluster/{overview,proto,agent,server}) desde sus READMEs, con los
+    paths de módulo corregidos a `github.com/jcsvwinston/orbit/...`. Montada como 3ª
+    sección: `/quantum/orbit/` live, navbar «Quantum · Orbit», pilar clicable. El
+    submódulo orbit pasó de `v0.1.0` a `de14c20` (= v0.1.0 + docs, código Go
+    idéntico) → `workspace_pins.orbit` es pseudo-version como nucleus; `modules.orbit`
+    sigue `v0.1.0`. Las docs de Orbit son `website/docs/` (sin sitio standalone).
+  - **(3) release-please** en Nucleus/Orbit — pendiente (toca productos, requiere OK).
+  - **(4) Quantum 0.1.0** certificado — pendiente: requiere que Nucleus taggee la
+    línea que Orbit consume, luego limpiar los pines de nucleus+orbit a tags y
+    cambiar el `status` de `versions.yaml`.
+- **Cleanup pendiente de Fase 2**: retirar los Pages actuales de Quark/Nucleus +
+  redirects; pulir anclas/enlaces rotos heredados (warnings); búsqueda (React 19).
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -97,8 +116,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   porque Orbit v0.1.0 lo exige. Cuando Nucleus **tague la línea que Orbit consume**
   (será v0.10.0 — la extracción del admin ya está en su `main`), actualiza
   `workspace_pins.nucleus` a ese tag y revisa si `modules.nucleus` sube. [QADR-0004]
-- **CI de integración**: aún no existe (llega en Fase 3); hoy el trío se verifica a
-  mano con el `go build` de §1. `status: pre-fusion` en `versions.yaml` lo refleja.
+- **CI de integración ✅**: `.github/workflows/integration.yml` (Fase 3, PR #17) hace
+  `go build`+`go vet` del trío en cada push/PR. `status: pre-fusion` sigue en
+  `versions.yaml` hasta certificar Quantum 0.1.0 (limpiar los pines a tag).
 - **Docs unificadas (Fase 2)**: `website/` (Docusaurus 3.10.1) ensambla Nucleus+Quark,
   con doble selector de versión, **tema de marca pulido (UI/UX)** y **deploy live** en
   https://jcsvwinston.github.io/quantum/. Pendiente: **búsqueda** (el plugin
