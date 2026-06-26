@@ -1,0 +1,26 @@
+/* Sufijo de producto junto al brand del navbar: «Quantum · Quark».
+   Mono y discreto (coherente con la marca); el separador en verde señal. */
+.product {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.4rem;
+  font-family: var(--ifm-font-family-monospace);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--ifm-navbar-link-color);
+  white-space: nowrap;
+}
+
+.sep {
+  color: var(--qtm-signal);
+  font-weight: 700;
+}
+
+@media (max-width: 480px) {
+  .product {
+    font-size: 0.8rem;
+    margin-left: 0.25rem;
+    gap: 0.25rem;
+  }
+}
