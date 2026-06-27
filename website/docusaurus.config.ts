@@ -17,6 +17,30 @@ const suite = {
   orbit: pick('orbit'),
 };
 
+// Reescribe, durante el ENSAMBLAJE, los enlaces absolutos `/docs/*` que la
+// fuente de Quark usa internamente (su routeBasePath standalone es `docs`, así
+// que `/docs/X` resuelve allí a `/quark/docs/X`). Aquí Quark se sirve bajo
+// `/quark/*`, donde esos enlaces caerían en `/quantum/docs/*` (404 + warning de
+// broken link + 404 en navegación SPA). El plugin opera sobre el AST en memoria
+// ANTES de los remark por defecto (que luego prefijan el baseUrl): el fichero
+// fuente del submódulo NO se toca (QADR-0003), pero las rutas emitidas son
+// reales (no un redirect estático), así que el checker de enlaces queda limpio y
+// la navegación SPA funciona. Los snapshots versionados llevan los mismos
+// enlaces absolutos sin versión: se reescriben a la doc ACTUAL de Quark, el
+// mismo comportamiento que tienen en el sitio standalone de Quark.
+function remarkQuarkDocsBase() {
+  return (tree: unknown): void => {
+    const visit = (node: any): void => {
+      if (!node || typeof node !== 'object') return;
+      if (node.type === 'link' && typeof node.url === 'string') {
+        node.url = node.url.replace(/^\/docs(\/|#|$)/, '/quark$1');
+      }
+      if (Array.isArray(node.children)) node.children.forEach(visit);
+    };
+    visit(tree);
+  };
+}
+
 // Sitio de documentación unificado de la suite Quantum (Fase 2).
 // ENSAMBLA las docs de cada producto desde su submódulo — la fuente NO sale de
 // cada repo (QADR-0003). Cada producto es una instancia de plugin-content-docs
@@ -38,15 +62,22 @@ const config: Config = {
   // Expone el trío de versions.yaml a las páginas (la portada lo usa en sus chips).
   customFields: {suite},
 
-  // Las docs vienen de otros repos: los enlaces/anclas/imágenes que asuman su
-  // baseUrl propio pueden no resolver aquí. No tumbamos el build por eso.
+  // Las docs vienen de otros repos. Los enlaces `/docs/*` de Quark se reescriben
+  // en el ensamblaje (remarkQuarkDocsBase), pero quedan anclas rotas HEREDADAS en
+  // los snapshots versionados CONGELADOS de Quark (p. ej. `#tx` en versiones
+  // 0.8–1.0 de reference/api/client): son historia inmutable de Quark — no se
+  // tocan (QADR-0003) y rotas están también en su sitio standalone. Por eso
+  // `onBrokenAnchors: 'warn'` (avisa, no tumba el build).
   onBrokenLinks: 'warn',
-  onBrokenMarkdownLinks: 'warn',
   onBrokenAnchors: 'warn',
 
   i18n: {defaultLocale: 'es', locales: ['es']},
 
-  markdown: {mermaid: true},
+  markdown: {
+    mermaid: true,
+    // Ubicación nueva en Docusaurus 3.10+ (el top-level está deprecado).
+    hooks: {onBrokenMarkdownLinks: 'warn'},
+  },
   // Búsqueda: pendiente. @easyops-cn/docusaurus-search-local rompe el SSR con
   // React 19 (Docusaurus 3.10). Reevaluar cuando el plugin lo soporte, o usar
   // Algolia DocSearch.
@@ -84,6 +115,9 @@ const config: Config = {
         routeBasePath: 'quark',
         sidebarPath: './sidebarsQuark.ts',
         editUrl: 'https://github.com/jcsvwinston/quark/edit/main/website/',
+        // Reescribe los enlaces `/docs/*` heredados de Quark a `/quark/*` (ver
+        // remarkQuarkDocsBase arriba). Solo la instancia de Quark lo necesita.
+        beforeDefaultRemarkPlugins: [remarkQuarkDocsBase],
       },
     ],
     [
