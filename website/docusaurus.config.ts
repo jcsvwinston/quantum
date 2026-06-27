@@ -78,10 +78,24 @@ const config: Config = {
     // Ubicación nueva en Docusaurus 3.10+ (el top-level está deprecado).
     hooks: {onBrokenMarkdownLinks: 'warn'},
   },
-  // Búsqueda: pendiente. @easyops-cn/docusaurus-search-local rompe el SSR con
-  // React 19 (Docusaurus 3.10). Reevaluar cuando el plugin lo soporte, o usar
-  // Algolia DocSearch.
-  themes: ['@docusaurus/theme-mermaid'],
+  // Búsqueda local offline (sin dependencia externa): indexa las tres instancias
+  // de docs. El plugin soporta React 19 desde v0.47.0; aquí 0.55.2 sobre
+  // Docusaurus 3.10. `en` + `es` porque las docs de Quark están en inglés y las
+  // de Nucleus/Orbit en español.
+  themes: [
+    '@docusaurus/theme-mermaid',
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: true,
+        language: ['en', 'es'],
+        docsRouteBasePath: ['nucleus', 'quark', 'orbit'],
+        indexBlog: false,
+        indexPages: false,
+        highlightSearchTermsOnTargetPage: true,
+      },
+    ],
+  ],
 
   presets: [
     [
@@ -100,7 +114,12 @@ const config: Config = {
     [
       '@docusaurus/plugin-content-docs',
       {
-        id: 'nucleus',
+        // id `default`: @easyops-cn/docusaurus-search-local asume una instancia de
+        // docs por defecto (su SearchBar y la página /search la requieren). Como
+        // usamos `docs: false` + instancias con id propio, designamos a Nucleus
+        // (la raíz host) como la default. No cambia su URL (routeBasePath sigue
+        // `nucleus`); solo el id del plugin.
+        id: 'default',
         path: '../nucleus/website/docs',
         routeBasePath: 'nucleus',
         sidebarPath: './sidebarsNucleus.ts',
@@ -169,7 +188,7 @@ const config: Config = {
             {
               type: 'docSidebar',
               sidebarId: 'nucleusSidebar',
-              docsPluginId: 'nucleus',
+              docsPluginId: 'default',
               label: `Nucleus · framework web · ${suite.nucleus}`,
             },
             {
