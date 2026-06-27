@@ -40,7 +40,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-06-26)
+## 3. Estado al cierre (2026-06-27)
 
 - **Fase 0 ✅ COMPLETA y mergeada** (PR #1): repo paraguas con `versions.yaml`,
   `go.work`, `README`, `LICENSE`, `QADR-0001..0004` y los tres productos como
@@ -97,8 +97,31 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   - **(4) Quantum 0.1.0** certificado — pendiente: requiere que Nucleus taggee la
     línea que Orbit consume, luego limpiar los pines de nucleus+orbit a tags y
     cambiar el `status` de `versions.yaml`.
-- **Cleanup pendiente de Fase 2**: retirar los Pages actuales de Quark/Nucleus +
-  redirects; pulir anclas/enlaces rotos heredados (warnings); búsqueda (React 19).
+- **Fase 2 cleanup** (sesión 2026-06-27, foco elegido por Carlos):
+  - **Enlaces rotos heredados ✅** (PR #20): las docs de Quark enlazan en absoluto a
+    `/docs/*` (su routeBasePath standalone es `docs`); en el unificado Quark vive en
+    `/quark/*`, así que caían en `/quantum/docs/*` → 80 enlaces rotos + 404 en SPA. Un
+    remark plugin (`remarkQuarkDocsBase`) los reescribe a `/quark/*` en el ENSAMBLAJE
+    (AST en memoria, antes de los remark por defecto): no toca la fuente (QADR-0003) y
+    emite rutas reales → 80→0 y SPA OK. De paso, `onBrokenMarkdownLinks` movido a
+    `markdown.hooks` (deprecation 2→0). Quedan 8 ANCLAS rotas en snapshots versionados
+    CONGELADOS de Quark (`#tx`, `#raw-sql`): historia inmutable, rotas también en su
+    sitio standalone; `onBrokenAnchors: 'warn'`.
+  - **Búsqueda local ✅** (PR #21, apilado sobre #20): el bloqueo NO era el SSR de
+    React 19 (la nota previa estaba desfasada: el plugin lo soporta desde v0.47.0; aquí
+    0.55.2). Era que `@easyops-cn/docusaurus-search-local` asume una instancia de docs
+    `default` y usamos `docs:false` + 3 instancias con id propio → fallaba la SSG de /,
+    /search y /404. Solución: Nucleus pasa a `id: 'default'` (sin cambio de URL ni de
+    navbar; el swizzle detecta por segmento de ruta). Offline, sin dependencia externa;
+    el índice cubre las 3 instancias (nucleus 14 + quark 41 + orbit 8 = 63 rutas) + un
+    índice por versión de Quark.
+  - **Retirar los Pages de Quark/Nucleus + redirects — PENDIENTE**: plan documentado en
+    `docs/RETIRE_PRODUCT_PAGES.md` (mapa de URLs + redirector index.html/404.html +
+    cambio de workflow por repo). Toca repos de PRODUCTO y es outward-facing → lo
+    ejecuta el responsable en sus sesiones, no en quantum.
+  - **Hueco de CI anotado**: no hay check que construya `website/` en PRs (solo
+    `integration.yml` Go + `deploy.yml` en main); un sitio roto se vería al desplegar.
+    Posible job `npm run build` en PRs que toquen `website/`.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -119,12 +142,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 - **CI de integración ✅**: `.github/workflows/integration.yml` (Fase 3, PR #17) hace
   `go build`+`go vet` del trío en cada push/PR. `status: pre-fusion` sigue en
   `versions.yaml` hasta certificar Quantum 0.1.0 (limpiar los pines a tag).
-- **Docs unificadas (Fase 2)**: `website/` (Docusaurus 3.10.1) ensambla Nucleus+Quark,
-  con doble selector de versión, **tema de marca pulido (UI/UX)** y **deploy live** en
-  https://jcsvwinston.github.io/quantum/. Pendiente: **búsqueda** (el plugin
-  `@easyops-cn/docusaurus-search-local` rompe el SSR con React 19 — reevaluar o usar
-  Algolia DocSearch), instancia de Orbit (Fase 3), retirar los Pages de los productos
-  + redirects. `cd website && npm install && npm run build`.
+- **Docs unificadas (Fase 2)**: `website/` (Docusaurus 3.10.1) ensambla los TRES
+  productos, con doble selector de versión, **tema de marca pulido (UI/UX)**,
+  **búsqueda local offline** (PR #21) y **deploy live** en
+  https://jcsvwinston.github.io/quantum/. Enlaces `/docs/*` heredados de Quark
+  reescritos en el ensamblaje (PR #20). Pendiente: retirar los Pages standalone de
+  Quark/Nucleus + redirects (plan en `docs/RETIRE_PRODUCT_PAGES.md`; toca repos de
+  producto) y el hueco de CI de website en PRs. `cd website && npm install && npm run build`.
 
 ## 6. Cómo cerrar la sesión
 
