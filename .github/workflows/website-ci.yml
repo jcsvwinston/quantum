@@ -1,0 +1,51 @@
+name: Website CI
+
+# Construye el sitio Docusaurus (website/) en cada PR que lo toque, para detectar
+# roturas ANTES del deploy. Hasta ahora solo deploy.yml (en push a main) construía
+# el sitio, así que un cambio roto solo se veía al desplegar tras merge. Mismos
+# pasos de build que deploy.yml (checkout con submódulos — el sitio ENSAMBLA sus
+# docs desde cada repo, QADR-0003 —, Node 20, npm ci, npm run build), sin publicar
+# nada. El build sale 0 con los warnings heredados (onBrokenLinks/Anchors: 'warn'),
+# así que el check solo falla ante roturas reales (config, deps, SSG).
+
+on:
+  pull_request:
+    paths:
+      - 'website/**'
+      - 'versions.yaml'        # la config lee ../versions.yaml en build-time
+      - '.github/workflows/website-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# En PRs, cancela runs superados por un push nuevo a la misma rama.
+concurrency:
+  group: website-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (Docusaurus)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout (con submódulos — el sitio ensambla sus docs)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install (npm ci, desde el lock)
+        working-directory: website
+        run: npm ci
+
+      - name: Build
+        working-directory: website
+        run: npm run build
