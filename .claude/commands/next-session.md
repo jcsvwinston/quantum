@@ -119,9 +119,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
     `docs/RETIRE_PRODUCT_PAGES.md` (mapa de URLs + redirector index.html/404.html +
     cambio de workflow por repo). Toca repos de PRODUCTO y es outward-facing → lo
     ejecuta el responsable en sus sesiones, no en quantum.
-  - **Hueco de CI anotado**: no hay check que construya `website/` en PRs (solo
-    `integration.yml` Go + `deploy.yml` en main); un sitio roto se vería al desplegar.
-    Posible job `npm run build` en PRs que toquen `website/`.
+  - **Hueco de CI ✅** (PR #23): `.github/workflows/website-ci.yml` construye
+    `website/` (mismos pasos que deploy.yml: checkout con submódulos, Node 20,
+    `npm ci`, `npm run build`; sin publicar) en PRs que toquen `website/` o
+    `versions.yaml`; verde en CI. Antes solo `deploy.yml` (en push a main) lo
+    construía → un sitio roto solo se veía al desplegar tras merge.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -146,9 +148,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   productos, con doble selector de versión, **tema de marca pulido (UI/UX)**,
   **búsqueda local offline** (PR #21) y **deploy live** en
   https://jcsvwinston.github.io/quantum/. Enlaces `/docs/*` heredados de Quark
-  reescritos en el ensamblaje (PR #20). Pendiente: retirar los Pages standalone de
+  reescritos en el ensamblaje (PR #20). CI de PR: `website-ci.yml` (PR #23) construye
+  el sitio en PRs que lo toquen. Pendiente: retirar los Pages standalone de
   Quark/Nucleus + redirects (plan en `docs/RETIRE_PRODUCT_PAGES.md`; toca repos de
-  producto) y el hueco de CI de website en PRs. `cd website && npm install && npm run build`.
+  producto). `cd website && npm install && npm run build`.
 
 ## 6. Cómo cerrar la sesión
 
