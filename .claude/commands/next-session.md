@@ -40,7 +40,33 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-06-27)
+## 3. Estado al cierre (2026-07-01)
+
+### Sesión 2026-07-01 — decisiones de secuenciación e integración (planificación, sin código)
+
+Sesión de análisis/planificación (Cowork). NO se tocó código de productos; se
+redactaron decisiones y se dejó el foco listo para la siguiente sesión de código.
+Registrado en:
+
+- **[QADR-0005](../../docs/adr/QADR-0005-secuenciacion-convergencia.md)** —
+  Secuenciación: **Nucleus a v1.0 primero**, Orbit en lockstep como arnés de
+  dogfooding; Quark converge por el paraguas (no entra en el grafo de
+  dependencias). Es el orden de trabajo hacia Quantum 1.0 (Fase 5).
+- **[QADR-0006](../../docs/adr/QADR-0006-integracion-quark-orbit.md)** —
+  Integración Quark↔Orbit: feed SQL en tiempo real (puente `quark.Middleware` →
+  bus de Nucleus; OTel en paralelo) y Data Studio sobre Quark. Encaja en Fase 4.
+- **[orbit/ADR-001](../../orbit/docs/adrs/ADR-001-datastudio-agnostic-datasource.md)**
+  — Data Studio agnóstico del origen (contrato `datasource`); decisión interna de
+  Orbit, se congela en su v1.0.
+
+**Foco propuesto para la próxima sesión de código** (tres work-items en §5, todos
+en repos de PRODUCTO, no aquí): el desbloqueante es el **ingest SQL público en
+Nucleus** (habilita el Caso 1); el desacople `datasource` de Orbit (ADR-001) puede
+ir en paralelo. Nada de esto bloquea la Fase 2/3 en curso.
+
+---
+
+**Contexto previo (cierre 2026-06-27):**
 
 - **Fase 0 ✅ COMPLETA y mergeada** (PR #1): repo paraguas con `versions.yaml`,
   `go.work`, `README`, `LICENSE`, `QADR-0001..0004` y los tres productos como
@@ -136,6 +162,25 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 | 5 | **Convergencia Quantum 1.0**: Nucleus y Orbit a v1.0, régimen de majors en lockstep | Los tres en major 1 bajo un manifiesto Quantum 1.0 |
 
 ## 5. Pendientes técnicos anotados (revísalos cuando apliquen)
+
+**Integración Quark↔Orbit y convergencia (nuevos 2026-07-01 — QADR-0005/0006, orbit/ADR-001; toca repos de PRODUCTO):**
+
+- **[Nucleus] Exponer un *ingest* SQL público** en la superficie del
+  `Runtime`/`EventBus` (`EmitSQL(SQLEvent)` o un accessor del `*observability.Bus`).
+  `observability.Bus.Emit` ya existe (`nucleus/pkg/observability/bus.go`); falta
+  destaparlo. **Desbloquea el Caso 1.** Va en el repo de Nucleus con su propio ADR
+  (`docs/adrs/ADR-NNN`). [QADR-0006]
+- **[Orbit] `orbit/quarkbridge`** — módulo opt-in nuevo: un `quark.Middleware`
+  ctx-aware que mapea `QueryEvent`→evento SQL y lo emite en el bus de Nucleus (que
+  Orbit ya drena). Respeta la `RedactionMode` de Quark. Depende del ingest de
+  Nucleus. [QADR-0006, Caso 1]
+- **[Orbit] Desacople `datasource` de Data Studio** — contrato neutral
+  `ModelSource`/`RecordStore`/`DataSource`; `NewPanel` deja de tomar tipos de
+  Nucleus; adaptador Nucleus ahora, adaptador Quark después. Se congela en el v1.0
+  de Orbit. Mapa de superficie (archivo:línea) y preguntas O1–O3 en el ADR.
+  [orbit/docs/adrs/ADR-001]
+- **[Suite] Secuenciación**: no arrancar el freeze de Orbit sobre la
+  pseudo-version de Nucleus; Nucleus→v1.0 primero, Orbit en lockstep. [QADR-0005]
 
 - **Pin de Nucleus**: hoy `workspace_pins.nucleus = 8714882c` (pre-release de v0.9.1)
   porque Orbit v0.1.0 lo exige. Cuando Nucleus **tague la línea que Orbit consume**

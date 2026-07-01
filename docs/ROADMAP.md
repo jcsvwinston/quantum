@@ -194,14 +194,20 @@ No toca el código de ningún producto.
 
 ---
 
-## 9. ADRs a redactar en `quantum/docs/adr/`
+## 9. ADRs de la suite (`quantum/docs/adr/`)
 
-Para no reabrir lo ya decidido sin un sucesor (mismo criterio que Quark):
+Para no reabrir lo ya decidido sin un sucesor (mismo criterio que Quark).
+Redactados en Fase 0 (QADR-0001…0004); ampliados el 2026-07-01 con 0005 y 0006:
 
 - **QADR-0001** — Multi-repo + paraguas de coordinación (no monorepo).
 - **QADR-0002** — Versionado en dos niveles: módulos independientes, suite coordina majors.
 - **QADR-0003** — Docs: sitio único que ensambla, fuente en cada repo (preserva ADR-0008 de Quark).
 - **QADR-0004** — `versions.yaml` como manifiesto de releases Quantum.
+- **QADR-0005** — Secuenciación: Nucleus a v1.0 primero, Orbit en lockstep como arnés de dogfooding.
+- **QADR-0006** — Integración Quark↔Orbit: feed SQL en tiempo real (bus + OTel) y Data Studio sobre Quark.
+
+Decisiones internas de producto: en el repo de cada uno (p. ej.
+`orbit/docs/adrs/ADR-001` — Data Studio agnóstico del origen de datos).
 
 ---
 
@@ -213,3 +219,18 @@ Para no reabrir lo ya decidido sin un sucesor (mismo criterio que Quark):
 4. Decidir el nombre/dominio del sitio unificado (`/quantum/` en `jcsvwinston.github.io` o dominio propio) para arrancar Fase 2.
 
 > Nota de alcance: este documento es el plan. La ejecución de la Fase 0 (crear el repo, el manifiesto y el `go.work`) puede empezar sin tocar una sola línea de Quark, Nucleus u Orbit.
+
+---
+
+## 11. Secuenciación e integración Quark↔Orbit (addendum 2026-07-01)
+
+Con la Fase 0 hecha y el trío al día, se fija el **orden de trabajo** hacia Quantum 1.0 y la **integración de Quark** en la suite. Detalle en los QADR; resumen:
+
+**Secuenciación ([QADR-0005](adr/QADR-0005-secuenciacion-convergencia.md)).** Nucleus se lleva a v1.0 (freeze de API) *antes* que Orbit, porque Orbit está aguas abajo: consume 15 paquetes de Nucleus y lo fija por *pseudo-version* (ver `versions.yaml`). Orbit se desarrolla **en lockstep** como arnés de dogfooding que valida el freeze, no en serie. Quark converge por el paraguas (ya es major 1, autónomo), no por el grafo de dependencias. El camino de Nucleus a v1.0 ya está en marcha (sus `docs/adrs/ADR-014/015/018` cierran bloqueadores conocidos).
+
+**Integración Quark↔Orbit ([QADR-0006](adr/QADR-0006-integracion-quark-orbit.md)).** Dos casos:
+
+- *Feed SQL en tiempo real* — un `quark.Middleware` ctx-aware publica las sentencias que ejecuta Quark en el bus de Nucleus (que Orbit ya drena). Prerrequisito: Nucleus expone un *ingest* SQL público (`observability.Bus.Emit` ya existe por dentro; falta destaparlo en la superficie del `Runtime`). OTel en paralelo para el trazado durable. Puente en módulo opt-in `orbit/quarkbridge`, fuera de los cores.
+- *Data Studio sobre Quark* — el panel de Orbit se desacopla de los tipos de Nucleus con un contrato neutral (`datasource`, ver [`orbit/docs/adrs/ADR-001`](../orbit/docs/adrs/ADR-001-datastudio-agnostic-datasource.md)); un adaptador Quark lo implementa después. Se congela en el v1.0 de Orbit.
+
+Esto no rompe §8: Quark sigue usable en solitario, las versiones siguen siendo honestas, y el puente vive fuera de los cores de Quark y de Nucleus.
