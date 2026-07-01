@@ -42,6 +42,33 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-01)
 
+### Sesión 2026-07-01 (código) — ingest SQL público en Nucleus ✅ (PR abierto, sin fusionar)
+
+Se implementó el work-item **desbloqueante** de §5 (el que habilita el Caso 1 de
+[QADR-0006](../../docs/adr/QADR-0006-integracion-quark-orbit.md)). Trabajo en el
+repo de PRODUCTO **Nucleus** (no en el paraguas):
+
+- **`EventBus.EmitSQL(SQLEvent)`** — lado emisor que faltaba en la superficie del
+  `Runtime`. La `EventBus` que devuelve `Runtime.Observability()` era solo
+  suscripción; ahora un productor externo (p. ej. `orbit/quarkbridge`) puede
+  publicar una sentencia SQL en el mismo bus que Orbit ya drena vía
+  `SubscribeSQL()`. Helper `fromSQLEvent` (inverso de `toSQLEvent`); método
+  **aditivo** (nadie implementa la interfaz, solo la recibe) → sin ruptura.
+  Registrado en Nucleus como **ADR-020**; baseline de contrato regenerado.
+- **PR: `jcsvwinston/nucleus` #168** (rama `feat/eventbus-emitsql-ingest`), **sin
+  fusionar**. Pasó `/code-review` (un hallazgo menor —fuga en bus nil— corregido).
+- **Superficie del `Runtime` → gate de v1.0 de Nucleus** ([QADR-0005]). Secuenciación:
+  no arranca `orbit/quarkbridge` hasta que #168 se fusione y Nucleus taggee la línea
+  que lo habilita (hoy Orbit fija Nucleus por pseudo-version, ver `versions.yaml`).
+
+**Foco siguiente sugerido:** fusionar #168 y decidir la ruta de tag/pin
+(QADR-0004/0005); en paralelo, el desacople `datasource` de Orbit (orbit/ADR-001),
+independiente del ingest. `orbit/quarkbridge` queda bloqueado hasta el tag.
+
+Aparte, esta sesión **fijó a `main` del paraguas** las QADR-0005/0006 y las
+referencias del roadmap/índice que la sesión de planificación había dejado sin
+commitear.
+
 ### Sesión 2026-07-01 — decisiones de secuenciación e integración (planificación, sin código)
 
 Sesión de análisis/planificación (Cowork). NO se tocó código de productos; se
