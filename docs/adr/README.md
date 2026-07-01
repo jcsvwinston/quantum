@@ -16,6 +16,8 @@
 | [QADR-0002](QADR-0002-versionado-dos-niveles.md) | Versionado en dos niveles — módulos independientes, suite coordina majors | Accepted | Fase 0 / Fase 5 |
 | [QADR-0003](QADR-0003-docs-sitio-unico-fuente-en-repos.md) | Docs: sitio único que ensambla, fuente en cada repo | Accepted | Fase 2 |
 | [QADR-0004](QADR-0004-versions-yaml-manifiesto.md) | `versions.yaml` como manifiesto de releases Quantum | Accepted | Fase 0 / Fase 3 |
+| [QADR-0005](QADR-0005-secuenciacion-convergencia.md) | Secuenciación de convergencia — Nucleus a v1.0 primero, Orbit en lockstep | Accepted | Fase 5 |
+| [QADR-0006](QADR-0006-integracion-quark-orbit.md) | Integración Quark↔Orbit — feed SQL en tiempo real y Data Studio sobre Quark | Accepted | Fase 4 |
 
 ## Cómo añadir un QADR nuevo
 
