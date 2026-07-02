@@ -12,5 +12,6 @@ use (
 	./orbit
 	./orbit/agent
 	./orbit/proto
+	./orbit/quarkbridge
 	./orbit/server
 )

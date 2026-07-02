@@ -14,20 +14,19 @@ modules:
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work` compile
 # el trío. Coinciden con la versión publicada de `modules`, EXCEPTO nucleus y orbit:
-# - Nucleus: Orbit v0.1.0 consume API de Nucleus (nucleus.EventBus, nucleus.SQLEvent)
-#   introducida DESPUÉS de v0.9.0, y Nucleus aún no ha taggeado esa línea. Para que
-#   el workspace compile, el submódulo nucleus se fija al commit exacto contra el
-#   que se publicó Orbit v0.1.0 (la pseudo-version que Orbit pinea en su go.mod).
-#   v0.9.0 sigue siendo la versión real PUBLICADA de Nucleus; el commit fijado es
-#   pre-release de la futura v0.9.1.
-# - Orbit: el pin va un commit por DELANTE de v0.1.0; ese commit solo añade las
-#   docs (website/docs) que el sitio unificado ensambla — el código Go es idéntico
-#   a v0.1.0, que sigue siendo la versión PUBLICADA (modules.orbit). Se limpiará a
-#   tag cuando Orbit saque su próximo release (con release-please, Fase 3).
+# - Nucleus: fijado al main que expone el ingest SQL público (EventBus.EmitSQL,
+#   su ADR-020) + el bump de seguridad de pgx (GO-2026-5004). Es la línea que
+#   orbit/quarkbridge requiere en su go.mod. v0.9.0 sigue siendo la versión real
+#   PUBLICADA; el commit fijado es pre-release de la futura v0.9.1/v0.10.0.
+# - Orbit: fijado al main que trae los dos work-items de QADR-0006 fusionados:
+#   quarkbridge (feed SQL Quark→bus, Caso 1) y el contrato datasource de Data
+#   Studio (su ADR-001, prerrequisito del Caso 2). v0.1.0 sigue siendo la versión
+#   PUBLICADA (modules.orbit). Ambos pines se limpiarán a tag cuando cada producto
+#   corte release (release-please, Fase 3).
 workspace_pins:
   quark:   "v1.1.5"                                  # = tag
-  nucleus: "v0.9.1-0.20260621031917-8714882cc7f9"    # commit 8714882c (post-v0.9.0; lo exige Orbit v0.1.0)
-  orbit:   "v0.1.1-0.20260626130546-de14c201d370"    # commit de14c20 = v0.1.0 + docs (código idéntico a v0.1.0)
+  nucleus: "v0.9.1-0.20260701170204-a46fad0ec1e3"    # commit a46fad0e (EmitSQL ADR-020 + pgx v5.9.2)
+  orbit:   "v0.1.1-0.20260702164514-782b388c93f8"    # commit 782b388 (quarkbridge + datasource ADR-001)
 
 notes: >
   Trío declarado al crear el paraguas (Fase 0). Las versiones de `modules` son
