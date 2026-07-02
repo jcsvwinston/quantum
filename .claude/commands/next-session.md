@@ -40,7 +40,49 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-01)
+## 3. Estado al cierre (2026-07-02)
+
+### Sesión 2026-07-02 — QADR-0006 completo en los productos + coordinación del paraguas
+
+Las TRES piezas de la integración Quark↔Orbit quedaron **fusionadas en los mains
+de producto**, y el paraguas se puso al día:
+
+- **[Nucleus] `EventBus.EmitSQL` ✅ MERGEADO** (nucleus#168, ADR-020) — el ingest
+  SQL público en la superficie del `Runtime`. De camino, **nucleus#169**: bump de
+  seguridad `jackc/pgx/v5 v5.5.5→v5.9.2` (GO-2026-5004, el Required Gate de su CI
+  estaba en rojo por la advisory; era preexistente, se aisló en PR propio).
+  Nucleus main = `a46fad0e`.
+- **[Orbit] `orbit/quarkbridge` ✅ MERGEADO** (orbit#2) — módulo opt-in con
+  `go.mod` propio: `quark.Middleware` ctx-aware que cronometra cada sentencia,
+  mapea a `nucleus.SQLEvent` (correlación RequestID/TraceID/UserID desde el ctx
+  vía `pkg/observe`) y publica con `EmitSQL`. Redacción por defecto espejo de la
+  de Nucleus; `WithRedaction(IncludeArgs)` opt-in. **Caso 1 de QADR-0006 cerrado**
+  (falta solo la demo viva de Fase 4). OTel sigue siendo complementario.
+- **[Orbit] Data Studio agnóstico ✅ MERGEADO** (orbit#3, su ADR-001 → accepted) —
+  contrato `internal/datasource` (`ModelSource`/`RecordStore`/`DataSource` +
+  `ModelInfo`/`FieldInfo`/`Query`/`Page`/`Record`) + adaptador Nucleus;
+  `NewPanel(src datasource.DataSource, …)`; O1–O3 confirmados (O3: el envelope
+  `Page` serializa idéntico al `PaginatedResult` nativo, SPA intacta, con test).
+  Sin doble registro. Excepciones documentadas: field-meta editor
+  (`cfg.SchemaRegistry`) y el sink del feed live. **Prerrequisito del Caso 2
+  listo**: el adaptador Quark implementará el mismo contrato. Orbit main = `782b388`.
+- **[Paraguas] Coordinación** (esta sesión, PR en quantum): submódulos bumpeados a
+  esos mains, `workspace_pins` actualizados (pseudo-versions nuevas; `modules.*`
+  sin cambio — nada taggeado aún), `./orbit/quarkbridge` añadido al `go.work` y al
+  patrón del CI de integración (7 módulos).
+
+**Foco siguiente sugerido:**
+1. **Adaptador Quark del Caso 2** (repo orbit; módulo aparte tipo quarkbridge que
+   implemente `datasource.DataSource` sobre `*quark.Client` + introspección) — el
+   contrato ya está congelable y probado con la implementación Nucleus.
+2. **Fase 3 (3)-(4)**: release-please en Nucleus/Orbit y el primer tag de la línea
+   nueva de Nucleus → limpiar `workspace_pins` a tags, repin de
+   `quarkbridge/go.mod` a tag, certificar **Quantum 0.1.0** (`status` de
+   `versions.yaml`).
+3. La **demo Fase 4** (app Nucleus+Quark+Orbit con el puente cableado) valida el
+   Caso 1 end-to-end en cuanto exista el ejemplo.
+
+---
 
 ### Sesión 2026-07-01 (código) — ingest SQL público en Nucleus ✅ (PR abierto, sin fusionar)
 
@@ -190,24 +232,20 @@ ir en paralelo. Nada de esto bloquea la Fase 2/3 en curso.
 
 ## 5. Pendientes técnicos anotados (revísalos cuando apliquen)
 
-**Integración Quark↔Orbit y convergencia (nuevos 2026-07-01 — QADR-0005/0006, orbit/ADR-001; toca repos de PRODUCTO):**
+**Integración Quark↔Orbit y convergencia (QADR-0005/0006, orbit/ADR-001; toca repos de PRODUCTO):**
 
-- **[Nucleus] Exponer un *ingest* SQL público** en la superficie del
-  `Runtime`/`EventBus` (`EmitSQL(SQLEvent)` o un accessor del `*observability.Bus`).
-  `observability.Bus.Emit` ya existe (`nucleus/pkg/observability/bus.go`); falta
-  destaparlo. **Desbloquea el Caso 1.** Va en el repo de Nucleus con su propio ADR
-  (`docs/adrs/ADR-NNN`). [QADR-0006]
-- **[Orbit] `orbit/quarkbridge`** — módulo opt-in nuevo: un `quark.Middleware`
-  ctx-aware que mapea `QueryEvent`→evento SQL y lo emite en el bus de Nucleus (que
-  Orbit ya drena). Respeta la `RedactionMode` de Quark. Depende del ingest de
-  Nucleus. [QADR-0006, Caso 1]
-- **[Orbit] Desacople `datasource` de Data Studio** — contrato neutral
-  `ModelSource`/`RecordStore`/`DataSource`; `NewPanel` deja de tomar tipos de
-  Nucleus; adaptador Nucleus ahora, adaptador Quark después. Se congela en el v1.0
-  de Orbit. Mapa de superficie (archivo:línea) y preguntas O1–O3 en el ADR.
-  [orbit/docs/adrs/ADR-001]
-- **[Suite] Secuenciación**: no arrancar el freeze de Orbit sobre la
-  pseudo-version de Nucleus; Nucleus→v1.0 primero, Orbit en lockstep. [QADR-0005]
+- **[Nucleus] Ingest SQL público ✅ HECHO** (2026-07-01, nucleus#168, ADR-020):
+  `EventBus.EmitSQL(SQLEvent)` en la superficie del `Runtime`. [QADR-0006]
+- **[Orbit] `orbit/quarkbridge` ✅ HECHO** (2026-07-02, orbit#2): módulo opt-in,
+  `quark.Middleware` ctx-aware → `EmitSQL`. Redacción por defecto. Queda su
+  validación end-to-end en la demo de Fase 4. [QADR-0006, Caso 1]
+- **[Orbit] Desacople `datasource` de Data Studio ✅ HECHO** (2026-07-02, orbit#3,
+  ADR-001 accepted): contrato neutral + adaptador Nucleus; O1–O3 confirmados, SPA
+  intacta. **Siguiente: adaptador Quark** (módulo aparte) → Data Studio sobre
+  modelos Quark. [QADR-0006, Caso 2]
+- **[Suite] Secuenciación** (sigue vigente): no arrancar el freeze de Orbit sobre
+  la pseudo-version de Nucleus; Nucleus→v1.0 primero, Orbit en lockstep. Las
+  interfaces `datasource` se congelan en el v1.0 de Orbit. [QADR-0005]
 
 - **Pin de Nucleus**: hoy `workspace_pins.nucleus = 8714882c` (pre-release de v0.9.1)
   porque Orbit v0.1.0 lo exige. Cuando Nucleus **tague la línea que Orbit consume**
