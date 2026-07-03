@@ -22,11 +22,12 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Los ocho módulos del go.work (el root no es módulo → patrones explícitos).
+  # Los nueve módulos del go.work (el root no es módulo → patrones explícitos).
   # quarkbridge (QADR-0006 Caso 1) y quarkdatasource (Caso 2) son los módulos
   # opt-in que cruzan productos — dependen de Quark Y de Nucleus/Orbit — así que
-  # son los patrones que más valor sacan de este plano de integración.
-  MODULES: ./quark/... ./nucleus/... ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/quarkbridge/... ./orbit/quarkdatasource/... ./orbit/server/...
+  # son los patrones que más valor sacan de este plano; showcase_demo (Fase 4)
+  # es la app que ejerce los TRES productos juntos con ambos puentes cableados.
+  MODULES: ./quark/... ./nucleus/... ./nucleus/examples/showcase_demo/... ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/quarkbridge/... ./orbit/quarkdatasource/... ./orbit/server/...
 
 jobs:
   build:

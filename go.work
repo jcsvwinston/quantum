@@ -9,6 +9,7 @@ go 1.26.4
 use (
 	./quark
 	./nucleus
+	./nucleus/examples/showcase_demo
 	./orbit
 	./orbit/agent
 	./orbit/proto

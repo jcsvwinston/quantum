@@ -42,6 +42,43 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-03)
 
+### Sesión 2026-07-03 — showcase de Fase 4 ✅ (QADR-0006 demostrado en vivo)
+
+- **[Nucleus] `examples/showcase_demo` ✅ MERGEADO** (nucleus#170): repuesto el
+  showcase de la suite (ROADMAP Fase 4, "reponer"; el original se borró en
+  `2aa216dc`), reconstruido sobre el stack actual — app Nucleus (builder fluent
+  + módulos) con dominio en Quark y Orbit montado, **ambos puentes cableados**:
+  el módulo `shop` deriva en `OnStart` un cliente con `quarkbridge` (Caso 1) y
+  Data Studio corre sobre `quarkdatasource` vía `orbit.Config.DataSource`
+  (Caso 2). `go.mod` propio (Quark/Orbit fuera del graph del framework); dos
+  modelos (`Author`, `Article` belongs_to); sqlite compartido; `WithOpenAuthz()`
+  para la API pública del demo. **Validado EN VIVO**: el snapshot del feed live
+  muestra el SQL de Quark con `request_id` y args redactados; Data Studio
+  cataloga con counts reales, sirve el envelope correcto, y un registro creado
+  en `/admin` aparece por la API pública. Nucleus main = `d9656cb8`.
+- **[Paraguas] Coordinación** (este PR): submódulo nucleus → `d9656cb8`,
+  `workspace_pins.nucleus` actualizado, `./nucleus/examples/showcase_demo`
+  añadido al `go.work` y al CI de integración (9 módulos) → **el CI ejerce los
+  tres productos juntos: los dos criterios de Fase 4 quedan cumplidos**.
+- Matiz documentado (go.mod/README del showcase): el ejemplo se construye desde
+  el workspace de la suite; la resolución standalone por proxy se desbloquea
+  cuando Orbit corte su primer tag (el `replace` intra-repo de quarkdatasource
+  no propaga a consumidores).
+
+**Foco siguiente sugerido:**
+1. **Fase 3 (3)-(4)** — el único bloque grande abierto: release-please en
+   Nucleus/Orbit; primer tag de Nucleus (línea EmitSQL+showcase) y de Orbit
+   (datasource+puentes) → limpiar `workspace_pins` a tags, repin de
+   `quarkbridge/quarkdatasource/showcase` a tags, certificar **Quantum 0.1.0**
+   (`status` de `versions.yaml`).
+2. Pendiente menor de Fase 2: retirar Pages standalone de Quark/Nucleus
+   (`docs/RETIRE_PRODUCT_PAGES.md`).
+3. Con 0.1.0 certificado, la Fase 5 (convergencia v1.0) queda como el arco
+   largo (QADR-0005: Nucleus primero, Orbit en lockstep; freeze de `datasource`
+   en el v1.0 de Orbit).
+
+---
+
 ### Sesión 2026-07-02/03 — Caso 2 cerrado (quarkdatasource) + coordinación
 
 **QADR-0006 queda implementado al completo** (ambos casos en el main de orbit);
