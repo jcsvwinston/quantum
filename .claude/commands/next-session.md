@@ -40,7 +40,46 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-02)
+## 3. Estado al cierre (2026-07-03)
+
+### Sesión 2026-07-02/03 — Caso 2 cerrado (quarkdatasource) + coordinación
+
+**QADR-0006 queda implementado al completo** (ambos casos en el main de orbit);
+el paraguas se puso al día en esta sesión:
+
+- **[Orbit] `orbit/quarkdatasource` ✅ MERGEADO** (orbit#4) — módulo opt-in con
+  `go.mod` propio que implementa el contrato `datasource` sobre un cliente Quark:
+  **Data Studio navega/edita modelos Quark** (Caso 2). Catálogo desde los tags
+  Quark de los structs (`GetModelMetaByType`, la fuente de sus migraciones), no
+  introspección de tablas. Registro **genérico por modelo**
+  (`quarkdatasource.Register[T]`) porque la API de Quark es tipada
+  (`quark.For[T]`, sin binding en runtime). Search multi-columna como un grupo
+  OR vía el AST (`WhereExpr`); counts reales; `UpdateMap` (escribe zero values);
+  soft/hard delete de Quark; PK compuesta → catalogado read-only. Tenancy vía
+  `*quark.TenantRouter` como provider + `WithTenantColumn`. Cableado:
+  `orbit.Config.DataSource` (Go-only) — nil = adaptador Nucleus por defecto.
+- **[Orbit] Contrato validado con 2ª implementación** (mismo PR, ADR-001
+  actualizado): **una corrección** — el contrato salió de `internal/` a
+  **`orbit/datasource`** (público; la app debe nombrarlo para inyectar el
+  adaptador; se congela en v1.0 de Orbit) — y tres encajes sin forzar (D1
+  composite-PK→read-only; D2 absorbe `quark.Nullable`; D3 alias ignorado,
+  documentado). El contrato NO quedó con forma de Nucleus. Orbit main = `728c79e`.
+- **[Paraguas] Coordinación** (esta sesión, PR en quantum): submódulo orbit →
+  `728c79e`, `workspace_pins.orbit` actualizado, `./orbit/quarkdatasource` añadido
+  al `go.work` y al CI de integración (8 módulos).
+
+**Foco siguiente sugerido:**
+1. **Demo/showcase de Fase 4**: app Nucleus+Quark+Orbit exhibiendo AMBOS casos
+   (quarkbridge alimentando el feed live + Data Studio sobre modelos Quark vía
+   `Config.DataSource`). Ya no hay prerrequisitos técnicos; valida QADR-0006
+   end-to-end y es el "hecho cuando" de la Fase 4 junto al CI que lo ejerza.
+2. **Fase 3 (3)-(4)**: release-please en Nucleus/Orbit; primer tag de Nucleus
+   (la línea con EmitSQL) → limpiar `workspace_pins` a tags, repin de
+   `quarkbridge/go.mod` y `quarkdatasource/go.mod`, certificar **Quantum 0.1.0**.
+3. Pendiente menor de Fase 2: retirar Pages standalone de Quark/Nucleus
+   (`docs/RETIRE_PRODUCT_PAGES.md`; toca repos de producto).
+
+---
 
 ### Sesión 2026-07-02 — QADR-0006 completo en los productos + coordinación del paraguas
 
@@ -241,8 +280,12 @@ ir en paralelo. Nada de esto bloquea la Fase 2/3 en curso.
   validación end-to-end en la demo de Fase 4. [QADR-0006, Caso 1]
 - **[Orbit] Desacople `datasource` de Data Studio ✅ HECHO** (2026-07-02, orbit#3,
   ADR-001 accepted): contrato neutral + adaptador Nucleus; O1–O3 confirmados, SPA
-  intacta. **Siguiente: adaptador Quark** (módulo aparte) → Data Studio sobre
-  modelos Quark. [QADR-0006, Caso 2]
+  intacta. [QADR-0006, Caso 2]
+- **[Orbit] `orbit/quarkdatasource` ✅ HECHO** (2026-07-02, orbit#4): 2ª
+  implementación del contrato — Data Studio sobre modelos Quark, inyectado vía
+  `orbit.Config.DataSource`. Contrato movido de `internal/` a `orbit/datasource`
+  (público) como corrección de la validación; se congela en el v1.0 de Orbit.
+  Queda su validación end-to-end en la demo de Fase 4. [QADR-0006, Caso 2]
 - **[Suite] Secuenciación** (sigue vigente): no arrancar el freeze de Orbit sobre
   la pseudo-version de Nucleus; Nucleus→v1.0 primero, Orbit en lockstep. Las
   interfaces `datasource` se congelan en el v1.0 de Orbit. [QADR-0005]
