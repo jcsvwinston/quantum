@@ -2,37 +2,38 @@
 # fichero que fija un trío de versiones compatibles. Entre releases, cada módulo
 # saca subversiones por su cuenta; aquí solo se certifican conjuntos.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "0.1.0-dev"        # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-06-22
-status: pre-fusion          # CI de integración ya en verde; falta certificar el trío (pines a tag) para Quantum 0.1.0
+quantum: "0.1.0"            # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-07-03
+status: certified           # primer trío certificado: tags reales publicados + CI de integración en verde (Fase 3)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
+# Módulos opt-in de integración (repo orbit): quarkbridge v0.1.0 y
+# quarkdatasource v0.1.0 — también taggeados y resolubles standalone.
 modules:
   quark:   "v1.1.5"
-  nucleus: "v0.9.0"
-  orbit:   "v0.1.0"
+  nucleus: "v0.10.0"
+  orbit:   "v0.2.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work` compile
-# el trío. Coinciden con la versión publicada de `modules`, EXCEPTO nucleus y orbit:
-# - Nucleus: fijado al main con el ingest SQL público (EventBus.EmitSQL, su
-#   ADR-020), el bump de seguridad de pgx (GO-2026-5004) y el showcase de la
-#   suite repuesto (examples/showcase_demo, Fase 4: app Nucleus+Quark+Orbit con
-#   ambos puentes de QADR-0006 cableados). v0.9.0 sigue siendo la versión real
-#   PUBLICADA; el commit fijado es pre-release de la futura v0.9.1/v0.10.0.
-# - Orbit: fijado al main con QADR-0006 completo: quarkbridge (feed SQL
-#   Quark→bus, Caso 1), el contrato datasource público de Data Studio (su
-#   ADR-001) y quarkdatasource (Data Studio sobre modelos Quark, Caso 2).
-#   v0.1.0 sigue siendo la versión PUBLICADA (modules.orbit). Ambos pines se
-#   limpiarán a tag cuando cada producto corte release (release-please, Fase 3).
+# el trío. Coinciden con la versión publicada de `modules`, con dos matices
+# post-release (solo housekeeping, sin cambio de código de framework/panel):
+# - Nucleus: un commit por delante de v0.10.0 — el repin del ejemplo
+#   showcase_demo a los tags reales (examples-only; el módulo del framework es
+#   idéntico a v0.10.0).
+# - Orbit: el commit taggeado quarkdatasource/v0.1.0 — es v0.2.0 + el fix de
+#   deps de los puentes (repins a tags; solo toca quarkbridge/ y
+#   quarkdatasource/) + changelogs de release. El código del panel es v0.2.0.
 workspace_pins:
   quark:   "v1.1.5"                                  # = tag
-  nucleus: "v0.9.1-0.20260703152305-d9656cb8c2f0"    # commit d9656cb8 (+ showcase_demo, Fase 4)
-  orbit:   "v0.1.1-0.20260702220153-728c79ee79e0"    # commit 728c79e (+ quarkdatasource, Caso 2)
+  nucleus: "v0.10.1-0.20260703162354-5d8ab93504f4"                     # = v0.10.0 + repin del showcase a tags
+  orbit:   "v0.2.1-0.20260703161444-6f3011f5ca8b"    # commit 6f3011f = quarkdatasource/v0.1.0
 
 notes: >
-  Trío declarado al crear el paraguas (Fase 0). Las versiones de `modules` son
-  las reales publicadas de cada módulo; `workspace_pins` es lo que el go.work
-  checkea para compilar. El primer set VERIFICADO por CI de integración será
-  Quantum 0.1.0 en la Fase 3; ahí Nucleus taggeará la línea que Orbit ya consume
-  y tanto `workspace_pins.nucleus` como `workspace_pins.orbit` pasarán a ser tags.
-  La CI de integración ya existe (.github/workflows/integration.yml, en verde).
+  Quantum 0.1.0 — primer set certificado (Fase 3): tags reales publicados
+  (nucleus v0.10.0, orbit v0.2.0, quark v1.1.5; puentes quarkbridge/v0.1.0 y
+  quarkdatasource/v0.1.0), CI de integración compilando los nueve módulos del
+  go.work (incluido el showcase de Fase 4, que ejerce los tres productos con
+  ambos puentes), y todos los módulos opt-in resolubles standalone por proxy.
+  release-please queda instalado en Nucleus y Orbit (Quark ya lo tenía): los
+  siguientes sets se certifican fusionando sus release-PRs y actualizando este
+  manifiesto.

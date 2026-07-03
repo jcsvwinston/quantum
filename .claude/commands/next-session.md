@@ -40,7 +40,38 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-03)
+## 3. Estado al cierre (2026-07-03, tarde)
+
+### Sesión 2026-07-03 (tarde) — Fase 3 completa: tags reales + Quantum 0.1.0 certificado
+
+- **release-please instalado** en Nucleus (#171) y Orbit (#5, multi-módulo con
+  tags por componente `quarkbridge/vX`, `quarkdatasource/vX`; `release-as:
+  0.1.0` para el primer corte de los puentes — el default 1.0.0 falsearía
+  madurez, #9). Hizo falta habilitar "Actions can create PRs" en ambos repos.
+- **Tags publicados**: nucleus **v0.10.0** (#172; el minor lo exige el clean
+  break del admin), orbit **v0.2.0** (#8), **quarkbridge/v0.1.0** (#6),
+  **quarkdatasource/v0.1.0** (#12; la rama del bot se rebasó a mano tras un
+  conflicto de manifest con #6 — GitHub no reabre PRs con branch force-pushed,
+  se recreó como #12 con la label `autorelease: pending`).
+- **Deps a tags reales** (orbit#10): quarkbridge→nucleus v0.10.0;
+  quarkdatasource suelta el `replace` intra-repo→orbit v0.2.0. **Ambos puentes
+  y el showcase resuelven standalone por proxy** (GOWORK=off verificado).
+- **Quantum 0.1.0 certificado** (PR del paraguas de esta sesión): `modules.*` a
+  v0.10.0/v0.2.0, `quantum: 0.1.0`, `status: certified`; pines con dos matices
+  housekeeping documentados en versions.yaml (nucleus = v0.10.0 + repin del
+  ejemplo; orbit = commit de quarkdatasource/v0.1.0). El release-PR rodante
+  orbit#11 (root 0.2.1 por el quirk de exclude-paths en root, 17.3.0) queda
+  abierto a propósito.
+- Lecciones release-please anotadas: los PRs del bot no disparan CI
+  (GITHUB_TOKEN) → close/reopen o merge tras rebase manual; sin
+  `workflow_dispatch` en el workflow copiado de Quark.
+
+**Foco siguiente sugerido:** (1) retirar Pages standalone de Quark/Nucleus
+(`docs/RETIRE_PRODUCT_PAGES.md`) — último fleco de Fase 2; (2) Fase 5, el arco
+largo: Nucleus→v1.0 primero, Orbit en lockstep (QADR-0005); (3) considerar
+`workflow_dispatch` en los release-please.yml de los tres repos.
+
+---
 
 ### Sesión 2026-07-03 — showcase de Fase 4 ✅ (QADR-0006 demostrado en vivo)
 
