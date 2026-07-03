@@ -13,5 +13,6 @@ use (
 	./orbit/agent
 	./orbit/proto
 	./orbit/quarkbridge
+	./orbit/quarkdatasource
 	./orbit/server
 )

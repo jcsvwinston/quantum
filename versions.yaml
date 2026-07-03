@@ -18,15 +18,15 @@ modules:
 #   su ADR-020) + el bump de seguridad de pgx (GO-2026-5004). Es la línea que
 #   orbit/quarkbridge requiere en su go.mod. v0.9.0 sigue siendo la versión real
 #   PUBLICADA; el commit fijado es pre-release de la futura v0.9.1/v0.10.0.
-# - Orbit: fijado al main que trae los dos work-items de QADR-0006 fusionados:
-#   quarkbridge (feed SQL Quark→bus, Caso 1) y el contrato datasource de Data
-#   Studio (su ADR-001, prerrequisito del Caso 2). v0.1.0 sigue siendo la versión
-#   PUBLICADA (modules.orbit). Ambos pines se limpiarán a tag cuando cada producto
-#   corte release (release-please, Fase 3).
+# - Orbit: fijado al main con QADR-0006 completo: quarkbridge (feed SQL
+#   Quark→bus, Caso 1), el contrato datasource público de Data Studio (su
+#   ADR-001) y quarkdatasource (Data Studio sobre modelos Quark, Caso 2).
+#   v0.1.0 sigue siendo la versión PUBLICADA (modules.orbit). Ambos pines se
+#   limpiarán a tag cuando cada producto corte release (release-please, Fase 3).
 workspace_pins:
   quark:   "v1.1.5"                                  # = tag
   nucleus: "v0.9.1-0.20260701170204-a46fad0ec1e3"    # commit a46fad0e (EmitSQL ADR-020 + pgx v5.9.2)
-  orbit:   "v0.1.1-0.20260702164514-782b388c93f8"    # commit 782b388 (quarkbridge + datasource ADR-001)
+  orbit:   "v0.1.1-0.20260702220153-728c79ee79e0"    # commit 728c79e (+ quarkdatasource, Caso 2)
 
 notes: >
   Trío declarado al crear el paraguas (Fase 0). Las versiones de `modules` son
