@@ -40,7 +40,32 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-03, tarde)
+## 3. Estado al cierre (2026-07-06)
+
+### Sesión 2026-07-06 — Pages standalone retirados: Fase 2 COMPLETA
+
+- **Runbook `docs/RETIRE_PRODUCT_PAGES.md` ejecutado** (orbit#14, quark#234,
+  nucleus#174): los tres Pages standalone publican ahora un redirector al sitio
+  unificado — raíz con meta-refresh + canonical, rutas profundas mapeadas por
+  `404.html` (`/quark/docs/<rest>` → `/quantum/quark/<rest>`, etc.). La fuente
+  Docusaurus sigue en cada repo y construible en local (QADR-0003); en nucleus
+  el build de Docusaurus se conserva como validación de PRs. Verificado en vivo
+  (raíz + ruta profunda + destino 200) en los tres.
+- **Lección Pages** (anotada en el runbook): el deploy de orbit falló 3× con
+  `deployment_failed` genérico — el site estaba corrupto en el lado de GitHub
+  (`status: null`); recrearlo (`DELETE /pages` + `POST /pages
+  {build_type: workflow}`) lo resolvió.
+- **Fleco de release-please cerrado**: `workflow_dispatch` añadido a los
+  release-please.yml de quark, nucleus y orbit (mismos PRs).
+- Con esto, **Fases 0–4 completas**. Único arco abierto: **Fase 5**
+  (convergencia v1.0, QADR-0005).
+
+**Foco siguiente sugerido:** arrancar la Fase 5 con una sesión de producto en
+nucleus: inventario del gate de v1.0 (superficies sin congelar, deuda de
+contrato, plan de slices), con Orbit en lockstep como arnés (el freeze del
+contrato `datasource` cae en el v1.0 de Orbit).
+
+---
 
 ### Sesión 2026-07-03 (tarde) — Fase 3 completa: tags reales + Quantum 0.1.0 certificado
 
