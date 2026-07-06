@@ -40,7 +40,37 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-06, tarde)
+## 3. Estado al cierre (2026-07-06, noche)
+
+### Sesión 2026-07-06 (noche) — Fase 5 ABIERTA: gate v1.0 de Nucleus redactado
+
+- **[Nucleus] `docs/V1_GATE.md` ✅** (nucleus#176): el checklist cualitativo
+  verificable del v1.0, con la disciplina del precedente de Quark. Base: barrido
+  de inventario/baseline (17 pkgs estables, 1.492 símbolos congelados),
+  follow-ups ADR-001..020, governance, el audit de junio RE-VERIFICADO contra
+  el árbol de hoy (D-WEB cerrado por #164–#167; S-1/N-4 reducidos a restos), y
+  la superficie exacta que consume Orbit (14 paquetes; Tier-1 explícito).
+- **§A, 7 bloqueantes**: disposición de los 4 pkgs no-stable (el duro: builder
+  estable acoplado a `openapi.DocumentProvider` experimental); deuda de
+  deprecación (DEP-2026-004 fija el tren **v0.11 → v0.12 → v1.0**);
+  `CookieSessionStore` (P1 vivo: wire/deprecate/remove — decisión de
+  mantenedor); restos de docs (scaffold README.tmpl, AUTH_GUIDE:531); defaults
+  de seguridad en el major (CORS — v1.0 ES el major de ADR-013 R4; mail
+  headers); SLO de fixtures inmedible (perfiles retirados 2026-05-16, nunca
+  repuestos); arnés lockstep (el CI de la suite COMPILA orbit pero no corre sus
+  TESTS contra el RC — falta ese lane).
+- **§B** waivers candidatos (observability→v1.2, ADR-018 driver instr.,
+  campos reservados ADR-010, unificación de generadores, Oracle quoting).
+  **§C** plan de 9 slices ordenado. Anclado desde RELEASE_CHECKLIST.md.
+- Sin bump de pines (docs-only en nucleus).
+
+**Foco siguiente sugerido:** ejecutar §C en orden — slice 1 (restos de docs +
+mail headers, S) y slice 2 (decisión CookieSessionStore, M) son el arranque
+natural; las decisiones de mantenedor requeridas: CookieSessionStore
+(wire/deprecate/remove), CORS default en v1.0 (in/waiver), y disposición de
+openapi/outbox.
+
+---
 
 ### Sesión 2026-07-06 (tarde) — rediseño de orbit/ui + métricas + Quantum 0.2.0
 
