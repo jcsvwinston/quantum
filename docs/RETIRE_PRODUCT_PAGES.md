@@ -8,8 +8,16 @@
 > sitio unificado.
 >
 > **Estos pasos se ejecutan en los repos de PRODUCTO** (quark, nucleus, orbit), no
-> en `quantum`. Esta sesión solo deja el plan; la ejecución es outward-facing
-> (cambia URLs públicas) y la decide/ejecuta el responsable en cada repo.
+> en `quantum`.
+>
+> **ESTADO: EJECUTADO (2026-07-06)** — orbit#14, quark#234, nucleus#174. Los tres
+> Pages standalone redirigen al sitio unificado; verificado en vivo (raíz y rutas
+> profundas). Lección operativa: el primer deploy de orbit falló tres veces con
+> `deployment_failed` genérico — el site de Pages estaba en mal estado en el lado
+> de GitHub (`status: null` en `GET /repos/{o}/{r}/pages`); recrearlo
+> (`DELETE /pages` + `POST /pages {build_type: workflow}`) lo resolvió al primer
+> intento. Si un deploy de Pages falla en bucle sin causa en el log, mira el
+> `status` del site antes de tocar el workflow.
 
 ## Por qué redirigir y no apagar
 
