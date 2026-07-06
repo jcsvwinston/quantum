@@ -40,7 +40,36 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-06)
+## 3. Estado al cierre (2026-07-06, tarde)
+
+### Sesión 2026-07-06 (tarde) — rediseño de orbit/ui + métricas + Quantum 0.2.0
+
+- **[Orbit] Rediseño completo de la UI del admin server ✅** (orbit#15, 3
+  commits): sistema de tokens de dos temas del handoff de diseño
+  (`design_handoff_orbit_redesign`), shell 212px con nav agrupada, 11 pantallas
+  (Node detail/Health/Metrics/Access control/Audit log nuevas), política de
+  datos honestos (nada simulado; huecos declarados). Verificado en vivo con la
+  pila completa (admin-server + showcase como agente + tráfico real).
+- **[Orbit] Métricas de host end-to-end ✅** (mismo PR): `HostMetrics` en el
+  Heartbeat (proto), sampler stdlib en el agente (CPU getrusage, heap/
+  goroutines/GC, RSS Linux-only, pool BD vía extensión), server → `ListNodes`,
+  UI con ventana rodante de 60 muestras. Cierra el hueco nº1 del PR. Quedan:
+  RPCs RBAC/audit, row count SQL.
+- **[Orbit] v0.3.0 publicado** (release-PR #11; #13 obsoleto cerrado).
+- **[Nucleus] Pata fleet opcional del showcase ✅** (nucleus#175): tras build
+  tag `fleet` + `ORBIT_ADMIN_ENDPOINT` — el build por defecto sigue resolviendo
+  standalone (orbit/agent y orbit/proto siguen sin tags: pendiente añadirlos a
+  release-please si la pata fleet debe salir del workspace).
+- **[Paraguas] Quantum 0.2.0 certificado** (este PR): modules.orbit → v0.3.0,
+  pin de orbit = TAG (primer pin limpio), nucleus pin = v0.10.0 + housekeeping
+  de examples/ci, quark restaurado a su pin v1.1.5 (su main lleva +37 commits
+  propios sin tag — drift normal de producto).
+
+**Foco siguiente sugerido:** Fase 5 (inventario del gate v1.0 de Nucleus);
+opcionales: tags de orbit/agent+proto en release-please, RPCs RBAC/audit para
+las pantallas Manage, row count en SqlStatementEvent.
+
+---
 
 ### Sesión 2026-07-06 — Pages standalone retirados: Fase 2 COMPLETA
 
