@@ -40,7 +40,47 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-06, noche)
+## 3. Estado al cierre (2026-07-07)
+
+### Sesión 2026-07-07 — Fase 5 slice 1 ejecutado: PR nucleus#177 listo (CI verde, SIN fusionar)
+
+- **[Nucleus] Slice 1 del §C del gate implementado** (nucleus#177, rama
+  `fix/v1-gate-slice1-doc-residuals-mail-headers`, 3 commits, **9/9 checks
+  verdes incl. Required Gate — PENDIENTE DE MERGE**, la política de la sesión
+  bloqueó la auto-fusión de un PR propio; lo fusiona el responsable):
+  - **A-4 cerrado**: `README.md.tmpl` del scaffold ya no promete `/admin` ni
+    las claves retiradas `admin_bootstrap_*` (apunta a Orbit y
+    `modules.orbit.*`); comentario de `mvc/rbac_policy.csv` sin gate admin
+    in-core; `AUTH_GUIDE.md:531` usa el campo real `cfg.RBACPolicyFile` (el
+    fantasma `AuthzPolicyPath` era N-4). Los dos greps del "closed when"
+    devuelven vacío.
+  - **A-5b cerrado (rama sanitize, como rechazo)**: `validateMessage` rechaza
+    CR/LF en claves/valores de `mail.Message.Headers` y claves en blanco
+    (misma disciplina que From/Subject; antes un valor con `\r\nBcc:` interior
+    inyectaba cabeceras — TrimSpace solo limpia extremos). El emisor además
+    trimea claves. Godoc + MAIL_GUIDE documentan el contrato, con el matiz
+    honesto de que un `Sender` custom de `RegisterProvider` no pasa por la
+    validación (emite él mismo). Test de mesa (7 casos). `go test ./...` y
+    freeze de contrato verdes en local y en CI.
+  - `V1_GATE.md` actualizado en el mismo PR: A-4 ✅, ítem mail de A-5 ✅,
+    slice 1 marcado en §C. **CORS (A-5a) sigue abierto** — decisión de
+    mantenedor.
+- **[Paraguas] Sin cambios de pines**: nucleus#177 no está fusionado; cuando
+  lo esté, el `fix(mail)` hará que release-please abra el release-PR de
+  **v0.10.1** en nucleus. Decidir entonces: fusionar ese release-PR (tag) y
+  subir `workspace_pins.nucleus` (idealmente al tag v0.10.1 — primer pin
+  limpio de nucleus), o bump a pseudo-version si se deja el tag para después.
+- Matiz de auditoría de arranque: el checkout local del submódulo nucleus
+  quedó un commit por delante del pin (el merge de #176) — deliberado en el
+  cierre anterior; el pin registrado sigue siendo `1d2adac8`.
+
+**Foco siguiente sugerido:** (1) fusionar nucleus#177 (verde) y, con el
+release-PR v0.10.1 de release-please, decidir tag + bump de pin del paraguas;
+(2) slice 2 del §C — decisión de mantenedor sobre `CookieSessionStore`
+(wire/deprecate/remove) e implementación (M); (3) en cola: slice 3
+(CircuitBreaker spec), decisión CORS (A-5a), disposición openapi/outbox (A-1).
+
+---
 
 ### Sesión 2026-07-06 (noche) — Fase 5 ABIERTA: gate v1.0 de Nucleus redactado
 
