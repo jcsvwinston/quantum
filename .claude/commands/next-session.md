@@ -42,6 +42,40 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-07)
 
+### Sesión 2026-07-07 (3ª) — slice 3 ejecutado (CircuitBreaker→stable) + brief de decisión A-3
+
+- **[Nucleus] Slice 3 del §C implementado** (nucleus#178, docs/governance-only):
+  `CircuitBreakerSpec`/`CircuitBreakerConfig` promovidos a `stable` — el shape
+  de 4 campos es idéntico en las tres capas y el layering es deliberado (la
+  superficie de config queda desacoplada de `circuit.Config` y su campo
+  test-only `Now`). 5 marcadores del inventario fuera, 8 claves
+  `*_circuit_breaker.*` del registro a `stable`, la afirmación "marked
+  transitional" de MAIL_GUIDE corregida (habría mentido tras la promoción),
+  A-1d y slice 3 marcados en el gate. Freeze verde (los símbolos ya estaban
+  en el baseline). **Fusión cruzada verificada**: merge local limpio con la
+  rama de #177 (ambos tocan V1_GATE §C y MAIL_GUIDE) — pueden aterrizar en
+  cualquier orden.
+- **[Nucleus] Brief de decisión A-3 entregado a Carlos** (fichero; el
+  clasificador bloqueó crear el issue): `CookieSessionStore.CommitCtx` cifra
+  y DESCARTA (`_ = encoded`, session_store_cookie.go:126) — fallo
+  arquitectural (el contrato `SessionStore` no ve la respuesta HTTP);
+  `session_store=cookie` ni existe como valor de config (error del switch);
+  `ErrSessionStoreNotIterable` existe por este store (rompe la pantalla de
+  sesiones que Orbit consume). **Recomendación: remove vía el tren de
+  deprecación** (v0.11 WARN → v0.12 borrado, el tren de DEP-2026-004).
+- **Cola de merges de Carlos (creciendo)**: nucleus#177 (slice 1, 9/9 verde),
+  nucleus#178 (slice 3), quantum#33 (cierres de sesión ×3), quantum#34 (lane
+  lockstep, 2/2 verde). Tras nucleus#177+#178: release-PR v0.10.1 → tag →
+  bump de pines.
+
+**Foco siguiente sugerido:** (1) los 4 merges + release-PR v0.10.1 → tag →
+certificar pines; (2) decisión A-3 con el brief (si `remove`: el slice 2 son
+dos PRs del tren v0.11/v0.12); (3) sin decisiones pendientes quedan slice 7
+(fixtures/SLO, A-6) y el cierre de A-7 en el gate cuando quantum#34 fusione;
+slice 4 (openapi/outbox) sí requiere decisión A-1a/b.
+
+---
+
 ### Sesión 2026-07-07 (2ª) — lane de lockstep en el CI de la suite (slice 8, A-7)
 
 - **[Paraguas] Job `orbit-lockstep` en `integration.yml`** (quantum#34): el
