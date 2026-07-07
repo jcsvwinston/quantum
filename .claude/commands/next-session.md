@@ -42,6 +42,33 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-07)
 
+### Sesión 2026-07-07 (2ª) — lane de lockstep en el CI de la suite (slice 8, A-7)
+
+- **[Paraguas] Job `orbit-lockstep` en `integration.yml`** (quantum#34): el
+  plano de integración compilaba orbit pero no corría sus tests — el hueco que
+  el gate señala en A-7. El job nuevo ejecuta `go test` de los seis módulos de
+  orbit (core, agent, proto, server, quarkbridge, quarkdatasource) resolviendo
+  nucleus/quark por el go.work. Procedimiento de RC documentado en el
+  comentario del workflow: para validar un release candidate de nucleus antes
+  del tag, un PR en quantum bumpea el submódulo nucleus al RC y este lane corre
+  los tests de orbit contra él. Verificado en local (los seis módulos pasan,
+  además contra el tip de nucleus#177).
+- **Pendientes que siguen siendo de Carlos**: fusionar nucleus#177 (9/9 verde
+  desde la 1ª sesión), quantum#33 (cierre de la 1ª sesión) y quantum#34 (este
+  lane); tras nucleus#177, el release-PR v0.10.1 de release-please → tag →
+  bump de pines del paraguas. Decisiones de mantenedor abiertas:
+  CookieSessionStore (slice 2), CORS default (A-5a), openapi/outbox (A-1).
+- **Fleco anotado**: marcar A-7 cerrado en `V1_GATE.md` (repo nucleus) cuando
+  quantum#34 esté fusionado — PR pequeño en nucleus.
+
+**Foco siguiente sugerido:** con los merges hechos, (1) release-PR v0.10.1 →
+tag → certificar pines (primer pin limpio de nucleus) + cerrar A-7 en el gate;
+(2) slice 2 del §C con la decisión de CookieSessionStore; (3) slice 3
+(CircuitBreaker spec) no requiere decisión previa y es el siguiente sin
+bloqueo.
+
+---
+
 ### Sesión 2026-07-07 — Fase 5 slice 1 ejecutado: PR nucleus#177 listo (CI verde, SIN fusionar)
 
 - **[Nucleus] Slice 1 del §C del gate implementado** (nucleus#177, rama
