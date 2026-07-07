@@ -42,6 +42,52 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-07)
 
+### Sesión 2026-07-07 (4ª) — slice 7 ejecutado (fixtures/SLO, A-6) + briefs A-5a y A-1a/b
+
+- **[Nucleus] Slice 7 del §C implementado** (nucleus#179): el SLO de
+  fixture-apps (≥95%) llevaba inmedible desde la purga de ejemplos de
+  2026-05-16 — pero los ejemplos volvieron (mvc_api, showcase_demo), así que
+  el harness recupera perfiles reales: `core-build` (se mantiene), `mvc-api`
+  (build+tests de examples/mvc_api contra el árbol actual, `GOWORK=off` para
+  medir lo mismo dentro y fuera del workspace de la suite) y `showcase-suite`
+  (showcase_demo compilado contra el árbol actual vía go.work efímero, con
+  quark/orbit en sus tags). Del trío histórico: admin-heavy obsoleto
+  (ADR-019), plugin-heavy vuelve con los ejemplos de plugins (ADR-010 F4).
+  RELEASE_CHECKLIST §2 y gate (A-6, slice 7) actualizados. Local: 3/3 (100%).
+  Fusión cruzada verificada contra las ramas de #177 y #178 (los tres tocan
+  V1_GATE §C) — cualquier orden de merge funciona.
+- **[Nucleus] Briefs de decisión A-5a y A-1a/b preparados** (con el de A-3 de
+  la 3ª sesión, las TRES decisiones del gate están analizadas; recomendaciones):
+  - **A-5a CORS: flip en v1.0** — ADR-013 R4 ya prometió el endurecimiento
+    "para un major" y v1.0 es el primero desde entonces; el peligro real
+    (credenciales) lo cerró ADR-014, el escape hatch explícito
+    (`cors_origins: ["*"]`) existe con tests, y el tren v0.11→v1.0 da la
+    ventana de WARN gratis. Waiver = aplazar la promesa un major entero.
+  - **A-1a openapi: re-firmar a stdlib** — `WithOpenAPI` estable nombra
+    `openapi.DocumentProvider` (experimental) que es `func() *Document`:
+    promoverlo congelaría ~40 símbolos del modelo OpenAPI. El adaptador
+    `openapi.Handler(provider) http.Handler` YA existe → firma nueva
+    `http.Handler` vía el tren (v0.11 añade+depreca, v0.12 borra).
+  - **A-1b outbox: excluir de la promesa v1.0** (documentado) — el propio
+    inventario lo declara temprano y nadie ha listado qué ergonomía falta;
+    promover sin esa lista es congelar a ciegas. Matiz detectado: `pkg/app`
+    estable contiene `OutboxConfig` (acople config-estable→transitional
+    análogo en especie al de openapi; documentarlo con la exclusión).
+- **Cola de merges de Carlos (5 PRs verdes)**: nucleus#177 (slice 1),
+  nucleus#178 (slice 3), nucleus#179 (slice 7), quantum#33 (cierres ×4),
+  quantum#34 (lane lockstep). Tras los de nucleus: release-PR v0.10.1 → tag
+  → bump de pines. Progreso del gate: A-4, A-5b, A-1d, A-6 cerrados en PRs;
+  A-7 cierra al fusionar quantum#34; quedan las 3 decisiones (briefs listos).
+
+**Foco siguiente sugerido:** (1) los 5 merges + release-PR v0.10.1 → tag →
+certificar pines + PR pequeño en nucleus cerrando A-7 en el gate; (2) las 3
+decisiones con los briefs (A-3, A-5a, A-1a/b) — si salen según recomendación,
+los slices 2/4/6 son PRs del tren v0.11/v0.12 ejecutables en sesiones
+siguientes; (3) tras eso el gate solo tendrá abiertos A-2 (tren programado) y
+el slice 9 (rehearsal + tag).
+
+---
+
 ### Sesión 2026-07-07 (3ª) — slice 3 ejecutado (CircuitBreaker→stable) + brief de decisión A-3
 
 - **[Nucleus] Slice 3 del §C implementado** (nucleus#178, docs/governance-only):
