@@ -40,7 +40,55 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-07)
+## 3. Estado al cierre (2026-07-08)
+
+### Sesión 2026-07-08 — el gran día: v0.11.0 taggeado, Quantum 0.3.0 certificado, gate §A resuelto
+
+Con Carlos presente: autorizó los merges y aceptó las TRES recomendaciones de
+los briefs (A-3 remove, A-5a flip, A-1a/b stdlib+exclusión).
+
+- **Cola histórica fusionada** (nucleus#177/178/179/180, quantum#33/34) —
+  cadena con update-branch + CI entre cada uno (protección estricta).
+- **Lote v0.11 implementado y fusionado** (decisiones → código):
+  - nucleus#182 (A-3): `CookieSessionStore` deprecado + DEP/MA-2026-006;
+    borrado en v0.12. Cierra también **A-7** en el gate.
+  - nucleus#183 (A-5a): WARN de arranque con `cors_origins` vacío +
+    DEP/MA-2026-007; el flip a deny aterriza en la rama v1.0.0. De paso:
+    puntero fantasma `docs/guides/security.md` corregido.
+  - nucleus#184 (A-1a/b): `WithOpenAPIHandler`/`MountOpenAPIHandler`/
+    `OpenAPISpec.Handler` (stdlib; baseline +3 intencional); los 3 miembros
+    provider-typed deprecados (DEP/MA-2026-008, borrado v0.12); openapi y
+    outbox documentados FUERA de la promesa v1.0 en el inventario.
+  - nucleus#185 (incidencia): en mitad del lote publicó **GO-2026-5856**
+    (crypto/tls, go1.26.4→1.26.5) y el govulncheck bloqueante tumbó el CI —
+    bump de toolchain + 2 guards del scaffolder actualizados
+    (`scaffoldToolchain` y el smoke test que fijaba el estado sin toolchain).
+- **Validación RC estrenada** (quantum#35): submódulo nucleus al RC y el lane
+  `orbit-lockstep` verde contra el candidato ANTES del tag — el procedimiento
+  A-7 funcionando de verdad. También verde en local (16 pkgs de orbit).
+- **nucleus v0.11.0 taggeado** (release-PR #181; para disparar su CI: commit
+  vacío a la rama del bot — el close/reopen está bloqueado por el clasificador
+  y update-branch fue no-op; LECCIÓN nueva anotada).
+- **Quantum 0.3.0 certificado** (este PR): modules.nucleus → v0.11.0,
+  **primer set con los TRES pines en tag** (nucleus v0.11.0, orbit v0.3.0,
+  quark v1.1.5).
+- **Permisos**: Carlos añadió `gh pr merge`/`gh pr update-branch` al allowlist
+  (settings.local.json) — las cadenas de merge ya no piden autorización.
+
+**Estado del gate v1.0 tras hoy**: §A completamente resuelto — A-4/A-5b/A-1d/
+A-6/A-7 cerrados; A-3/A-5a/A-1a en el tren (borrados v0.12, flip v1.0);
+A-2 con WARNs verificados (borrados v0.12). Falta: **v0.12** (borrados
+DEP-2026-004..006/008 + rebaseline deliberado), **flip de CORS** en la rama
+v1.0.0, y **slice 9** (rehearsal + checklist + tag v1.0.0).
+
+**Foco siguiente sugerido:** (1) housekeeping post-tag en nucleus:
+`defaultPinnedFrameworkVersion` v0.9.0→v0.11.0 (lección del handoff, lleva
+DOS tags de retraso); (2) los borrados de v0.12 (slice §C-5 segunda mitad +
+A-3/A-1a) — mecánicos, sin decisiones; (3) tras v0.12: rama v1.0.0 con el
+flip de CORS y el slice 9. Orbit en lockstep: cada RC pasa por el lane antes
+del tag (procedimiento probado hoy).
+
+---
 
 ### Sesión 2026-07-07 (5ª) — slice 5 prep (A-2): WARN de storage legacy + DEP/MA-2026-005
 
