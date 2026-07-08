@@ -42,6 +42,37 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-07)
 
+### Sesión 2026-07-07 (5ª) — slice 5 prep (A-2): WARN de storage legacy + DEP/MA-2026-005
+
+- **[Nucleus] Mitad v0.11 del slice 5 implementada** (nucleus#180): la
+  verificación de A-2 encontró que de las tres deudas, dos ya avisan
+  (`admin_rbac_policy_file` con WARN; `NewJSONTask` error-stub) pero las
+  claves planas `storage_driver`/`storage_path` se consumían EN SILENCIO
+  (fallback de `toStorageConfig` + lecturas de doctor/health).
+  `warnLegacyStorageKeys` emite ahora el WARN one-time — solo cuando el valor
+  se desvía de los defaults de `DefaultConfig` ("local", "uploads/"), porque
+  la mera presencia no es señal (DefaultConfig las pre-puebla). DEP-2026-005 +
+  MA-2026-005 formalizan el aviso en el mismo tren de borrado v0.12 que
+  DEP-2026-004; el DEP anota los consumidores internos que el borrado debe
+  migrar (fallback, seeding de DefaultConfig, doctor/health). 3 tests nuevos;
+  freeze verde; fusiones cruzadas limpias contra #177/#178/#179. A-2 sigue
+  abierto (cierra con los borrados de v0.12).
+- **Con esto, TODO lo restante del gate está bloqueado en Carlos**: los
+  borrados de v0.12 requieren que el tren arranque (merges → v0.10.1 → tag
+  → v0.11), y los slices 2/4/6 requieren las decisiones A-3/A-1a/b/A-5a
+  (briefs en las sesiones 3ª y 4ª). No hay más trabajo ejecutable sin él.
+- **Cola de merges (6 PRs verdes)**: nucleus#177 (slice 1), #178 (slice 3),
+  #179 (slice 7), #180 (slice 5 prep), quantum#33 (cierres ×5), quantum#34
+  (lane lockstep).
+
+**Foco siguiente sugerido:** exclusivamente de Carlos — (1) los 6 merges;
+(2) release-PR v0.10.1 → tag → bump/certificación de pines + PR pequeño
+cerrando A-7 en el gate; (3) las 3 decisiones (A-3, A-5a, A-1a/b) con los
+briefs. Con eso, las sesiones siguientes pueden ejecutar slices 2/4/6 y los
+borrados v0.12 sin fricción.
+
+---
+
 ### Sesión 2026-07-07 (4ª) — slice 7 ejecutado (fixtures/SLO, A-6) + briefs A-5a y A-1a/b
 
 - **[Nucleus] Slice 7 del §C implementado** (nucleus#179): el SLO de
