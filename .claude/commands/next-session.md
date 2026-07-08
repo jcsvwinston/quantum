@@ -40,7 +40,185 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-06, noche)
+## 3. Estado al cierre (2026-07-07)
+
+### Sesión 2026-07-07 (5ª) — slice 5 prep (A-2): WARN de storage legacy + DEP/MA-2026-005
+
+- **[Nucleus] Mitad v0.11 del slice 5 implementada** (nucleus#180): la
+  verificación de A-2 encontró que de las tres deudas, dos ya avisan
+  (`admin_rbac_policy_file` con WARN; `NewJSONTask` error-stub) pero las
+  claves planas `storage_driver`/`storage_path` se consumían EN SILENCIO
+  (fallback de `toStorageConfig` + lecturas de doctor/health).
+  `warnLegacyStorageKeys` emite ahora el WARN one-time — solo cuando el valor
+  se desvía de los defaults de `DefaultConfig` ("local", "uploads/"), porque
+  la mera presencia no es señal (DefaultConfig las pre-puebla). DEP-2026-005 +
+  MA-2026-005 formalizan el aviso en el mismo tren de borrado v0.12 que
+  DEP-2026-004; el DEP anota los consumidores internos que el borrado debe
+  migrar (fallback, seeding de DefaultConfig, doctor/health). 3 tests nuevos;
+  freeze verde; fusiones cruzadas limpias contra #177/#178/#179. A-2 sigue
+  abierto (cierra con los borrados de v0.12).
+- **Con esto, TODO lo restante del gate está bloqueado en Carlos**: los
+  borrados de v0.12 requieren que el tren arranque (merges → v0.10.1 → tag
+  → v0.11), y los slices 2/4/6 requieren las decisiones A-3/A-1a/b/A-5a
+  (briefs en las sesiones 3ª y 4ª). No hay más trabajo ejecutable sin él.
+- **Cola de merges (6 PRs verdes)**: nucleus#177 (slice 1), #178 (slice 3),
+  #179 (slice 7), #180 (slice 5 prep), quantum#33 (cierres ×5), quantum#34
+  (lane lockstep).
+
+**Foco siguiente sugerido:** exclusivamente de Carlos — (1) los 6 merges;
+(2) release-PR v0.10.1 → tag → bump/certificación de pines + PR pequeño
+cerrando A-7 en el gate; (3) las 3 decisiones (A-3, A-5a, A-1a/b) con los
+briefs. Con eso, las sesiones siguientes pueden ejecutar slices 2/4/6 y los
+borrados v0.12 sin fricción.
+
+---
+
+### Sesión 2026-07-07 (4ª) — slice 7 ejecutado (fixtures/SLO, A-6) + briefs A-5a y A-1a/b
+
+- **[Nucleus] Slice 7 del §C implementado** (nucleus#179): el SLO de
+  fixture-apps (≥95%) llevaba inmedible desde la purga de ejemplos de
+  2026-05-16 — pero los ejemplos volvieron (mvc_api, showcase_demo), así que
+  el harness recupera perfiles reales: `core-build` (se mantiene), `mvc-api`
+  (build+tests de examples/mvc_api contra el árbol actual, `GOWORK=off` para
+  medir lo mismo dentro y fuera del workspace de la suite) y `showcase-suite`
+  (showcase_demo compilado contra el árbol actual vía go.work efímero, con
+  quark/orbit en sus tags). Del trío histórico: admin-heavy obsoleto
+  (ADR-019), plugin-heavy vuelve con los ejemplos de plugins (ADR-010 F4).
+  RELEASE_CHECKLIST §2 y gate (A-6, slice 7) actualizados. Local: 3/3 (100%).
+  Fusión cruzada verificada contra las ramas de #177 y #178 (los tres tocan
+  V1_GATE §C) — cualquier orden de merge funciona.
+- **[Nucleus] Briefs de decisión A-5a y A-1a/b preparados** (con el de A-3 de
+  la 3ª sesión, las TRES decisiones del gate están analizadas; recomendaciones):
+  - **A-5a CORS: flip en v1.0** — ADR-013 R4 ya prometió el endurecimiento
+    "para un major" y v1.0 es el primero desde entonces; el peligro real
+    (credenciales) lo cerró ADR-014, el escape hatch explícito
+    (`cors_origins: ["*"]`) existe con tests, y el tren v0.11→v1.0 da la
+    ventana de WARN gratis. Waiver = aplazar la promesa un major entero.
+  - **A-1a openapi: re-firmar a stdlib** — `WithOpenAPI` estable nombra
+    `openapi.DocumentProvider` (experimental) que es `func() *Document`:
+    promoverlo congelaría ~40 símbolos del modelo OpenAPI. El adaptador
+    `openapi.Handler(provider) http.Handler` YA existe → firma nueva
+    `http.Handler` vía el tren (v0.11 añade+depreca, v0.12 borra).
+  - **A-1b outbox: excluir de la promesa v1.0** (documentado) — el propio
+    inventario lo declara temprano y nadie ha listado qué ergonomía falta;
+    promover sin esa lista es congelar a ciegas. Matiz detectado: `pkg/app`
+    estable contiene `OutboxConfig` (acople config-estable→transitional
+    análogo en especie al de openapi; documentarlo con la exclusión).
+- **Cola de merges de Carlos (5 PRs verdes)**: nucleus#177 (slice 1),
+  nucleus#178 (slice 3), nucleus#179 (slice 7), quantum#33 (cierres ×4),
+  quantum#34 (lane lockstep). Tras los de nucleus: release-PR v0.10.1 → tag
+  → bump de pines. Progreso del gate: A-4, A-5b, A-1d, A-6 cerrados en PRs;
+  A-7 cierra al fusionar quantum#34; quedan las 3 decisiones (briefs listos).
+
+**Foco siguiente sugerido:** (1) los 5 merges + release-PR v0.10.1 → tag →
+certificar pines + PR pequeño en nucleus cerrando A-7 en el gate; (2) las 3
+decisiones con los briefs (A-3, A-5a, A-1a/b) — si salen según recomendación,
+los slices 2/4/6 son PRs del tren v0.11/v0.12 ejecutables en sesiones
+siguientes; (3) tras eso el gate solo tendrá abiertos A-2 (tren programado) y
+el slice 9 (rehearsal + tag).
+
+---
+
+### Sesión 2026-07-07 (3ª) — slice 3 ejecutado (CircuitBreaker→stable) + brief de decisión A-3
+
+- **[Nucleus] Slice 3 del §C implementado** (nucleus#178, docs/governance-only):
+  `CircuitBreakerSpec`/`CircuitBreakerConfig` promovidos a `stable` — el shape
+  de 4 campos es idéntico en las tres capas y el layering es deliberado (la
+  superficie de config queda desacoplada de `circuit.Config` y su campo
+  test-only `Now`). 5 marcadores del inventario fuera, 8 claves
+  `*_circuit_breaker.*` del registro a `stable`, la afirmación "marked
+  transitional" de MAIL_GUIDE corregida (habría mentido tras la promoción),
+  A-1d y slice 3 marcados en el gate. Freeze verde (los símbolos ya estaban
+  en el baseline). **Fusión cruzada verificada**: merge local limpio con la
+  rama de #177 (ambos tocan V1_GATE §C y MAIL_GUIDE) — pueden aterrizar en
+  cualquier orden.
+- **[Nucleus] Brief de decisión A-3 entregado a Carlos** (fichero; el
+  clasificador bloqueó crear el issue): `CookieSessionStore.CommitCtx` cifra
+  y DESCARTA (`_ = encoded`, session_store_cookie.go:126) — fallo
+  arquitectural (el contrato `SessionStore` no ve la respuesta HTTP);
+  `session_store=cookie` ni existe como valor de config (error del switch);
+  `ErrSessionStoreNotIterable` existe por este store (rompe la pantalla de
+  sesiones que Orbit consume). **Recomendación: remove vía el tren de
+  deprecación** (v0.11 WARN → v0.12 borrado, el tren de DEP-2026-004).
+- **Cola de merges de Carlos (creciendo)**: nucleus#177 (slice 1, 9/9 verde),
+  nucleus#178 (slice 3), quantum#33 (cierres de sesión ×3), quantum#34 (lane
+  lockstep, 2/2 verde). Tras nucleus#177+#178: release-PR v0.10.1 → tag →
+  bump de pines.
+
+**Foco siguiente sugerido:** (1) los 4 merges + release-PR v0.10.1 → tag →
+certificar pines; (2) decisión A-3 con el brief (si `remove`: el slice 2 son
+dos PRs del tren v0.11/v0.12); (3) sin decisiones pendientes quedan slice 7
+(fixtures/SLO, A-6) y el cierre de A-7 en el gate cuando quantum#34 fusione;
+slice 4 (openapi/outbox) sí requiere decisión A-1a/b.
+
+---
+
+### Sesión 2026-07-07 (2ª) — lane de lockstep en el CI de la suite (slice 8, A-7)
+
+- **[Paraguas] Job `orbit-lockstep` en `integration.yml`** (quantum#34): el
+  plano de integración compilaba orbit pero no corría sus tests — el hueco que
+  el gate señala en A-7. El job nuevo ejecuta `go test` de los seis módulos de
+  orbit (core, agent, proto, server, quarkbridge, quarkdatasource) resolviendo
+  nucleus/quark por el go.work. Procedimiento de RC documentado en el
+  comentario del workflow: para validar un release candidate de nucleus antes
+  del tag, un PR en quantum bumpea el submódulo nucleus al RC y este lane corre
+  los tests de orbit contra él. Verificado en local (los seis módulos pasan,
+  además contra el tip de nucleus#177).
+- **Pendientes que siguen siendo de Carlos**: fusionar nucleus#177 (9/9 verde
+  desde la 1ª sesión), quantum#33 (cierre de la 1ª sesión) y quantum#34 (este
+  lane); tras nucleus#177, el release-PR v0.10.1 de release-please → tag →
+  bump de pines del paraguas. Decisiones de mantenedor abiertas:
+  CookieSessionStore (slice 2), CORS default (A-5a), openapi/outbox (A-1).
+- **Fleco anotado**: marcar A-7 cerrado en `V1_GATE.md` (repo nucleus) cuando
+  quantum#34 esté fusionado — PR pequeño en nucleus.
+
+**Foco siguiente sugerido:** con los merges hechos, (1) release-PR v0.10.1 →
+tag → certificar pines (primer pin limpio de nucleus) + cerrar A-7 en el gate;
+(2) slice 2 del §C con la decisión de CookieSessionStore; (3) slice 3
+(CircuitBreaker spec) no requiere decisión previa y es el siguiente sin
+bloqueo.
+
+---
+
+### Sesión 2026-07-07 — Fase 5 slice 1 ejecutado: PR nucleus#177 listo (CI verde, SIN fusionar)
+
+- **[Nucleus] Slice 1 del §C del gate implementado** (nucleus#177, rama
+  `fix/v1-gate-slice1-doc-residuals-mail-headers`, 3 commits, **9/9 checks
+  verdes incl. Required Gate — PENDIENTE DE MERGE**, la política de la sesión
+  bloqueó la auto-fusión de un PR propio; lo fusiona el responsable):
+  - **A-4 cerrado**: `README.md.tmpl` del scaffold ya no promete `/admin` ni
+    las claves retiradas `admin_bootstrap_*` (apunta a Orbit y
+    `modules.orbit.*`); comentario de `mvc/rbac_policy.csv` sin gate admin
+    in-core; `AUTH_GUIDE.md:531` usa el campo real `cfg.RBACPolicyFile` (el
+    fantasma `AuthzPolicyPath` era N-4). Los dos greps del "closed when"
+    devuelven vacío.
+  - **A-5b cerrado (rama sanitize, como rechazo)**: `validateMessage` rechaza
+    CR/LF en claves/valores de `mail.Message.Headers` y claves en blanco
+    (misma disciplina que From/Subject; antes un valor con `\r\nBcc:` interior
+    inyectaba cabeceras — TrimSpace solo limpia extremos). El emisor además
+    trimea claves. Godoc + MAIL_GUIDE documentan el contrato, con el matiz
+    honesto de que un `Sender` custom de `RegisterProvider` no pasa por la
+    validación (emite él mismo). Test de mesa (7 casos). `go test ./...` y
+    freeze de contrato verdes en local y en CI.
+  - `V1_GATE.md` actualizado en el mismo PR: A-4 ✅, ítem mail de A-5 ✅,
+    slice 1 marcado en §C. **CORS (A-5a) sigue abierto** — decisión de
+    mantenedor.
+- **[Paraguas] Sin cambios de pines**: nucleus#177 no está fusionado; cuando
+  lo esté, el `fix(mail)` hará que release-please abra el release-PR de
+  **v0.10.1** en nucleus. Decidir entonces: fusionar ese release-PR (tag) y
+  subir `workspace_pins.nucleus` (idealmente al tag v0.10.1 — primer pin
+  limpio de nucleus), o bump a pseudo-version si se deja el tag para después.
+- Matiz de auditoría de arranque: el checkout local del submódulo nucleus
+  quedó un commit por delante del pin (el merge de #176) — deliberado en el
+  cierre anterior; el pin registrado sigue siendo `1d2adac8`.
+
+**Foco siguiente sugerido:** (1) fusionar nucleus#177 (verde) y, con el
+release-PR v0.10.1 de release-please, decidir tag + bump de pin del paraguas;
+(2) slice 2 del §C — decisión de mantenedor sobre `CookieSessionStore`
+(wire/deprecate/remove) e implementación (M); (3) en cola: slice 3
+(CircuitBreaker spec), decisión CORS (A-5a), disposición openapi/outbox (A-1).
+
+---
 
 ### Sesión 2026-07-06 (noche) — Fase 5 ABIERTA: gate v1.0 de Nucleus redactado
 
