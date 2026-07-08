@@ -2,9 +2,13 @@ name: CI de integración (trío Quantum)
 
 # Plano de CI "de integración" del paraguas (ver docs/ROADMAP.md §6): verifica que
 # el TRÍO fijado por los submódulos + go.work —el conjunto que versions.yaml
-# certifica— COMPILA y pasa `go vet` junto. No re-ejecuta la suite de cada producto
-# (eso vive en el CI por-repo de cada uno, p.ej. la matriz de 6 motores de Quark):
-# aquí solo se garantiza que el set declarado encaja. El root del workspace NO es un
+# certifica— COMPILA y pasa `go vet` junto. No re-ejecuta la suite completa de cada
+# producto (eso vive en el CI por-repo de cada uno, p.ej. la matriz de 6 motores de
+# Quark), con UNA excepción deliberada: el job `orbit-lockstep` SÍ corre los tests
+# de orbit contra el nucleus fijado por el workspace — es el arnés de lockstep de
+# QADR-0005 (gate v1.0 de nucleus, ítem A-7): para validar un release candidate de
+# nucleus antes de taggear, se abre un PR que bumpee el submódulo nucleus al RC y
+# este lane ejecuta los tests de orbit contra él. El root del workspace NO es un
 # módulo, por eso se usan patrones explícitos por producto.
 
 on:
@@ -54,3 +58,30 @@ jobs:
 
       - name: Vet del trío junto
         run: go vet $MODULES
+
+  orbit-lockstep:
+    name: tests de orbit contra el nucleus fijado (lockstep, A-7)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Los seis módulos de orbit (core, agente, proto, server y los dos puentes):
+      # todos resuelven nucleus/quark por el go.work, así que este job ejercita la
+      # superficie Tier-1 que orbit consume contra el pin actual del workspace.
+      ORBIT_MODULES: ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/quarkbridge/... ./orbit/quarkdatasource/... ./orbit/server/...
+    steps:
+      - name: Checkout (con submódulos — son el trío fijado)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go (versión declarada en go.work)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.work
+          cache-dependency-path: '**/go.sum'
+
+      - name: Nucleus bajo prueba (traza del pin)
+        run: git -C nucleus log -1 --format='%H %s'
+
+      - name: Tests de orbit en el workspace
+        run: go test $ORBIT_MODULES
