@@ -2,33 +2,33 @@
 # fichero que fija un trío de versiones compatibles. Entre releases, cada módulo
 # saca subversiones por su cuenta; aquí solo se certifican conjuntos.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "0.2.0"            # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-07-06
-status: certified           # segundo set certificado (0.2.0): tags reales + CI de integración en verde
+quantum: "0.3.0"            # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-07-08
+status: certified           # tercer set certificado (0.3.0): los tres pines EN TAG por primera vez
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración (repo orbit): quarkbridge v0.1.0 y
 # quarkdatasource v0.1.0 — también taggeados y resolubles standalone.
 modules:
   quark:   "v1.1.5"
-  nucleus: "v0.10.0"
+  nucleus: "v0.11.0"
   orbit:   "v0.3.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
-# compile el set. Orbit y quark quedan EN SU TAG. Nucleus está en el RC de
-# v0.11.0 (el lote del gate v1.0: slices 1/3/5/7 + deprecaciones A-3/A-5a/
-# A-1a/b + toolchain go1.26.5) — este pin ES la validación de lockstep A-7:
-# el job orbit-lockstep del CI corre los tests de orbit contra este candidato
-# antes de que nucleus tague. Tras el tag, el pin pasa a v0.11.0 y se
-# certifica el set.
+# compile el set. Por primera vez los TRES pines son tags limpios. El RC de
+# nucleus v0.11.0 pasó la validación de lockstep A-7 (quantum#35: el job
+# orbit-lockstep corrió los tests de orbit contra el candidato antes del tag).
 workspace_pins:
   quark:   "v1.1.5"                                  # = tag
-  nucleus: "v0.10.1-0.20260708165914-29999d19bdbe"    # = RC de v0.11.0 (validación A-7)
+  nucleus: "v0.11.0"                                 # = tag (primer pin limpio de nucleus)
   orbit:   "v0.3.0"                                  # = tag
 
 notes: >
-  Quantum 0.2.0 — segundo set certificado: orbit v0.3.0 (rediseño completo de
-  la UI del admin server según el handoff de diseño, dos temas, y métricas de
-  host end-to-end Heartbeat→UI), nucleus v0.10.0 y quark v1.1.5. La pata fleet
-  opcional del showcase (build tag) conecta la app demo como nodo del admin
-  server. CI de integración compilando los nueve módulos del go.work.
+  Quantum 0.3.0 — tercer set certificado: nucleus v0.11.0 (el tren del gate
+  v1.0 — deprecaciones DEP-2026-005..008 con sus WARNs y migration assistants,
+  OpenAPI re-firmado a stdlib, perfiles del harness de compatibilidad
+  restaurados, toolchain go1.26.5 por GO-2026-5856), orbit v0.3.0 y quark
+  v1.1.5. Primer set con los tres pines en tag y primer RC validado por el
+  lane de lockstep A-7 antes de taggear. Tren restante hacia Quantum 1.0:
+  nucleus v0.12 (borrados) → v1.0 (flip de CORS + freeze), con orbit en
+  lockstep (QADR-0005).
