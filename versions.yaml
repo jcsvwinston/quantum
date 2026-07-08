@@ -15,13 +15,15 @@ modules:
   orbit:   "v0.3.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
-# compile el set. Orbit queda EN SU TAG. Nucleus va tres commits de
-# housekeeping por delante de v0.10.0 (repin del showcase a tags, redirector
-# de Pages, y la pata fleet opcional del showcase — todo examples/ci; el
-# módulo del framework es idéntico a v0.10.0).
+# compile el set. Orbit y quark quedan EN SU TAG. Nucleus está en el RC de
+# v0.11.0 (el lote del gate v1.0: slices 1/3/5/7 + deprecaciones A-3/A-5a/
+# A-1a/b + toolchain go1.26.5) — este pin ES la validación de lockstep A-7:
+# el job orbit-lockstep del CI corre los tests de orbit contra este candidato
+# antes de que nucleus tague. Tras el tag, el pin pasa a v0.11.0 y se
+# certifica el set.
 workspace_pins:
   quark:   "v1.1.5"                                  # = tag
-  nucleus: "v0.10.1-0.20260706155336-1d2adac84d9c"    # = v0.10.0 + housekeeping de examples/ci
+  nucleus: "v0.10.1-0.20260708165914-29999d19bdbe"    # = RC de v0.11.0 (validación A-7)
   orbit:   "v0.3.0"                                  # = tag
 
 notes: >
