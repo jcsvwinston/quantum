@@ -15,12 +15,14 @@ modules:
   orbit:   "v0.3.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
-# compile el set. Por primera vez los TRES pines son tags limpios. El RC de
-# nucleus v0.11.0 pasó la validación de lockstep A-7 (quantum#35: el job
-# orbit-lockstep corrió los tests de orbit contra el candidato antes del tag).
+# compile el set. Orbit y quark quedan EN SU TAG. Nucleus está en el RC de
+# v0.12.0 (los borrados del tren: DEP-2026-004/005/006/008 + NewJSONTask,
+# con rebaseline deliberado) — este pin ES la validación de lockstep A-7:
+# el job orbit-lockstep corre los tests de orbit contra el candidato antes
+# de que nucleus tague. Tras el tag, el pin pasa a v0.12.0 y se certifica.
 workspace_pins:
   quark:   "v1.1.5"                                  # = tag
-  nucleus: "v0.11.0"                                 # = tag (primer pin limpio de nucleus)
+  nucleus: "v0.11.1-0.20260709153931-f1f339c34a2e"    # = RC de v0.12.0 (validación A-7)
   orbit:   "v0.3.0"                                  # = tag
 
 notes: >
