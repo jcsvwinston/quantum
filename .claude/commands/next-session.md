@@ -40,9 +40,56 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-09)
+## 3. Estado al cierre (2026-07-10)
 
-### Sesión 2026-07-09 — v0.12.0: la deuda de deprecación pagada; Quantum 0.4.0
+### Sesión 2026-07-10 — EL HITO: nucleus v1.0.0, el primer major; Quantum 0.5.0
+
+Con Carlos presente (aprobó los 6 waivers §B con un "ok" tras los textos).
+
+- **[Nucleus] Flip de CORS fusionado** (nucleus#191, `feat!`): un router/app
+  sin configurar DENIEGA cross-origin (cero cabeceras CORS) — la promesa de
+  ADR-013 R4 cumplida en su major. `WithCORSOrigins()` explícito conserva su
+  semántica documentada; `cors_origins: ["*"]` reproduce el allow-all
+  histórico (4 tests fijan la matriz). DEP-2026-007 → completed; nota de
+  cierre en ADR-013 R4; de paso: routing.md afirmaba claves fantasma
+  `cors.*` — corregido. (Incidencia menor: flake del proxy de Go en la lane
+  postgres; rerun y verde.)
+- **[Nucleus] Gate cerrado al completo** (nucleus#193): los 6 waivers §B
+  formalizados con la aprobación de Carlos (W1 observability→eval v1.2,
+  fuera de la promesa + nota en inventario; W2 driver instr→v1.1; W3 campos
+  reservados ADR-010 by-design; W4 generadores→backlog DX; W5 Oracle
+  quoting→limitación conocida documentada en la guía multi-BD; W6 wizard).
+  Slice 9: `rehearse_rc.sh` 5/5 (tests + goreleaser check + snapshot) y
+  artefactos del checklist commiteados en docs/reports/ (compatibilidad
+  READY 3/3, dependencias críticas 0). Header del gate refrescado.
+- **Merge con `Release-As: 1.0.0`** en el footer del squash → el release-PR
+  rodante #192 (que había salido como 0.13.0 por el `feat!` del flip) se
+  retituló a **release 1.0.0** — el mecanismo para saltar del tren 0.x al
+  major con release-please + bump-minor-pre-major.
+- **RC del major validado por el lane** (quantum#39, 3ª ejecución de A-7;
+  el flip no toca a orbit — monta in-process, mismo origen) → release-PR
+  #192 (CI vía commit vacío) → **nucleus v1.0.0 TAGGEADO** (`d87e9181`,
+  release publicada 2026-07-10T18:20Z).
+- **Housekeeping post-tag** (nucleus#194): `defaultPinnedFrameworkVersion`
+  → v1.0.0.
+- **Quantum 0.5.0 certificado** (este PR): modules.nucleus → v1.0.0 — DOS
+  de los tres pilares en major 1 (quark v1.1.5, nucleus v1.0.0).
+
+**Lo que queda hasta Quantum 1.0** (el arco final):
+1. **Orbit v1.0 en lockstep** (2-3 sesiones, QADR-0005): repin de orbit a
+   nucleus v1.0.0 por tag (quarkbridge/quarkdatasource actualizan go.mod);
+   **freeze del contrato `datasource`** (su ADR-001 lo fija en v1.0);
+   mini-gate de orbit (alcance: decisión de Carlos — candidatos: RPCs
+   RBAC/audit de las pantallas Manage, row count en SqlStatementEvent, tags
+   de agent/proto en release-please para la pata fleet standalone);
+   Release-As 1.0.0 + RC por el lane → tag.
+2. **Quantum 1.0.0** (1 sesión): certificación del manifiesto con los tres
+   en major 1, régimen de majors en lockstep activado (QADR-0002), 
+   versionado de docs de nucleus en el sitio + portada. Fases 0-5 CERRADAS.
+
+**Foco siguiente sugerido:** el arco de orbit — proponer a Carlos el alcance
+del mini-gate de orbit (redactarlo como docs/V1_GATE.md de orbit con la
+misma disciplina) y arrancar con el repin a nucleus v1.0.0.
 
 - **[Nucleus] Los borrados del tren fusionados** (nucleus#187, 5 commits, uno
   por DEP + governance): alias rbac (DEP-004), claves storage planas
