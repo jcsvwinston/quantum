@@ -2,33 +2,36 @@
 # fichero que fija un trío de versiones compatibles. Entre releases, cada módulo
 # saca subversiones por su cuenta; aquí solo se certifican conjuntos.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "0.5.0"            # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-07-10
-status: certified           # quinto set certificado (0.5.0): NUCLEUS EN MAJOR 1
+quantum: "1.0.0"            # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-07-11
+status: certified           # EL HITO DE CONVERGENCIA: los tres pilares en major 1
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
-# Módulos opt-in de integración (repo orbit): quarkbridge v0.1.0 y
-# quarkdatasource v0.1.0 — también taggeados y resolubles standalone.
+# Módulos opt-in de integración y pata fleet (repo orbit), también en tag y
+# resolubles standalone: quarkbridge v0.2.0, quarkdatasource v0.2.0,
+# proto v0.1.0, agent v0.2.0, server v0.2.0 (binario admin-server instalable
+# con `go install`).
 modules:
   quark:   "v1.1.5"
   nucleus: "v1.0.0"
-  orbit:   "v0.3.0"
+  orbit:   "v1.0.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
-# compile el set. Los tres pines EN TAG. El RC de v1.0.0 pasó la validación
-# de lockstep A-7 (quantum#39) antes del tag del primer major.
+# compile el set. Los tres pines EN TAG. El RC de orbit v1.0.0 pasó la
+# validación de lockstep A-7 (quantum#41) antes del tag del major.
 workspace_pins:
   quark:   "v1.1.5"                                  # = tag
-  nucleus: "v1.0.0"                                  # = tag (PRIMER MAJOR)
-  orbit:   "v0.3.0"                                  # = tag
+  nucleus: "v1.0.0"                                  # = tag
+  orbit:   "v1.0.0"                                  # = tag (PRIMER MAJOR)
 
 notes: >
-  Quantum 0.5.0 — quinto set certificado y el hito de la Fase 5: NUCLEUS
-  ALCANZA SU PRIMER MAJOR (v1.0.0). El gate quedó íntegro: §A completo
-  (17 pkgs estables congelados, deuda de deprecación pagada, CORS deny por
-  defecto, SLO medible, lockstep operativo), 6 waivers §B aprobados y
-  documentados, rehearsal y artefactos del checklist en verde, y el RC
-  validado por el lane A-7. Dos de los tres pilares están en major 1
-  (quark v1.1.5, nucleus v1.0.0). Camino restante a Quantum 1.0: orbit a
-  v1.0 en lockstep (freeze del contrato datasource, repin a nucleus v1.0,
-  su mini-gate) y la certificación del manifiesto 1.0.0 (QADR-0005).
+  Quantum 1.0.0 — EL HITO DE CONVERGENCIA (QADR-0005 cumplido): quark v1.1.5,
+  nucleus v1.0.0 y orbit v1.0.0 — los tres pilares en major 1. El gate de
+  orbit quedó íntegro: contrato datasource congelado con guard de freeze
+  (100 símbolos), pata fleet resoluble por tags (verificado desde módulo
+  scratch y go install), Config con promesa v1.0 en godoc, barrido
+  anti-falsedad de todas las superficies de docs, 2 waivers §B aprobados
+  (W1 RPCs RBAC/audit y W2 row count → v1.1), y el RC validado por el lane
+  A-7. Desde este set rige el régimen de majors en lockstep (QADR-0002):
+  las subversiones de cada módulo flotan entre releases Quantum; los majors
+  solo se cruzan en una release Quantum coordinada.

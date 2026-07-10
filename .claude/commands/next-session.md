@@ -40,7 +40,85 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-10)
+## 3. Estado al cierre (2026-07-11)
+
+### Sesión 2026-07-11 — LA CONVERGENCIA: orbit v1.0.0 y QUANTUM 1.0.0 — los tres pilares en major 1
+
+Sesión autónoma (continuación de la del 2026-07-10; Carlos había aprobado el
+alcance del gate de orbit y los waivers W1/W2 con un "ok"). El arco completo
+de orbit (gate slices 1–4) ejecutado de una tirada:
+
+- **[Orbit] Slice 1 — freeze guard** (orbit#21): `contracts/freeze_test.go`
+  (puerto a escala del de nucleus, con sus dos lecciones: constructores y
+  consts tipadas van bajo el TIPO en go/doc) fija `orbit` raíz +
+  `orbit/datasource` contra un baseline de 100 símbolos; falla en ambas
+  direcciones (borrados Y adiciones sin revisar); regen con
+  `ORBIT_UPDATE_CONTRACT_BASELINE=1`. Contrato datasource declarado FINAL
+  en ADR-001 (sección de congelación). El lane orbit-lockstep cubre
+  `./orbit/...`, así que el guard corre en cada push/PR de la suite. A-1 ✅.
+- **[Orbit] Slice 2 — pata fleet standalone** (orbit#22, #24–#30):
+  proto/agent/server en release-please con tags de componente
+  (`release-as: 0.1.0` para el primer corte). Decisión de distribución del
+  server: TAMBIÉN se taggea — es un deployable (binario `admin-server`,
+  go-install-able); su API Go queda sin promesa. `replace` intra-repo
+  eliminados (orbit#27); tags finales: proto/v0.1.0, agent/v0.2.0,
+  server/v0.2.0. Verificado el criterio de cierre con módulo scratch
+  (agent-only resuelve por tags) y `go install …/admin-server@v0.2.0`. A-2 ✅.
+  Deuda pagada de paso: los `release-as` consumidos se RETIRAN de la config
+  (el de los bridges habría forzado 0.1.0 eternamente; mordió con los
+  0.1.0 duplicados #28/#29 antes del fix #30).
+- **[Orbit] Slice 3 — Config congelada + barrido anti-falsedad** (orbit#23):
+  los 21 campos de `Config` revisados uno a uno (todos congelables tal
+  cual; godoc con la promesa v1.0 explícita). Barrido de 9 páginas del
+  sitio + 4 READMEs + doc.go + go.work + CLAUDE.md con hallazgos SERIOS:
+  el mito de la contraseña de bootstrap (P0 — los docs prometían password
+  aleatoria con `bootstrap_password` vacío; el código OMITE el bootstrap:
+  el operador del quick-start quedaba fuera del panel), wiring del agent
+  incompilable (`cfg.AdminAgent`/`app.MustLoadConfig` fantasmas; lo real:
+  `agent.ExtensionConfig` + `app.LoadConfig`), flag `--metrics-addr`
+  fantasma, `make build` no produce `bin/admin-server`, claim falso de CI
+  de regeneración, rutas `admin/*` pre-extracción, doc.go "Phase-1
+  skeleton" en módulos implementados, badge `status: complete` (anti-hype)
+  fuera. A-3 ✅, A-4 ✅.
+- **[Orbit] Slice 4 — el tag** (orbit#31, #18): waivers W1/W2 formalizados
+  como APROBADOS (2026-07-10); merge con `Release-As: 1.0.0` en el footer →
+  release-PR #18 retitulado a 1.0.0; **RC validado por el lane** (quantum#41,
+  4ª ejecución A-7, verde) → merge de #18 → **orbit v1.0.0 TAGGEADO**
+  (`b72ae024`, 2026-07-10T22:38Z). Housekeeping post-tag mismo día
+  (orbit#32: menciones de versión + promesa v1.0 en README/sitio/CLAUDE.md;
+  header del gate con outcome). Bridges retaggeados sobre nucleus v1.0.0:
+  quarkbridge/v0.2.0, quarkdatasource/v0.2.0 (#19/#20).
+- **QUANTUM 1.0.0 CERTIFICADO** (este PR): los tres pilares en major 1
+  (quark v1.1.5, nucleus v1.0.0, orbit v1.0.0), tres pines en tag, régimen
+  de majors en lockstep ACTIVADO (QADR-0002). README del paraguas al día
+  (tabla de pilares, nota de pines reescrita — la del pseudo-version de
+  nucleus llevaba tres sets obsoleta); ROADMAP con nota de cierre: Fases
+  0–5 CERRADAS. QADR-0005 cumplido.
+- **LECCIONES nuevas**: (1) el pie `BREAKING CHANGE:` es un MARCADOR — nunca
+  usarlo en prosa aclaratoria ("BREAKING CHANGE: none…" convirtió un fix en
+  minor bump: agent/server saltaron a 0.2.0); (2) las ramas de release-please
+  multi-paquete conflictan entre sí en `.release-please-manifest.json` al
+  fusionar en serie — reconciliar la rama del bot a mano (merge de main +
+  manifest unión) es el procedimiento; (3) `release-as` consumido se retira
+  en el PR siguiente, siempre.
+
+**Flecos abiertos (trabajo post-hito, no bloquea nada):**
+1. **Sitio unificado** (ROADMAP §5, Fase 2 pendiente por diseño): Docusaurus
+   multi-instancia en `quantum/website/`, migrar docs de los tres, retirar
+   los Pages sueltos. El mayor hueco: escribir la instancia de orbit.
+2. **Versionado de docs de nucleus** en su Docusaurus (primer snapshot
+   versionado al corte v1.0.0) — repo nucleus.
+3. Menudencias orbit: el binario `admin-server --version` imprime
+   "(phase 4)" (string interno estancado); exponer `--metrics-addr` en el
+   CLI del server (Config.MetricsAddr ya existe en la API Go).
+4. Ceremonia de release de GitHub para quantum (¿release/tag v1.0.0 del
+   propio paraguas con las notas del manifiesto?) — decidir con Carlos.
+
+**Foco siguiente sugerido:** decidir con Carlos el orden post-1.0 — sitio
+unificado (Fase 2 §5) vs. v1.1 de orbit (waivers W1/W2: RPCs RBAC/audit y
+row count) vs. ceremonia de release del paraguas.
+
+---
 
 ### Sesión 2026-07-10 — EL HITO: nucleus v1.0.0, el primer major; Quantum 0.5.0
 
