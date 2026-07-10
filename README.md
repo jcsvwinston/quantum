@@ -30,9 +30,9 @@ uno, qué rol juega en la suite y cómo encajan.
 
 | Pilar | Rol en la suite | Módulo Go | Versión | Submódulo | Uso en solitario |
 |---|---|---|---|---|---|
-| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v0.9.0` | [`nucleus/`](nucleus) | Sí (base de apps) |
+| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.0.0` | [`nucleus/`](nucleus) | Sí (base de apps) |
 | **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.1.5` | [`quark/`](quark) | **Sí, en cualquier app Go** |
-| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v0.1.0` | [`orbit/`](orbit) | No (requiere Nucleus) |
+| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.0.0` | [`orbit/`](orbit) | No (requiere Nucleus) |
 
 Los nombres vienen de la **física de partículas**: **Nucleus** es el **núcleo** (el
 framework anfitrión); **Quark**, la **partícula fundamental** (la capa de datos,
@@ -201,12 +201,12 @@ El `go.work` es una conveniencia de desarrollo: **no se publica** como dependenc
 y no tiene equivalente `replace` en los `go.mod` de los productos. En release,
 cada módulo resuelve sus dependencias por tag real.
 
-> **Nota sobre el pin de Nucleus.** El submódulo de cada producto se fija a su
-> versión publicada, salvo Nucleus: Orbit v0.1.0 consume API de Nucleus
-> introducida después de `v0.9.0` y aún sin taggear, así que el submódulo
-> `nucleus/` se fija al commit exacto contra el que se publicó Orbit. `v0.9.0`
-> sigue siendo la versión publicada en `versions.yaml`; el commit va en
-> `workspace_pins`. Ver [QADR-0004](docs/adr/QADR-0004-versions-yaml-manifiesto.md).
+> **Nota sobre los pines.** Desde Quantum 0.3.0 los tres submódulos se fijan
+> a sus tags publicados (`workspace_pins` = `modules` en `versions.yaml`);
+> desde Quantum 1.0.0 los tres pilares están en major 1 y rige el régimen de
+> majors en lockstep. Ver
+> [QADR-0004](docs/adr/QADR-0004-versions-yaml-manifiesto.md) y
+> [QADR-0002](docs/adr/QADR-0002-versionado-dos-niveles.md).
 
 ## Documentación
 

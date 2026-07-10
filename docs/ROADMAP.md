@@ -6,6 +6,15 @@
 
 **Fecha:** 2026-06-22 · **Estado:** propuesta para ejecutar · **Decisiones base confirmadas por el responsable.**
 
+> **Cierre (2026-07-11):** la convergencia de versiones se alcanzó — **Quantum
+> 1.0.0 certificado** con los tres pilares en major 1 (quark v1.1.5, nucleus
+> v1.0.0, orbit v1.0.0; ver `versions.yaml`). Las fases de versionado (0–5)
+> están cerradas y rige el régimen de majors en lockstep (QADR-0002). Queda
+> abierto, como trabajo posterior al hito: el sitio de docs unificado (§5) y
+> el versionado de la instancia de docs de nucleus. Las tablas de estado de
+> este documento reflejan el punto de partida de 2026-06-22, no el estado
+> actual.
+
 ---
 
 ## 1. Punto de partida (estado real, no el declarado)
