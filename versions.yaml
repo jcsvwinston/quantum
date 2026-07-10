@@ -15,11 +15,13 @@ modules:
   orbit:   "v0.3.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
-# compile el set. Los tres pines EN TAG. El RC de nucleus v0.12.0 pasó la
-# validación de lockstep A-7 (quantum#37) antes del tag.
+# compile el set. Orbit y quark quedan EN SU TAG. Nucleus está en el RC de
+# v1.0.0 (el gate cerrado: §A completo + 6 waivers §B aprobados + rehearsal
+# y artefactos en verde) — este pin ES la validación de lockstep A-7 previa
+# al tag del PRIMER MAJOR. Tras el tag, el pin pasa a v1.0.0 y se certifica.
 workspace_pins:
   quark:   "v1.1.5"                                  # = tag
-  nucleus: "v0.12.0"                                 # = tag
+  nucleus: "v0.12.1-0.20260710180725-10c222f8ee5e"    # = RC de v1.0.0 (validación A-7)
   orbit:   "v0.3.0"                                  # = tag
 
 notes: >
