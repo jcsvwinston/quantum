@@ -40,9 +40,50 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-08)
+## 3. Estado al cierre (2026-07-09)
 
-### Sesión 2026-07-08 — el gran día: v0.11.0 taggeado, Quantum 0.3.0 certificado, gate §A resuelto
+### Sesión 2026-07-09 — v0.12.0: la deuda de deprecación pagada; Quantum 0.4.0
+
+- **[Nucleus] Los borrados del tren fusionados** (nucleus#187, 5 commits, uno
+  por DEP + governance): alias rbac (DEP-004), claves storage planas
+  (DEP-005; el default efectivo `storage/` se preserva — el seeding legacy
+  era peso muerto para YAML), `CookieSessionStore` (DEP-006), miembros
+  OpenAPI provider-typed (DEP-008 — **pkg/app ya no importa pkg/openapi**) y
+  `NewJSONTask`. Rebaseline deliberado: −17 símbolos, −2 claves. Gate:
+  **A-2 ✅, A-3 ✅, A-1a ✅ — el §A entero cerrado o esperando solo la rama
+  v1.0.0**. Componente de health renombrado `deploy.storage_provider`.
+- **LECCIÓN NUEVA (tropiezo reparado)**: el squash-merge usa el TÍTULO del
+  PR como mensaje, y release-please solo parsea ese mensaje — #187 con
+  título no-conventional fue invisible (sin release-PR), y #177/#178/#182
+  faltaban en las notas de v0.11.0 por lo mismo. Arreglo: PR-disparador
+  #188 fusionado con `--subject "feat!: ..." --body "BREAKING CHANGE: ..."`
+  (mensaje de squash explícito), convención grabada en el CLAUDE.md de
+  nucleus, y las notas de v0.11.0 enmendadas con adenda (`gh release edit`).
+  **Los títulos de PR deben ser conventional commits, siempre.**
+- **RC v0.12 validado por el lane** (quantum#37 ✅, 2ª ejecución del
+  procedimiento A-7; los borrados no tocan la superficie Tier-1 de orbit) →
+  release-PR #189 (CI vía commit vacío a la rama del bot) → **v0.12.0
+  taggeado** (`6ab88201`).
+- **Housekeeping post-tag** (nucleus#190): `defaultPinnedFrameworkVersion`
+  → v0.12.0 (esta vez sin retraso).
+- **Quantum 0.4.0 certificado** (este PR): modules.nucleus → v0.12.0, tres
+  pines en tag.
+
+**Lo que queda hasta Quantum 1.0** (mapa acordado con Carlos):
+1. **Nucleus v1.0** (1-2 sesiones): rama v1.0.0 con el flip de CORS (A-5a,
+   decidido), los 6 waivers §B formalizados (REQUIEREN visto bueno de Carlos
+   — preparar textos para aprobación en lote), slice 9 (`rehearse_rc.sh` +
+   artefactos del checklist) + validación RC por el lane → tag v1.0.0.
+2. **Orbit v1.0 en lockstep** (2-3 sesiones): mini-gate propio (freeze del
+   contrato `datasource`, repin a nucleus v1.0, RPCs RBAC/audit, row count,
+   tags de agent/proto en release-please). Alcance del gate: decisión de
+   Carlos.
+3. **Quantum 1.0** (1 sesión): certificación del manifiesto 1.0.0, régimen
+   de majors en lockstep, versionado de docs de nucleus en el sitio, portada.
+
+**Foco siguiente sugerido:** la rama v1.0.0 de nucleus — preparar los textos
+de los 6 waivers §B para el visto bueno de Carlos, implementar el flip de
+CORS, y el slice 9 con su RC por el lane.
 
 Con Carlos presente: autorizó los merges y aceptó las TRES recomendaciones de
 los briefs (A-3 remove, A-5a flip, A-1a/b stdlib+exclusión).
