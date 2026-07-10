@@ -2,33 +2,33 @@
 # fichero que fija un trío de versiones compatibles. Entre releases, cada módulo
 # saca subversiones por su cuenta; aquí solo se certifican conjuntos.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "0.4.0"            # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-07-09
-status: certified           # cuarto set certificado (0.4.0): la deuda de deprecación de nucleus pagada
+quantum: "0.5.0"            # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-07-10
+status: certified           # quinto set certificado (0.5.0): NUCLEUS EN MAJOR 1
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración (repo orbit): quarkbridge v0.1.0 y
 # quarkdatasource v0.1.0 — también taggeados y resolubles standalone.
 modules:
   quark:   "v1.1.5"
-  nucleus: "v0.12.0"
+  nucleus: "v1.0.0"
   orbit:   "v0.3.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
-# compile el set. Orbit y quark quedan EN SU TAG. Nucleus está en el RC de
-# v1.0.0 (el gate cerrado: §A completo + 6 waivers §B aprobados + rehearsal
-# y artefactos en verde) — este pin ES la validación de lockstep A-7 previa
-# al tag del PRIMER MAJOR. Tras el tag, el pin pasa a v1.0.0 y se certifica.
+# compile el set. Los tres pines EN TAG. El RC de v1.0.0 pasó la validación
+# de lockstep A-7 (quantum#39) antes del tag del primer major.
 workspace_pins:
   quark:   "v1.1.5"                                  # = tag
-  nucleus: "v0.12.1-0.20260710180725-10c222f8ee5e"    # = RC de v1.0.0 (validación A-7)
+  nucleus: "v1.0.0"                                  # = tag (PRIMER MAJOR)
   orbit:   "v0.3.0"                                  # = tag
 
 notes: >
-  Quantum 0.4.0 — cuarto set certificado: nucleus v0.12.0 (la deuda de
-  deprecación pagada — borrados DEP-2026-004/005/006/008 y NewJSONTask, con
-  rebaseline deliberado de -17 símbolos y -2 claves; el gate v1.0 queda con
-  el §A resuelto al completo), orbit v0.3.0 y quark v1.1.5. Segundo RC
-  validado por el lane de lockstep A-7 antes de taggear. Camino restante a
-  Quantum 1.0: rama v1.0.0 de nucleus (flip de CORS + waivers §B + slice 9),
-  después orbit a v1.0 en lockstep (QADR-0005) y la certificación 1.0.0.
+  Quantum 0.5.0 — quinto set certificado y el hito de la Fase 5: NUCLEUS
+  ALCANZA SU PRIMER MAJOR (v1.0.0). El gate quedó íntegro: §A completo
+  (17 pkgs estables congelados, deuda de deprecación pagada, CORS deny por
+  defecto, SLO medible, lockstep operativo), 6 waivers §B aprobados y
+  documentados, rehearsal y artefactos del checklist en verde, y el RC
+  validado por el lane A-7. Dos de los tres pilares están en major 1
+  (quark v1.1.5, nucleus v1.0.0). Camino restante a Quantum 1.0: orbit a
+  v1.0 en lockstep (freeze del contrato datasource, repin a nucleus v1.0,
+  su mini-gate) y la certificación del manifiesto 1.0.0 (QADR-0005).
