@@ -19,9 +19,9 @@ modules:
 # compile el set. Los tres pines EN TAG. El RC de nucleus v1.1.0 pasó la
 # validación de lockstep A-7 (quantum#48) antes del tag.
 workspace_pins:
-  quark:   "v1.2.0"                                  # = tag
-  nucleus: "v1.1.0"                                  # = tag
-  orbit:   "v1.2.0"                                  # = tag
+  quark:   "5d8c99ce"                                # = v1.2.0 + snapshot de docs 1.2.0 (código idéntico al tag; el sitio ensambla las docs desde el pin)
+  nucleus: "956a782b"                                # = v1.1.0 + housekeeping CLI + barrido de docs (status v1.x en current y snapshot 1.0.0; librería idéntica al tag)
+  orbit:   "abf802a"                                 # = v1.2.0 + barrido de docs W1/W2 (código idéntico al tag)
 
 notes: >
   Quantum 1.2.0 — el set que deja la suite SIN deuda conocida. Quark v1.2.0:

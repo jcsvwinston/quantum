@@ -40,3 +40,6 @@ website/versions.json
 
 # --- Claude Code (settings locales, no compartidos) ---
 .claude/settings.local.json
+
+# Config local del preview de Claude Code (artefacto de sesión)
+.claude/launch.json

@@ -97,6 +97,29 @@ falsedades del barrido A-4.
 **Foco siguiente:** terminar la tarea #20 y considerar la ceremonia del
 release quantum v1.2.0 (mismo patrón que v1.0.0/v1.1.0).
 
+**BARRIDO EJECUTADO (misma sesión, continuación):** hallazgos REALES en
+las tres instancias, todos corregidos por PR en su repo fuente:
+- **[Nucleus, el gordo]** el intro publicado decía «Status: pre-1.0
+  (v0.x)», installation avisaba de roturas v0.X+1 y compatibility decía
+  que el reloj del SLO no había arrancado — TODO falso desde el major, y
+  **el snapshot 1.0.0 congeló esas falsedades como docs oficiales del
+  major**. Corregido en current Y en el snapshot (nucleus#199; excepción
+  deliberada a la inmutabilidad: un snapshot que miente sobre el estado
+  de SU propia versión es un bug material, no historia — distinto de las
+  anclas rotas de quark). También features/admin.md: «orbit primer tag
+  v0.1.0, pre-1.0» → v1.2.0 + promesa v1.x congelada.
+- **[Quark]** v1.2.0 salió con el overhaul de docs (37 ficheros) SIN
+  snapshot — el sitio servía por defecto 1.1.0 pre-overhaul. Snapshot
+  1.2.0 cortado (quark#236, matriz 13/13).
+- **[Orbit]** server.md documenta la Manage surface real (snapshot RBAC
+  + ring de audit del plano fleet), agent.md el cableado automático del
+  authorizer, versiones a v1.2.0, y una incongruencia previa (la tabla
+  del README del server nunca listó DataStudioService) (orbit#55).
+- **[Paraguas]** pines bumpeados a los commits post-barrido con matices
+  documentados (librerías idénticas a los tags — el sitio ensambla desde
+  el pin); `.claude/launch.json` (colado por un `git add -A` en la
+  certificación 1.2.0) fuera del repo y al .gitignore.
+
 ---
 
 ### Sesión 2026-07-11 (4ª) — barrido de seguridad: GO-2026-5856 curada en orbit; Quantum 1.1.0; BRIEF de quark
