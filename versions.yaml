@@ -24,10 +24,13 @@ workspace_pins:
   orbit:   "abf802a"                                 # = v1.2.0 + barrido de docs W1/W2 (código idéntico al tag)
 
 notes: >
-  Quantum 1.2.0 — el set que deja la suite SIN deuda conocida. Quark v1.2.0:
-  release de mantenimiento+features acumuladas (las 11 advisories curadas —
-  toolchain go1.26.5 + pgx v5.9.2, matriz de 6 motores verde — más
-  scatter-gather de sharding y el resto del drift post-v1.1.5). Nucleus
+  Quantum 1.2.0 — el set que deja la suite SIN deuda conocida (al cierre del
+  tag; la auditoría de la 7ª sesión encontró después deuda de CLI/docs en
+  quark, corregida en quark#237-#239 sin tocar la librería). Quark v1.2.0:
+  release de mantenimiento+features acumuladas (advisories de deps curadas —
+  govulncheck 11→0 puntual a nivel módulo; pin toolchain go1.26.5 + pgx
+  v5.9.2, matriz de 6 motores verde — más scatter-gather de sharding y el
+  resto del drift post-v1.1.5). Nucleus
   v1.1.0: SQLEvent.RowsAffected aditivo en la superficie Tier-1 (rebaseline
   deliberado +2). Orbit v1.2.0: LOS DOS WAIVERS DEL GATE v1.0 PAGADOS — W1:
   pantallas Access control (snapshot RBAC read-only ruteado al agente, que

@@ -40,7 +40,52 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-11)
+## 3. Estado al cierre (2026-07-12)
+
+### Sesión 2026-07-12 (7ª) — el brief de corrección de Quark ejecutado: 12 hallazgos → 3 PRs
+
+Carlos entregó el brief de auditoría de quark (12 hallazgos H-Q1..H-Q12
+sobre el pin `5d8c99ce` = v1.2.0). Los 12 quedaron cubiertos en 3 PRs,
+**pendientes de merge por Carlos** (la sesión no puede auto-fusionar):
+
+- **quark#237 — CLI** (H-Q1 crítica, H-Q2/H-Q3 altas, H-Q8/Q11/Q12):
+  `quark init` generaba proyecto roto (`driver: postgresql` vs driver
+  registrado `pgx`) → mapping dialecto→driver en la CLI + import de go-ora
+  (el driver `oracle` no estaba registrado en el binario); migrate/inspect/
+  tenant/seed/init pasan a `RunE` (fallos ya salen con exit≠0 — antes
+  exit 0, rompía gating de CI); `sync` pierde sus 4 flags no-op y dice la
+  verdad (guía para `client.Sync`, que necesita los modelos compilados);
+  `inspect --format json|yaml` implementado; `quark version`/`--version`
+  nuevos; `inspect sql` re-etiquetado. Verificado end-to-end con binario
+  local (sqlite feliz; pg/oracle llegan a conectar y exit 1).
+- **quark#238 — docs/versionado** (H-Q4/H-Q5 altas, H-Q6/H-Q9 medias):
+  3 snippets del README que no compilaban corregidos; drift v1.1.5/v1.1.2/
+  v1.1.0 → v1.2.0 en README/SECURITY/CLAUDE/release-notes (+ snapshot
+  1.2.0 del sitio, que decía v1.1.5); `docs/RELEASE_NOTES_v1.2.0.md`
+  escrito desde ADR-0020/21/22; **govulncheck en CI** (0 alcanzables hoy)
+  + sección de advisories en SECURITY.md; **check de coherencia de versión
+  en CI** (`scripts/check-version-coherence.sh` — la forcing function que
+  faltó al taggear v1.2.0); comandos fantasma (`schema verify/diff`,
+  `tenant onboard/install-rls-policies`) marcados como planned/librería.
+  Matiz: el «11 advisories» del commit quark#235 SÍ tenía origen (este §3,
+  sesión 5ª: govulncheck 11→0) pero no vivía en el repo quark — el
+  CHANGELOG ahora lo explica y omite el conteo perecedero.
+- **quark#239 — hardening** (H-Q7 media, H-Q10 baja): los 5 `Quote()`
+  ahora auto-escapan el carácter de cierre (defensa en profundidad;
+  sin bypass explotable previo); `ValidateRawQuery` enmascara el contenido
+  de literales `'...'` para los patrones estructurales — `'range--max'`
+  (falso positivo documentado) ya pasa, `--` fuera de literal se sigue
+  rechazando; mensajes de rechazo específicos; regex precompilados.
+
+También en este PR de quantum: la nota del manifiesto 1.2.0 matiza el
+«11 advisories» y reconoce la deuda encontrada post-tag. Pendiente para
+la próxima sesión: tras el merge de los 3 PRs, decidir si mover el pin de
+quark (los fixes son CLI/docs/guard — la superficie de librería solo
+cambia en `Quote`, aditivamente seguro) y si toca release v1.2.1 con el
+checklist nuevo. Las release notes de GitHub del tag quark v1.2.0 aún
+dicen «11 advisories» (editarlas es acción pública — decisión de Carlos).
+
+---
 
 ### Sesión 2026-07-11 (6ª) — el botón de Orbit en el hero de la portada
 
