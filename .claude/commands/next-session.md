@@ -42,6 +42,63 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-11)
 
+### Sesión 2026-07-11 (5ª) — los 3 puntos de Carlos ejecutados: quark curado, ceremonia, y el arco W1/W2 completo — Quantum 1.2.0
+
+Carlos dio el "Adelante" a los 3 pendientes + el mandato de barrer TODA la
+documentación publicada al terminar (tarea siguiente, EN CURSO al cierre).
+
+- **[Quark] v1.2.0** (quark#235 + release-PR #225): las 11 advisories
+  curadas (toolchain go1.26.5 + pgx v5.9.2; matriz de 6 motores 13/13
+  verde; govulncheck 11→0) — el release recoge además el drift acumulado
+  (+37 commits: scatter-gather de sharding ADR-0022 etc.), por eso el
+  número honesto fue v1.2.0, no v1.1.6.
+- **Ceremonia del paraguas**: releases de GitHub quantum v1.0.0 (en el
+  commit de la convergencia) y v1.1.0, con las notas del manifiesto.
+- **[Orbit] W1 — Access control y Audit log REALES** (orbit#42): frames
+  RbacRequest/Response append-only + ManageService (GetRbac/ListAudit);
+  el agent toma `app.Authorizer` SOLO en Attach (cero config nueva) y
+  sirve el snapshot Casbin read-only vía una interfaz estrecha
+  PolicySource; el server registra las mutaciones que él mismo rutea
+  (ring acotado del plano fleet, actor del UI auth chain — la identidad
+  viaja ahora en el contexto — y nodo destino). 3 tests de integración
+  sobre stream real + sesión de navegador en vivo (roles/policies
+  renderizados; audit con estado vacío honesto). La app sigue siendo el
+  único escritor RBAC — el Revoke placeholder se quitó en vez de fingir.
+- **[Nucleus] v1.1.0 — la mitad de W2** (nucleus#196): SQLEvent.
+  RowsAffected aditivo (nace en los exec del CRUD, best-effort del
+  driver; 0 = no reportado), rebaseline deliberado +2, inventario al
+  día; RC validado por el lane (quantum#48, 5ª ejecución A-7) → tag →
+  housekeeping #198 (pinned v1.1.0).
+- **[Orbit] W2 — columna Rows real** (orbit#49): rows_affected en el
+  proto (field 10, breaking-check verde), conversión del agent, y la
+  columna del stream SQL (placeholder desde el rediseño) mostrando el
+  conteo (guion honesto para 0). Repin nucleus v1.1.0 en los seis
+  go.mod. De paso: restaurada la afirmación VERDADERA de
+  RequireConnection en el README del agent (el barrido A-4 la borró por
+  un grep truncado con `head -5` — lección: no truncar greps de
+  verificación).
+- **Tags del arco**: proto/v0.3.0, agent/v0.4.0, server/v0.5.0,
+  quarkbridge/v0.3.0 y **orbit v1.2.0** (#45). Bumps post-tag (#47,
+  #48-orbit, #54) — resolución standalone verificada en cada eslabón.
+- **QUANTUM 1.2.0 certificado** (este PR): quark v1.2.0 + nucleus
+  v1.1.0 + orbit v1.2.0, tres pines EN TAG, sin deuda de seguridad
+  conocida en ningún pilar.
+
+**EN CURSO al cierre**: tarea #20 — el barrido completo de la
+documentación publicada (mandato explícito de Carlos: "es fundamental
+poner al día toda la documentación publicada (docusaurus), subsanando
+cualquier incongruencia"). Alcance: 3 instancias del sitio (nucleus
+14+versioned, quark 41, orbit 9 páginas) + portada; las correcciones van
+por PR a cada repo fuente (QADR-0003). Ya anotado para el barrido: las
+páginas de orbit deben recoger W1/W2 (Access control/Audit log ya no son
+huecos declarados; columna Rows), versiones citadas, y el precedente de
+falsedades del barrido A-4.
+
+**Foco siguiente:** terminar la tarea #20 y considerar la ceremonia del
+release quantum v1.2.0 (mismo patrón que v1.0.0/v1.1.0).
+
+---
+
 ### Sesión 2026-07-11 (4ª) — barrido de seguridad: GO-2026-5856 curada en orbit; Quantum 1.1.0; BRIEF de quark
 
 Sesión autónoma (auto). Sin trabajo de flecos pendiente (ambos eran de
