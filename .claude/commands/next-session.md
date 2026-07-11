@@ -42,6 +42,21 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-11)
 
+### Sesión 2026-07-11 (6ª) — el botón de Orbit en el hero de la portada
+
+Pedido directo de Carlos. El hero del sitio tenía solo dos CTAs (Nucleus,
+Quark) desde la Fase 2 — la instancia de Orbit llegó después (Fase 3) y las
+tarjetas de pilares se enlazaron, pero la fila de botones nunca se
+actualizó. quantum#51: «Orbit →» como botón secundario a `/orbit/` directo
+(su intro declara `slug: /`, ruta real del router — no aplica la trampa SPA
+que obliga a `/quark/intro/`). Verificado EN VIVO tras el deploy: los tres
+botones en orden con sus hrefs correctos.
+
+**Sin pendientes nuevos.** Los flecos siguen siendo decisiones de Carlos
+(próximos arcos de producto; nada bloqueado).
+
+---
+
 ### Sesión 2026-07-11 (5ª) — los 3 puntos de Carlos ejecutados: quark curado, ceremonia, y el arco W1/W2 completo — Quantum 1.2.0
 
 Carlos dio el "Adelante" a los 3 pendientes + el mandato de barrer TODA la
