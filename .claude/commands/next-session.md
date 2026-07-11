@@ -103,11 +103,15 @@ de orbit (gate slices 1–4) ejecutado de una tirada:
   en el PR siguiente, siempre.
 
 **Flecos abiertos (trabajo post-hito, no bloquea nada):**
-1. **Sitio unificado** (ROADMAP §5, Fase 2 pendiente por diseño): Docusaurus
-   multi-instancia en `quantum/website/`, migrar docs de los tres, retirar
-   los Pages sueltos. El mayor hueco: escribir la instancia de orbit.
+1. ~~Sitio unificado~~ — CORRECCIÓN (2026-07-11, 2ª sesión): el sitio YA
+   está vivo desde la Fase 2 (jcsvwinston.github.io/quantum, tres
+   instancias + búsqueda + doble selector); la certificación lo
+   auto-actualizó a «Quantum 1.0.0» vía `versions.yaml` (verificado en
+   vivo). El fleco real es solo el punto 2.
 2. **Versionado de docs de nucleus** en su Docusaurus (primer snapshot
-   versionado al corte v1.0.0) — repo nucleus.
+   versionado al corte v1.0.0; la instancia nucleus del sitio unificado
+   sigue sin versionar, a diferencia de la de quark con 13 versiones) —
+   repo nucleus.
 3. Menudencias orbit: el binario `admin-server --version` imprime
    "(phase 4)" (string interno estancado); exponer `--metrics-addr` en el
    CLI del server (Config.MetricsAddr ya existe en la API Go).

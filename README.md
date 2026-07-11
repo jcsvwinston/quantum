@@ -212,7 +212,10 @@ cada módulo resuelve sus dependencias por tag real.
 
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — plan de convergencia por fases.
 - [`docs/adr/`](docs/adr/) — decisiones de arquitectura de la suite (QADR).
-- Sitio de docs unificado: pendiente (Fase 2 del roadmap).
+- Sitio de docs unificado: **vivo** en
+  [jcsvwinston.github.io/quantum](https://jcsvwinston.github.io/quantum/) —
+  ensambla las docs de los tres productos (la fuente vive en cada repo,
+  QADR-0003) con doble selector de versión y búsqueda local.
 
 ## Licencia
 
