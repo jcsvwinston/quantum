@@ -17,11 +17,11 @@ modules:
   orbit:   "v1.0.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
-# compile el set. Los tres pines EN TAG. El RC de orbit v1.0.0 pasó la
-# validación de lockstep A-7 (quantum#41) antes del tag del major.
+# compile el set. El RC de orbit v1.0.0 pasó la validación de lockstep A-7
+# (quantum#41) antes del tag del major.
 workspace_pins:
   quark:   "v1.1.5"                                  # = tag
-  nucleus: "v1.0.0"                                  # = tag
+  nucleus: "a5fc3565"                                # = v1.0.0 + snapshot de docs 1.0.0 y housekeeping del CLI (código de la librería idéntico al tag; el sitio ensambla las docs versionadas desde este pin)
   orbit:   "v1.0.0"                                  # = tag (PRIMER MAJOR)
 
 notes: >
