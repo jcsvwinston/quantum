@@ -97,6 +97,7 @@ export default function Home(): ReactNode {
           <div className={styles.actions}>
             <Link className="button button--primary button--lg" to="/nucleus/">Nucleus&nbsp;→</Link>
             <Link className="button button--secondary button--lg" to="/quark/intro/">Quark&nbsp;→</Link>
+            <Link className="button button--secondary button--lg" to="/orbit/">Orbit&nbsp;→</Link>
           </div>
         </div>
       </header>
