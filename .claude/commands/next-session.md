@@ -42,6 +42,47 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-11)
 
+### Sesión 2026-07-11 (3ª) — fleco 1 cerrado: /metrics opt-in y --version honesto en el admin-server
+
+Sesión autónoma corta (auto). Auditoría limpia. De los tres flecos, el 2
+(ceremonia de release del paraguas) y el 3 (arco v1.1 de orbit) son
+decisión de Carlos; se ejecutó el 1:
+
+- **[Orbit] Hallazgo al abrir la menudencia** (orbit#33): `Config.
+  MetricsAddr` era config MUERTA — `withDefaults` la coercionaba a
+  `:9091` y el godoc prometía un listener, pero NADA consumía el campo
+  (la nota del barrido A-4 se quedó corta: no era solo "sin flag", no
+  existía la implementación).
+- **Listener de métricas real, estrictamente opt-in** (mismo PR): tercer
+  listener (vacío = desactivado; la coerción fantasma fuera) con el
+  registro Prometheus por defecto (`go_*`/`process_*`; colectores propios
+  del server = trabajo futuro) + `/healthz`, shutdown graceful junto a los
+  otros dos, `--metrics-addr`/`NUCLEUS_ADMIN_METRICS_ADDR` en el CLI.
+  2 tests de integración nuevos + smoke en vivo. Sin auth por diseño
+  (documentado: interfaz privada).
+- **`--version` honesto**: fuera el "(phase 4)" — lee
+  `debug.ReadBuildInfo`; verificado end-to-end: `go install …@v0.3.0`
+  imprime `nucleus-admin-server v0.3.0`; builds de fuente, `devel`.
+- **server/v0.3.0 taggeado** (release-PR #35). **orbit#34 (root 1.1.0)
+  queda ABIERTO A PROPÓSITO**: el feat tocó `website/docs/` (bajo el
+  paquete raíz) y el bot propone 1.1.0 sin cambio real de librería —
+  taggear eso inflaría el número; el PR rodante espera al primer feat
+  real de raíz (precedente: orbit#11 en Fase 3).
+- Sin cambios de pines: el server no está en `workspace_pins` (la raíz de
+  orbit sigue = v1.0.0) y el trío no se ve afectado.
+
+**Flecos que quedan (decisión de Carlos):**
+1. Ceremonia de release de GitHub para quantum (¿release/tag v1.0.0 del
+   paraguas con las notas del manifiesto?) — outward-facing.
+2. El arco v1.1 de orbit (waivers W1/W2: RPCs RBAC/audit de las pantallas
+   Manage y row count en SqlStatementEvent). Al cortar ese arco, el PR
+   rodante orbit#34 recogerá el minor de raíz legítimamente.
+
+**Foco siguiente sugerido:** los dos flecos de arriba, en el orden que
+Carlos prefiera; sin él, no hay trabajo autónomo pendiente en la suite.
+
+---
+
 ### Sesión 2026-07-11 (2ª) — post-hito: portada honesta + docs de nucleus versionadas en el sitio
 
 Sesión autónoma corta tras la certificación. Auditoría de arranque limpia
