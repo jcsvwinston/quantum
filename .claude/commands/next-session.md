@@ -42,6 +42,44 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-11)
 
+### Sesión 2026-07-11 (2ª) — post-hito: portada honesta + docs de nucleus versionadas en el sitio
+
+Sesión autónoma corta tras la certificación. Auditoría de arranque limpia
+(pines = tags, trío compila, deploy del sitio con la certificación verde).
+
+- **Portada corregida** (quantum#43): el README afirmaba "Sitio de docs
+  unificado: pendiente" — FALSO desde 2026-06-26 (live). La nota de cierre
+  del ROADMAP y el fleco 1 del §3 (escritos en la certificación) repetían
+  el error; corregidos. Verificado en vivo: la navbar del sitio ya muestra
+  «Quantum 1.0.0» y los chips v1.0.0/v1.1.5 — se auto-actualizó desde
+  versions.yaml en el deploy de la certificación, como fue diseñado.
+- **Docs de nucleus versionadas** (nucleus#195 + quantum#44): primer
+  snapshot Docusaurus de nucleus (1.0.0), cortado con main == estado del
+  tag (el único delta era el housekeeping del CLI, no docs). El sitio de la
+  suite lo consume con el mecanismo de quark generalizado:
+  `sync-versions.mjs` acepta la instancia `default` (destino SIN prefijo) y
+  renombra el sidebar `tutorialSidebar`→`nucleusSidebar` al ensamblar (la
+  fuente no se toca, QADR-0003); dropdown de versión de nucleus en la
+  navbar (1.0.0 + Next). Pin de nucleus: v1.0.0 → `a5fc3565` (= tag +
+  snapshot + housekeeping CLI; librería idéntica al tag) — matiz
+  documentado en versions.yaml, precedente del pin de orbit en 0.1.0.
+  `/nucleus/` sirve 1.0.0 y `/nucleus/next/` el current.
+- Con esto, los flecos 1 y 2 de la lista post-hito quedan CERRADOS.
+
+**Flecos que quedan (decisión de Carlos):**
+1. Menudencias orbit: `admin-server --version` imprime "(phase 4)"
+   (string estancado); exponer `--metrics-addr` en el CLI del server.
+2. Ceremonia de release de GitHub para quantum (¿release/tag v1.0.0 del
+   paraguas con las notas del manifiesto?).
+3. El arco v1.1 de orbit (waivers W1/W2: RPCs RBAC/audit de las pantallas
+   Manage y row count en SqlStatementEvent).
+
+**Foco siguiente sugerido:** decidir con Carlos el orden post-1.0 entre
+esos tres (el 1 es S y puede colarse en cualquier sesión; el 3 es el arco
+de producto natural).
+
+---
+
 ### Sesión 2026-07-11 — LA CONVERGENCIA: orbit v1.0.0 y QUANTUM 1.0.0 — los tres pilares en major 1
 
 Sesión autónoma (continuación de la del 2026-07-10; Carlos había aprobado el
