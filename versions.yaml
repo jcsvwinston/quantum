@@ -2,36 +2,36 @@
 # fichero que fija un trío de versiones compatibles. Entre releases, cada módulo
 # saca subversiones por su cuenta; aquí solo se certifican conjuntos.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.0.0"            # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.1.0"            # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-07-11
-status: certified           # EL HITO DE CONVERGENCIA: los tres pilares en major 1
+status: certified           # set de mantenimiento: GO-2026-5856 curada en orbit
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
-# Módulos opt-in de integración y pata fleet (repo orbit), también en tag y
-# resolubles standalone: quarkbridge v0.2.0, quarkdatasource v0.2.0,
-# proto v0.1.0, agent v0.2.0, server v0.2.0 (binario admin-server instalable
-# con `go install`).
+# Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
+# standalone — todos con toolchain go1.26.5: quarkbridge v0.2.1,
+# quarkdatasource v0.2.1, proto v0.1.1, agent v0.2.1, server v0.3.1.
 modules:
   quark:   "v1.1.5"
   nucleus: "v1.0.0"
-  orbit:   "v1.0.0"
+  orbit:   "v1.1.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
-# compile el set. El RC de orbit v1.0.0 pasó la validación de lockstep A-7
-# (quantum#41) antes del tag del major.
+# compile el set.
 workspace_pins:
   quark:   "v1.1.5"                                  # = tag
   nucleus: "a5fc3565"                                # = v1.0.0 + snapshot de docs 1.0.0 y housekeeping del CLI (código de la librería idéntico al tag; el sitio ensambla las docs versionadas desde este pin)
-  orbit:   "v1.0.0"                                  # = tag (PRIMER MAJOR)
+  orbit:   "v1.1.0"                                  # = tag
 
 notes: >
-  Quantum 1.0.0 — EL HITO DE CONVERGENCIA (QADR-0005 cumplido): quark v1.1.5,
-  nucleus v1.0.0 y orbit v1.0.0 — los tres pilares en major 1. El gate de
-  orbit quedó íntegro: contrato datasource congelado con guard de freeze
-  (100 símbolos), pata fleet resoluble por tags (verificado desde módulo
-  scratch y go install), Config con promesa v1.0 en godoc, barrido
-  anti-falsedad de todas las superficies de docs, 2 waivers §B aprobados
-  (W1 RPCs RBAC/audit y W2 row count → v1.1), y el RC validado por el lane
-  A-7. Desde este set rige el régimen de majors en lockstep (QADR-0002):
-  las subversiones de cada módulo flotan entre releases Quantum; los majors
-  solo se cruzan en una release Quantum coordinada.
+  Quantum 1.1.0 — set de mantenimiento tras la convergencia. Orbit sube a
+  v1.1.0: pin de toolchain go1.26.5 en los seis módulos (GO-2026-5856,
+  crypto/tls, ALCANZADA en 4 de 5 módulos — mismo remedio que nucleus#185)
+  más el listener Prometheus /metrics opt-in del admin-server y su
+  --version desde build info. Nucleus (v1.0.0) ya llevaba el toolchain
+  corregido desde su tren. ADVERTENCIA CONOCIDA, pendiente de decisión del
+  responsable: quark v1.1.5 (go 1.25.7) alcanza 11 vulnerabilidades (10 de
+  stdlib curadas en la línea go1.26.x + pgx v5.5.5, GO-2026-5004, fix
+  v5.9.2 — la misma que nucleus#169); el remedio propuesto es un v1.1.6 de
+  mantenimiento en el repo quark. El go.work de la suite también fija
+  toolchain go1.26.5 (el plano de integración compila con la stdlib
+  corregida).

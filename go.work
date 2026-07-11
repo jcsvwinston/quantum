@@ -1,5 +1,7 @@
 go 1.26.4
 
+toolchain go1.26.5
+
 // Conveniencia de desarrollo: enlaza los tres productos de la suite para
 // trabajarlos a la vez en local (mismo patrón que Orbit ya usa entre sus
 // cuatro módulos). Este go.work NO se publica como dependencia y NO debe tener
@@ -7,7 +9,6 @@ go 1.26.4
 // resuelve sus dependencias por tag real. La directiva `go 1.26.4` es la más
 // alta de los tres (Quark va por 1.25.7; el workspace usa la mayor).
 use (
-	./quark
 	./nucleus
 	./nucleus/examples/showcase_demo
 	./orbit
@@ -16,4 +17,5 @@ use (
 	./orbit/quarkbridge
 	./orbit/quarkdatasource
 	./orbit/server
+	./quark
 )
