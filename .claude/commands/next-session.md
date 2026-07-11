@@ -42,6 +42,58 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-11)
 
+### Sesión 2026-07-11 (4ª) — barrido de seguridad: GO-2026-5856 curada en orbit; Quantum 1.1.0; BRIEF de quark
+
+Sesión autónoma (auto). Sin trabajo de flecos pendiente (ambos eran de
+Carlos), la sesión hizo un barrido de salud que orbit no tiene en CI
+propio — y encontró cosas:
+
+- **[Orbit] GO-2026-5856 ALCANZADA en el pin v1.0.0** (govulncheck): la
+  fuga de privacidad de Encrypted Client Hello en crypto/tls (fix
+  go1.26.5) con trazas reales (dial TLS del relay Redis del live feed,
+  Panel.Loaddata→io.ReadAll, rutas TLS de agent/server). Los seis go.mod
+  no llevaban `toolchain` → compilaban con go1.26.4. **Fix orbit#36**:
+  `toolchain go1.26.5` en los seis (mismo remedio que nucleus#185);
+  govulncheck limpio tras el pin; build+test verdes en los seis.
+- **Tags de mantenimiento**: proto/v0.1.1, agent/v0.2.1, server/v0.3.1,
+  quarkbridge/v0.2.1, quarkdatasource/v0.2.1 y **orbit v1.1.0** (el PR
+  rodante #34 recogió el minor: el feat del listener /metrics + el fix de
+  seguridad — changelog honesto). El baile del manifest ×5, ya rutinario.
+  (Incidencia propia: una función zsh perdió args y empujó una rama
+  basura al remoto — borrada; los pasos de reconciliación van INLINE, no
+  en funciones.)
+- **QUANTUM 1.1.0 certificado** (este PR): modules.orbit → v1.1.0, pin
+  = tag, lane A-7 verde con el set. El `go.work` de la suite también fija
+  `toolchain go1.26.5` (el plano de integración compila con la stdlib
+  corregida). README al día.
+- **[Quark] BRIEF DE SEGURIDAD para Carlos** (decisión suya — nunca he
+  tocado el repo quark y es su producto más maduro): quark v1.1.5 (el pin
+  certificado) y también su MAIN están en `go 1.25.7` y ALCANZAN 11
+  vulnerabilidades: 10 de stdlib (todas curadas en la línea go1.26.x:
+  GO-2026-5856 crypto/tls, GO-2026-5037/4947/4946/4866/4600 crypto/x509,
+  GO-2026-4971 net, GO-2026-4870 crypto/tls, GO-2026-4601 net/url, +1) y
+  **pgx v5.5.5 → v5.9.2 (GO-2026-5004 — la MISMA que nucleus curó en
+  #169)**. Remedio propuesto: v1.1.6 de mantenimiento en quark (bump de
+  `go`/`toolchain` a 1.26.5 + pgx v5.9.2 + su matriz de 6 motores en CI)
+  → después, set Quantum 1.1.1 con quark v1.1.6. Su main lleva +37
+  commits sin taggear (drift normal), así que el corte lo decide él.
+
+**Pendientes de decisión de Carlos (3):**
+1. **Quark v1.1.6 de mantenimiento** (el brief de arriba) — recomendado
+   pronto: 2 de las 11 son las mismas advisories que ya se curaron en
+   nucleus.
+2. Ceremonia de release de GitHub para quantum (¿release/tag v1.0.0 o
+   v1.1.0 del paraguas?) — outward-facing.
+3. El arco v1.1→v1.2 de orbit (waivers W1/W2: RPCs RBAC/audit y row
+   count) — nota: orbit ya está en v1.1.0 por el set de mantenimiento;
+   los waivers apuntaban "a v1.1" como "siguiente minor", que ahora es
+   v1.2.
+
+**Foco siguiente sugerido:** el brief de quark es el más urgente de los
+tres (seguridad); los otros dos, en el orden que Carlos prefiera.
+
+---
+
 ### Sesión 2026-07-11 (3ª) — fleco 1 cerrado: /metrics opt-in y --version honesto en el admin-server
 
 Sesión autónoma corta (auto). Auditoría limpia. De los tres flecos, el 2
