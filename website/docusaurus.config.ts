@@ -213,6 +213,13 @@ const config: Config = {
           position: 'right',
         },
         {
+          // Selector de versión real de Nucleus (primer snapshot: 1.0.0, el
+          // corte de su major). Aparece en las páginas de la instancia Nucleus.
+          type: 'docsVersionDropdown',
+          docsPluginId: 'default',
+          position: 'right',
+        },
+        {
           href: 'https://github.com/jcsvwinston/quantum',
           label: 'GitHub',
           position: 'right',

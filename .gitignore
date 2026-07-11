@@ -33,6 +33,10 @@ yarn-error.log*
 website/*_versioned_docs/
 website/*_versioned_sidebars/
 website/*_versions.json
+# La instancia `default` (nucleus) usa la convención SIN prefijo:
+website/versioned_docs/
+website/versioned_sidebars/
+website/versions.json
 
 # --- Claude Code (settings locales, no compartidos) ---
 .claude/settings.local.json
