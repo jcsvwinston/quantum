@@ -42,6 +42,50 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-12)
 
+### Sesión 2026-07-12 (9ª) — decisiones de Carlos ejecutadas: quark v1.2.1 taggeado y QUANTUM 1.2.1 certificado
+
+Carlos decidió sobre los 3 puntos y autorizó los merges («mergea, haz
+resumen de 11 advisories y decido» → «1. como recomiendas; 2. taggealo;
+3. aprobamos v1.2.1 y certifica»):
+
+- **Merges**: quark#237/#238/#239 y quantum#53 fusionados (squash, título
+  conventional). El cross-merge verificado en la 8ª evitó sorpresas.
+- **Las «11 advisories» CONFIRMADAS**: govulncheck contra el tag v1.1.5
+  (worktree, BD de 2026-07-12) reproduce EXACTAMENTE 11 vulnerabilidades
+  alcanzables — 10 stdlib (GO-2026-5856/4870 crypto/tls, GO-2026-5037/
+  4947/4946/4866/4600/4599 crypto/x509, GO-2026-4971 net, GO-2026-4601
+  net/url) + GO-2026-5004 (pgx v5.5.5, la inyección SQL por dollar-quoted
+  strings). Las dos serias: la de pgx y el auth bypass de x509 (4866).
+  Decisión de Carlos: las release notes del tag v1.2.0 se quedan como
+  están (la cifra es verificable; el CHANGELOG ya explica el matiz).
+- **quark v1.2.1 taggeado** (release-PR #240 + bump de coherencia): el
+  check de coherencia de versión, estrenado en su primer release, exigía
+  el bump de docs en el MISMO PR — README/SECURITY/CLAUDE/release-notes
+  .mdx a v1.2.1 + sección v1.2.1 en el sitio, empujado a la rama del bot
+  (que además dispara el CI, la lección conocida). Tag `8ff89a1f` +
+  release publicada. Verificado como usuario real: `go install
+  …/cmd/quark@v1.2.1` → `quark version` imprime v1.2.1 (fallback de
+  buildinfo end-to-end) y `quark sync --dry-run` → unknown flag, exit 1.
+- **QUANTUM 1.2.1 CERTIFICADO** (este PR): modules.quark → v1.2.1, pin
+  `8ff89a1f` = tag EXACTO (sin matiz de docs — el snapshot 1.2.0 ya viene
+  dentro del tag), nucleus/orbit continúan del set 1.2.0. Set compilado en
+  local + lockstep de los 6 módulos de orbit contra el pin nuevo en verde;
+  release de GitHub del paraguas con las notas del manifiesto.
+
+**Foco siguiente (mandato de Carlos):** avanzar con issues de nucleus y
+orbit — «pule bien el trabajo para avanzar con los otros módulos e ir
+avanzando todo junto». Estado de partida: los tres pilares sin deuda
+conocida (govulncheck 8/8 limpio, auditoría de quark curada), pines en
+tag, sitio vivo. Candidatos naturales para arrancar: los issues abiertos
+de cada repo + los deferrals anotados en sus gates (nucleus: W1
+observability→eval v1.2, W2 driver instrumentation prometido «v1.1» — ya
+vencido con v1.1.0 fuera; orbit: colectores propios del server en
+/metrics, RBAC Revoke real, `tenant onboard`). La primera sesión de ese
+arco debería empezar inventariando issues+deferrals de ambos repos y
+proponiendo el orden a Carlos.
+
+---
+
 ### Sesión 2026-07-12 (8ª) — sesión autónoma: fusión cruzada de los 3 PRs de quark + barrido de salud del set
 
 Sesión auto. Los 4 PRs de la 7ª (quark#237/#238/#239 + quantum#53) siguen
