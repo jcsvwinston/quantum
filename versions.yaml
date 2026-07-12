@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.3.0"            # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-07-12
-status: certified           # cierre de auditoría: el endurecimiento de nucleus/orbit queda PUBLICADO por tag y pinado
+quantum: "1.3.1"            # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-07-13
+status: certified           # backlog de auditoría de quark v1.2.1 ejecutado y publicado en quark v1.2.2
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
@@ -15,35 +15,38 @@ status: certified           # cierre de auditoría: el endurecimiento de nucleus
 # Los puentes requieren quark v1.2.1 desde sus tags nuevos: el set certificado
 # también es coherente resuelto standalone (cerrado H-U5).
 modules:
-  quark:   "v1.2.1"
+  quark:   "v1.2.2"
   nucleus: "v1.2.0"
   orbit:   "v1.2.1"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto — sin matices esta vez.
 workspace_pins:
-  quark:   "8ff89a1f"                                # = v1.2.1 exacto
+  quark:   "fc81f4cf"                                # = v1.2.2 exacto
   nucleus: "8ad8676f"                                # = v1.2.0 exacto
   orbit:   "a345701"                                 # = v1.2.1 exacto (los tags de puentes/server posteriores solo añaden changelog/manifiesto; el código de módulo es el de este commit)
 
 notes: >
-  Quantum 1.3.0 — el set del cierre de auditoría: los endurecimientos de
-  seguridad que vivían solo en main quedan publicados por tag y pinados.
-  Nucleus v1.2.0 (minor de endurecimiento con "Behavior changes"
-  señalizados: jwt_secret exige >=32 bytes al arrancar, X-Forwarded-For /
-  X-Real-IP se ignoran salvo desde trusted_proxies, HSTS solo sobre TLS;
-  ademas `nucleus new` fija v1.2.0 en los scaffolds, el sitio corta el
-  snapshot de docs 1.2.0 y /metrics documenta que no lleva auth propia).
-  Orbit v1.2.1 (parametriza el INSERT del bootstrap admin) + server
-  v0.6.0 (el admin-server se niega a arrancar el listener de agentes en
-  interfaz no-loopback sin token/TLS — --insecure-agent-listener para
-  forzar — y el trusted-proxy del UI exige X-Auth-Proxy-Secret). Quark
-  v1.2.1 continúa del set 1.2.1 (sin cambios; sus notas en ese release).
-  Los puentes suben a quarkbridge v0.3.1 / quarkdatasource v0.2.2, que
-  requieren quark v1.2.1. Verificación en vivo del cierre: fail-closed
-  del admin-server comprobado ejecutando el binario (exit 1 sin auth;
-  401/200 en el trusted-proxy), 7/7 tests de hardening de nucleus.
-  Alcance del CI del paraguas: integration.yml verifica build + vet del
-  trío pinado y el lane de lockstep con los tests de Orbit (A-7); las
-  afirmaciones de producto de estas notas se verificaron en el CI y los
-  repos de cada módulo, no las re-comprueba este repo.
+  Quantum 1.3.1 — quark sube a v1.2.2: la ejecución del backlog de la
+  auditoría v1.2.1 (quark#242/#243/#245/#246). Los cuatro P0 cerrados
+  (inyección SQL en `quark tenant provision`; `Count()`/`Paginate` sobre
+  UNION/INTERSECT/EXCEPT contaban solo el operando base; panic de
+  Upsert/UpsertBatch con conflictCols vacío — ahora ErrInvalidQuery en
+  los 6 motores; Offset sin Limit perdido en MySQL/roto en
+  SQLite/MariaDB — sentinels correctos). CLI honesta: migrate up/seed
+  run con registro vacío avisan y salen non-zero, `validate` carga los
+  structs reales con go/packages, `tenant migrate` resuelve el DSN del
+  tenant (tenant.dsn_template), flags fantasma retirados, init valida
+  el dialecto. Batching con techos por dialecto (~65k PG/MySQL/MariaDB,
+  ~32k SQLite, ~2100 MSSQL) y UpsertBatch chunkeado; Upsert en MSSQL
+  back-fillea el PK vía OUTPUT INSERTED (Oracle documentado como
+  limitación); INTERSECT/EXCEPT habilitados en MariaDB 10.3+. Docs:
+  falsedades fósiles corregidas (aviso de savepoint invertido, Cast
+  inexistente, versión del roadmap), requisito pgx del listener
+  documentado, referencia de opciones completa, snapshots 1.2.1 y
+  1.2.2 congelados. QK-P2-7 (modo estricto) diferido con diseño en
+  quark#247. Nucleus v1.2.0 y orbit v1.2.1 continúan del set 1.3.0 sin
+  cambios. Verificación: go install …cmd/quark@v1.2.2 → `quark
+  version` = v1.2.2 y `migrate up` sin registro sale 1 con la receta
+  de embebido; matriz de 6 motores del CI de quark en verde en los 4
+  PRs (la celda MariaDB ejercita ahora INTERSECT/EXCEPT reales).
