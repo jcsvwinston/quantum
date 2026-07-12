@@ -4,46 +4,46 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.2.1"            # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.3.0"            # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-07-12
-status: certified           # patch de quark (auditoría CLI/docs/guard); nucleus y orbit sin cambios
+status: certified           # cierre de auditoría: el endurecimiento de nucleus/orbit queda PUBLICADO por tag y pinado
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
-# standalone: quarkbridge v0.3.0, quarkdatasource v0.2.1, proto v0.3.0,
-# agent v0.4.0, server v0.5.0 (binario admin-server instalable con go install).
-# Ojo: los go.mod de quarkbridge/quarkdatasource declaran quark v1.1.5 como
-# suelo mínimo — instalados standalone resuelven v1.1.5, no el quark certificado
-# aquí (en el workspace, el go.work los compila contra el pin).
+# standalone: quarkbridge v0.3.1, quarkdatasource v0.2.2, proto v0.3.0,
+# agent v0.4.0, server v0.6.0 (binario admin-server instalable con go install).
+# Los puentes requieren quark v1.2.1 desde sus tags nuevos: el set certificado
+# también es coherente resuelto standalone (cerrado H-U5).
 modules:
   quark:   "v1.2.1"
-  nucleus: "v1.1.0"
-  orbit:   "v1.2.0"
+  nucleus: "v1.2.0"
+  orbit:   "v1.2.1"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
-# compile el set. Solo el pin de quark está EN TAG exacto; nucleus y orbit
-# fijan el commit del tag + barrido de docs post-tag (código idéntico al tag,
-# salvo el delta de CLI de nucleus anotado en su pin).
+# compile el set. Los tres pines EN TAG exacto — sin matices esta vez.
 workspace_pins:
   quark:   "8ff89a1f"                                # = v1.2.1 exacto
-  nucleus: "956a782b"                                # = v1.1.0 + barrido de docs (status v1.x en current y snapshot 1.0.0) + delta de CLI: `nucleus new` instalado de este pin genera scaffolds fijados a v1.1.0, no a v1.0.0 como en el tag (la librería exportada sí es idéntica al tag)
-  orbit:   "abf802a"                                 # = v1.2.0 + barrido de docs W1/W2 (código idéntico al tag)
+  nucleus: "8ad8676f"                                # = v1.2.0 exacto
+  orbit:   "a345701"                                 # = v1.2.1 exacto (los tags de puentes/server posteriores solo añaden changelog/manifiesto; el código de módulo es el de este commit)
 
 notes: >
-  Quantum 1.2.1 — patch de quark: la auditoría post-1.2.0 (12 hallazgos
-  H-Q1..H-Q12, brief de la 7ª sesión) curada en quark v1.2.1 sin tocar la
-  superficie de query-builder/CRUD. Lo gordo: la CLI funciona de fábrica
-  (quark init escribía un driver que sql.Open no reconocía; oracle ni
-  estaba enlazado), los comandos que fallan salen con exit != 0, sync ya no
-  anuncia flags que ignoraba, Quote() auto-escapa el carácter de cierre
-  (defensa en profundidad) y el guard de raw queries deja de rechazar `--`
-  dentro de literales. Además: govulncheck y un check de coherencia de
-  versión en el CI de quark (la forcing function que faltó al taggear
-  v1.2.0 — estrenada en este mismo release). govulncheck del set completo
-  (8 módulos, BD 2026-07-12): 0 vulnerabilidades alcanzables. Nucleus
-  v1.1.0 y Orbit v1.2.0 continúan del set 1.2.0 (sin cambios; sus notas en
-  el release Quantum 1.2.0). Alcance del CI del paraguas: integration.yml
-  verifica build + vet del trío pinado y el lane de lockstep con los tests
-  de Orbit (A-7); las afirmaciones de producto de estas notas (auditoría,
-  govulncheck, advisories) se verificaron en el CI y los repos de cada
-  módulo, no las re-comprueba este repo.
+  Quantum 1.3.0 — el set del cierre de auditoría: los endurecimientos de
+  seguridad que vivían solo en main quedan publicados por tag y pinados.
+  Nucleus v1.2.0 (minor de endurecimiento con "Behavior changes"
+  señalizados: jwt_secret exige >=32 bytes al arrancar, X-Forwarded-For /
+  X-Real-IP se ignoran salvo desde trusted_proxies, HSTS solo sobre TLS;
+  ademas `nucleus new` fija v1.2.0 en los scaffolds, el sitio corta el
+  snapshot de docs 1.2.0 y /metrics documenta que no lleva auth propia).
+  Orbit v1.2.1 (parametriza el INSERT del bootstrap admin) + server
+  v0.6.0 (el admin-server se niega a arrancar el listener de agentes en
+  interfaz no-loopback sin token/TLS — --insecure-agent-listener para
+  forzar — y el trusted-proxy del UI exige X-Auth-Proxy-Secret). Quark
+  v1.2.1 continúa del set 1.2.1 (sin cambios; sus notas en ese release).
+  Los puentes suben a quarkbridge v0.3.1 / quarkdatasource v0.2.2, que
+  requieren quark v1.2.1. Verificación en vivo del cierre: fail-closed
+  del admin-server comprobado ejecutando el binario (exit 1 sin auth;
+  401/200 en el trusted-proxy), 7/7 tests de hardening de nucleus.
+  Alcance del CI del paraguas: integration.yml verifica build + vet del
+  trío pinado y el lane de lockstep con los tests de Orbit (A-7); las
+  afirmaciones de producto de estas notas se verificaron en el CI y los
+  repos de cada módulo, no las re-comprueba este repo.
