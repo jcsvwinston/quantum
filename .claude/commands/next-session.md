@@ -76,13 +76,17 @@ resumen de 11 advisories y decido» → «1. como recomiendas; 2. taggealo;
 orbit — «pule bien el trabajo para avanzar con los otros módulos e ir
 avanzando todo junto». Estado de partida: los tres pilares sin deuda
 conocida (govulncheck 8/8 limpio, auditoría de quark curada), pines en
-tag, sitio vivo. Candidatos naturales para arrancar: los issues abiertos
-de cada repo + los deferrals anotados en sus gates (nucleus: W1
-observability→eval v1.2, W2 driver instrumentation prometido «v1.1» — ya
-vencido con v1.1.0 fuera; orbit: colectores propios del server en
-/metrics, RBAC Revoke real, `tenant onboard`). La primera sesión de ese
-arco debería empezar inventariando issues+deferrals de ambos repos y
-proponiendo el orden a Carlos.
+tag, sitio vivo, los tres checkouts standalone sincronizados a main.
+
+**Inventario de issues abiertas (verificado 2026-07-12 vía API, mismo
+día del cierre): CERO en ambos repos** — `open_issues_count: 0` en
+nucleus y en orbit (issues habilitadas; tampoco hay PRs abiertos). No
+hay backlog en el tracker: el trabajo del arco vendrá de los **prompts
+que Carlos tiene preparados para las próximas sesiones** — esperar su
+prompt, no inventar foco. (Los deferrals conocidos de los gates —
+nucleus: observability→eval v1.2, driver instr prometido «v1.1»; orbit:
+colectores propios en /metrics, RBAC Revoke real, `tenant onboard` —
+quedan como contexto de fondo, NO como foco elegido.)
 
 ---
 
