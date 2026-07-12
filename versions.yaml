@@ -2,40 +2,38 @@
 # fichero que fija un trío de versiones compatibles. Entre releases, cada módulo
 # saca subversiones por su cuenta; aquí solo se certifican conjuntos.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.2.0"            # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-07-11
-status: certified           # los tres pilares curados + los waivers del gate de orbit pagados
+quantum: "1.2.1"            # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-07-12
+status: certified           # patch de quark (auditoría CLI/docs/guard); nucleus y orbit sin cambios
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
 # standalone: quarkbridge v0.3.0, quarkdatasource v0.2.1, proto v0.3.0,
 # agent v0.4.0, server v0.5.0 (binario admin-server instalable con go install).
 modules:
-  quark:   "v1.2.0"
+  quark:   "v1.2.1"
   nucleus: "v1.1.0"
   orbit:   "v1.2.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
-# compile el set. Los tres pines EN TAG. El RC de nucleus v1.1.0 pasó la
-# validación de lockstep A-7 (quantum#48) antes del tag.
+# compile el set. Los tres pines EN TAG (el de quark EXACTO en el tag,
+# sin matiz de docs: el snapshot 1.2.0 del sitio ya viene dentro).
 workspace_pins:
-  quark:   "5d8c99ce"                                # = v1.2.0 + snapshot de docs 1.2.0 (código idéntico al tag; el sitio ensambla las docs desde el pin)
+  quark:   "8ff89a1f"                                # = v1.2.1 exacto
   nucleus: "956a782b"                                # = v1.1.0 + housekeeping CLI + barrido de docs (status v1.x en current y snapshot 1.0.0; librería idéntica al tag)
   orbit:   "abf802a"                                 # = v1.2.0 + barrido de docs W1/W2 (código idéntico al tag)
 
 notes: >
-  Quantum 1.2.0 — el set que deja la suite SIN deuda conocida (al cierre del
-  tag; la auditoría de la 7ª sesión encontró después deuda de CLI/docs en
-  quark, corregida en quark#237-#239 sin tocar la librería). Quark v1.2.0:
-  release de mantenimiento+features acumuladas (advisories de deps curadas —
-  govulncheck 11→0 puntual a nivel módulo; pin toolchain go1.26.5 + pgx
-  v5.9.2, matriz de 6 motores verde — más scatter-gather de sharding y el
-  resto del drift post-v1.1.5). Nucleus
-  v1.1.0: SQLEvent.RowsAffected aditivo en la superficie Tier-1 (rebaseline
-  deliberado +2). Orbit v1.2.0: LOS DOS WAIVERS DEL GATE v1.0 PAGADOS — W1:
-  pantallas Access control (snapshot RBAC read-only ruteado al agente, que
-  toma app.Authorizer automáticamente) y Audit log (ring del plano fleet en
-  el server, atribuido al operador del UI auth chain) cableadas de punta a
-  punta; W2: rows_affected en SqlStatementEvent, nacido en los exec del CRUD
-  de nucleus y visible en la columna Rows del stream SQL. Pata fleet:
-  proto v0.3.0, agent v0.4.0, server v0.5.0, todo resoluble por tag.
+  Quantum 1.2.1 — patch de quark: la auditoría post-1.2.0 (12 hallazgos
+  H-Q1..H-Q12, brief de la 7ª sesión) curada en quark v1.2.1 sin tocar la
+  superficie de query-builder/CRUD. Lo gordo: la CLI funciona de fábrica
+  (quark init escribía un driver que sql.Open no reconocía; oracle ni
+  estaba enlazado), los comandos que fallan salen con exit != 0, sync ya no
+  anuncia flags que ignoraba, Quote() auto-escapa el carácter de cierre
+  (defensa en profundidad) y el guard de raw queries deja de rechazar `--`
+  dentro de literales. Además: govulncheck y un check de coherencia de
+  versión en el CI de quark (la forcing function que faltó al taggear
+  v1.2.0 — estrenada en este mismo release). govulncheck del set completo
+  (8 módulos, BD 2026-07-12): 0 vulnerabilidades alcanzables. Nucleus
+  v1.1.0 y Orbit v1.2.0 continúan del set 1.2.0 (sin cambios; sus notas en
+  el release Quantum 1.2.0).
