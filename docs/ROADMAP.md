@@ -164,7 +164,7 @@ Cada fase es **entregable de forma independiente** y **compatible con el desarro
 No toca el código de ningún producto.
 - Crear el repo `quantum` con `README`, `versions.yaml` (documentando el estado actual tal cual), `go.work`, y los tres como submódulos.
 - Terminar el rename de Nucleus pendiente: carpeta `GoFrame/` → `nucleus/`, borrar `NUCLEUS_RENAME_BRIEF.md`, renombrar el repo en GitHub.
-- **Hecho cuando:** `go build ./...` desde `quantum` compila los tres juntos vía `go.work`.
+- **Hecho cuando:** el trío compila junto vía `go.work` desde `quantum`, con patrones explícitos por producto: `go build ./quark/... ./nucleus/... ./orbit/...` más los módulos aparte de Orbit (`./orbit/agent/...`, `./orbit/proto/...`, `./orbit/server/...`, `./orbit/quarkbridge/...`, `./orbit/quarkdatasource/...`). Ojo: `go build ./...` desde la raíz NO funciona — el root del paraguas no es un módulo Go y Go falla con "directory prefix . does not contain modules listed in go.work". Ver README §Trabajar con los submódulos y `integration.yml`.
 
 ### Fase 1 — Identidad Quantum
 - Decidir y aplicar marca: nombre, relación visual entre los tres pilares, README-portada de la suite.

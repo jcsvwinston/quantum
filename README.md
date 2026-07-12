@@ -204,9 +204,18 @@ cada módulo resuelve sus dependencias por tag real.
 > **Nota sobre los pines.** Desde Quantum 0.3.0 los tres submódulos se fijan
 > a sus tags publicados (`workspace_pins` = `modules` en `versions.yaml`);
 > desde Quantum 1.0.0 los tres pilares están en major 1 y rige el régimen de
-> majors en lockstep. Ver
+> majors en lockstep. Los sets Quantum 0.1.0–0.5.0 se certificaron solo como
+> commits del manifiesto, sin tag git: los tags de suite existen desde
+> `v1.0.0`. Ver
 > [QADR-0004](docs/adr/QADR-0004-versions-yaml-manifiesto.md) y
 > [QADR-0002](docs/adr/QADR-0002-versionado-dos-niveles.md).
+
+> **Nota para construir `website/`.** Usa checkouts reales de los submódulos
+> (`git clone --recurse-submodules` o `git submodule update --init --recursive`),
+> no symlinks: el loader de metadatos de Docusaurus no resuelve las docs de los
+> productos a través de un symlink y el build del SSG falla con
+> `content.metadata.id` de `undefined`. El CI ya construye así
+> (`submodules: recursive`).
 
 ## Documentación
 

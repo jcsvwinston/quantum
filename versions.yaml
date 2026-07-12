@@ -1,6 +1,8 @@
 # Manifiesto de la suite Quantum. Cada release Quantum es un cambio sobre este
 # fichero que fija un trío de versiones compatibles. Entre releases, cada módulo
 # saca subversiones por su cuenta; aquí solo se certifican conjuntos.
+# Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
+# (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
 quantum: "1.2.1"            # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-07-12
@@ -10,17 +12,21 @@ status: certified           # patch de quark (auditoría CLI/docs/guard); nucleu
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
 # standalone: quarkbridge v0.3.0, quarkdatasource v0.2.1, proto v0.3.0,
 # agent v0.4.0, server v0.5.0 (binario admin-server instalable con go install).
+# Ojo: los go.mod de quarkbridge/quarkdatasource declaran quark v1.1.5 como
+# suelo mínimo — instalados standalone resuelven v1.1.5, no el quark certificado
+# aquí (en el workspace, el go.work los compila contra el pin).
 modules:
   quark:   "v1.2.1"
   nucleus: "v1.1.0"
   orbit:   "v1.2.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
-# compile el set. Los tres pines EN TAG (el de quark EXACTO en el tag,
-# sin matiz de docs: el snapshot 1.2.0 del sitio ya viene dentro).
+# compile el set. Solo el pin de quark está EN TAG exacto; nucleus y orbit
+# fijan el commit del tag + barrido de docs post-tag (código idéntico al tag,
+# salvo el delta de CLI de nucleus anotado en su pin).
 workspace_pins:
   quark:   "8ff89a1f"                                # = v1.2.1 exacto
-  nucleus: "956a782b"                                # = v1.1.0 + housekeeping CLI + barrido de docs (status v1.x en current y snapshot 1.0.0; librería idéntica al tag)
+  nucleus: "956a782b"                                # = v1.1.0 + barrido de docs (status v1.x en current y snapshot 1.0.0) + delta de CLI: `nucleus new` instalado de este pin genera scaffolds fijados a v1.1.0, no a v1.0.0 como en el tag (la librería exportada sí es idéntica al tag)
   orbit:   "abf802a"                                 # = v1.2.0 + barrido de docs W1/W2 (código idéntico al tag)
 
 notes: >
@@ -36,4 +42,8 @@ notes: >
   v1.2.0 — estrenada en este mismo release). govulncheck del set completo
   (8 módulos, BD 2026-07-12): 0 vulnerabilidades alcanzables. Nucleus
   v1.1.0 y Orbit v1.2.0 continúan del set 1.2.0 (sin cambios; sus notas en
-  el release Quantum 1.2.0).
+  el release Quantum 1.2.0). Alcance del CI del paraguas: integration.yml
+  verifica build + vet del trío pinado y el lane de lockstep con los tests
+  de Orbit (A-7); las afirmaciones de producto de estas notas (auditoría,
+  govulncheck, advisories) se verificaron en el CI y los repos de cada
+  módulo, no las re-comprueba este repo.
