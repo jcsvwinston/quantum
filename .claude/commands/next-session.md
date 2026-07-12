@@ -42,6 +42,34 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-12)
 
+### Sesión 2026-07-12 (8ª) — sesión autónoma: fusión cruzada de los 3 PRs de quark + barrido de salud del set
+
+Sesión auto. Los 4 PRs de la 7ª (quark#237/#238/#239 + quantum#53) siguen
+abiertos esperando a Carlos — todo el pipeline principal está en sus manos,
+así que la sesión hizo el trabajo de des-riesgo y salud que no requiere
+decisiones:
+
+- **Fusión cruzada verificada** (precedente de las sesiones de nucleus):
+  las tres ramas de quark#237+#238+#239 fusionan limpias en secuencia
+  sobre main (cero conflictos) y el árbol COMBINADO pasa `go build`,
+  `go vet`, los 18 paquetes de `go test -short`, `lint-docs.sh` y
+  `check-version-coherence.sh`. Carlos puede fusionar en cualquier orden
+  sin sorpresas.
+- **Barrido govulncheck del set certificado** (precedente 4ª sesión): los
+  8 módulos pinneados (quark, nucleus, orbit raíz, agent, proto, server,
+  quarkbridge, quarkdatasource) con la BD de hoy (2026-07-12), `GOWORK=off`:
+  **0 vulnerabilidades alcanzables en los 8**. El set 1.2.0 sigue limpio.
+- **Sitio vivo**: portada, `/nucleus/`, `/quark/intro/` y `/orbit/` → 200.
+- Auditoría de arranque: pines = manifiesto (tres en tag+docs), los seis
+  patrones del workspace compilan.
+
+**Sin pendientes nuevos.** La cola sigue siendo de Carlos: (1) fusionar
+quark#237/#238/#239 (cross-merge ya verificado) y quantum#53; (2) decidir
+pin de quark post-merge y si toca v1.2.1 con el checklist nuevo; (3) las
+release notes de GitHub del tag quark v1.2.0 (el «11 advisories»).
+
+---
+
 ### Sesión 2026-07-12 (7ª) — el brief de corrección de Quark ejecutado: 12 hallazgos → 3 PRs
 
 Carlos entregó el brief de auditoría de quark (12 hallazgos H-Q1..H-Q12
