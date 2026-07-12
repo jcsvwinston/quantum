@@ -40,7 +40,78 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-12)
+## 3. Estado al cierre (2026-07-13)
+
+### Sesión 2026-07-13 (10ª) — backlog de auditoría de quark v1.2.1 EJECUTADO: quark v1.2.2 + Quantum 1.3.1
+
+Carlos trajo el backlog curado de la auditoría (4 P0, 8 P1, 7 P2) y la
+sesión lo ejecutó completo en 4 PRs temáticos + release:
+
+- **quark#242 (P0)**: inyección SQL en `tenant provision` (id/strategy
+  validados ANTES de conectar, DDL con `dialect.Quote`, INSERT
+  parametrizado); `Count()`/`Paginate` sobre set-ops contaban solo el
+  operando base → `SELECT COUNT(*) FROM (<compound>)` con CTE izado
+  (MSSQL no acepta WITH en subquery); `Upsert`/`UpsertBatch` con
+  conflictCols vacío → `ErrInvalidQuery` uniforme (antes: panic
+  MySQL/MariaDB, DO NOTHING silencioso PG); `Offset` sin `Limit` →
+  sentinels (`LIMIT -1` SQLite; max-uint64 MySQL/MariaDB — el backlog
+  sugería -1 para MariaDB pero MariaDB rechaza LIMIT negativo). Dos
+  tests fósiles corregidos.
+- **quark#243 (docs)**: aviso de savepoint-rollback INVERTIDO (el código
+  trunca las colas de hooks — decía lo contrario), roadmap v1.1.5→real,
+  `Cast` inexistente borrado, claim de chunking del README honesto,
+  requisito pgx/stdlib del listener LISTEN/NOTIFY (lib/pq falla en
+  Listen), tabla de opciones con las 10 `With*` que faltaban, snapshot
+  1.2.1 congelado (el P2-6 pendiente del release anterior).
+- **quark#245 (CLI)**: `migrate up`/`down` y `seed run` con registro
+  vacío salen non-zero con la receta de embebido (nuevo
+  `migrate.RegisteredCount()`); `validate` REAL con go/packages
+  (reutiliza codegen, nuevo `LoadDir`; compara columnas en ambas
+  direcciones); `tenant migrate` resuelve el DSN del tenant vía
+  `tenant.dsn_template` con `{tenant}` (schema_per_tenant: error
+  explícito, antes migraba la BD por defecto); inspect/model con tabla
+  inexistente → non-zero; flags fantasma fuera (`--skip-seed`,
+  `--tenant-id`, `--env`); registro de tenants dialect-aware
+  (MSSQL/Oracle); `init --dialect bogus` falla antes de escribir.
+- **quark#246 (query-builder)**: `UpsertBatch` chunkea como CreateBatch;
+  techos de bind-params POR DIALECTO (PG/MySQL/MariaDB 65000, SQLite
+  32000, MSSQL 2000 — `batchBindParamCeiling`); Upsert MSSQL
+  back-fillea el PK con `MERGE … OUTPUT INSERTED` (Oracle: MERGE sin
+  RETURNING, documentado); INTERSECT/EXCEPT habilitados en MariaDB
+  10.3+ (MySQL sigue bloqueado: los ganó en 8.0.31, no asumible sin
+  probe). El gate de superapp en MariaDB validó el cambio EN VIVO (la
+  celda esperaba el sentinel y el motor ejecutó INTERSECT de verdad →
+  capability actualizada). Suite nueva `UpsertBackfillsGeneratedPK`
+  contra los 6 motores.
+- **QK-P2-7 diferido** con boceto de diseño → quark#247 (única issue
+  abierta en quark).
+- **quark v1.2.2 taggeado** (release-PR #244 + bump de coherencia
+  README/SECURITY/CLAUDE/release-notes/roadmap + snapshot 1.2.2 EN el
+  release-PR — el paso 4 ya no se queda atrás). Tag `fc81f4cf`.
+  Verificado como usuario: `go install …@v1.2.2` → `quark version` =
+  v1.2.2; `migrate up` sin registro → exit 1 con guía.
+- **QUANTUM 1.3.1** (este PR): modules.quark → v1.2.2, pin `fc81f4cf` =
+  tag exacto; nucleus v1.2.0 y orbit v1.2.1 continúan del 1.3.0. Los
+  seis patrones del workspace compilan con el pin nuevo.
+
+Gotchas nuevos de la sesión: (1) el gate estricto de superapp exige
+cubrir o allowlistar cada símbolo público nuevo — `RegisteredCount` se
+cubrió ejercitándolo (y el manifiesto `apisurface.json` se regenera con
+`go run ./examples/superapp/cmd/gen-apisurface && … gen-allowlist`,
+no con `go generate`); (2) un commit colado en rama equivocada se mueve
+con `git revert` + `cherry-pick` — el force-push está vetado por el
+clasificador incluso con `--force-with-lease`; (3) los merges con la
+regla simple allowlisted pasan, pero comandos COMPUESTOS de
+verificación posteriores pueden caer al clasificador y denegarse —
+verificar con `git fetch` + `git log origin/main` en invocaciones
+simples.
+
+**Foco siguiente (mandato de Carlos, sin cambios):** issues de nucleus
+y orbit, avanzando los tres módulos juntos — el trabajo vendrá de los
+prompts de Carlos. Trackers: quark 1 issue (#247, diferida a
+propósito), nucleus/orbit por re-verificar al arrancar.
+
+---
 
 ### Sesión 2026-07-12 (9ª) — decisiones de Carlos ejecutadas: quark v1.2.1 taggeado y QUANTUM 1.2.1 certificado
 
