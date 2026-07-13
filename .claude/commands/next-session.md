@@ -42,6 +42,126 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-13)
 
+### Sesión 2026-07-13 (12ª) — sesión autónoma: salud del set + los diferidos del backlog convertidos en issues
+
+Sesión auto. Los 4 PRs de la 11ª (orbit#66/#67/#68/#69) siguen abiertos
+esperando a Carlos; el main de orbit no se movió (`6d2fdbe`), así que el
+cross-merge verificado en la 11ª sigue vigente tal cual. Trabajo de
+des-riesgo y salud sin decisiones:
+
+- **Barrido govulncheck del set certificado** (precedente 4ª/8ª): los 8
+  módulos pinneados (quark, nucleus, orbit raíz, agent, proto, server,
+  quarkbridge, quarkdatasource) con la BD de 2026-07-13, `GOWORK=off`:
+  **0 vulnerabilidades alcanzables en los 8**. El set 1.3.1 sigue limpio.
+- **Sitio vivo**: portada, `/nucleus/`, `/quark/intro/` y `/orbit/` → 200.
+- **Los diferidos del backlog ya no viven solo en prosa**: issues
+  orbit#70–#74 con boceto de diseño cada una (precedente quark#247) —
+  #70 OR-UX-P1-6 (RPC `GetSelf` de echo: versión real del server +
+  identidad/read_only del operador en el footer; proto+server aditivo),
+  #71 OR-UX-P1-3 (barra de filtros de stream + knob de sampling — solo
+  UI, el proto ya lo soporta y #66 hizo real el sampling), #72 OR-UX-P1-2
+  (capacidades backend en Data Studio: multi-select/bulk, alias/nodo,
+  choices→select, FK→link, editor de fecha — solo UI), #73 OR-UX-P1-7
+  (herramientas del audit log: filtro/rango/CSV/paginación client-side),
+  #74 (bundle de P2: i18n, SLOW_MS, búsqueda de modelos, consolidar las
+  dos tablas del panel, NodeDetail, a11y de tablas).
+- Auditoría de arranque limpia: pines = manifiesto (tres en tag exacto),
+  los seis patrones del workspace compilan.
+
+**Sin pendientes nuevos.** La cola sigue siendo de Carlos: (1) fusionar
+orbit#66/#67/#68/#69 (cross-merge verificado, main sin mover); (2) tras
+el merge, corte de tags (probable minor de raíz/agent/server; proto sin
+cambios) y certificación del set Quantum siguiente. El tracker de orbit
+tiene ahora 5 issues (#70–#74) como backlog post-merge, ejecutables en
+sesiones siguientes sin decisiones nuevas.
+
+---
+
+### Sesión 2026-07-13 (11ª) — backlog de auditoría de ORBIT (fleet v1.2.1/server v0.6.0) ejecutado: 4 PRs abiertos
+
+Carlos trajo el backlog curado de la auditoría de orbit (fakes/bugs +
+mejoras de seguridad y UX). Reconocimiento del brief: el **plano fleet es
+real de punta a punta** (verificado en vivo por la auditoría); los
+problemas eran dos botones fake, un audit roto bajo auth, dos bugs de
+telemetría fleet, y UX incipiente. Ejecutado en **4 PRs temáticos en
+`jcsvwinston/orbit`, todos PENDIENTES DE MERGE por Carlos** (las sesiones
+no auto-fusionan PRs propios — [[session-cannot-self-merge-prs]]):
+
+- **orbit#66 (plano fleet Go)** rama `fix/fleet-plane-audit-backlog`:
+  OR-SEC-P1-5 (`State.OnAgentSubMode` nunca se asignaba → un agente que
+  reconecta con streams de UI abiertos no reanudaba telemetría hasta
+  reabrir una UI; ahora `server.New` cablea `services.PushAggregate`, con
+  test de reconexión). OR-UX-P0-1 (el evento salía con el NodeID del bus
+  in-process ≠ UUID del registro → tarjetas por nodo a 0; el stream del
+  agente sobreescribe `Event.NodeId`). OR-FLEET-1 (sampling_rate por sub
+  ahora SE APLICA en el fanout con muestreo residual `rate/aggRate`; el
+  Subscribe agregado propaga el máx por tipo; `Stats.Sampled`).
+  OR-FLEET-2 (GetSnapshot deja de ser stub: providers GO_RUNTIME +
+  REGISTERED_MODELS; resto = error por tipo). OR-SEC-P1-3 (operador
+  read-only: `X-Auth-Role: viewer` / `--ui-read-only` → mutaciones de
+  Data Studio PermissionDenied, lecturas siguen). OR-SEC-P1-4 (CSP+nosniff+
+  X-Frame-Options+Referrer-Policy en el listener UI). OR-SEC-P2-1 (lockout
+  por IP de credenciales presentadas-y-erróneas; las sin credencial no
+  cuentan). OR-SEC-P2-3 (IdleTimeout h2c; Read/WriteTimeout fuera por los
+  streams largos). OR-SEC-P2-4 (`AgentInactivityTimeout` deja de ser
+  config muerta: janitor `MarkStale` + revive en `Touch`). `go test -race`
+  verde en server+agent, 9 tests nuevos.
+- **orbit#67 (panel in-process)** rama `fix/inprocess-panel-audit-backlog`:
+  OR-SEC-P1-1 (el `auditMiddleware` colgaba SOLO del branch SPA GET-only →
+  bajo auth, la postura de producción, las escrituras de Data Studio NO se
+  auditaban; ahora el grupo `/api` lo lleva, con test). OR-SEC-P1-2
+  (redacción del `OldValue`: campos IsExcluded + nombres tipo credencial).
+  OR-SEC-P2-1 (lockout de login por IP y username). OR-SEC-P2-2 (gate de
+  Content-Type en escrituras `/api` → 415 a form-encoded/multipart fuera
+  del import; documentado SameSite=Lax; `session_cookie_secure:false` de
+  los ejemplos anotado solo-dev). OR-UX-P0-2 (`DELETE /api/sessions/{token}`
+  EXISTE — el botón «terminate» de la SPA fallaba en cada click; destruye
+  la sesión, 404 honesto, audita el token abreviado). OR-UX-P0-3 (la SPA
+  llamaba `/api/export` inexistente → 404 en todo export; alineado a
+  `/api/exports` + `/api/exports/download?key=`; import `/api/import/upload`
+  → `/api/imports`; bundle dist del panel reconstruido). `go test ./...`
+  raíz verde, 6 tests nuevos.
+- **orbit#68 (UX de la SPA fleet, `ui/`)** rama `feat/fleet-ui-ux-backlog`:
+  OR-UX-P0-4 (feedback de error en Data Studio + `deleting…` + recordCount<0
+  → «—»), P1-1 (toasts aria-live), P1-4 (pausa con buffer + «N new» al
+  reanudar), P1-5 (interceptor Unauthenticated → pantalla de no-autorizado),
+  P1-8 parcial (modal role=dialog/Escape/focus-trap), P1-9 (token `--t26`
+  subido a AA en ambos temas), P2 (claves de lista estables por ts-ns;
+  título/branding «Orbit · Nucleus admin» + favicon; `format.ts` purgado;
+  footer sin el hardcode falso «orbit v0.2.0»). `tsc`+`eslint --max-warnings 0`+
+  `vite build` verde; tests de server (embeben el dist) verdes.
+- **orbit#69 (docs)** rama `docs/audit-backlog-fakes`: versiones v1.2.0→
+  v1.2.1 (README/intro/quick-start/CLAUDE); CLAUDE «agent/server esqueleto»
+  corregido (es plano fleet real); aviso de superusuario + knobs read-only +
+  guía de reverse proxy OIDC añadidos a `website/docs/cluster/server.md`;
+  sección de identidad de nodo (mismatch node_id) en `agent.md`; ui/README
+  con las 10 rutas reales (antes `/#/dashboard` inexistente).
+
+**Cross-merge verificado** (precedente de sesiones previas): las 4 ramas
+fusionan limpias en secuencia sobre main (cero conflictos) y el árbol
+COMBINADO pasa `go build`+`go vet`+`go test ./...` en los tres módulos
+(raíz/agent/server). Carlos puede fusionar en cualquier orden.
+
+**Diferido a follow-ups (por tamaño, anotado en orbit#68):** OR-UX-P1-6
+(versión real del server + identidad del operador — necesita un RPC de
+echo, proto/server), P1-3 (barra de filtros de stream), P1-2 (exponer en
+Data Studio multi-select/bulk/alias/nodo/choices→select/FK-link/date
+editor), P1-7 (herramientas del audit log: filtros/rango/CSV/paginación).
+Otros P2 sin tocar: i18n centralizado, `SLOW_MS` configurable,
+búsqueda/virtualización del sidebar de modelos, consolidar las dos tablas
+del panel, NodeDetail Components/Recent activity.
+
+**Cola de Carlos:** (1) fusionar orbit#66/#67/#68/#69 (cross-merge ya
+verificado); (2) tras el merge, decidir el corte de tags (server sube por
+los feats → probable `server/vX`, `agent/vX`; la raíz sube por internal/
+admin + ui → minor de raíz; proto sin cambios) y certificar el set Quantum
+siguiente (bump de `modules.orbit`/`workspace_pins.orbit` + release del
+paraguas). El plano fleet Go y el panel son cambios de comportamiento
+(nuevos flags, audit, headers) → probable **minor** de los módulos
+tocados.
+
+---
+
 ### Sesión 2026-07-13 (10ª) — backlog de auditoría de quark v1.2.1 EJECUTADO: quark v1.2.2 + Quantum 1.3.1
 
 Carlos trajo el backlog curado de la auditoría (4 P0, 8 P1, 7 P2) y la
