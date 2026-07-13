@@ -4,49 +4,61 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.3.1"            # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.4.0"            # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-07-13
-status: certified           # backlog de auditoría de quark v1.2.1 ejecutado y publicado en quark v1.2.2
+status: certified           # backlog de auditoría de orbit v1.2.1 ejecutado y publicado en orbit v1.3.0 (+ server v0.7.0, agent v0.5.0)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
 # standalone: quarkbridge v0.3.1, quarkdatasource v0.2.2, proto v0.3.0,
-# agent v0.4.0, server v0.6.0 (binario admin-server instalable con go install).
-# Los puentes requieren quark v1.2.1 desde sus tags nuevos: el set certificado
-# también es coherente resuelto standalone (cerrado H-U5).
+# agent v0.5.0, server v0.7.0 (binario admin-server instalable con go install —
+# verificado: `go install …/server/cmd/admin-server@v0.7.0` → --version v0.7.0).
+# proto queda v0.3.0 (el arco no tocó el contrato: los campos que usa el sampler
+# y el node_id ya existían).
 modules:
   quark:   "v1.2.2"
   nucleus: "v1.2.0"
-  orbit:   "v1.2.1"
+  orbit:   "v1.3.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
-# compile el set. Los tres pines EN TAG exacto — sin matices esta vez.
+# compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "fc81f4cf"                                # = v1.2.2 exacto
   nucleus: "8ad8676f"                                # = v1.2.0 exacto
-  orbit:   "a345701"                                 # = v1.2.1 exacto (los tags de puentes/server posteriores solo añaden changelog/manifiesto; el código de módulo es el de este commit)
+  orbit:   "13412635"                                # = v1.3.0 exacto (contiene agent/v0.5.0 y server/v0.7.0 como ancestros; el commit solo añade el changelog/manifiesto de raíz encima — código de módulo idéntico a los tags)
 
 notes: >
-  Quantum 1.3.1 — quark sube a v1.2.2: la ejecución del backlog de la
-  auditoría v1.2.1 (quark#242/#243/#245/#246). Los cuatro P0 cerrados
-  (inyección SQL en `quark tenant provision`; `Count()`/`Paginate` sobre
-  UNION/INTERSECT/EXCEPT contaban solo el operando base; panic de
-  Upsert/UpsertBatch con conflictCols vacío — ahora ErrInvalidQuery en
-  los 6 motores; Offset sin Limit perdido en MySQL/roto en
-  SQLite/MariaDB — sentinels correctos). CLI honesta: migrate up/seed
-  run con registro vacío avisan y salen non-zero, `validate` carga los
-  structs reales con go/packages, `tenant migrate` resuelve el DSN del
-  tenant (tenant.dsn_template), flags fantasma retirados, init valida
-  el dialecto. Batching con techos por dialecto (~65k PG/MySQL/MariaDB,
-  ~32k SQLite, ~2100 MSSQL) y UpsertBatch chunkeado; Upsert en MSSQL
-  back-fillea el PK vía OUTPUT INSERTED (Oracle documentado como
-  limitación); INTERSECT/EXCEPT habilitados en MariaDB 10.3+. Docs:
-  falsedades fósiles corregidas (aviso de savepoint invertido, Cast
-  inexistente, versión del roadmap), requisito pgx del listener
-  documentado, referencia de opciones completa, snapshots 1.2.1 y
-  1.2.2 congelados. QK-P2-7 (modo estricto) diferido con diseño en
-  quark#247. Nucleus v1.2.0 y orbit v1.2.1 continúan del set 1.3.0 sin
-  cambios. Verificación: go install …cmd/quark@v1.2.2 → `quark
-  version` = v1.2.2 y `migrate up` sin registro sale 1 con la receta
-  de embebido; matriz de 6 motores del CI de quark en verde en los 4
-  PRs (la celda MariaDB ejercita ahora INTERSECT/EXCEPT reales).
+  Quantum 1.4.0 — orbit sube a v1.3.0 (+ server v0.7.0, agent v0.5.0): la
+  ejecución del backlog de la auditoría de orbit (orbit#66/#67/#68/#69).
+  El reconocimiento del brief: el plano fleet es REAL de punta a punta;
+  los problemas eran dos botones fake, un audit roto bajo auth, dos bugs
+  de telemetría fleet y UX incipiente. **Plano fleet (server v0.7.0 +
+  agent v0.5.0, orbit#66)**: el filtro agregado se reanuda al reconectar
+  un agente (State.OnAgentSubMode estaba sin cablear → pérdida silenciosa
+  de telemetría); los eventos viajan con el NodeID registrado del agente
+  (antes el del bus in-process → tarjetas por nodo a 0 con tráfico real);
+  el sampling_rate por suscripción SE APLICA en el fanout (residual
+  rate/aggRate) y el Subscribe agregado propaga el máx por tipo;
+  GetSnapshot deja de ser stub (providers GO_RUNTIME/REGISTERED_MODELS);
+  operador read-only (X-Auth-Role: viewer / --ui-read-only → mutaciones
+  de Data Studio PermissionDenied); CSP+nosniff+X-Frame-Options; lockout
+  de credenciales por IP; IdleTimeout h2c; expiración de agentes
+  inactivos (janitor MarkStale + revive en Touch). **Panel in-process
+  (orbit v1.3.0, orbit#67)**: el auditMiddleware colgaba solo del branch
+  SPA GET-only → bajo auth las escrituras de Data Studio no se auditaban;
+  redacción del OldValue; lockout de login; gate CSRF de Content-Type;
+  headers de seguridad; DELETE /api/sessions/{token} real (el botón
+  «terminate» de la SPA fallaba en cada click) y export alineado a
+  /api/exports (la SPA llamaba rutas inexistentes → 404). **UX de la SPA
+  fleet (orbit#68)**: toasts aria-live, feedback de error en Data Studio,
+  pausa con buffer, pantalla de no-autorizado, a11y del modal, contraste
+  WCAG del token t26. **Docs (orbit#69)**: versiones, «esqueleto» falso
+  corregido, aviso de superusuario + knobs read-only + guía OIDC en el
+  sitio, identidad de nodo, rutas de la SPA. Diferidos → issues
+  orbit#70–#74. Nucleus v1.2.0 y quark v1.2.2 continúan del set anterior
+  sin cambios; proto queda v0.3.0 (el contrato no cambió). Verificación:
+  los seis patrones del workspace compilan con el pin nuevo;
+  `go install …/server/cmd/admin-server@v0.7.0` → --version v0.7.0
+  (buildinfo end-to-end, con los flags nuevos); `go test ./...` verde en
+  raíz/agent/server sobre el main fusionado; govulncheck 0/8 (12ª sesión,
+  mismo día).
