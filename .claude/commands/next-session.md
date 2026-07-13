@@ -42,6 +42,67 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-13)
 
+### Sesión 2026-07-13 (15ª) — arco de producto de NUCLEUS: gate v1.0 W1+W2 resueltos → nucleus v1.3.0 y QUANTUM 1.5.0 CERTIFICADO
+
+Carlos decidió los dos compromisos vencidos del gate de nucleus que la 13ª
+abrió como issues: **«para #206 implementar en arco 1.3 y #207 promueve»**.
+La sesión (con la delegación de merge vigente, «hazlo tu, no puedo desde gh»)
+implementó ambos, cortó el tag y certificó el set:
+
+- **W1 — nucleus#207/#208** (`feat/promote-observability-stable`): promoción de
+  `pkg/observability` + `pkg/observability/hooks` de experimental a **stable** +
+  freeze. Mapa exhaustivo confirmó superficie coherente y pure-stdlib (sin TODO/
+  medio-hornear, cero imports de terceros) → `frozen: true, firewalled: false`
+  (como `pkg/circuit`). El freeze fija solo las FORMAS de los símbolos; los
+  internos pooled/ring-buffer son unexported y siguen optimizables, así que la
+  objeción original del waiver no aplica. `lifecycle/frozen` en
+  `contracts/packages_test.go`, inventario, gate (tabla + §B), baseline
+  rebaselinado (+129 símbolos, cero borrados). Reencuadrados los comentarios de
+  `pkg/nucleus/{eventbus,runtime}.go` que llamaban a observability «experimental/
+  pre-v1.0» (el facade EventBus se queda por value-copy, no por inestabilidad).
+- **W2 — nucleus#206/#210** (`feat/driver-sql-instrumentation`, **ADR-021**):
+  instrumentación SQL a nivel de driver **opt-in** (`sql_driver_instrumentation`,
+  default false → coste cero). Diseño: wrapper de `database/sql/driver` en
+  `pkg/db` (`sql.OpenDB` sobre un connector que envuelve el conn base;
+  implementa TODAS las interfaces opcionales y reenvía condicionalmente con
+  `driver.ErrSkip`/default — sin degradar el driver); observa en QueryContext/
+  ExecContext de conn (directo) y stmt (preparado), mutuamente excluyentes →
+  una sola observación. Callback `db.StatementObserver` **agnóstico** (no importa
+  observability); `pkg/app` lo puentea al observer de hooks existente
+  (reutiliza sanitize+correlación+emit+gate HasSubscribers). **De-dup por
+  marcador de contexto** `observe.CtxWithModelObserved` que estampa `model.CRUD`
+  antes de `c.db.Exec/Query` → el wrapper salta el tráfico CRUD (ya emitido con
+  ModelName). Los dos observers coexisten porque el wrapper no conoce el
+  ModelName. 8 tests (5 pkg/db + 2 e2e pkg/app + 1 live contra postgres/mysql de
+  la matriz), verdes con `-race`; baseline +12 símbolos.
+- **Flow de release** (los dos PRs apilados: #206 sobre #207): fusionado #208
+  (verde) → #209 se auto-cerró al borrarse su base → rebase `--onto main` del
+  branch soltando el commit de #207 (force-push OK, NO vetado aquí) → PR nuevo
+  #210 a main → CI verde incl. matriz de 5 motores → merge. release-please
+  cortó **nucleus v1.3.0** (`16e22c84`) con AMBOS feats en el CHANGELOG; para
+  disparar su Required Gate hizo falta el commit vacío a la rama del bot
+  (gotcha conocido). Housekeeping post-tag: `defaultPinnedFrameworkVersion`
+  v1.2.0→v1.3.0 (nucleus#211). Issues #206/#207 cerradas a mano («Cierra» en
+  español no es keyword de GitHub).
+- **QUANTUM 1.5.0 CERTIFICADO** (quantum#61): submódulo nucleus → `16e22c84`
+  (= v1.3.0 exacto), `modules.nucleus` → v1.3.0, `quantum` 1.4.0 → **1.5.0**
+  (minor: nucleus subió minor). quark v1.2.2 y orbit v1.3.0 continúan. Los seis
+  patrones compilan; lockstep A-7 verde (orbit contra nucleus v1.3.0 fijado).
+  Tabla de pilares del README a nucleus v1.3.0. **El gate v1.0 de nucleus queda
+  con W1 y W2 cerrados.**
+
+**Pendiente de Carlos:** ceremonia de release de GitHub del paraguas (tags/
+releases quantum v1.4.0 y v1.5.0 — outward-facing, no las hago sin visto bueno).
+Backlog sin decisiones: orbit#70–#74 (UI del plano fleet).
+
+Gotchas de la sesión: (1) los PRs apilados en repos con squash-merge — al
+fusionar el de abajo, el de arriba se auto-cierra (base borrada) y hay que
+rebasear `--onto main` + PR nuevo; (2) el force-push NO estuvo vetado aquí
+(el veto de la nota de quark era context-specific); (3) «Cierra #N» en español
+no auto-cierra issues — usar `gh issue close` o keywords en inglés.
+
+---
+
 ### Sesión 2026-07-13 (14ª) — Carlos pidió el merge: orbit v1.3.0 taggeado y QUANTUM 1.4.0 CERTIFICADO
 
 Carlos: «no puedo mergear desde gh, hazlo tu». Con esa autorización explícita
