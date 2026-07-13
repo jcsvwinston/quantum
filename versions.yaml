@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.4.0"            # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.5.0"            # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-07-13
-status: certified           # backlog de auditoría de orbit v1.2.1 ejecutado y publicado en orbit v1.3.0 (+ server v0.7.0, agent v0.5.0)
+status: certified           # nucleus v1.3.0: gate v1.0 W1 (promoción de pkg/observability) y W2 (instrumentación SQL de driver) resueltos
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
@@ -17,21 +17,41 @@ status: certified           # backlog de auditoría de orbit v1.2.1 ejecutado y 
 # y el node_id ya existían).
 modules:
   quark:   "v1.2.2"
-  nucleus: "v1.2.0"
+  nucleus: "v1.3.0"
   orbit:   "v1.3.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "fc81f4cf"                                # = v1.2.2 exacto
-  nucleus: "8ad8676f"                                # = v1.2.0 exacto
+  nucleus: "16e22c84"                                # = v1.3.0 exacto
   orbit:   "13412635"                                # = v1.3.0 exacto (contiene agent/v0.5.0 y server/v0.7.0 como ancestros; el commit solo añade el changelog/manifiesto de raíz encima — código de módulo idéntico a los tags)
 
 notes: >
-  Quantum 1.4.0 — orbit sube a v1.3.0 (+ server v0.7.0, agent v0.5.0): la
-  ejecución del backlog de la auditoría de orbit (orbit#66/#67/#68/#69).
-  El reconocimiento del brief: el plano fleet es REAL de punta a punta;
-  los problemas eran dos botones fake, un audit roto bajo auth, dos bugs
+  Quantum 1.5.0 — nucleus sube a v1.3.0: los dos compromisos con fecha del
+  gate v1.0 de nucleus, vencidos, resueltos (decisiones de Carlos). **W1
+  (nucleus#207/#208):** pkg/observability + pkg/observability/hooks promovidos
+  de experimental a stable y congelados — superficie pure-stdlib coherente,
+  frozen-but-not-firewalled; el freeze fija solo las formas de los símbolos
+  (los internos pooled/ring-buffer siguen optimizables). **W2
+  (nucleus#206/#210, ADR-021):** instrumentación SQL a nivel de driver opt-in
+  (`sql_driver_instrumentation`): un wrapper de database/sql/driver lleva al
+  feed en vivo las sentencias directas db.QueryContext/ExecContext que esquivan
+  model.CRUD (outbox, session stores SQL, migraciones, SQL crudo),
+  de-duplicadas contra CRUD por un marcador de contexto; off por defecto → coste
+  cero en el hot path. Los dos observers coexisten porque el wrapper no conoce
+  el ModelName. El gate v1.0 de nucleus queda con W1 y W2 cerrados. quark
+  v1.2.2 y orbit v1.3.0 continúan del set 1.4.0. Verificación: los seis
+  patrones del workspace compilan con el pin nuevo; CI de nucleus verde en
+  ambos PRs (freeze rebaselinado, firewall, matriz de 5 motores incl. el test
+  live del wrapper contra postgres/mysql, compat, smoke); release-please cortó
+  v1.3.0 con ambos feats en el CHANGELOG.
+
+  --- Quantum 1.4.0 (histórico) --- orbit sube a v1.3.0 (+ server v0.7.0, agent
+  v0.5.0): la ejecución del backlog de la auditoría de orbit
+  (orbit#66/#67/#68/#69). El reconocimiento del brief: el plano fleet es REAL de
+  punta a punta; los problemas eran dos botones fake, un audit roto bajo auth,
+  dos bugs
   de telemetría fleet y UX incipiente. **Plano fleet (server v0.7.0 +
   agent v0.5.0, orbit#66)**: el filtro agregado se reanuda al reconectar
   un agente (State.OnAgentSubMode estaba sin cablear → pérdida silenciosa
