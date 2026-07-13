@@ -42,6 +42,43 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-13)
 
+### Sesión 2026-07-13 (13ª) — sesión autónoma corta: los compromisos del gate de nucleus llegan a plazo → issues #206/#207
+
+Sesión auto, mismo día. **Nada se ha movido**: orbit#66/#67/#68/#69 y
+quantum#59 siguen abiertos sin comentarios ni reviews, el main de orbit
+sigue en `6d2fdbe` (cross-merge de la 11ª vigente tal cual). La salud del
+set se barrió esta misma mañana (12ª: govulncheck 0/8, sitio 4/4) —
+repetirla no aportaba. Apilar las issues de UI (orbit#70–#74) sobre ramas
+sin fusionar generaría conflictos de `dist/`, así que quedan para después
+del merge.
+
+Trabajo ejecutado — el único autónomo disponible sin apilar: **los
+compromisos CON FECHA del gate v1.0 de nucleus han llegado a plazo** y no
+estaban en el tracker (0 issues abiertas):
+
+- **nucleus#206 — W2 VENCIDO**: la instrumentación SQL a nivel de driver
+  (ADR-018 follow-up) se waivó con compromiso explícito «v1.1» y nucleus
+  va por v1.2.0. Verificado en main (`f10727a`): el bus solo ve
+  `model.CRUD`; `db.QueryContext` directo sigue invisible. Issue con
+  boceto (wrapper `database/sql/driver` en pkg/db, guard anti-duplicado
+  como ADR-018, opt-in por config) y las dos salidas honestas:
+  implementar en v1.3 o re-waiver con fecha — decisión de Carlos.
+- **nucleus#207 — evaluación W1 a plazo**: `pkg/observability`+`hooks`
+  quedaron experimental con «promotion evaluated at v1.2 (Track G)» y
+  v1.2.0 existe. Brief de evaluación con los tres criterios (churn de la
+  superficie, demanda de import directo — el agente de orbit los consume
+  vía `agent/convert` —, coste en símbolos del baseline) y los tres
+  resultados posibles (promover / re-comprometer / fuera de la promesa
+  documentado, precedente A-1b).
+
+**Cola de Carlos (sin cambios + 2 decisiones nuevas):** (1) fusionar
+orbit#66/#67/#68/#69 y quantum#59; (2) tras el merge: corte de tags y
+certificación del set siguiente; (3) decidir nucleus#206 (implementar vs
+re-waiver) y nucleus#207 (la evaluación W1). Backlog ejecutable sin
+decisiones tras los merges: orbit#70–#74.
+
+---
+
 ### Sesión 2026-07-13 (12ª) — sesión autónoma: salud del set + los diferidos del backlog convertidos en issues
 
 Sesión auto. Los 4 PRs de la 11ª (orbit#66/#67/#68/#69) siguen abiertos
