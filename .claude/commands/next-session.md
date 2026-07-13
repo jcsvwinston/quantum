@@ -42,6 +42,50 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-13)
 
+### Sesión 2026-07-13 (14ª) — Carlos pidió el merge: orbit v1.3.0 taggeado y QUANTUM 1.4.0 CERTIFICADO
+
+Carlos: «no puedo mergear desde gh, hazlo tu». Con esa autorización explícita
+la sesión ejecutó el arco completo de release (el clasificador no bloqueó —
+lo pidió él):
+
+- **Los 4 PRs de orbit fusionados** (squash, delete-branch): orbit#66
+  (plano fleet Go), #67 (panel in-process), #68 (UX SPA), #69 (docs). El
+  cross-merge verificado en la 11ª se cumplió: cero conflictos. Main de
+  orbit fusionado (`1341263`) compila y pasa `go test ./...` en los tres
+  módulos (raíz/agent/server).
+- **Tags cortados por release-please** (sus 3 release-PR): **orbit v1.3.0**
+  (root; minor por el feat de #68 + fix de #67 sobre el panel), **agent/
+  v0.5.0** y **server/v0.7.0** (feat de #66); **proto queda v0.3.0** (el
+  arco no tocó el contrato). Gotcha reconfirmado: al fusionar los release-PR
+  en serie, el 2º choca en `.release-please-manifest.json` — release-please
+  NO rebaseó solo; se reconcilió a mano (merge de origin/main en la rama del
+  bot + unión del manifest + push normal, NO force-push) y quedó
+  MERGEABLE/CLEAN. El 3º (root, clave `.`) no chocaba con las claves
+  agent/server → 3-way limpio.
+- **Verificado standalone**: `go install …/server/cmd/admin-server@v0.7.0`
+  (GOWORK=off) → `nucleus-admin-server v0.7.0` (buildinfo end-to-end, con
+  los flags nuevos `--ui-read-only`/`--ui-role-header`).
+- **QUANTUM 1.4.0 CERTIFICADO** (quantum PR de esta sesión): submódulo
+  orbit → `13412635` (= v1.3.0 exacto; contiene agent/v0.5.0 y server/v0.7.0
+  como ancestros, el commit solo añade el changelog/manifiesto de raíz —
+  código de módulo idéntico a los tags). `modules.orbit` → v1.3.0,
+  `workspace_pins.orbit` → `13412635`, `quantum` 1.3.1 → **1.4.0** (minor:
+  orbit subió minor). Los seis patrones del workspace compilan con el pin
+  nuevo. De paso, corregida la deriva de la tabla de pilares del README del
+  paraguas (decía nucleus v1.1.0/quark v1.2.1/orbit v1.2.0 — arrastre de
+  los sets 1.3.0/1.3.1; ahora v1.2.0/v1.2.2/v1.3.0).
+- **quantum#59 fusionado** (cierres 11ª-13ª — historia válida).
+
+**Pendiente para Carlos:** ceremonia de release de GitHub del paraguas
+(¿tag/release quantum v1.4.0 con las notas del manifiesto? — outward-facing,
+mismo patrón que v1.0.0/v1.1.0). Y las 2 decisiones de nucleus que abrió la
+13ª: #206 (W2 driver-instr vencido — implementar vs re-waiver) y #207
+(evaluación W1 a plazo). Backlog ejecutable sin decisiones: orbit#70–#74
+(UI: echo de versión/identidad, filtros de stream, capacidades de Data
+Studio, herramientas de audit, bundle P2).
+
+---
+
 ### Sesión 2026-07-13 (13ª) — sesión autónoma corta: los compromisos del gate de nucleus llegan a plazo → issues #206/#207
 
 Sesión auto, mismo día. **Nada se ha movido**: orbit#66/#67/#68/#69 y
