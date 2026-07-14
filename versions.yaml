@@ -4,31 +4,54 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.5.0"            # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.6.0"            # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-07-13
-status: certified           # nucleus v1.3.0: gate v1.0 W1 (promoción de pkg/observability) y W2 (instrumentación SQL de driver) resueltos
+status: certified           # orbit v1.4.0: el backlog de UI del plano fleet ejecutado (orbit#70-#74)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
-# standalone: quarkbridge v0.3.1, quarkdatasource v0.2.2, proto v0.3.0,
-# agent v0.5.0, server v0.7.0 (binario admin-server instalable con go install —
-# verificado: `go install …/server/cmd/admin-server@v0.7.0` → --version v0.7.0).
-# proto queda v0.3.0 (el arco no tocó el contrato: los campos que usa el sampler
-# y el node_id ya existían).
+# standalone: quarkbridge v0.3.1, quarkdatasource v0.2.2, proto v0.4.0
+# (RPC GetSelf nuevo, aditivo), agent v0.5.0, server v0.8.0 (handler GetSelf;
+# binario admin-server instalable con go install).
 modules:
   quark:   "v1.2.2"
   nucleus: "v1.3.0"
-  orbit:   "v1.3.0"
+  orbit:   "v1.4.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "fc81f4cf"                                # = v1.2.2 exacto
   nucleus: "16e22c84"                                # = v1.3.0 exacto
-  orbit:   "13412635"                                # = v1.3.0 exacto (contiene agent/v0.5.0 y server/v0.7.0 como ancestros; el commit solo añade el changelog/manifiesto de raíz encima — código de módulo idéntico a los tags)
+  orbit:   "b6948f0d"                                # = v1.4.0 exacto (contiene server/v0.8.0 y proto/v0.4.0 como ancestros; el commit solo añade el changelog/manifiesto de raíz encima — código de módulo idéntico a los tags)
 
 notes: >
-  Quantum 1.5.0 — nucleus sube a v1.3.0: los dos compromisos con fecha del
+  Quantum 1.6.0 — orbit sube a v1.4.0 (+ server v0.8.0, proto v0.4.0): el
+  backlog de UI del plano fleet ejecutado al completo (orbit#70–#74, decisión
+  de Carlos «todas»). **#71** barra de filtros en las páginas de stream
+  (method/path-glob/status-class/sql-model/node) + knob de sampling (el proto
+  ya lo soportaba y #66 hizo real el sampler); estado debounced/persistido.
+  **#73** herramientas del audit log: filtro por actor/acción/nodo + rango
+  temporal, paginación y export CSV, todo client-side sobre el ring completo.
+  **#72** Data Studio expone lo que el backend ya sabe: multi-select +
+  BulkAction delete, selector de nodo (threading de node_id), choices→select,
+  editor de fecha (datetime-local↔RFC3339), FK→link al modelo referenciado.
+  **#70** (proto+server+UI, ADR aditivo): RPC `ControlService.GetSelf`
+  (identidad del operador + read_only + versión del server vía
+  debug.ReadBuildInfo) → el footer muestra «orbit <version> · <subject>
+  [(viewer)]» y Data Studio esconde las mutaciones en modo read-only. **#74**
+  (parcial): NodeDetail «Recent activity» ahora es un feed en vivo HTTP+SQL
+  por nodo (la correlación de node_id se arregló en #66; «Components»
+  eliminado por honestidad), búsqueda de modelos en el sidebar, y umbral de
+  sentencia lenta configurable; diferidos i18n, barrido completo de a11y de
+  tablas, y consolidar las tablas del panel in-process (#74 sigue abierta).
+  nucleus v1.3.0 y quark v1.2.2 continúan del set 1.5.0. Verificación: los
+  seis patrones del workspace compilan con el pin nuevo; go test verde en los
+  tres módulos de orbit; tsc + eslint --max-warnings 0 + vite build verdes;
+  GetSelf verificado end-to-end por TestServer_GetSelf (server real sobre el
+  cable). release-please cortó orbit v1.4.0 + server/v0.8.0 + proto/v0.4.0.
+
+  --- Quantum 1.5.0 (histórico) --- nucleus sube a v1.3.0: los dos compromisos con fecha del
   gate v1.0 de nucleus, vencidos, resueltos (decisiones de Carlos). **W1
   (nucleus#207/#208):** pkg/observability + pkg/observability/hooks promovidos
   de experimental a stable y congelados — superficie pure-stdlib coherente,
