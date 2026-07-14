@@ -42,6 +42,53 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-13)
 
+### Sesión 2026-07-13 (16ª) — sesión autónoma: ceremonia de release + barrido de salud del set 1.5.0 (todo limpio)
+
+Con el visto bueno de Carlos, la sesión (continuación de la 15ª) **publicó
+las dos releases de GitHub del paraguas** y barrió la salud del set recién
+certificado:
+
+- **Releases GH del paraguas** (mismo patrón que v1.0.0–v1.3.1): **[Quantum
+  v1.4.0](https://github.com/jcsvwinston/quantum/releases/tag/v1.4.0)** (orbit
+  v1.3.0, sobre el commit de certificación `ff748cc`) y **[Quantum
+  v1.5.0](https://github.com/jcsvwinston/quantum/releases/tag/v1.5.0)** (Latest;
+  nucleus v1.3.0, sobre `476585a`), cada una con las notas del manifiesto y la
+  tabla del trío. Gotcha: `gh release create --target` exige el **SHA completo**
+  (el corto da «Release.target_commitish is invalid»).
+- **Barrido de salud del set 1.5.0** (precedente auto 4ª/8ª/12ª): los seis
+  patrones del workspace compilan; **govulncheck 0/8** en los módulos pinneados
+  (GOWORK=off, incl. el código nuevo de nucleus v1.3.0 — el wrapper de driver);
+  sitio 4/4 en 200 y la portada ya sirve el chip «**Quantum 1.5.0**» (deploy
+  corrido tras la certificación); **0 PRs abiertos** en los cuatro repos;
+  issues: nucleus 0, quark 2 (#247 diferida, #92 épica Fase 6 → conocidas),
+  orbit 5 (#70–#74, el backlog UI).
+
+**Estado: la suite está completamente al día y limpia.** Trío en
+**nucleus v1.3.0 · quark v1.2.2 · orbit v1.3.0**, tres pines en tag exacto,
+sin deuda de seguridad conocida, sitio vivo, releases publicadas. El gate v1.0
+de nucleus queda con todos los §A y §B (incl. W1+W2) cerrados.
+
+**Cola de Carlos (sin decisiones pendientes de coordinación):** el único
+trabajo ejecutable es el **backlog de UI del plano fleet, orbit#70–#74** —
+features de producto que Carlos prioriza (no las arranco en auto sin su
+elección de foco):
+- **#70** OR-UX-P1-6: versión real del server + identidad/read_only del
+  operador en el footer (necesita un RPC `GetSelf` de echo → proto+server
+  aditivo, otro ciclo de release de esos módulos).
+- **#71** OR-UX-P1-3: barra de filtros en las páginas de stream + knob de
+  sampling (solo UI; el proto ya lo soporta y #66 hizo real el sampler).
+- **#72** OR-UX-P1-2: exponer en Data Studio lo que el backend ya sabe
+  (multi-select/bulk, alias/nodo, choices→select, FK→link, editor de fecha;
+  solo UI).
+- **#73** OR-UX-P1-7: herramientas del audit log (filtro/rango/CSV/paginación,
+  client-side).
+- **#74** bundle P2: i18n, SLOW_MS, búsqueda de modelos, consolidar las dos
+  tablas del panel, NodeDetail, a11y de tablas.
+
+Los cinco son solo-UI salvo #70 (que toca proto/server). Ninguno bloquea nada.
+
+---
+
 ### Sesión 2026-07-13 (15ª) — arco de producto de NUCLEUS: gate v1.0 W1+W2 resueltos → nucleus v1.3.0 y QUANTUM 1.5.0 CERTIFICADO
 
 Carlos decidió los dos compromisos vencidos del gate de nucleus que la 13ª
