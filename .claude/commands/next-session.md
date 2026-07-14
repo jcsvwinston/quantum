@@ -42,6 +42,65 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 3. Estado al cierre (2026-07-13)
 
+### Sesión 2026-07-13 (17ª) — «todas»: el backlog de UI del plano fleet (orbit#70–#74) ejecutado → orbit v1.4.0 y QUANTUM 1.6.0 CERTIFICADO
+
+Carlos: «todas» (los 5 follow-ups de UI del plano fleet que la 12ª dejó como
+issues). Ejecutados en 5 PRs temáticos, fusionados de uno en uno (para evitar
+los conflictos de `server/ui/dist` entre builds: cada PR ramificado desde el
+main actualizado del anterior):
+
+- **orbit#78 (#71)** filtros de stream: `StreamFilterBar` + `useStreamFilters`
+  — method/status-class (chips) + path-glob para HTTP, model para SQL, selector
+  de nodo y knob de sampling (100/50/10/1%) en todas. `useStreamEvents` acepta
+  `samplingRate`. Filtro aplicado desde un snapshot DEBOUNCED (ref estable →
+  el stream solo se re-abre al asentarse); persistido en localStorage.
+- **orbit#81 (#73)** herramientas del audit log: fetch del ring completo (2048)
+  + filtro client-side (actor/acción/nodo/rango), paginación 50/pág y export
+  CSV (RFC 4180) vía Blob.
+- **orbit#82 (#72)** capacidades de Data Studio: multi-select + `useBulkAction`
+  (delete), selector de nodo (threading de `node_id` por todas las
+  queries/mutaciones), choices→`<select>`, editor de fecha (datetime-local↔
+  RFC3339), FK→link al modelo referenciado (valor crudo). (Selector de
+  `database_alias` fuera: no hay fuente de la lista de alias en la UI.)
+- **orbit#83 (#70)** GetSelf: **proto** (RPC aditivo `ControlService.GetSelf →
+  SelfInfo`, 25 inserciones/0 borrados; stubs Go+TS regenerados con
+  `make proto`), **server** (handler lee identidad del ctx +
+  `serverVersion()` vía `debug.ReadBuildInfo`; test de integración
+  `TestServer_GetSelf`), **UI** (`useSelf`; footer «orbit <ver> · <subject>
+  [(viewer)]»; Data Studio esconde mutaciones en read-only).
+- **orbit#85 (#74 PARCIAL)**: NodeDetail «Recent activity» = feed en vivo
+  HTTP+SQL por nodo (la correlación de node_id se arregló en #66; «Components»
+  eliminado por honestidad); búsqueda de modelos en el sidebar; SLOW_MS
+  configurable. **Diferidos (#74 sigue abierta)**: i18n centralizado, barrido
+  completo de a11y de tablas (role sweep + teclado; NodesPage ya tiene el
+  patrón), consolidar RecordTable/AGGridTable del panel in-process.
+
+**Release**: release-please cortó **orbit v1.4.0** (`b6948f0d`, root — UI),
+**server/v0.8.0** (GetSelf) y **proto/v0.4.0** (RPC); agent sigue v0.5.0.
+Mismo baile de manifest de siempre (merge server → proto → root; claves
+distintas del manifest → 3-way limpio, sin reconciliación manual esta vez).
+Issues #70–#73 cerradas a mano.
+
+**QUANTUM 1.6.0 CERTIFICADO** (quantum#64): submódulo orbit → `b6948f0d`
+(= v1.4.0 exacto, contiene server/v0.8.0 y proto/v0.4.0 como ancestros),
+`modules.orbit` → v1.4.0, `quantum` 1.5.0 → **1.6.0** (minor). Los seis
+patrones compilan; CI del paraguas verde (lockstep A-7 con orbit v1.4.0).
+Release de GitHub **[Quantum v1.6.0](https://github.com/jcsvwinston/quantum/releases/tag/v1.6.0)**
+publicada.
+
+**Estado: suite completamente al día.** Trío **nucleus v1.3.0 · quark v1.2.2 ·
+orbit v1.4.0**, tres pines en tag exacto. Único backlog conocido: los 3
+diferidos de orbit#74 (i18n, a11y de tablas, consolidación de tablas del
+panel) — de menor valor/mayor esfuerzo, a priorizar por Carlos.
+
+Gotchas: (1) PRs de UI apilados generan conflictos en `server/ui/dist`
+(bundle rebuild) — ramificar cada uno desde el main del anterior lo evita
+(no stackear); (2) `gh release create --target` exige SHA completo (el corto
+da «Release.target_commitish is invalid»); (3) `make proto` (buf 1.47.2 local)
+regenera Go+TS con plugins remotos — funciona sin problema.
+
+---
+
 ### Sesión 2026-07-13 (16ª) — sesión autónoma: ceremonia de release + barrido de salud del set 1.5.0 (todo limpio)
 
 Con el visto bueno de Carlos, la sesión (continuación de la 15ª) **publicó
