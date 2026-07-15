@@ -40,7 +40,115 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-13)
+## 3. Estado al cierre (2026-07-15)
+
+### Sesión 2026-07-14/15 (18ª) — cierre de la 4ª reauditoría POR EJECUCIÓN REAL (Docker) → quark v1.3.0, nucleus v1.3.1, orbit v1.4.1 y QUANTUM 1.7.0 CERTIFICADO
+
+Carlos trajo el «plan de ejecución definitivo» de la reauditoría (Fases 1–4)
+con la novedad de que Code tenía Docker: cerrar los «no verificable sin
+Docker» que arrastraban las cuatro auditorías corriendo la matriz de motores
+DE VERDAD. Autorizó después toda la cadena de merges y releases
+(«ve comiteando y mergeando» → «Sí, toda la cadena» → «mergéalo y taggea
+v1.7.0»). Todo lo afirmado abajo está verificado por ejecución, no por
+lectura:
+
+- **[Orbit] OR-1 (P0)** — `server` no compilaba standalone: `server/go.mod`
+  pinaba proto v0.3.0 usando `adminv1.GetSelfRequest`/`SelfInfo` (v0.4.0);
+  el go.work lo enmascaraba y `go install …/admin-server@server/v0.8.0`
+  estaba roto. Alineado (proto v0.4.0, agent v0.5.0); los seis módulos pasan
+  `GOWORK=off go build+vet`.
+- **[Orbit] OR-2 (P0 seguridad)** — el `--agent-token` NUNCA viajaba en el
+  stream bidi: el interceptor era `connect.UnaryInterceptorFunc`, que
+  connect-go no invoca en RPCs de streaming, y el único RPC del agente es el
+  stream → 401 en bucle, telemetría muerta fuera de loopback. Sustituido por
+  un `connect.Interceptor` completo (WrapStreamingClient). El regresor nuevo
+  (`TestServer_AgentToken_StreamAuthenticates`, agente REAL + ListNodes +
+  telemetría) es genuino: rojo sin el fix, verde con él.
+- **[Orbit] La causa raíz de que OR-1/OR-2 llegaran a tag: NO TENÍA CI de
+  build/test** (solo pages + release-please; el Makefile existía pero nadie
+  lo corría). CI nuevo de 5 jobs: standalone GOWORK=off por módulo (habría
+  atrapado OR-1), tests, Data Studio contra PG+MySQL reales, govulncheck,
+  linter de docs.
+- **[Nucleus] BUG REAL DE PRODUCCIÓN que SQLite ocultaba** (hallado al correr
+  Data Studio contra un Postgres real): `CRUD.Create` obtenía la PK con
+  `LastInsertId()`, que pgx/mssql NO implementan → el error se tragaba y
+  TODO Create en Postgres devolvía id 0 (crear→actualizar operaba sobre 0).
+  Corregido con `RETURNING`/`OUTPUT INSERTED` (queryContext para no perder
+  la instrumentación); Oracle queda como laguna DECLARADA (go-ora exige
+  `RETURNING … INTO :out`, no encaja con el rebind de `?`). El test live
+  sacaba el id de un FindAll posterior en vez de assertar el back-fill —
+  por eso sobrevivió; ahora lo asserta (rojo sin fix en PG, verde en MySQL).
+  También NU-1 (README decía observability `experimental`; check de
+  coherencia README↔inventory en check_version_claims.sh) y NU-2 (W2
+  documentada en el website con la verdad de la redacción de args).
+- **[Quark] Matriz de 6 motores EN VERDE POR EJECUCIÓN** (SQLite/PG/MySQL/
+  MariaDB/MSSQL/Oracle; por-motor, no en un proceso — los 6 juntos exceden
+  el timeout de 25m; Oracle vía docker run + DSN, testcontainers no puede
+  con esa imagen). Al ejercitar set-ops afloró que `INTERSECT ALL`/`EXCEPT
+  ALL` eran código INALCANZABLE (sin métodos públicos): expuestos
+  `IntersectAll`/`ExceptAll`, el test cazó que MSSQL no los soporta (emitía
+  SQL inválido → ahora ErrUnsupportedFeature) y que el godoc negaba
+  INTERSECT/EXCEPT en MariaDB siendo falso (10.3+). Soporte ALL real: solo
+  PG y MariaDB 10.5+. govulncheck limpio.
+- **[Seguridad] GO-2026-5856** (fuga ECH en crypto/tls, alcanzable desde los
+  dials TLS del agente y el relay Redis): los seis módulos de orbit tenían
+  `toolchain go1.26.5` pero la directiva `go 1.26.4` — y setup-go lee la
+  directiva `go`, así que el CI compilaba con la stdlib vulnerable. Subida a
+  1.26.5 (+ go.work del paraguas); govulncheck 0/8 en el set.
+- **[Docs de producto, Fase 3]** barrido de jerga interna (ADR-XXXX, P0,
+  SPEC.md, CLAUDE.md, V1_GATE, PROFILING.md, issues sueltos) en los sitios de
+  los TRES repos (12 páginas quark + 9 nucleus + 2 orbit; release-notes y
+  roadmap de quark reescritos en formato producto; compatibility.md de
+  nucleus reescrito como Support & Compatibility Policy user-facing) +
+  **linter `check_docs_product_voice.sh` en el CI de los tres** (0 fugas;
+  la excepción `<!-- docs-lint-allow -->` no hizo falta ni una vez).
+- **[Releases]** quark v1.3.0 (checklist de coherencia H-Q6 a mano en el
+  release-PR: README/SECURITY/CLAUDE/release-notes + RELEASE_NOTES_v1.3.0.md),
+  nucleus v1.3.1, orbit v1.4.1 + server/v0.8.1 + agent/v0.5.1 + proto/v0.4.1
+  + quarkbridge/v0.3.2 + quarkdatasource/v0.2.3. El pin de nucleus en orbit
+  subió v1.1.0→v1.3.1 (el go.work enmascaraba que orbit consumía un nucleus
+  viejo; el CI de orbit destapó el bug de PK EXACTAMENTE por eso, y de paso
+  un go.sum incompleto que solo -mod=readonly revela).
+- **QUANTUM 1.7.0 CERTIFICADO** (quantum#66): trío re-pinado a tags exactos
+  (quark `5282ce5b`, nucleus `78d7d349`, orbit `b48247eb`), go.work a
+  1.26.5, y **manifest-guard nuevo** (QM-P0-1) como job del CI de
+  integración: falla si un pin no coincide A LA VEZ con el gitlink del
+  submódulo y con el commit del tag publicado (probado en ambos sentidos).
+  Los ocho patrones del workspace compilan; tag de suite v1.7.0 publicado.
+
+**Barrido de salud post-set (esta sesión, auto):** govulncheck 0/8 en los
+módulos pinneados; sitio 4/4 en 200 y la portada sirve el chip
+«Quantum 1.7.0»; 0 PRs abiertos en los cuatro repos; issues: nucleus 0,
+quark 2 (#247 diferida con boceto, #92 épica), orbit 1 (#74 parcial).
+Tabla de pilares del README corregida al trío nuevo (llevaba el set 1.6.0 —
+mismo drift que cazó la 14ª).
+
+**Pendiente de Carlos (1):** ceremonia de release de GitHub del paraguas —
+publicar la release **Quantum v1.7.0** sobre el tag ya existente con las
+notas del manifiesto (outward-facing, mismo patrón que v1.4.0–v1.6.0; no la
+publico sin visto bueno). Backlog ejecutable sin decisiones: los diferidos
+de orbit#74 (i18n, a11y de tablas, consolidación de tablas del panel).
+Laguna técnica declarada (no issue aún): back-fill de PK de nucleus en
+Oracle.
+
+Gotchas nuevos de la sesión (grabados también en memoria persistente):
+(1) los PRs de release-please NO disparan CI (los crea el bot; GitHub corta
+workflows recursivos) → quedan BLOCKED con «no checks reported» si main
+exige un status check; la salida limpia es `gh pr close N && gh pr reopen N`
+(el evento reopened SÍ dispara CI) — sin `--admin` (enforce_admins lo veta
+además en nucleus); (2) los 6 release-PRs de orbit (separate-pull-requests +
+manifest compartido) conflictúan EN CASCADA al fusionarse en serie y
+release-please no los rebasa ni re-disparándolo: merge manual de main en
+cada rama del bot resolviendo el manifest (bump propio del PR + versiones ya
+avanzadas de main); (3) al cortar un minor de quark, el gate H-Q6 exige el
+bump de menciones + RELEASE_NOTES_vX.Y.0.md A MANO en el release-PR;
+(4) `go mod tidy` con el module cache caliente puede dejar go.sum incompleto
+— verificar con `GOFLAGS=-mod=readonly` (lo que hace el CI); (5) el gate
+estricto de la superapp de quark exige ejercitar cada símbolo público nuevo
+en cada motor (o allowlist) — exponer una API implica tocar
+`examples/superapp/` en el mismo PR.
+
+---
 
 ### Sesión 2026-07-13 (17ª) — «todas»: el backlog de UI del plano fleet (orbit#70–#74) ejecutado → orbit v1.4.0 y QUANTUM 1.6.0 CERTIFICADO
 
