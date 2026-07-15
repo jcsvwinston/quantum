@@ -34,6 +34,25 @@ env:
   MODULES: ./quark/... ./nucleus/... ./nucleus/examples/showcase_demo/... ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/quarkbridge/... ./orbit/quarkdatasource/... ./orbit/server/...
 
 jobs:
+  manifest-guard:
+    name: manifest-guard (pin ↔ tag ↔ gitlink)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout (con submódulos — son el trío fijado)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          # Tags de los submódulos: el guard compara cada pin con el commit del
+          # tag publicado, así que necesita los tags de quark/nucleus/orbit.
+          fetch-depth: 0
+
+      - name: El manifiesto no puede afirmar lo que git no respalda
+        # QM-P0-1: versions.yaml solo certifica un set que git realmente
+        # respalda — cada pin debe ser a la vez el gitlink del submódulo y el
+        # commit al que apunta el tag de la versión que declara `modules`.
+        run: bash scripts/manifest-guard.sh
+
   build:
     name: build + vet del set fijado
     runs-on: ubuntu-latest
