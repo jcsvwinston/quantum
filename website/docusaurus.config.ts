@@ -62,13 +62,14 @@ const config: Config = {
   // Expone el trío de versions.yaml a las páginas (la portada lo usa en sus chips).
   customFields: {suite},
 
-  // Las docs vienen de otros repos. Los enlaces `/docs/*` de Quark se reescriben
-  // en el ensamblaje (remarkQuarkDocsBase), pero quedan anclas rotas HEREDADAS en
-  // los snapshots versionados CONGELADOS de Quark (p. ej. `#tx` en versiones
-  // 0.8–1.0 de reference/api/client): son historia inmutable de Quark — no se
-  // tocan (QADR-0003) y rotas están también en su sitio standalone. Por eso
-  // `onBrokenAnchors: 'warn'` (avisa, no tumba el build).
-  onBrokenLinks: 'warn',
+  // Enlaces ROTOS tumban el build (QM6-3): tras el recorte de snapshots de la
+  // 5ª ronda, un enlace colgante a una ruta retirada pasaría en 'warn' y el
+  // lector aterrizaría en el 404. Hoy hay 0 rotos; 'throw' evita que vuelvan.
+  // Las ANCLAS siguen en 'warn': quedan anclas rotas HEREDADAS en los
+  // snapshots versionados CONGELADOS de Quark (p. ej. `#tx` en 0.8–1.0 de
+  // reference/api/client) — historia inmutable (QADR-0003), rotas también en
+  // su día en el sitio standalone.
+  onBrokenLinks: 'throw',
   onBrokenAnchors: 'warn',
 
   i18n: {defaultLocale: 'es', locales: ['es']},
@@ -172,7 +173,32 @@ const config: Config = {
       // (la portada, el footer y el dropdown vía docSidebar), no a la raíz pelada.
       '@docusaurus/plugin-client-redirects',
       {
-        redirects: [{from: '/quark', to: '/quark/intro'}],
+        redirects: [
+          {from: '/quark', to: '/quark/intro'},
+          // QM6-2: la 5ª ronda retiró 13 rutas de snapshot del paraguas (la
+          // cola pasó a «último patch por minor de la línea 1.x»), pero el
+          // redirector de Pages de quark sigue reenviando URLs profundas
+          // antiguas hacia aquí — sin esto aterrizaban en el 404. Los roots
+          // 0.x van al intro del producto (contenido pre-1.0 sin gemelo
+          // servido); los patch retirados 1.2.0/1.2.1 se cubren ruta a ruta
+          // en createRedirects, abajo.
+          ...['0.3.0', '0.4.0', '0.5.0', '0.6.0', '0.7.0', '0.8.0', '0.9.0',
+              '0.10.0', '0.11.0', '0.12.0', '0.13.0'].map((v) => ({
+            from: `/quark/${v}`,
+            to: '/quark/intro',
+          })),
+        ],
+        // Cada página del snapshot conservado 1.2.2 responde también por las
+        // rutas de los patch retirados de su minor (1.2.0/1.2.1): el lector
+        // con una URL vieja cae en el MISMO documento, un patch más nuevo.
+        createRedirects(existingPath) {
+          const m = existingPath.match(/^\/quark\/1\.2\.2(\/.*)?$/);
+          if (m) {
+            const tail = m[1] ?? '';
+            return [`/quark/1.2.0${tail}`, `/quark/1.2.1${tail}`];
+          }
+          return undefined;
+        },
       },
     ],
   ],
