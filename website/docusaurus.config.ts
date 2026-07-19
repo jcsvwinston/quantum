@@ -216,15 +216,18 @@ const config: Config = {
           ],
         },
         {
-          // Selector de versión real de Quark (su histórico: 13 versiones).
-          // Aparece en las páginas de la instancia Quark.
+          // Selector de versión de Quark. Docusaurus pinta estos dropdowns en
+          // TODAS las páginas; el swizzle de
+          // src/theme/NavbarItem/DocsVersionDropdownNavbarItem los limita a
+          // las rutas de su producto (sin él, leyendo nucleus veías el chip de
+          // versión de quark al lado del suyo).
           type: 'docsVersionDropdown',
           docsPluginId: 'quark',
           position: 'right',
         },
         {
-          // Selector de versión real de Nucleus (primer snapshot: 1.0.0, el
-          // corte de su major). Aparece en las páginas de la instancia Nucleus.
+          // Selector de versión de Nucleus (instancia `default`). Mismo
+          // scoping por swizzle que el de Quark.
           type: 'docsVersionDropdown',
           docsPluginId: 'default',
           position: 'right',
