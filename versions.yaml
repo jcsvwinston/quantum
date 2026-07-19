@@ -33,6 +33,16 @@ workspace_pins:
   nucleus: "e7f00d5c"                                # = v1.3.2 exacto
   orbit:   "ee2c84b5"                                # = v1.4.2 exacto (contiene server/v0.8.2, agent/v0.5.2, proto/v0.4.1, quarkbridge/v0.3.2, quarkdatasource/v0.2.4 como ancestros — desde esta ronda lo verifica el manifest-guard §3 en CI, no una auditoría a mano)
 
+# Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
+# de orbit que van por detrás de la versión certificada de arriba. La regla del
+# manifest-guard §5 es de DISCLOSURE: un require rancio NO declarado aquí rompe
+# el CI; uno declarado pasa (MVS eleva la versión en cualquier app que también
+# requiera la certificada). Mantener al día en cada re-pin; un lag de más de un
+# minor debería alinearse, no declararse indefinidamente.
+declared_lags:
+  quark:   "v1.2.1"   # quarkbridge/quarkdatasource del orbit v1.4.2 pinado; alineados a v1.3.1 en orbit#102 (llega con el próximo re-pin)
+  nucleus: "v1.3.1"   # los módulos de orbit; el lane lockstep A-7 prueba orbit contra el nucleus pinado del workspace; alinear en un arco propio de orbit
+
 notes: >
   Quantum 1.7.1 — cierre de la 5ª ronda de auditoría, verificado por ejecución
   real (Docker) y con la lección de la ronda instalada como forcing functions:
