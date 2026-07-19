@@ -80,8 +80,9 @@ const config: Config = {
   },
   // Búsqueda local offline (sin dependencia externa): indexa las tres instancias
   // de docs. El plugin soporta React 19 desde v0.47.0; aquí 0.55.2 sobre
-  // Docusaurus 3.10. `en` + `es` porque las docs de Quark están en inglés y las
-  // de Nucleus/Orbit en español.
+  // Docusaurus 3.10. `en` + `es` porque las docs de los tres productos están en
+  // inglés y el chrome del sitio (portada, navegación) en español; la decisión
+  // de idioma único del paraguas sigue pendiente.
   themes: [
     '@docusaurus/theme-mermaid',
     [
