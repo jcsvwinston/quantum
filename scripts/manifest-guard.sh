@@ -43,6 +43,10 @@ yaml_value() {
 for module in quark nucleus orbit; do
   version=$(yaml_value modules "$module")
   pin=$(yaml_value workspace_pins "$module")
+  # Per-module flag: the old code keyed the OK line on the GLOBAL status, so
+  # after the first failing module every healthy one went silent — the log
+  # then under-reported what was actually checked.
+  mod_ok=1
 
   if [[ -z "$version" || -z "$pin" ]]; then
     echo "FAIL: $module — missing version ('$version') or pin ('$pin') in $manifest" >&2
@@ -60,7 +64,7 @@ for module in quark nucleus orbit; do
   gitlink=$(git -C "$module" rev-parse HEAD 2>/dev/null)
   if [[ "$gitlink" != "$pin"* ]]; then
     echo "FAIL: $module — submodule is at ${gitlink:0:8}, but versions.yaml pins $pin" >&2
-    status=1
+    status=1; mod_ok=0
   fi
 
   # 2. the pinned commit must be exactly the commit the published tag points at.
@@ -68,14 +72,64 @@ for module in quark nucleus orbit; do
   tag_commit=$(git -C "$module" rev-list -n1 "$version" 2>/dev/null)
   if [[ -z "$tag_commit" ]]; then
     echo "FAIL: $module — tag $version does not exist in the submodule" >&2
-    status=1
+    status=1; mod_ok=0
   elif [[ "$tag_commit" != "$pin"* ]]; then
     echo "FAIL: $module — pin $pin is not tag $version (${tag_commit:0:8})" >&2
-    status=1
+    status=1; mod_ok=0
   fi
 
-  if [[ $status -eq 0 ]]; then
+  if [[ $mod_ok -eq 1 ]]; then
     echo "OK: $module $version — pin $pin matches the tag and the gitlink"
+  fi
+done
+
+# 3. Orbit is six modules in one repo; the certification covers the five
+# module tags too, not only the root pin. For each module, its LATEST
+# published tag must be an ancestor of the pinned root commit AND code-
+# identical to it inside the module directory — i.e. the pin does not carry
+# unreleased module code, and no module tag is ahead of the pin. Until now
+# this was checked by hand each audit (QM5-6); when a sibling repo cuts a new
+# module tag, this goes red until the umbrella re-pins — that pressure is the
+# point (the OR5-1 class of drift: a tag nobody re-pinned).
+orbit_pin=$(yaml_value workspace_pins orbit)
+for mod in proto agent server quarkbridge quarkdatasource; do
+  latest=$(git -C orbit tag -l "$mod/v*" | grep -E "^$mod/v[0-9]+\.[0-9]+\.[0-9]+$" | sort -V | tail -1)
+  if [[ -z "$latest" ]]; then
+    echo "FAIL: orbit/$mod — no published tag found (did the checkout fetch tags?)" >&2
+    status=1
+    continue
+  fi
+  mod_ok=1
+  if ! git -C orbit merge-base --is-ancestor "$latest" "$orbit_pin" 2>/dev/null; then
+    echo "FAIL: orbit/$mod — latest tag $latest is not an ancestor of the pinned root $orbit_pin (re-pin the umbrella?)" >&2
+    status=1; mod_ok=0
+  fi
+  if [[ $mod_ok -eq 1 && -n $(git -C orbit diff "$latest".."$orbit_pin" -- "$mod/" 2>/dev/null) ]]; then
+    echo "FAIL: orbit/$mod — the pinned root carries $mod/ changes not covered by $latest (unreleased module code in the certified set)" >&2
+    status=1; mod_ok=0
+  fi
+  if [[ $mod_ok -eq 1 ]]; then
+    echo "OK: orbit/$mod $latest — ancestor of the root pin, module tree identical"
+  fi
+done
+
+# 4. The README's pillar table repeats the three module versions. It drifted
+# once already (fixed by hand in the 1.4.0 certification) and nothing guarded
+# it — a hardcoded version with no check, the exact failure class of the 5ª
+# ronda. Each row's first version must equal the manifest's.
+for module in quark nucleus orbit; do
+  # Row format: | **Nucleus** | … | `v1.3.1` | …
+  cap=$(printf '%s' "$module" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')
+  readme_v=$(grep -i "^| \*\*$cap\*\*" README.md | grep -o 'v[0-9][0-9.]*[0-9]' | head -1 || true)
+  manifest_v=$(yaml_value modules "$module")
+  if [[ -z "$readme_v" ]]; then
+    echo "FAIL: README.md — pillar table row for $cap not found or carries no version" >&2
+    status=1
+  elif [[ "$readme_v" != "$manifest_v" ]]; then
+    echo "FAIL: README.md pillar table says $cap $readme_v but versions.yaml certifies $manifest_v" >&2
+    status=1
+  else
+    echo "OK: README pillar table — $cap $readme_v matches the manifest"
   fi
 done
 
@@ -87,4 +141,4 @@ if [[ $status -ne 0 ]]; then
   exit 1
 fi
 
-echo "manifest-guard OK: pin ↔ tag ↔ gitlink agree for quark, nucleus, orbit"
+echo "manifest-guard OK: pin ↔ tag ↔ gitlink agree for quark, nucleus, orbit — and orbit's five module tags back the pinned root"

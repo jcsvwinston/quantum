@@ -53,6 +53,38 @@ jobs:
         # commit al que apunta el tag de la versión que declara `modules`.
         run: bash scripts/manifest-guard.sh
 
+  # El manifiesto afirma que los binarios se instalan por tag; hasta la 5ª
+  # ronda ningún job lo ejecutaba, y el comando literal de versions.yaml llevaba
+  # semanas siendo inválido (QM5-5). Este job hace lo que un usuario haría:
+  # `go install …@<versión>` con caché de módulos virgen y GOWORK=off, con la
+  # versión derivada del último tag de server del submódulo pinado (la misma
+  # fuente que verifica manifest-guard §3).
+  go-install-tag:
+    name: go install admin-server@tag (caché virgen)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout (con submódulos — el tag sale del submódulo pinado)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go (versión declarada en go.work)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.work
+          cache: false # caché de módulos deliberadamente virgen
+
+      - name: Instala el admin-server del último tag publicado
+        run: |
+          git -C orbit fetch --tags --quiet origin
+          tag=$(git -C orbit tag -l 'server/v*' | grep -E '^server/v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          version="${tag#server/}"
+          echo "instalando github.com/jcsvwinston/orbit/server/cmd/admin-server@${version}"
+          export GOMODCACHE="$(mktemp -d)" GOWORK=off GOBIN="$(mktemp -d)"
+          go install "github.com/jcsvwinston/orbit/server/cmd/admin-server@${version}"
+          "$GOBIN/admin-server" --version
+
   build:
     name: build + vet del set fijado
     runs-on: ubuntu-latest
