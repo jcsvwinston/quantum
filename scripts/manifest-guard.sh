@@ -113,6 +113,33 @@ for mod in proto agent server quarkbridge quarkdatasource; do
   fi
 done
 
+# 5 (checked before 4 for output grouping with the orbit sections). Cross-repo
+# disclosure (QM6-1): every DIRECT require of jcsvwinston/{quark,nucleus} in
+# orbit's six module go.mods must equal the certified version above OR be
+# listed in declared_lags. quarkbridge shipped requiring quark v1.2.1 — two
+# minors behind the certified set — while the manifest's "honest note" only
+# disclosed the nucleus lag: staleness was not the lie, the omission was.
+# Undisclosed staleness fails; a declared lag passes (MVS raises the version
+# in any app that also requires the certified one).
+for mod in . proto agent server quarkbridge quarkdatasource; do
+  gomod="orbit/$mod/go.mod"
+  [[ "$mod" == "." ]] && gomod="orbit/go.mod"
+  for dep in quark nucleus; do
+    ver=$(awk -v p="github.com/jcsvwinston/$dep" '$1 == p && $NF != "indirect" {print $2}' "$gomod")
+    [[ -z "$ver" ]] && continue
+    want=$(yaml_value modules "$dep")
+    lag=$(yaml_value declared_lags "$dep")
+    if [[ "$ver" == "$want" ]]; then
+      echo "OK: $gomod — $dep $ver == certified"
+    elif [[ -n "$lag" && "$ver" == "$lag" ]]; then
+      echo "OK: $gomod — $dep $ver (lag DECLARED in versions.yaml; certified is $want)"
+    else
+      echo "FAIL: $gomod — requires $dep $ver, but the certified version is $want and no matching declared_lags entry exists (undisclosed staleness)" >&2
+      status=1
+    fi
+  done
+done
+
 # 4. The README's pillar table repeats the three module versions. It drifted
 # once already (fixed by hand in the 1.4.0 certification) and nothing guarded
 # it — a hardcoded version with no check, the exact failure class of the 5ª
