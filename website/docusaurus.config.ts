@@ -51,7 +51,7 @@ function remarkQuarkDocsBase() {
 const config: Config = {
   title: 'Quantum',
   tagline:
-    'Framework web, ORM y panel de administración para Go: desarrollados por separado, coordinados como suite.',
+    'A web framework, an ORM and an admin panel for Go: developed separately, coordinated as a suite.',
   favicon: 'img/quantum-mark.svg',
 
   url: 'https://jcsvwinston.github.io',
@@ -71,25 +71,27 @@ const config: Config = {
   onBrokenLinks: 'warn',
   onBrokenAnchors: 'warn',
 
-  i18n: {defaultLocale: 'es', locales: ['es']},
+  // Idioma único del sitio: inglés (QADR-0007). Las docs de los tres
+  // productos ya estaban en inglés; el chrome (portada, navegación, tema)
+  // se alinea con ellas. Revertir = traducir las cadenas de chrome y
+  // devolver este locale a 'es' (decisión reversible, ver el QADR).
+  i18n: {defaultLocale: 'en', locales: ['en']},
 
   markdown: {
     mermaid: true,
     // Ubicación nueva en Docusaurus 3.10+ (el top-level está deprecado).
     hooks: {onBrokenMarkdownLinks: 'warn'},
   },
-  // Búsqueda local offline (sin dependencia externa): indexa las tres instancias
-  // de docs. El plugin soporta React 19 desde v0.47.0; aquí 0.55.2 sobre
-  // Docusaurus 3.10. `en` + `es` porque las docs de los tres productos están en
-  // inglés y el chrome del sitio (portada, navegación) en español; la decisión
-  // de idioma único del paraguas sigue pendiente.
+  // Búsqueda local offline (sin dependencia externa): indexa las tres
+  // instancias de docs. El plugin soporta React 19 desde v0.47.0; aquí 0.55.2
+  // sobre Docusaurus 3.10. Solo `en` desde QADR-0007 (sitio íntegro en inglés).
   themes: [
     '@docusaurus/theme-mermaid',
     [
       '@easyops-cn/docusaurus-search-local',
       {
         hashed: true,
-        language: ['en', 'es'],
+        language: ['en'],
         docsRouteBasePath: ['nucleus', 'quark', 'orbit'],
         indexBlog: false,
         indexPages: false,
@@ -199,7 +201,7 @@ const config: Config = {
               type: 'docSidebar',
               sidebarId: 'nucleusSidebar',
               docsPluginId: 'default',
-              label: `Nucleus · framework web · ${suite.nucleus}`,
+              label: `Nucleus · web framework · ${suite.nucleus}`,
             },
             {
               type: 'docSidebar',
@@ -211,7 +213,7 @@ const config: Config = {
               type: 'docSidebar',
               sidebarId: 'orbitSidebar',
               docsPluginId: 'orbit',
-              label: `Orbit · admin · ${suite.orbit}`,
+              label: `Orbit · admin panel · ${suite.orbit}`,
             },
           ],
         },
@@ -243,7 +245,7 @@ const config: Config = {
       style: 'dark',
       links: [
         {
-          title: 'Productos',
+          title: 'Products',
           items: [
             {label: 'Nucleus', to: '/nucleus/'},
             {label: 'Quark', to: '/quark/intro/'},
