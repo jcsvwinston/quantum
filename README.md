@@ -30,9 +30,9 @@ uno, qué rol juega en la suite y cómo encajan.
 
 | Pilar | Rol en la suite | Módulo Go | Versión | Submódulo | Uso en solitario |
 |---|---|---|---|---|---|
-| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.3.2` | [`nucleus/`](nucleus) | Sí (base de apps) |
-| **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.3.1` | [`quark/`](quark) | **Sí, en cualquier app Go** |
-| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.4.2` | [`orbit/`](orbit) | No (requiere Nucleus) |
+| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.3.3` | [`nucleus/`](nucleus) | Sí (base de apps) |
+| **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.3.2` | [`quark/`](quark) | **Sí, en cualquier app Go** |
+| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.4.3` | [`orbit/`](orbit) | No (requiere Nucleus) |
 
 Los nombres vienen de la **física de partículas**: **Nucleus** es el **núcleo** (el
 framework anfitrión); **Quark**, la **partícula fundamental** (la capa de datos,
