@@ -8,6 +8,7 @@
 import {
   cpSync,
   copyFileSync,
+  mkdirSync,
   rmSync,
   existsSync,
   readFileSync,
@@ -29,6 +30,27 @@ const PRODUCTS = [
   },
 ];
 
+// Cola de snapshots servidos por el paraguas (decisión de la 5ª ronda, QM5-1):
+// SOLO el último patch de cada minor de la línea 1.x. La historia 0.x queda en
+// el repo de cada producto; los patches superados (1.2.0, 1.2.1…) no aportan al
+// lector y multiplican la superficie que el linter post-build debe mantener
+// limpia. La doc por defecto es SIEMPRE "current" (lastVersion en
+// docusaurus.config.ts); los snapshots que pasan este filtro se sirven como
+// archivo bajo su ruta de versión y están sujetos al mismo linter de jerga que
+// el resto del sitio.
+function servedVersions(all) {
+  const byMinor = new Map();
+  for (const v of all) {
+    const m = v.match(/^(\d+)\.(\d+)\.(\d+)$/);
+    if (!m || Number(m[1]) < 1) continue;
+    const key = `${m[1]}.${m[2]}`;
+    const cur = byMinor.get(key);
+    if (!cur || Number(m[3]) > cur.patch) byMinor.set(key, {v, patch: Number(m[3])});
+  }
+  const keep = new Set([...byMinor.values()].map((e) => e.v));
+  return all.filter((v) => keep.has(v)); // conserva el orden de versions.json
+}
+
 for (const {id, src, prefix, renameSidebar} of PRODUCTS) {
   const versionsFile = `${src}/versions.json`;
   if (!existsSync(versionsFile)) {
@@ -38,9 +60,20 @@ for (const {id, src, prefix, renameSidebar} of PRODUCTS) {
   for (const suffix of ['versioned_docs', 'versioned_sidebars']) {
     rmSync(`${prefix}${suffix}`, {recursive: true, force: true});
   }
-  cpSync(`${src}/versioned_docs`, `${prefix}versioned_docs`, {recursive: true});
-  cpSync(`${src}/versioned_sidebars`, `${prefix}versioned_sidebars`, {recursive: true});
-  copyFileSync(versionsFile, `${prefix}versions.json`);
+  const all = JSON.parse(readFileSync(versionsFile, 'utf8'));
+  const served = servedVersions(all);
+  mkdirSync(`${prefix}versioned_docs`, {recursive: true});
+  mkdirSync(`${prefix}versioned_sidebars`, {recursive: true});
+  for (const v of served) {
+    cpSync(`${src}/versioned_docs/version-${v}`, `${prefix}versioned_docs/version-${v}`, {
+      recursive: true,
+    });
+    copyFileSync(
+      `${src}/versioned_sidebars/version-${v}-sidebars.json`,
+      `${prefix}versioned_sidebars/version-${v}-sidebars.json`,
+    );
+  }
+  writeFileSync(`${prefix}versions.json`, JSON.stringify(served, null, 2) + '\n');
   if (renameSidebar) {
     for (const file of readdirSync(`${prefix}versioned_sidebars`)) {
       const path = `${prefix}versioned_sidebars/${file}`;
@@ -52,6 +85,7 @@ for (const {id, src, prefix, renameSidebar} of PRODUCTS) {
       }
     }
   }
-  const n = JSON.parse(readFileSync(versionsFile, 'utf8')).length;
-  console.log(`[sync-versions] ${id}: ${n} versiones sincronizadas`);
+  console.log(
+    `[sync-versions] ${id}: ${served.length}/${all.length} snapshots servidos (último patch por minor ≥1.x): ${served.join(', ')}`,
+  );
 }
