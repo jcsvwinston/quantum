@@ -49,3 +49,9 @@ jobs:
       - name: Build
         working-directory: website
         run: npm run build
+
+      # El gate de docs se pasa sobre lo que el lector VE (HTML emitido), no
+      # sobre la fuente — QM5-1: el sitio sirvió snapshots con jerga durante
+      # semanas con el linter de fuente en verde.
+      - name: Linter de jerga sobre lo servido
+        run: bash scripts/check_served_jargon.sh website/build

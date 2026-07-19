@@ -74,7 +74,7 @@ export default function Home(): ReactNode {
   return (
     <Layout
       title="Quantum"
-      description="Suite Go: Nucleus (framework web), Quark (ORM) y Orbit (admin), coordinados como un solo estado certificado.">
+      description="Nucleus (framework web), Quark (ORM) y Orbit (admin) para Go: desarrollados por separado, coordinados como suite.">
       <header className={styles.hero}>
         <div className={styles.heroInner}>
           <ThemedImage className={styles.mark} alt="Quantum"

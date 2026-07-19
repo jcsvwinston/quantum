@@ -80,8 +80,9 @@ const config: Config = {
   },
   // Búsqueda local offline (sin dependencia externa): indexa las tres instancias
   // de docs. El plugin soporta React 19 desde v0.47.0; aquí 0.55.2 sobre
-  // Docusaurus 3.10. `en` + `es` porque las docs de Quark están en inglés y las
-  // de Nucleus/Orbit en español.
+  // Docusaurus 3.10. `en` + `es` porque las docs de los tres productos están en
+  // inglés y el chrome del sitio (portada, navegación) en español; la decisión
+  // de idioma único del paraguas sigue pendiente.
   themes: [
     '@docusaurus/theme-mermaid',
     [
@@ -124,6 +125,12 @@ const config: Config = {
         routeBasePath: 'nucleus',
         sidebarPath: './sidebarsNucleus.ts',
         editUrl: 'https://github.com/jcsvwinston/nucleus/edit/main/website/',
+        // La raíz servida es SIEMPRE la doc actual, etiquetada con el tag real
+        // del manifiesto. Sin esto, Docusaurus sirve por defecto el último
+        // snapshot versionado — así es como el sitio publicado llegó a enseñar
+        // docs viejas que contradecían la portada (QM5-1, 5ª auditoría).
+        lastVersion: 'current',
+        versions: {current: {label: suite.nucleus}},
       },
     ],
     [
@@ -137,6 +144,9 @@ const config: Config = {
         // Reescribe los enlaces `/docs/*` heredados de Quark a `/quark/*` (ver
         // remarkQuarkDocsBase arriba). Solo la instancia de Quark lo necesita.
         beforeDefaultRemarkPlugins: [remarkQuarkDocsBase],
+        // Raíz = doc actual con el tag real (ver la instancia default arriba).
+        lastVersion: 'current',
+        versions: {current: {label: suite.quark}},
       },
     ],
     [

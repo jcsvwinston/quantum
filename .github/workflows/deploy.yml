@@ -46,6 +46,11 @@ jobs:
         working-directory: website
         run: npm run build
 
+      # Nada con jerga interna llega a publicarse: mismo check que website-ci,
+      # aquí como última barrera antes del artefacto de Pages.
+      - name: Linter de jerga sobre lo servido
+        run: bash scripts/check_served_jargon.sh website/build
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
