@@ -4,34 +4,30 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.7.1"            # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.7.2"            # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-07-19
-status: certified           # 5ª ronda cerrada por ejecución real (Docker): 3 P1 + 8 P2 + barrido P3 + forcing functions de versiones
+status: certified           # 6ª ronda cerrada por ejecución real (Docker): 6 P2 + P3 + Fase 3 de docs de producto completa
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
-# standalone (build Y TEST con GOWORK=off, ahora en CI): quarkbridge v0.3.2,
-# quarkdatasource v0.2.4 (require del root al día — OR5-3), proto v0.4.1,
-# agent v0.5.2 (token rechazado ya no es silencioso — OR5-2), server v0.8.2
-# (pina agent v0.5.2/proto v0.4.1 — OR5-1). Verificado con caché virgen:
-# `go install github.com/jcsvwinston/orbit/server/cmd/admin-server@v0.8.2`
+# standalone (build Y TEST con GOWORK=off, en CI): quarkbridge v0.3.3 y
+# quarkdatasource v0.2.5 (requires de quark alineados a v1.3.1 — QM6-1),
+# proto v0.4.1 (sin cambios), agent v0.5.3 (Connected() solo con el primer
+# frame aceptado bajo auth + WARN de sospecha — OR6-1/OR6-2), server v0.8.3
+# (pina agent v0.5.3). Verificado con caché virgen:
+# `go install github.com/jcsvwinston/orbit/server/cmd/admin-server@v0.8.3`
 # (y el job go-install-tag del CI de integración lo re-ejecuta en cada corrida).
-# Nota honesta: los módulos de orbit requieren nucleus v1.3.1, un patch por
-# detrás del certificado; MVS eleva a v1.3.2 en cualquier app que también lo
-# requiera (el scaffold de `nucleus new` ya lo hace) y el lane de lockstep A-7
-# prueba orbit contra el nucleus pinado de este workspace. Alinear el require
-# en el próximo arco de orbit.
 modules:
-  quark:   "v1.3.1"
-  nucleus: "v1.3.2"
-  orbit:   "v1.4.2"
+  quark:   "v1.3.2"
+  nucleus: "v1.3.3"
+  orbit:   "v1.4.3"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
-  quark:   "238af896"                                # = v1.3.1 exacto
-  nucleus: "e7f00d5c"                                # = v1.3.2 exacto
-  orbit:   "ee2c84b5"                                # = v1.4.2 exacto (contiene server/v0.8.2, agent/v0.5.2, proto/v0.4.1, quarkbridge/v0.3.2, quarkdatasource/v0.2.4 como ancestros — desde esta ronda lo verifica el manifest-guard §3 en CI, no una auditoría a mano)
+  quark:   "bfc08e14"                                # = v1.3.2 exacto
+  nucleus: "3edc8a63"                             # = v1.3.3 exacto
+  orbit:   "eb8b98b4"                                # = v1.4.3 exacto (contiene server/v0.8.3, agent/v0.5.3, proto/v0.4.1, quarkbridge/v0.3.3, quarkdatasource/v0.2.5 como ancestros — verificado por el manifest-guard §3 en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -40,11 +36,53 @@ workspace_pins:
 # requiera la certificada). Mantener al día en cada re-pin; un lag de más de un
 # minor debería alinearse, no declararse indefinidamente.
 declared_lags:
-  quark:   "v1.2.1"   # quarkbridge/quarkdatasource del orbit v1.4.2 pinado; alineados a v1.3.1 en orbit#102 (llega con el próximo re-pin)
-  nucleus: "v1.3.1"   # los módulos de orbit; el lane lockstep A-7 prueba orbit contra el nucleus pinado del workspace; alinear en un arco propio de orbit
+  quark:   "v1.3.1"   # quarkbridge/quarkdatasource de orbit v1.4.3 (alineados esta ronda; el patch v1.3.2 se cortó después — mismo minor, MVS eleva)
+  nucleus: "v1.3.1"   # los módulos de orbit (dos patches, mismo minor); el lane lockstep A-7 prueba orbit contra el nucleus pinado; alinear en un arco propio de orbit
 
 notes: >
-  Quantum 1.7.1 — cierre de la 5ª ronda de auditoría, verificado por ejecución
+  Quantum 1.7.2 — cierre de la 6ª ronda: un arco normal de subversiones (la
+  6ª auditoría CONFIRMÓ la certificación 1.7.1 sin P0/P1 nuevos) que cierra
+  su banda de P2/P3 y ejecuta de una vez la documentación de producto
+  pendiente desde la 4ª. La lección aplicada: la rama que nunca se ejecutó —
+  cada fix llegó con el test o la lane que lo habría cazado. **nucleus
+  v1.3.3:** NU6-1 — CRUD.Create descartaba en silencio toda PK asignada por
+  la aplicación (SQLite insertaba fila con PK NULL SIN error; UUIDs de
+  cliente imposibles): la PK no-cero viaja en el INSERT sin read-back ni
+  backfill, pineado rojo/verde contra SQLite, PG y MSSQL reales. NU6-2 —
+  ErrNoPrimaryKey explícito en las ops por id y ORDER BY sobre columna real.
+  NU6-3 — TOP 1 en createuser/changepassword, fail-fast del session store
+  SQL y el outbox en mssql/oracle (incluidos dos puentes que lo anulaban), y
+  compatibilidad acotada por subsistema con tabla honesta. NU6-4 — «not
+  null» estricto: db:"not null unique" ya no pierde el unique en silencio.
+  **quark v1.3.2:** QK6-2 — la adquisición de conexión del RLS nativo era
+  incancelable (pool saturado = goroutine colgado más allá del deadline):
+  db.Conn(ctx) + tx desacoplada, con pin de no-fuga del pool. QK6-3 — el
+  commit diferido fallido deja log a nivel Error y contador
+  (Client.DeferredCommitFailures); semántica de escritura documentada donde
+  el lector la ve. QK6-1 — segundo anillo de tests de motor en lanes
+  (MariaDB Otel/Stress, patas all-engines con skip visible, locks de Redis
+  contra Redis REAL por primera vez) e inventario con cero huérfanos sin
+  clasificar. **orbit v1.4.3 (+ agent/v0.5.3, server/v0.8.3,
+  quarkbridge/v0.3.3, quarkdatasource/v0.2.5):** OR6-1 — require_connection
+  se daba por bueno con token inválido (la sonda /healthz exenta de auth
+  cerraba Connected()): la señal es ahora el primer frame aceptado bajo
+  auth, E2E con binarios reales (token malo = boot FALLA). OR6-2 — WARN de
+  sospecha de auth tras 3 ciclos sin frame aceptado (el 401 que la carrera
+  de transporte se tragaba). QM6-1 — requires cross-repo alineados y regla
+  de DISCLOSURE en el manifest-guard §5: un require rancio no declarado en
+  declared_lags rompe el CI. **Docs (Fase 3, los tres productos):**
+  Deployment, Security, Upgrade guide, FAQ y release notes publicadas en el
+  sitio; la Configuration reference de nucleus se GENERA por script desde su
+  registry con gate de frescura en CI (el drift es imposible); sidebars
+  curadas estilo Django/Laravel; sitio íntegro en inglés (QADR-0007,
+  reversible); CLAUDE.md de los 4 repos sin fósiles y bajo guard. El corte
+  del root de orbit se forzó con el footer Release-As (sus commits eran
+  docs/ci): desviación documentada en el informe de cierre. Verificación del
+  set: manifest-guard completo (§1-§5), build de los 9 patrones, sitio
+  construido y linteado sobre lo SERVIDO sin exclusiones, nucleus new pina
+  v1.3.3, go install @v0.8.3 con caché virgen.
+
+  --- Quantum 1.7.1 (histórico) --- cierre de la 5ª ronda de auditoría, verificado por ejecución
   real (Docker) y con la lección de la ronda instalada como forcing functions:
   cada versión hardcodeada queda gestionada por release-please o vigilada por
   un check de CI. **orbit v1.4.2 (+ server v0.8.2, agent v0.5.2,

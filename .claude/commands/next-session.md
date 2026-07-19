@@ -40,7 +40,35 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-19)
+## 3. Estado al cierre (2026-07-19, 20ª sesión)
+
+### Sesión 2026-07-19 (20ª) — 6ª ronda: arco normal de subversiones + TODA la documentación de producto → quark v1.3.2, nucleus v1.3.3, orbit v1.4.3 y QUANTUM 1.7.2 CERTIFICADO
+
+Ejecución completa de `PLAN_EJECUCION_6.md` (la 6ª auditoría CONFIRMÓ 1.7.1
+sin P0/P1; esta ronda cierra su banda P2/P3 y la «Fase 5» de docs heredada).
+Informe casilla a casilla: `CIERRE_6A_RONDA.md` en auditoria/ — entrada de la
+7ª auditoría. Lección aplicada: la rama que nunca se ejecutó — cada fix con
+el test/lane que lo habría cazado.
+
+- **Fase 0**: CLAUDE.md de los 4 repos sin fósiles (el de orbit daba contexto
+  falso de arranque), bajo guard con negativo.
+- **6 P2**: NU6-1 (la PK de la app viaja en el INSERT; SQLite insertaba PK
+  NULL sin error), QK6-2/3 (adquisición cancelable del RLS nativo + commit
+  fallido con log y contador), OR6-1/2 (require_connection veraz vía
+  OnAccepted + WARN de sospecha, E2E con binarios), QM6-1 (disclosure
+  cross-repo: manifest-guard §5 + declared_lags), QK6-1 (segundo anillo de
+  huérfanos + Redis REAL + inventario a cero).
+- **Fase 3 completa**: Deployment/Security/Upgrade/FAQ/release-notes en los
+  TRES productos; Configuration reference de nucleus GENERADA por script con
+  gate de frescura; sidebars curadas espejadas en el paraguas; sitio íntegro
+  en inglés (QADR-0007, reversible).
+- **Guards mordiendo en producción**: el de coherencia cazó release-notes
+  rancio EN el release PR de nucleus; la lane standalone cazó un go.mod sin
+  tidy de un subagente.
+- **Pendiente para la siguiente**: drift del CONFIG_KEY_REGISTRY
+  (templates_dir/state_dir/outbox.* sin listar), quark#252 (rediseño
+  implicit-tx), alinear el require nucleus de orbit (v1.3.1→certificado) en
+  su próximo arco, P-baja de docs (tutoriales largos, tour con capturas).
 
 ### Sesión 2026-07-19 (19ª) — cierre de la 5ª ronda → quark v1.3.1, nucleus v1.3.2, orbit v1.4.2 y QUANTUM 1.7.1 CERTIFICADO
 
