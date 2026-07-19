@@ -53,40 +53,40 @@ export default function Home(): ReactNode {
 
   const pillars = [
     {
-      name: 'Nucleus', role: 'el anfitrión', ver: suite.nucleus, to: '/nucleus/',
+      name: 'Nucleus', role: 'the host', ver: suite.nucleus, to: '/nucleus/',
       glyph: <NucleusGlyph />,
-      desc: 'Framework web MVC/REST, stdlib-first. Las apps montan sobre él; Orbit monta dentro.',
+      desc: 'MVC/REST web framework, stdlib-first. Apps build on it; Orbit mounts inside it.',
     },
     {
       // A /quark/intro/ (ruta real), no a /quark/ (la raíz de Quark es solo un
       // redirect estático: 404 en navegación SPA). Ver docusaurus.config.ts.
-      name: 'Quark', role: 'la capa de datos · suelto', ver: suite.quark, to: '/quark/intro/',
+      name: 'Quark', role: 'the data layer · standalone', ver: suite.quark, to: '/quark/intro/',
       glyph: <QuarkGlyph />,
-      desc: 'ORM type-safe para seis motores SQL. Usable en solitario en cualquier app Go.',
+      desc: 'Type-safe ORM for six SQL engines. Usable on its own in any Go app.',
     },
     {
-      name: 'Orbit', role: 'la administración', ver: suite.orbit, to: '/orbit/',
+      name: 'Orbit', role: 'the admin', ver: suite.orbit, to: '/orbit/',
       glyph: <OrbitGlyph />,
-      desc: 'Panel de admin que monta in-process en Nucleus: Data Studio, feed en vivo, sesiones, RBAC y métricas.',
+      desc: 'Admin panel that mounts in-process on Nucleus: Data Studio, live feed, sessions, RBAC and metrics.',
     },
   ];
 
   return (
     <Layout
       title="Quantum"
-      description="Nucleus (framework web), Quark (ORM) y Orbit (admin) para Go: desarrollados por separado, coordinados como suite.">
+      description="Nucleus (web framework), Quark (ORM) and Orbit (admin) for Go: developed separately, coordinated as a suite.">
       <header className={styles.hero}>
         <div className={styles.heroInner}>
           <ThemedImage className={styles.mark} alt="Quantum"
             sources={{light: markLight, dark: markDark}} />
           <h1 className={styles.title}>Q<span className={styles.em}>u</span>antum</h1>
           <p className={styles.tagline}>
-            Framework web, ORM y panel de administración para Go: desarrollados por
-            separado, coordinados como suite.
+            A web framework, an ORM and an admin panel for Go: developed
+            separately, coordinated as a suite.
           </p>
           <p className={styles.sub}>
-            La documentación de cada producto vive en su repositorio; este sitio la
-            <em> ensambla</em> bajo una sola marca.
+            Each product's documentation lives in its own repository; this site
+            <em> assembles</em> it under one roof.
           </p>
           <div className={styles.chips}>
             <span className={`${styles.chip} ${styles.chipSuite}`}>suite <b>{suite.quantum}</b></span>

@@ -25,7 +25,7 @@ export default function NavbarLogoWrapper(props: Props): ReactNode {
     <>
       <Logo {...props} />
       {active && (
-        <span className={styles.product} aria-label={`Sección: ${active[1]}`}>
+        <span className={styles.product} aria-label={`Section: ${active[1]}`}>
           <span className={styles.sep} aria-hidden="true">·</span>
           {active[1]}
         </span>
