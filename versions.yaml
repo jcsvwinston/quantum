@@ -4,31 +4,84 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.7.0"            # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-07-15
-status: certified           # reauditoría cerrada por ejecución real (Docker): OR-1/OR-2, bug de PK de nucleus, matriz de 6 motores, docs de producto
+quantum: "1.7.1"            # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-07-19
+status: certified           # 5ª ronda cerrada por ejecución real (Docker): 3 P1 + 8 P2 + barrido P3 + forcing functions de versiones
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
-# standalone: quarkbridge v0.3.2, quarkdatasource v0.2.3, proto v0.4.1,
-# agent v0.5.1 (el bearer viaja ya en el stream bidi — OR-2), server v0.8.1
-# (require de proto/agent alineado con el código — OR-1; standalone compila y
-# `go install .../admin-server@server/v0.8.1` funciona). Todos re-tagueados
-# esta sesión: bump de go1.26.5 (cierra GO-2026-5856 en crypto/tls) + los fixes.
+# standalone (build Y TEST con GOWORK=off, ahora en CI): quarkbridge v0.3.2,
+# quarkdatasource v0.2.4 (require del root al día — OR5-3), proto v0.4.1,
+# agent v0.5.2 (token rechazado ya no es silencioso — OR5-2), server v0.8.2
+# (pina agent v0.5.2/proto v0.4.1 — OR5-1). Verificado con caché virgen:
+# `go install github.com/jcsvwinston/orbit/server/cmd/admin-server@v0.8.2`
+# (y el job go-install-tag del CI de integración lo re-ejecuta en cada corrida).
+# Nota honesta: los módulos de orbit requieren nucleus v1.3.1, un patch por
+# detrás del certificado; MVS eleva a v1.3.2 en cualquier app que también lo
+# requiera (el scaffold de `nucleus new` ya lo hace) y el lane de lockstep A-7
+# prueba orbit contra el nucleus pinado de este workspace. Alinear el require
+# en el próximo arco de orbit.
 modules:
-  quark:   "v1.3.0"
-  nucleus: "v1.3.1"
-  orbit:   "v1.4.1"
+  quark:   "v1.3.1"
+  nucleus: "v1.3.2"
+  orbit:   "v1.4.2"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
-  quark:   "5282ce5b"                                # = v1.3.0 exacto
-  nucleus: "78d7d349"                                # = v1.3.1 exacto
-  orbit:   "b48247eb"                                # = v1.4.1 exacto (contiene server/v0.8.1, agent/v0.5.1, proto/v0.4.1, quarkbridge/v0.3.2, quarkdatasource/v0.2.3 como ancestros; el commit de raíz solo añade el changelog/manifiesto encima — código de módulo idéntico a los tags)
+  quark:   "238af896"                                # = v1.3.1 exacto
+  nucleus: "e7f00d5c"                                # = v1.3.2 exacto
+  orbit:   "ee2c84b5"                                # = v1.4.2 exacto (contiene server/v0.8.2, agent/v0.5.2, proto/v0.4.1, quarkbridge/v0.3.2, quarkdatasource/v0.2.4 como ancestros — desde esta ronda lo verifica el manifest-guard §3 en CI, no una auditoría a mano)
 
 notes: >
-  Quantum 1.7.0 — cierre de la 4ª reauditoría, verificado por EJECUCIÓN real
+  Quantum 1.7.1 — cierre de la 5ª ronda de auditoría, verificado por ejecución
+  real (Docker) y con la lección de la ronda instalada como forcing functions:
+  cada versión hardcodeada queda gestionada por release-please o vigilada por
+  un check de CI. **orbit v1.4.2 (+ server v0.8.2, agent v0.5.2,
+  quarkdatasource v0.2.4):** OR5-1 — server/v0.8.1 pinaba agent v0.5.0 (sin el
+  fix OR-2) y su propio test de regresión fallaba standalone; barrido completo
+  de pins internos + CI que ahora EJECUTA tests con GOWORK=off en los 6
+  módulos + check_internal_pins.sh (pin de hermano == último tag; probado en
+  negativo). OR5-2 — un token de agente rechazado era un fallo 100% silencioso
+  (la sonda /healthz «conectaba», el 401 del stream solo salía en Debug, el
+  backoff se reseteaba): WARN rate-limited en agente y server (con IP), el
+  backoff solo se resetea tras el primer frame aceptado, y el INFO «connected»
+  solo se emite con la aceptación real; E2E con binarios reales: intervalos
+  crecientes ~1.4s→10.6s y cero «connected» falsos. **nucleus v1.3.2:** NU5-1
+  — la web enseñaba una sintaxis de tags db: que el parser ignoraba en
+  silencio; página reescrita, db:"-" implementado (exclusión real del campo),
+  WARN de arranque ante directivas desconocidas y regla en bodycheck que
+  valida los tags de los snippets contra el parser real. NU5-2 — el camino
+  RETURNING/OUTPUT asumía PK entera y existente (PK UUID rompía el Create en
+  PG; sin PK, 42703): solo se emite con PK declarada y entera. NU5-4 — la
+  rama MSSQL jamás se había ejecutado, y al ejecutarla afloró que el listado
+  CRUD emitía LIMIT (inválido en T-SQL): paginación OFFSET…FETCH/TOP 1 y lane
+  MSSQL corriendo TODO TestCRUDLive_ contra SQL Server real. NU5-3 — el
+  scaffold pinaba v1.3.0: la constante la gestiona release-please y la vigila
+  CI (nucleus new demo pina ahora el tag recién cortado). NU5-5 — el evento
+  insert reporta las filas reales también en el camino RETURNING. **quark
+  v1.3.1:** QK5-1 — cadenas mixtas de set-ops divergían en silencio por motor
+  (precedencia de INTERSECT): ErrUnsupportedFeature. QK5-4 — seis tests de
+  integración vivían fuera de toda lane; al entrar en la matriz, el de RLS
+  nativo destapó un cuelgue de locks y una PÉRDIDA SILENCIOSA de escrituras
+  (INSERT…RETURNING bajo RLS nativo se rollbackeaba al cancelarse el ctx):
+  ciclo de vida de la tx desacoplado con WithoutCancel, regresión pineada
+  rojo/verde contra PG real. **Paraguas:** QM5-1 — el sitio publicado servía
+  por defecto snapshots viejos con jerga: lastVersion current con el tag real,
+  cola de snapshots curada (último patch por minor de 1.x, limpiados en sus
+  repos fuente) y linter post-build sobre el HTML SERVIDO, sin exclusiones.
+  QM5-3 — las docs de orbit decían v1.2.1 (real v1.4.1): coherencia de versión
+  con marcador + check en CI (orbit era el único repo sin él). Fase 4:
+  manifest-guard ampliado (§3 los 5 tags de módulo de orbit contra el pin —
+  disparó en producción durante la propia ronda al cortarse agent/v0.5.2 —,
+  §4 tabla del README == manifiesto), job go-install-tag con caché virgen, e
+  inventario de versiones hardcodeadas en los 4 repos con 3 rancios extra
+  cerrados. Verificación del set: manifest-guard completo, build de los 9
+  patrones del workspace, tests standalone por módulo, sitio construido y
+  linteado sobre lo servido; release-please cortó quark v1.3.1, nucleus
+  v1.3.2, orbit v1.4.2 + agent/v0.5.2 + server/v0.8.2 + quarkdatasource/v0.2.4.
+
+  --- Quantum 1.7.0 (histórico) --- cierre de la 4ª reauditoría, verificado por EJECUCIÓN real
   con Docker (no por lectura de código): la matriz de motores que las cuatro
   auditorías marcaron como «no verificable sin Docker» se corrió de verdad.
   **orbit v1.4.1 (+ server v0.8.1, agent v0.5.1, proto v0.4.1):** **OR-1** —

@@ -40,7 +40,33 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-15)
+## 3. Estado al cierre (2026-07-19)
+
+### Sesión 2026-07-19 (19ª) — cierre de la 5ª ronda → quark v1.3.1, nucleus v1.3.2, orbit v1.4.2 y QUANTUM 1.7.1 CERTIFICADO
+
+Ejecución completa de `PLAN_EJECUCION_5.md` (carpeta auditoria/ del proyecto),
+todo por ejecución real con Docker y con la lección de la ronda instalada:
+**cada versión hardcodeada gestionada por release-please o vigilada por CI**.
+Informe de cierre exhaustivo (casilla a casilla, con EXITs y desviaciones):
+`CIERRE_5A_RONDA.md` en esa misma carpeta — es la entrada de la 6ª auditoría.
+
+- **3 P1 cerrados**: OR5-1 (pins internos de orbit + tests standalone GOWORK=off
+  en CI + check_internal_pins.sh), QM5-1 (el sitio sirve la doc ACTUAL por
+  defecto; linter de jerga post-build sobre el HTML SERVIDO, 0 exclusiones),
+  NU5-1 (tags db: veraces + db:"-" real + WARN de arranque + verifier).
+- **8 P2 + P3 cerrados** (nucleus#215/#216, quark#250/#251, orbit#93/#94/#95,
+  quantum#68/#69, todos fusionados). Hallazgos NUEVOS al ejecutar ramas
+  jamás ejecutadas: LIMIT inválido en T-SQL en el listado CRUD de nucleus
+  (arreglado + lane MSSQL completa) y, en quark, cuelgue de locks + PÉRDIDA
+  SILENCIOSA de escrituras del RLS nativo implicit-tx (arreglado con
+  WithoutCancel; arista de fondo en quark#252).
+- **Forcing functions**: manifest-guard §3 (5 tags de módulo de orbit vs pin,
+  disparó en producción durante la ronda) y §4 (tabla README == manifiesto);
+  job go-install-tag (caché virgen); inventario de versiones en los 4 repos.
+- **Pendiente para la siguiente**: Fase 5 del plan (docs: Deployment/Security/
+  Upgrade/Release notes de nucleus-orbit/Config reference/sidebars/idioma
+  único); alinear el require nucleus de orbit (v1.3.1→v1.3.2) en su próximo
+  arco; evaluación de fondo del implicit-tx de RLS nativo (quark#252).
 
 ### Sesión 2026-07-14/15 (18ª) — cierre de la 4ª reauditoría POR EJECUCIÓN REAL (Docker) → quark v1.3.0, nucleus v1.3.1, orbit v1.4.1 y QUANTUM 1.7.0 CERTIFICADO
 

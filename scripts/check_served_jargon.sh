@@ -25,16 +25,12 @@ fi
 
 REGEX='ADR-[0-9]+|\bP[0-3]\b|SPEC\.md|CLAUDE\.md|V1_GATE|TASKS\.md|PROFILING\.md|BACKLOG'
 
-# Rutas de snapshot excluidas TRANSITORIAMENTE (ver cabecera). Cada entrada es
-# un directorio bajo BUILD_DIR. Vaciar esta lista al re-pinar los submódulos a
-# tags que contengan la limpieza de snapshots (quark > v1.3.0, nucleus > v1.3.1).
-EXCLUDES=(
-  "quark/1.0.0"
-  "quark/1.1.0"
-  "quark/1.2.2"
-  "nucleus/1.0.0"
-  "nucleus/1.2.0"
-)
+# Rutas de snapshot excluidas (ver cabecera). VACÍA desde el re-pin de Quantum
+# 1.7.1: los submódulos pinan tags con la limpieza de snapshots (quark v1.3.1,
+# nucleus v1.3.2), así que TODO lo servido queda bajo el gate, sin excepciones.
+# Solo debe repoblarse como transición documentada si vuelve a servirse un
+# snapshot anterior a esa limpieza.
+EXCLUDES=()
 
 # ${arr[@]+...} para que la lista VACÍA (el estado final tras el re-pin) no
 # tropiece con set -u en bash 3.2 (macOS).
