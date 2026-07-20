@@ -40,9 +40,37 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-19, 20ª sesión)
+## 3. Estado al cierre (2026-07-20, 21ª sesión)
 
-### Sesión 2026-07-19 (20ª) — 6ª ronda: arco normal de subversiones + TODA la documentación de producto → quark v1.3.2, nucleus v1.3.3, orbit v1.4.3 y QUANTUM 1.7.2 CERTIFICADO
+### Sesión 2026-07-20 (21ª) — 7ª ronda «cierre definitivo»: backlog y lags a CERO, Jobs/Webhooks reales, quark#252 de raíz, quantum-app, certificación MECÁNICA → quark v1.3.3, nucleus v1.4.0, orbit v1.4.4, quantum-app v0.1.0 y QUANTUM 1.8.0 CERTIFICADO
+
+- **Cierre completo**: `CIERRE_7A_RONDA.md` en auditoria/ con el DoD punto por
+  punto. Tag de suite v1.8.0 cortado TRAS el último PR (quantum#79) —
+  procedimiento nuevo QM7-3, estrenado. `declared_lags: {}` por primera vez.
+- **Lo grande de la ronda**: (1) nucleus v1.4.0 — Jobs/Webhooks de módulo
+  EJECUTÁNDOSE sobre pkg/tasks + rutas reales con HMAC (el estreno destapó y
+  corrigió el Manager.Run de asynq imparable por API); (2) quark#252 cerrado
+  por fix raíz (tx implícita de Create/Update acotada a la operación;
+  read-your-writes restaurado); (3) repo NUEVO quantum-app v0.1.0 —
+  consumidor externo real (proxy + requires explícitos, jamás workspace) con
+  E2E Docker 7/7 de la banda nunca-ejecutada (Redis sessions, MinIO, SMTP,
+  outbox-PG, cadena bridge→panel+feed, multi-base y RÉPLICA PG) y
+  suite-manifest de 789 ítems con gate; (4) certificación mecánica:
+  suite-integral (14 guards de los 4 repos AL PIN) + guard-of-guards (14
+  fixtures que prueban que muerden) + AUDITORIA_CONTINUA.md; la aserción
+  anti-fósil mordió 2 veces en producción durante la propia ronda.
+- **Banda de entrada de la 8ª** (issues abiertos hoy): quark#262 (WithLimits
+  no normaliza ceros — TODA query falla con Limits parcial), nucleus#227
+  (BUG: isS3NotFound por texto — ErrNotFound jamás mapea contra S3 real,
+  cazado por el E2E de quantum-app), nucleus#228 (payload base64 del bridge
+  webhook), orbit#121 (carril HTTP del live feed muerto en el panel
+  in-process). Flake preexistente TestRunPluginTestDiscovery (nucleus) y
+  LIMIT 1 latente en la rama no-mssql de selectOneAdminUserIDSQL.
+- **PRÓXIMO FOCO — la 8ª pasada, LA ÚLTIMA MANUAL** (solicitada en el §5 del
+  cierre): pasada clásica sobre 1.8.0 + meta-encargo de validar que
+  suite-integral + guard-of-guards + runbook reproducen al auditor, con
+  dictamen sobre si la 9ª puede descansar en la lane semanal + juicio humano
+  puntual. Si «aún no», el gap es el backlog de la siguiente.
 
 Ejecución completa de `PLAN_EJECUCION_6.md` (la 6ª auditoría CONFIRMÓ 1.7.1
 sin P0/P1; esta ronda cierra su banda P2/P3 y la «Fase 5» de docs heredada).
