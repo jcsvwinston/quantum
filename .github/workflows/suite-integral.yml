@@ -1,0 +1,101 @@
+name: Certificación mecánica (suite-integral)
+
+# La certificación mecánica de la suite (7ª ronda): un job ejecuta TODOS los
+# guards del registro (scripts/lib/guard-registry.sh) contra el árbol pinado
+# — la lane que reproduce lo que un auditor comprobaría mecánicamente en un
+# cierre — y otro ejecuta cada guard contra su fixture de fallo para probar
+# que sigue mordiendo (guard-of-guards). Procedimiento y semántica en
+# docs/AUDITORIA_CONTINUA.md.
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/**'
+      - 'tests/guard-fixtures/**'
+      - 'versions.yaml'
+      # Gitlinks de los submódulos: un re-pin cambia el árbol que los guards
+      # certifican y es el momento exacto en que un guard nuevo del producto
+      # aparece sin registrar (la aserción anti-fósil debe correr).
+      - 'nucleus'
+      - 'quark'
+      - 'orbit'
+      - 'website/**'
+      - '.github/workflows/suite-integral.yml'
+  workflow_dispatch:
+  schedule:
+    # Lunes 06:00 UTC: sin PRs de por medio, la deriva EXTERNA (tags nuevos en
+    # los remotos que dejan el pin atrás — manifest-guard §3, internal_pins)
+    # solo aflora ejecutando; esta corrida la hace aflorar semanalmente.
+    - cron: '0 6 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: suite-integral-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  suite-integral:
+    name: suite-integral (guards al pin)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout (con submódulos — son el trío que se certifica)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Tags en los submódulos
+        # manifest-guard §3 (merge-base tag↔pin) y check_internal_pins de
+        # orbit comparan contra los tags PUBLICADOS: sin fetch explícito, el
+        # clone del submódulo puede no traerlos todos.
+        run: git submodule foreach 'git fetch --tags --quiet origin'
+
+      - name: Setup Go (versión declarada en go.work)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.work
+          cache-dependency-path: '**/go.sum'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Certificación mecánica (todos los guards del registro)
+        run: bash scripts/suite-integral.sh
+        env:
+          # Hasta el tren de la 7ª: versions.yaml aún declara lags cross-repo
+          # (quark/nucleus en los módulos de orbit). El tren de releases de la
+          # ronda los alinea y vacía declared_lags; al re-pinar, QUITAR esta
+          # variable para que la lane vuelva a exigir el estado certificable.
+          QUANTUM_ALLOW_DECLARED_LAGS: "1"
+
+  guard-of-guards:
+    name: guard-of-guards (los guards muerden)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout (con submódulos — las fixtures copian sus árboles)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Tags en los submódulos
+        # Las fixtures de manifest-guard e internal-pins clonan el submódulo
+        # local con sus tags — sin tags, esas fixtures fallan en el setup.
+        run: git submodule foreach 'git fetch --tags --quiet origin'
+
+      - name: Setup Go (versión declarada en go.work)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.work
+          cache-dependency-path: '**/go.sum'
+
+      - name: Cada guard contra su fixture de fallo
+        run: bash scripts/guard-of-guards.sh
