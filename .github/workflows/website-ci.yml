@@ -5,14 +5,21 @@ name: Website CI
 # el sitio, así que un cambio roto solo se veía al desplegar tras merge. Mismos
 # pasos de build que deploy.yml (checkout con submódulos — el sitio ENSAMBLA sus
 # docs desde cada repo, QADR-0003 —, Node 20, npm ci, npm run build), sin publicar
-# nada. El build sale 0 con los warnings heredados (onBrokenLinks/Anchors: 'warn'),
-# así que el check solo falla ante roturas reales (config, deps, SSG).
+# nada. Un enlace roto FALLA el build (onBrokenLinks: 'throw', desde la 6ª
+# ronda); los anchors rotos siguen en 'warn' (onBrokenAnchors) — el check falla
+# ante roturas reales (links, config, deps, SSG), no ante warnings de anchor.
 
 on:
   pull_request:
     paths:
       - 'website/**'
       - 'versions.yaml'        # la config lee ../versions.yaml en build-time
+      # Gitlinks de los submódulos: un re-pin cambia lo que el sitio ensambla
+      # y sirve, y es el momento exacto en que las sidebars espejadas pueden
+      # quedar desincronizadas (QM7-4) — el build y sus gates deben correr.
+      - 'nucleus'
+      - 'quark'
+      - 'orbit'
       - '.github/workflows/website-ci.yml'
   workflow_dispatch:
 
@@ -45,6 +52,13 @@ jobs:
       - name: Install (npm ci, desde el lock)
         working-directory: website
         run: npm ci
+
+      # QM7-4: las sidebars espejadas (sidebarsNucleus/Quark.ts) son copias
+      # manuales del sidebar de cada producto; este check compara los sets de
+      # ids con el submódulo PINADO antes de construir, para que una página
+      # nueva del producto no se sirva invisible en la navegación del paraguas.
+      - name: Sincronía de sidebars espejadas
+        run: bash scripts/check_sidebar_sync.sh
 
       - name: Build
         working-directory: website

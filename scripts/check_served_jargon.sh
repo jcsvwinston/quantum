@@ -23,7 +23,10 @@ if [[ ! -d "$BUILD_DIR" ]]; then
   exit 2
 fi
 
-REGEX='ADR-[0-9]+|\bP[0-3]\b|SPEC\.md|CLAUDE\.md|V1_GATE|TASKS\.md|PROFILING\.md|BACKLOG'
+# La alternancia (QK|NU|OR|QM)[0-9]+-[0-9]+ veta los IDs de hallazgo de
+# auditoría (QK5-2, NU7-1, …) en el HTML servido — 7ª ronda, regla espejo de
+# la de orbit: la voz de producto describe el cambio, nunca el expediente.
+REGEX='ADR-[0-9]+|\bP[0-3]\b|SPEC\.md|CLAUDE\.md|V1_GATE|TASKS\.md|PROFILING\.md|BACKLOG|\b(QK|NU|OR|QM)[0-9]+-[0-9]+\b'
 
 # Rutas de snapshot excluidas (ver cabecera). VACÍA desde el re-pin de Quantum
 # 1.7.1: los submódulos pinan tags con la limpieza de snapshots (quark v1.3.1,
