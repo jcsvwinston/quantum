@@ -66,14 +66,10 @@ jobs:
           cache: npm
           cache-dependency-path: website/package-lock.json
 
+      # Sin escape de declared_lags desde Quantum 1.8.0: el tren de la 7ª
+      # vació la sección y la lane exige el estado certificable (lags a cero).
       - name: Certificación mecánica (todos los guards del registro)
         run: bash scripts/suite-integral.sh
-        env:
-          # Hasta el tren de la 7ª: versions.yaml aún declara lags cross-repo
-          # (quark/nucleus en los módulos de orbit). El tren de releases de la
-          # ronda los alinea y vacía declared_lags; al re-pinar, QUITAR esta
-          # variable para que la lane vuelva a exigir el estado certificable.
-          QUANTUM_ALLOW_DECLARED_LAGS: "1"
 
   guard-of-guards:
     name: guard-of-guards (los guards muerden)

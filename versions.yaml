@@ -4,30 +4,30 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.7.2"            # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-07-19
-status: certified           # 6ª ronda cerrada por ejecución real (Docker): 6 P2 + P3 + Fase 3 de docs de producto completa
+quantum: "1.8.0"            # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-07-20
+status: certified           # 7ª ronda: backlog a cero, lags a cero, certificación mecánica instalada (suite-integral + guard-of-guards)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
-# standalone (build Y TEST con GOWORK=off, en CI): quarkbridge v0.3.3 y
-# quarkdatasource v0.2.5 (requires de quark alineados a v1.3.1 — QM6-1),
-# proto v0.4.1 (sin cambios), agent v0.5.3 (Connected() solo con el primer
-# frame aceptado bajo auth + WARN de sospecha — OR6-1/OR6-2), server v0.8.3
-# (pina agent v0.5.3). Verificado con caché virgen:
-# `go install github.com/jcsvwinston/orbit/server/cmd/admin-server@v0.8.3`
+# standalone (build Y TEST con GOWORK=off, en CI): quarkbridge v0.3.4 y
+# quarkdatasource v0.2.6 (requires de quark alineados a v1.3.3 y pin del root
+# actualizado — QM7-6 cerrado), proto v0.4.1 (sin cambios), agent v0.5.4
+# (sospecha de auth por endpoint: el frame aceptado en A ya no resetea la
+# evidencia de B), server v0.8.4 (pina agent v0.5.4). Verificado con caché
+# virgen: `go install github.com/jcsvwinston/orbit/server/cmd/admin-server@v0.8.4`
 # (y el job go-install-tag del CI de integración lo re-ejecuta en cada corrida).
 modules:
-  quark:   "v1.3.2"
-  nucleus: "v1.3.3"
-  orbit:   "v1.4.3"
+  quark:   "v1.3.3"
+  nucleus: "v1.4.0"
+  orbit:   "v1.4.4"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
-  quark:   "bfc08e14"                                # = v1.3.2 exacto
-  nucleus: "3edc8a63"                             # = v1.3.3 exacto
-  orbit:   "eb8b98b4"                                # = v1.4.3 exacto (contiene server/v0.8.3, agent/v0.5.3, proto/v0.4.1, quarkbridge/v0.3.3, quarkdatasource/v0.2.5 como ancestros — verificado por el manifest-guard §3 en cada corrida de CI)
+  quark:   "e4a07017"                                # = v1.3.3 exacto
+  nucleus: "cdf175ac"                                # = v1.4.0 exacto
+  orbit:   "5a4d75ff"                                # = v1.4.4 exacto (contiene server/v0.8.4, agent/v0.5.4, proto/v0.4.1, quarkbridge/v0.3.4, quarkdatasource/v0.2.6 como ancestros — verificado por el manifest-guard §3 en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -35,12 +35,77 @@ workspace_pins:
 # el CI; uno declarado pasa (MVS eleva la versión en cualquier app que también
 # requiera la certificada). Mantener al día en cada re-pin; un lag de más de un
 # minor debería alinearse, no declararse indefinidamente.
-declared_lags:
-  quark:   "v1.3.1"   # quarkbridge/quarkdatasource de orbit v1.4.3 (alineados esta ronda; el patch v1.3.2 se cortó después — mismo minor, MVS eleva)
-  nucleus: "v1.3.1"   # los módulos de orbit (dos patches, mismo minor); el lane lockstep A-7 prueba orbit contra el nucleus pinado; alinear en un arco propio de orbit
+# VACÍO desde Quantum 1.8.0 (7ª ronda): todos los requires cross-repo de los
+# módulos de orbit están alineados con el set certificado — el estado que la
+# lane suite-integral exige para certificar (sin QUANTUM_ALLOW_DECLARED_LAGS).
+declared_lags: {}
 
 notes: >
-  Quantum 1.7.2 — cierre de la 6ª ronda: un arco normal de subversiones (la
+  Quantum 1.8.0 — cierre de la 7ª ronda («cierre definitivo»): backlog de la
+  auditoría a CERO (los 3 restos de la 7ª pasada + P3 completo), lags
+  cross-repo a CERO (declared_lags vacío por primera vez desde que existe la
+  sección), y la certificación convertida en MECÁNICA: lane suite-integral
+  (los 14 guards de los 4 repos ejecutados AL PIN + gate de declared_lags
+  vacío) y guard-of-guards (14 fixtures de fallo que prueban en CI que cada
+  guard sigue mordiendo, con aserción anti-fósil de guards sin registrar y
+  cobertura fixture↔guard en ambas direcciones) + runbook
+  AUDITORIA_CONTINUA.md. **nucleus v1.4.0 (minor):** Jobs y Webhooks de
+  módulo EJECUTÁNDOSE — JobRegistry/WebhookRegistry ganan Register real
+  (aditivo sobre la forma congelada, como preveía el waiver W3 de ADR-013):
+  jobs sobre los providers existentes de pkg/tasks (memory/asynq vía
+  jobs_provider) con Every/Cron validado, Timeout y Singleton; webhooks como
+  rutas reales bajo webhooks_prefix con verificación HMAC-SHA256 en tiempo
+  constante (401 antes del handler), allow-list de métodos, tope de body y
+  exención CSRF automática del prefijo; registro inválido = boot falla; los
+  WARN «not executed» eliminados porque ya no son verdad. El estreno destapó
+  y corrigió un bug real de pkg/tasks: el Manager.Run de asynq esperaba
+  señales del SO y era imparable por API (ctx cancelado no lo desbloqueaba).
+  E2E por la superficie pública (boot real con CSRF, job ejecutándose,
+  webhook firmado 200 / mal firmado 401, SIGTERM limpio) + lane requerida
+  jobs-redis con Redis 7 real. NU7-1..4 y QM7-1 (showcase re-pinado con
+  guard de pins contra el último tag publicado EN VIVO + smoke por HTTP en
+  el gate requerido). **quark v1.3.3:** quark#252 cerrado por implementación
+  de raíz — la tx implícita de Create/Update bajo RLS nativo se acota a la
+  operación (la sonda contra PG real mostró 11 sesiones idle-in-transaction
+  = exactamente los 11 Create; DDL posterior bloqueado; read-your-writes
+  roto): sin retención hasta el fin del ctx, DDL en ms con ctx vivo, write
+  visible en el propio ctx; el executor devuelve la conexión al pool incluso
+  en pánico del driver (QK7-1, con detalle fino de los RLocks internos de
+  database/sql); errores ya no enmascarados como ErrNoRows en QueryRow
+  (QK7-3, driver interno que acuña rows-con-error); lane -race en CI con los
+  2 tests de batch acotados (QK7-2). **orbit v1.4.4 (+ agent/v0.5.4,
+  server/v0.8.4, quarkbridge/v0.3.4, quarkdatasource/v0.2.6):** sospecha de
+  auth POR ENDPOINT — un frame aceptado en A ya no resetea la evidencia de B
+  (OR7-2, test determinista ciclo a ciclo); guard de contenido de release
+  notes (OR7-1) y linter que veta IDs de hallazgo en el sitio (OR7-3);
+  requires de nucleus v1.4.0 y quark v1.3.3 en TODOS los módulos y el pin
+  del root de quarkdatasource actualizado (QM7-6). **Paraguas:** guard de
+  sincronía de sidebars espejadas disparando también en re-pins vía gitlinks
+  (QM7-4), comentario veraz en website-ci (QM7-5), regla de IDs de hallazgo
+  en el linter de lo servido. **quantum-app v0.1.0:** repo nuevo como consumidor
+  externo REAL de la suite (app warehouse; requires explícitos del set
+  certificado vía module proxy, JAMÁS workspace — guard GOWORK probado en
+  negativo en CI), con E2E Docker 7/7 de la banda nunca-ejecutada del §4:
+  sesiones Redis reales, S3 contra MinIO, SMTP real (Mailpit), outbox
+  transaccional sobre PG con bridge webhook, cadena
+  quark→quarkbridge→panel orbit con feed vivo por el bus, multi-base
+  PG+MySQL por alias y RÉPLICA física de PG (streaming) vía WithReplicas de
+  quark. El estreno de S3 cazó un bug real de nucleus (isS3NotFound compara
+  por texto y nunca mapea ErrNotFound contra un endpoint real — issue
+  abierto), más una observación del carril HTTP del live feed de orbit y un
+  papercut del payload base64 del bridge webhook (issues abiertos, 8ª
+  pasada). suite-manifest.yaml con denominador GENERADO desde los
+  inventarios de los 3 productos a los tags pinados: 789 ítems — 67
+  covered con evidencia puntual, 552 not-covered con razón, 170
+  out-of-scope — y gate que falla ante ítems sin clasificar, huérfanos y
+  pin drift (probado en negativo; el drift real del bump al set 1.8.0 lo
+  cazó en producción). Tren de
+  releases en orden de dependencias con el procedimiento nuevo QM7-3: el
+  tag de suite se corta DESPUÉS del último PR de la ronda. Las 3 secciones
+  de release notes de producto se redactaron sobre los release PRs (el
+  guard de contenido las exigió — funcionando como diseñado).
+
+  --- Quantum 1.7.2 (histórico) --- cierre de la 6ª ronda: un arco normal de subversiones (la
   6ª auditoría CONFIRMÓ la certificación 1.7.1 sin P0/P1 nuevos) que cierra
   su banda de P2/P3 y ejecuta de una vez la documentación de producto
   pendiente desde la 4ª. La lección aplicada: la rama que nunca se ejecutó —

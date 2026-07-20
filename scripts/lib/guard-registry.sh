@@ -58,7 +58,6 @@ GUARDS=(
   # Fact-check del CUERPO de las páginas (versión de Go, símbolos, tags db:).
   # -strict: sin él, el binario avisa pero sale 0 — no sería un guard.
   "nucleus-bodycheck|nucleus|go run ./scripts/website/bodycheck -strict"
-
   # --- quark (al pin) -------------------------------------------------------
   # La versión del manifiesto mencionada en README/SECURITY/CLAUDE/release-notes
   # + roadmap sin versiones hardcodeadas (H-Q6, QK6-5).
@@ -132,6 +131,21 @@ GUARD_SCAN_EXCLUDE=(
   # CI de nucleus — no guards de certificación del set que el paraguas repita.
   "nucleus/scripts/ci/run_compatibility_harness.sh"
   "nucleus/scripts/ci/run_exploratory_stability.sh"
+  # Arnés de EJECUCIÓN del showcase (compila la app de ejemplo, la arranca y
+  # aserta por HTTP): lane requerida del CI de nucleus, misma familia run_*
+  # que los dos anteriores — no un check estático que el paraguas repita.
+  # Entró al set con nucleus v1.4.0.
+  "nucleus/scripts/ci/run_showcase_smoke.sh"
+  # Guard-RECORDATORIO del CI de nucleus, NO de coherencia del set: compara
+  # los pins de examples/ contra los tags remotos EN VIVO (git ls-remote).
+  # Al pin quedará rojo de forma ESTRUCTURAL tras cada tren — nucleus taggea
+  # antes que orbit por orden de dependencias, así que el ejemplo dentro del
+  # tag de nucleus siempre apunta al orbit del momento del corte, no al
+  # recién taggeado. Ese rojo pertenece a MAIN de nucleus (donde su CI fuerza
+  # el chore de re-pin post-tren, como hizo en la 7ª), no al set certificado
+  # que esta lane valida. Probado en la certificación 1.8.0: registrado aquí
+  # salía rojo con el set correcto. Ver docs/AUDITORIA_CONTINUA.md §4.
+  "nucleus/scripts/ci/check_example_pins.sh"
 )
 
 # guard_registry_selfcheck — EXIT!=0 si algún script escaneado no está ni
