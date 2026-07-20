@@ -127,6 +127,18 @@ anti-fósil pone las dos lanes rojas; si se registra sin fixture, el
 guard-of-guards falla por cobertura. Un script auxiliar que no es guard se
 añade a `GUARD_SCAN_EXCLUDE` con su porqué — sin porqué, no.
 
+**No todo check de un producto certifica el set.** Caso probado en la
+certificación 1.8.0: `check_example_pins.sh` de nucleus compara los pins de
+sus examples contra los tags remotos EN VIVO. Es un guard-recordatorio de
+main de nucleus (su rojo fuerza el chore de re-pin tras cada release de un
+hermano), pero al pin es rojo ESTRUCTURAL tras cada tren: nucleus taggea
+antes que orbit por orden de dependencias, así que el ejemplo dentro del tag
+siempre apunta al orbit del momento del corte. Registrarlo en la lane hacía
+in-certificable un set correcto; quedó en `GUARD_SCAN_EXCLUDE` con ese
+razonamiento. Criterio general: la lane registra guards cuyo veredicto
+depende solo del árbol pinado (más los tags que ese árbol declara); un guard
+que compara contra el estado vivo del mundo pertenece al CI del repo dueño.
+
 ## 5. Qué queda para el juicio humano
 
 La lane mecaniza lo verificable por ejecución. No sustituye a la pasada
