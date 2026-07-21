@@ -95,3 +95,25 @@ jobs:
 
       - name: Cada guard contra su fixture de fallo
         run: bash scripts/guard-of-guards.sh
+
+  # QM8-1: el schedule rojo no puede morir en el email default de Actions.
+  # Solo en corridas programadas (los PRs ya tienen su rojo a la vista): abre
+  # o actualiza (dedupe por título) el issue "[lane] fallo del schedule
+  # suite-integral.yml <fecha>" con el enlace al run, vía GITHUB_TOKEN.
+  notify-schedule-failure:
+    name: aviso activo del schedule rojo (issue)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [suite-integral, guard-of-guards]
+    if: failure() && github.event_name == 'schedule'
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout (solo el script de aviso, sin submódulos)
+        uses: actions/checkout@v4
+
+      - name: Abre o actualiza el issue del fallo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/notify_schedule_failure.sh "suite-integral.yml" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

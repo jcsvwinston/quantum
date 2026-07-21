@@ -4,9 +4,11 @@
 # Ejecuta contra el árbol pinado (submódulos tal y como los fija versions.yaml)
 # todo lo que un auditor comprobaría mecánicamente en un cierre de ronda:
 #
-#   0. Precondiciones: registro de guards íntegro (aserción anti-fósil),
-#      declared_lags VACÍO en versions.yaml (estado certificable), submódulos
-#      con historia completa y tags, y el sitio construido (npm ci + build).
+#   0. Precondiciones: árbol LIMPIO incluidos submódulos (lo que se certifica
+#      es el pin, no el pin más ediciones locales), registro de guards íntegro
+#      (aserción anti-fósil), declared_lags VACÍO en versions.yaml (estado
+#      certificable), submódulos con historia completa y tags FRESCOS, y el
+#      sitio construido (npm ci + build).
 #   1. TODOS los guards de scripts/lib/guard-registry.sh, en orden, capturando
 #      el EXIT de cada uno SIN abortar al primero.
 #   2. Tabla final guard → EXIT con conteo veraz: se cuentan solo guards
@@ -24,6 +26,12 @@
 #       declarados son un estado legítimo; al certificar deben quedar vacíos.
 #   QUANTUM_SKIP_BUILD=1 — reutiliza website/build existente (iteración local;
 #       en CI siempre se construye).
+#   QUANTUM_ALLOW_DIRTY=1 (QM8-5) — tolera árbol sucio SOLO para iterar en
+#       local (p. ej. probar un guard a medio escribir). En CI se ignora y se
+#       falla igual: un submódulo sucio certificaría «algo que no es el pin».
+#   QUANTUM_OFFLINE=1 (QM8-8) — degrada a AVISO el fetch de tags fallido SOLO
+#       en local sin red. En CI se ignora: tags rancios = veredicto con datos
+#       viejos, y eso en la lane es FAIL, no un aviso que nadie lee.
 set -uo pipefail
 
 cd "$(dirname "$0")/.."
@@ -38,7 +46,28 @@ echo "== suite-integral: certificación mecánica del set $(grep -m1 '^quantum:'
 echo
 
 # ---------------------------------------------------------------------------
-# 0a. Registro íntegro (anti-fósil). Si esto falla, la tabla de abajo estaría
+# 0a. Árbol limpio, incluidos submódulos (QM8-5). Un fichero editado en un
+# submódulo hace que los guards «al pin» corran sobre algo que NO es el pin:
+# la certificación diría verdad sobre un árbol que nadie certifica. En CI el
+# checkout siempre está limpio; en local esto se salta solo con el escape.
+# ---------------------------------------------------------------------------
+echo "-- precondición: árbol limpio (git status --porcelain, submódulos incluidos)"
+dirty=$(git status --porcelain --ignore-submodules=none 2>/dev/null)
+if [[ -n "$dirty" ]]; then
+  if [[ "${QUANTUM_ALLOW_DIRTY:-0}" == "1" && -z "${CI:-}" ]]; then
+    echo "AVISO: árbol SUCIO — permitido por QUANTUM_ALLOW_DIRTY=1 (solo iteración local; lo que corra aquí NO certifica el pin):"
+    sed 's/^/   /' <<<"$dirty"
+  else
+    fail_pre "el árbol no está limpio — los guards correrían sobre algo que no es el pin (en local, para iterar: QUANTUM_ALLOW_DIRTY=1; en CI jamás):"
+    sed 's/^/   /' <<<"$dirty" >&2
+  fi
+else
+  echo "OK: árbol limpio"
+fi
+echo
+
+# ---------------------------------------------------------------------------
+# 0b. Registro íntegro (anti-fósil). Si esto falla, la tabla de abajo estaría
 # certificando un subconjunto sin saberlo — se falla, pero se sigue ejecutando
 # lo registrado para dar el cuadro completo.
 # ---------------------------------------------------------------------------
@@ -49,7 +78,7 @@ fi
 echo
 
 # ---------------------------------------------------------------------------
-# 0b. declared_lags vacío. Un lag declarado es DISCLOSURE honesta a mitad de
+# 0c. declared_lags vacío. Un lag declarado es DISCLOSURE honesta a mitad de
 # ronda, pero un set CERTIFICADO no puede llevar requires rancios declarados:
 # el tren de releases de cada ronda los vacía antes del re-pin final.
 # ---------------------------------------------------------------------------
@@ -67,12 +96,17 @@ fi
 echo
 
 # ---------------------------------------------------------------------------
-# 0c. Submódulos: historia completa y tags. manifest-guard §3 hace merge-base
-# entre tags de módulo y el pin (imposible en un clone shallow), y
-# check_internal_pins de orbit compara go.mods contra `git tag`. Sin red se
-# avisa y se sigue: si faltan tags, el guard afectado hablará por sí mismo.
+# 0d. Submódulos: historia completa y tags FRESCOS. manifest-guard §3 hace
+# merge-base entre tags de módulo y el pin (imposible en un clone shallow), y
+# check_internal_pins de orbit compara go.mods contra `git tag`.
+#
+# QM8-8: un fetch de tags fallido ya NO es un aviso — tags rancios significan
+# veredicto con datos viejos (un tag nuevo en el remoto que deja el pin atrás
+# pasaría inadvertido, exactamente la deriva que la corrida del lunes existe
+# para cazar). Estricto por defecto y SIEMPRE en CI; en local sin red,
+# QUANTUM_OFFLINE=1 degrada a un AVISO visible.
 # ---------------------------------------------------------------------------
-echo "-- precondición: submódulos con historia completa y tags"
+echo "-- precondición: submódulos con historia completa y tags frescos"
 subs_ok=1
 for m in quark nucleus orbit; do
   if [[ ! -e "$m/.git" ]]; then
@@ -87,15 +121,21 @@ for m in quark nucleus orbit; do
       subs_ok=0
     fi
   else
-    git -C "$m" fetch --tags --quiet origin \
-      || echo "   AVISO: $m: fetch de tags falló (¿sin red?) — se usan los tags locales"
+    if ! git -C "$m" fetch --tags --quiet origin; then
+      if [[ "${QUANTUM_OFFLINE:-0}" == "1" && -z "${CI:-}" ]]; then
+        echo "   AVISO(QUANTUM_OFFLINE=1): $m: fetch de tags falló — se usan los tags LOCALES; el veredicto puede apoyarse en tags rancios (solo iteración local sin red)"
+      else
+        fail_pre "$m: fetch de tags falló — sin tags frescos el veredicto se apoyaría en datos viejos (en local sin red: QUANTUM_OFFLINE=1 solo para iterar; en CI siempre estricto)"
+        subs_ok=0
+      fi
+    fi
   fi
 done
 [[ $subs_ok -eq 1 ]] && echo "OK: submódulos preparados"
 echo
 
 # ---------------------------------------------------------------------------
-# 0d. Build del sitio (una vez). umbrella-served-jargon lintea el HTML EMITIDO,
+# 0e. Build del sitio (una vez). umbrella-served-jargon lintea el HTML EMITIDO,
 # así que el build es parte de la certificación: si no construye, el set
 # tampoco certifica.
 # ---------------------------------------------------------------------------

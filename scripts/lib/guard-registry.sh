@@ -44,6 +44,11 @@ GUARDS=(
   "umbrella-served-jargon|.|bash scripts/check_served_jargon.sh website/build"
   # Sidebars espejadas sincronizadas con el sidebar del submódulo pinado (QM7-4).
   "umbrella-sidebar-sync|.|bash scripts/check_sidebar_sync.sh"
+  # El tag de suite respalda lo que afirma: existe, su versions.yaml declara la
+  # versión del tag y los gitlinks del tag == workspace_pins del tag (QM8-6).
+  # Mid-tren (versión nueva sin tag) verifica el último tag existente contra su
+  # propio árbol, con AVISO — ver cabecera del script y AUDITORIA_CONTINUA.md.
+  "umbrella-suite-tag|.|bash scripts/check_suite_tag.sh"
 
   # --- nucleus (al pin) -----------------------------------------------------
   # Marcadores x-release-please-version + directivas Go del scaffold + coherencia
@@ -123,6 +128,15 @@ GUARD_SCAN_EXCLUDE=(
   # Registrarlos crearía recursión (la lane lanzándose a sí misma).
   "scripts/suite-integral.sh"
   "scripts/guard-of-guards.sh"
+  # Utillaje de NOTIFICACIÓN de los workflows programados (QM8-1): abre o
+  # actualiza el issue del schedule rojo vía gh. No certifica nada del árbol —
+  # avisa de que la certificación falló; registrarlo como guard sería circular.
+  "scripts/notify_schedule_failure.sh"
+  # GENERADOR de nucleus (produce la referencia de config de la web), no un
+  # check: no tiene veredicto sobre el árbol — emite ficheros. Su salida la
+  # vigilan los guards de docs de nucleus (coverage/bodycheck). Exclusión del
+  # escaneo de guards Go (QM8-7).
+  "nucleus/scripts/website/gen-config-reference"
   # Setup one-shot de protección de ramas vía gh api; requiere permisos de
   # admin del repo. Se ejecuta una vez a mano, no certifica nada del árbol.
   "nucleus/scripts/ci/configure_branch_protection.sh"
@@ -151,13 +165,19 @@ GUARD_SCAN_EXCLUDE=(
 # guard_registry_selfcheck — EXIT!=0 si algún script escaneado no está ni
 # registrado (por su ruta exacta dentro de un comando del registro) ni
 # excluido. Debe ejecutarse desde la raíz del paraguas.
+#
+# QM8-7: el escaneo cubre también los guards NO-shell — programas Go bajo los
+# mismos directorios (un subdirectorio con main.go, el patrón de bodycheck,
+# que entró al registro por lista manual porque el escaneo solo veía *.sh).
+# Un guard Go se reconoce registrado por el token de ruta tras `go run` en el
+# comando del registro; lo que no es guard (generadores) se excluye con porqué.
 guard_registry_selfcheck() {
-  local st=0 repo dir f rel full registered g cmd gdir
+  local st=0 repo dir f d rel full registered registered_go g cmd gdir tok
 
-  # Rutas registradas, formato repo-relativo "repo/ruta/al/script.sh".
-  # Se extrae el primer token *.sh de cada comando (los comandos `go run …`
-  # no son scripts de shell y no entran en el escaneo).
+  # Rutas registradas, formato repo-relativo: "repo/ruta/al/script.sh" (primer
+  # token *.sh del comando) y "repo/ruta/al/paquete" (token tras `go run`).
   registered=""
+  registered_go=""
   for g in "${GUARDS[@]}"; do
     gdir=$(printf '%s\n' "$g" | cut -d'|' -f2)
     cmd=$(printf '%s\n' "$g" | cut -d'|' -f3)
@@ -173,6 +193,15 @@ guard_registry_selfcheck() {
           ;;
       esac
     done
+    tok=$(printf '%s\n' "$cmd" | sed -n 's/.*go run \([^ ]*\).*/\1/p')
+    if [[ -n "$tok" ]]; then
+      tok="${tok#./}"
+      if [[ "$gdir" == "." ]]; then
+        registered_go+="$tok"$'\n'
+      else
+        registered_go+="$gdir/$tok"$'\n'
+      fi
+    fi
   done
 
   for repo in . nucleus quark orbit; do
@@ -196,11 +225,28 @@ guard_registry_selfcheck() {
         echo "FAIL: guard sin registrar: $rel — regístralo en scripts/lib/guard-registry.sh (y dale fixture en tests/guard-fixtures/<nombre>/) o añádelo a GUARD_SCAN_EXCLUDE con su porqué" >&2
         st=1
       done
+      # Guards Go (QM8-7): subdirectorio con main.go bajo el directorio
+      # escaneado. Misma regla que los .sh: registrado o excluido con porqué.
+      for d in "$repo/$dir"/*/; do
+        [[ -d "$d" && -e "${d}main.go" ]] || continue
+        full="${d%/}"
+        rel="${full#./}"
+        if grep -qxF "$rel" <<<"$registered_go"; then
+          continue
+        fi
+        local excluded_go=0 eg
+        for eg in ${GUARD_SCAN_EXCLUDE[@]+"${GUARD_SCAN_EXCLUDE[@]}"}; do
+          if [[ "$rel" == "$eg" ]]; then excluded_go=1; break; fi
+        done
+        [[ $excluded_go -eq 1 ]] && continue
+        echo "FAIL: guard (Go) sin registrar: $rel — regístralo en scripts/lib/guard-registry.sh (comando \`go run\`, y dale fixture en tests/guard-fixtures/<nombre>/) o añádelo a GUARD_SCAN_EXCLUDE con su porqué" >&2
+        st=1
+      done
     done
   done
 
   if [[ $st -eq 0 ]]; then
-    echo "OK: registro de guards completo — ningún script de guard sin registrar en los 4 repos"
+    echo "OK: registro de guards completo — ningún script de guard (shell o Go) sin registrar en los 4 repos"
   fi
   return $st
 }

@@ -18,6 +18,11 @@
 # Falla (EXIT=1) ante cualquier id presente en un lado y ausente en el otro,
 # nombrando el fichero y la dirección de la deriva. Requiere submódulos
 # inicializados (el mismo requisito que el build del sitio).
+#
+# Verde-vacío vetado (QM8-3): si la heurística no extrae NINGÚN id de un
+# fichero, eso no es «sincronizado» — es el parser roto (0 ids en ambos lados
+# comparaba vacío con vacío y pasaba). Cada lado debe aportar ≥1 id; 0 ids en
+# cualquiera de los dos ficheros es FAIL con su causa, sin comparar nada.
 set -uo pipefail
 
 cd "$(dirname "$0")/.."
@@ -32,6 +37,7 @@ extract_ids() {
 }
 
 status=0
+fails=0
 for pair in "website/sidebarsNucleus.ts:nucleus/website/sidebars.ts" \
             "website/sidebarsQuark.ts:quark/website/sidebars.ts"; do
   mirror="${pair%%:*}"
@@ -45,16 +51,29 @@ for pair in "website/sidebarsNucleus.ts:nucleus/website/sidebars.ts" \
   mirror_ids=$(extract_ids "$mirror")
   product_ids=$(extract_ids "$product")
 
+  # QM8-3: 0 ids extraídos = parser roto, no sincronía. Sin esto, una
+  # heurística que dejara de enganchar daría 0==0 y verde en ambos pares.
+  parse_ok=1
+  for side in "$mirror:$mirror_ids" "$product:$product_ids"; do
+    if [[ -z "${side#*:}" ]]; then
+      status=1; fails=$((fails + 1)); parse_ok=0
+      echo "FAIL: la heurística no extrajo NINGÚN id de ${side%%:*} — parser roto o formato cambiado; un 0==0 aquí no es sincronía, es ceguera (QM8-3)" >&2
+    fi
+  done
+  [[ $parse_ok -eq 0 ]] && continue
+
   only_product=$(comm -13 <(printf '%s\n' "$mirror_ids") <(printf '%s\n' "$product_ids"))
   only_mirror=$(comm -23 <(printf '%s\n' "$mirror_ids") <(printf '%s\n' "$product_ids"))
 
   if [[ -n "$only_product" ]]; then
     status=1
+    fails=$((fails + 1))
     echo "FAIL: $product tiene ids que faltan en el espejo $mirror (página servida pero invisible en la navegación del paraguas):" >&2
     printf '  %s\n' $only_product >&2
   fi
   if [[ -n "$only_mirror" ]]; then
     status=1
+    fails=$((fails + 1))
     echo "FAIL: $mirror tiene ids que no existen en $product (entrada de navegación rota tras el re-pin):" >&2
     printf '  %s\n' $only_mirror >&2
   fi
@@ -62,5 +81,10 @@ done
 
 if [[ $status -eq 0 ]]; then
   echo "OK: sidebars espejadas sincronizadas con los sidebars de los submódulos pinados (nucleus, quark)"
+else
+  # Conteo veraz para el guard-of-guards: la fixture rompe deriva Y parser a la
+  # vez y exige "2 fallo(s)" — prueba que AMBAS reglas muerden (patrón de la
+  # fixture de served-jargon).
+  echo "check_sidebar_sync: $fails fallo(s) (deriva de ids o parser sin ids)" >&2
 fi
 exit $status

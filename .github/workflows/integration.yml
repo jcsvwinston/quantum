@@ -16,6 +16,16 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  schedule:
+    # QM8-1: entre rondas nada re-compilaba el set ni re-ejecutaba `go install
+    # @tag` — la deriva externa (proxy/sumdb, tags movidos o borrados, deps que
+    # dejan de resolver) solo afloraba al abrir un PR. Lunes 06:30 UTC,
+    # ESCALONADO 30 min tras la corrida de suite-integral (06:00): schedule
+    # propio en vez de workflow_call porque no acopla los dos workflows (cada
+    # lane conserva su veredicto y su issue de fallo atribuible) y es lo más
+    # simple de mantener; el escalón evita competir por runners y ordena los
+    # avisos de una misma mañana roja.
+    - cron: '30 6 * * 1'
 
 permissions:
   contents: read
@@ -136,3 +146,25 @@ jobs:
 
       - name: Tests de orbit en el workspace
         run: go test $ORBIT_MODULES
+
+  # QM8-1: el schedule rojo no puede morir en el email default de Actions.
+  # Solo en corridas programadas (los PRs ya tienen su rojo a la vista): abre
+  # o actualiza (dedupe por título) el issue "[lane] fallo del schedule
+  # integration.yml <fecha>" con el enlace al run, vía GITHUB_TOKEN.
+  notify-schedule-failure:
+    name: aviso activo del schedule rojo (issue)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [manifest-guard, go-install-tag, build, orbit-lockstep]
+    if: failure() && github.event_name == 'schedule'
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout (solo el script de aviso, sin submódulos)
+        uses: actions/checkout@v4
+
+      - name: Abre o actualiza el issue del fallo
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/notify_schedule_failure.sh "integration.yml" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
