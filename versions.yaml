@@ -4,30 +4,30 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.8.0"            # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-07-20
-status: certified           # 7ª ronda: backlog a cero, lags a cero, certificación mecánica instalada (suite-integral + guard-of-guards)
+quantum: "1.9.0"            # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-07-21
+status: certified           # 8ª ronda (consolidación): backlog de la 8ª a cero, régimen de auditoría continua activado, certificada por la lane sin pasada manual
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
-# standalone (build Y TEST con GOWORK=off, en CI): quarkbridge v0.3.4 y
-# quarkdatasource v0.2.6 (requires de quark alineados a v1.3.3 y pin del root
-# actualizado — QM7-6 cerrado), proto v0.4.1 (sin cambios), agent v0.5.4
-# (sospecha de auth por endpoint: el frame aceptado en A ya no resetea la
-# evidencia de B), server v0.8.4 (pina agent v0.5.4). Verificado con caché
-# virgen: `go install github.com/jcsvwinston/orbit/server/cmd/admin-server@v0.8.4`
+# standalone (build Y TEST con GOWORK=off, en CI): quarkbridge v0.3.5 y
+# quarkdatasource v0.2.7 (requires de quark alineados a v1.4.0; el pin del root
+# de quarkdatasource lag ≤1 minor topológicamente forzado, tolerado por el guard
+# extendido), proto v0.4.1 (sin cambios), agent v0.5.5, server v0.9.0 (pina
+# agent v0.5.5). Verificado con caché virgen:
+# `go install github.com/jcsvwinston/orbit/server/cmd/admin-server@v0.9.0`
 # (y el job go-install-tag del CI de integración lo re-ejecuta en cada corrida).
 modules:
-  quark:   "v1.3.3"
-  nucleus: "v1.4.0"
-  orbit:   "v1.4.4"
+  quark:   "v1.4.0"
+  nucleus: "v1.5.0"
+  orbit:   "v1.5.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
-  quark:   "e4a07017"                                # = v1.3.3 exacto
-  nucleus: "cdf175ac"                                # = v1.4.0 exacto
-  orbit:   "5a4d75ff"                                # = v1.4.4 exacto (contiene server/v0.8.4, agent/v0.5.4, proto/v0.4.1, quarkbridge/v0.3.4, quarkdatasource/v0.2.6 como ancestros — verificado por el manifest-guard §3 en cada corrida de CI)
+  quark:   "36a1ab72"                                # = v1.4.0 exacto
+  nucleus: "2634d9b5"                                # = v1.5.0 exacto
+  orbit:   "2c151a03"                                # = v1.5.0 exacto (contiene server/v0.9.0, agent/v0.5.5, proto/v0.4.1, quarkbridge/v0.3.5, quarkdatasource/v0.2.7 como ancestros — verificado por el manifest-guard §3 en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -41,7 +41,54 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.8.0 — cierre de la 7ª ronda («cierre definitivo»): backlog de la
+  Quantum 1.9.0 — 8ª ronda (consolidación final; nombre 1.9.0 y no «1.8.1»
+  porque release-please dictó MINORS en los tres pilares — QADR-0002 obliga
+  al número de suite a reflejar el vX.Y.Z real): backlog de la 8ª auditoría a
+  CERO y ACTIVACIÓN del régimen de auditoría continua — a partir de la 9ª la
+  certificación descansa en la lane semanal + juicio humano puntual, sin
+  pasada manual completa (dictamen de la 8ª). Esta ronda ES la primera
+  certificación por el régimen nuevo: Quantum 1.9.0 se certifica con
+  suite-integral 15/15 EXIT=0 + guard-of-guards 15/15 + CI por-repo verde +
+  E2E de quantum-app, SIN pasada manual. **quark v1.4.0 (minor):** modo
+  estricto de lecturas opt-in (WithStrictReads — WARN/reject de Iter/Cursor
+  sin límite + detección N+1 por contexto con TrackReads y escape
+  AllowUnbounded, coste cero apagado), contador BlockedPanicCleanups (hace
+  observable un cleanup de pánico del RLS bloqueado), WithLimits normaliza
+  los campos numéricos a cero desde DefaultLimits con WARN si un literal
+  parcial deja SafeMigrations=false. **nucleus v1.5.0 (minor):** EL FRENO —
+  el contrato del webhook del bridge del outbox versionado y firmado en UN
+  cambio (firma HMAC-SHA256 en X-Nucleus-Signature con secret por bridge,
+  cabecera X-Outbox-Payload-Encoding json|base64, default base64 = wire de
+  v1.4.0 byte a byte con #230 como opt-in, y test de contrato del CUERPO byte
+  a byte — el hueco que el freeze de símbolos no ve); Oracle pagina con
+  OFFSET/FETCH en pkg/model (era SQL inválido en un paquete stable — NU8-1) +
+  §2.6 de la 7ª; webhooks con path canónico obligatorio (boot falla) y
+  anti-replay opt-in por timestamp firmado; regla de IDs de hallazgo en el
+  linter de voz; lane Oracle endurecida con el healthcheck del contenedor
+  (gateaba solo el puerto → flake ORA-12514). **orbit v1.5.0 (+ agent/v0.5.5,
+  server/v0.9.0, quarkbridge/v0.3.5, quarkdatasource/v0.2.7):** el feed vivo
+  HTTP in-process POR FIN funciona (v1.4.4 lo sobre-prometía — nota corregida
+  en las release notes, OR8-1); alineación de deps al set; la excepción
+  root-edge del guard de pins se amplió a ≤1 minor de lag (topológicamente
+  forzado cuando el root cruza un minor). **quantum-app v0.1.1:** requireUser
+  en lecturas de pedidos (PII), datasheets con nosniff+attachment, unit tests
+  reales, imágenes minio/mailpit pinadas, el consumidor del outbox verifica
+  la firma con hmac.Equal, y un gate nuevo (check_human_labels) que asierta
+  README+TUTORIAL contra go.mod (QA8-1). **Gobernanza (paraguas):**
+  integration.yml con schedule semanal + issue automático en fallo (QM8-1);
+  runbook AUDITORIA_CONTINUA.md §6 con los disparadores de mini-pasada, el
+  decisor y la plantilla de CIERRE (regla nueva: un ✅ con asimetría conocida
+  se escribe ⚠️); guard del tag de suite (QM8-6); robustez QM8-3..8 (el
+  15º guard, umbrella-suite-tag, entra al registry y al guard-of-guards).
+  **Seguridad transversal:** GO-2026-5970 (bucle infinito en x/text) elevado
+  a v0.39.0 en los cuatro repos. **Este arco toca superficie de seguridad
+  (firma del bridge, auth de orders, paths de webhooks, anti-replay) y la
+  propia maquinaria (root-edge, lane Oracle, schedule) → el cierre SOLICITA
+  una revisión humana dirigida SOLO a esa superficie, primera aplicación del
+  régimen nuevo (disparadores §6.1 y §6.3).** Tren en orden de dependencia,
+  tag de suite tras el último PR.
+
+  --- Quantum 1.8.0 (histórico) — cierre de la 7ª ronda («cierre definitivo»): backlog de la
   auditoría a CERO (los 3 restos de la 7ª pasada + P3 completo), lags
   cross-repo a CERO (declared_lags vacío por primera vez desde que existe la
   sección), y la certificación convertida en MECÁNICA: lane suite-integral
