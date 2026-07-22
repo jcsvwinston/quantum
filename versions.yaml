@@ -4,30 +4,31 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.9.0"            # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-07-21
-status: certified           # 8ª ronda (consolidación): backlog de la 8ª a cero, régimen de auditoría continua activado, certificada por la lane sin pasada manual
+quantum: "1.10.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-07-22
+status: certified           # Arco de endurecimiento #1 (micro-arco de hardening, no una ronda): backlog de REVISION_DIRIGIDA_SEG_1 a cero (SEC-1..4, MAQ-1..5); minor de suite forzado por el minor de nucleus (v1.5.0→v1.6.0, QADR-0002)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
-# standalone (build Y TEST con GOWORK=off, en CI): quarkbridge v0.3.5 y
+# standalone (build Y TEST con GOWORK=off, en CI): quarkbridge v0.3.6 y
 # quarkdatasource v0.2.7 (requires de quark alineados a v1.4.0; el pin del root
 # de quarkdatasource lag ≤1 minor topológicamente forzado, tolerado por el guard
-# extendido), proto v0.4.1 (sin cambios), agent v0.5.5, server v0.9.0 (pina
-# agent v0.5.5). Verificado con caché virgen:
-# `go install github.com/jcsvwinston/orbit/server/cmd/admin-server@v0.9.0`
+# extendido, ahora ceñido al único borde root↔quarkdatasource por MAQ-3), proto
+# v0.4.1 (sin cambios), agent v0.5.6, server v0.9.1 (pina agent v0.5.6).
+# Verificado con caché virgen:
+# `go install github.com/jcsvwinston/orbit/server/cmd/admin-server@v0.9.1`
 # (y el job go-install-tag del CI de integración lo re-ejecuta en cada corrida).
 modules:
   quark:   "v1.4.0"
-  nucleus: "v1.5.0"
-  orbit:   "v1.5.0"
+  nucleus: "v1.6.0"
+  orbit:   "v1.5.1"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "36a1ab72"                                # = v1.4.0 exacto
-  nucleus: "2634d9b5"                                # = v1.5.0 exacto
-  orbit:   "2c151a03"                                # = v1.5.0 exacto (contiene server/v0.9.0, agent/v0.5.5, proto/v0.4.1, quarkbridge/v0.3.5, quarkdatasource/v0.2.7 como ancestros — verificado por el manifest-guard §3 en cada corrida de CI)
+  nucleus: "26c5b60a"                                # = v1.6.0 exacto
+  orbit:   "bf5e0d7e"                                # = v1.5.1 exacto (contiene server/v0.9.1, agent/v0.5.6, proto/v0.4.1, quarkbridge/v0.3.6, quarkdatasource/v0.2.7 como ancestros — verificado por el manifest-guard §3 en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -41,7 +42,59 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.9.0 — 8ª ronda (consolidación final; nombre 1.9.0 y no «1.8.1»
+  Quantum 1.10.0 — Arco de endurecimiento #1 (micro-arco de hardening, NO una
+  ronda; Quantum 1.9.0 seguía certificada). Cierra a CERO el backlog de
+  REVISION_DIRIGIDA_SEG_1 — la primera revisión dirigida de seguridad del
+  régimen de auditoría continua: SEC-1..4 y MAQ-1..5. Nombre 1.10.0 (minor) y
+  no «1.9.1» porque el minor de nucleus (v1.5.0→v1.6.0) obliga al número de
+  suite a reflejar el vX.Y.Z real (QADR-0002). La revisión halló el FRAMEWORK
+  (quark/nucleus/orbit) LIMPIO: la seguridad accionable estaba en la app de
+  referencia (que enseñaba un anti-patrón que otros copian) y en la maquinaria
+  de guards; SEC-3/SEC-4 entran en nucleus como defensa en profundidad.
+  **quantum-app v0.1.2 (SEC-1, SEC-2 — lo más importante del arco):** mata el
+  anti-patrón credential-by-default. main es fail-closed — mustEnv rechaza
+  WAREHOUSE_OUTBOX_SECRET y WAREHOUSE_OPS_PASSWORD si van sin valor, vacíos, o
+  con uno de los valores-ejemplo públicos del repo (dev-outbox-secret,
+  warehouse-ops): el boot MUERE alto y claro en vez de arrancar sobre una
+  credencial que vive en el árbol. Y se eliminó el downgrade a token estático
+  del hook del outbox: /hooks/outbox exige la firma HMAC del cuerpo y nada más
+  (rojo-sin-fix demostrado: con el downgrade reintroducido, «sin cabecera de
+  firma + buen token» iba a 200; con el fix, 401). Alineado además a SEC-3: el
+  consumidor decodifica por el encoding CONFIGURADO
+  (WAREHOUSE_OUTBOX_ENCODING), nunca por la cabecera sin firmar, y rechaza el
+  mismatch (400). E2E Docker 7/7 real. **nucleus v1.6.0 (minor; SEC-3, SEC-4,
+  MAQ-5):** SEC-3 — decisión Opción 2: la cabecera X-Outbox-Payload-Encoding se
+  queda INFORMATIVA/sin firmar (firmarla habría bifurcado el esquema de firma
+  body-only, un verificador para webhooks de módulo y de outbox, pineado por un
+  test); el helper nuevo de consumidor outbox.CheckPayloadEncoding + el
+  centinela ErrPayloadEncodingMismatch cierran el hueco en el lado que decodea;
+  el wire NO cambia. SEC-4 — el boot rechaza path=="/" y nombres de módulo con
+  «..» o «/» (defensa en profundidad). MAQ-5. Este minor de nucleus es el que
+  arrastra el número de suite. **orbit v1.5.1 (+ agent/v0.5.6, server/v0.9.1,
+  quarkbridge/v0.3.6; quarkdatasource/v0.2.7 y proto/v0.4.1 sin cambios):**
+  MAQ-3 — la excepción root-edge del guard de pins internos se ciñe al ÚNICO
+  borde topológicamente forzado (root↔quarkdatasource, por directorio
+  consumidor) y verifica el contrato de datasource congelado contra la línea
+  base de ADR-001; alineación de deps a nucleus v1.6.0, sin cambios de
+  comportamiento de orbit. **Maquinaria del paraguas (MAQ-1, MAQ-2, MAQ-4):**
+  las dos costuras del guard del tag de suite — MAQ-1/B.1 assert 5 (el tag
+  CAPTURA HEAD: gitlinks del tag == gitlinks de HEAD == workspace_pins de HEAD;
+  un tag rancio-pero-autoconsistente pasaba los asserts 2-4 y moría solo aquí),
+  MAQ-2/B.2 modo certificación (--cierre / QUANTUM_CERTIFYING=1) que trata el
+  AVISO mid-tren «versión sin tag» como NO-PASA y exige la captura de HEAD, de
+  modo que «15/15 EXIT=0 en --cierre» solo puede significar «tag cortado que
+  captura HEAD»; MAQ-4 endurece el notificador de fallo del schedule. Esta
+  certificación ESTRENA el modo --cierre. **Seguridad transversal:**
+  GO-2026-5970 (bucle infinito en x/text) se mantiene en v0.39.0 (arrastrado
+  por MVS). Reglas del arco cumplidas: cada guard nuevo/modificado probado en
+  negativo y con fixture en guard-of-guards; cada fix de seguridad con
+  rojo-sin-fix demostrado; E2E de quantum-app 7/7 con Docker real; tren en
+  orden de dependencia; tag de suite tras el último PR. El cierre SOLICITA una
+  verificación humana dirigida ACOTADA a (a) SEC-1/SEC-2 no dejan vivo ningún
+  camino de auth débil y (b) B.1/B.2 no rompen un flujo de certificación
+  legítimo.
+
+  --- Quantum 1.9.0 (histórico) — 8ª ronda (consolidación final; nombre 1.9.0 y no «1.8.1»
   porque release-please dictó MINORS en los tres pilares — QADR-0002 obliga
   al número de suite a reflejar el vX.Y.Z real): backlog de la 8ª auditoría a
   CERO y ACTIVACIÓN del régimen de auditoría continua — a partir de la 9ª la
