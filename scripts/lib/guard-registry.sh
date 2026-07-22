@@ -150,6 +150,18 @@ GUARD_SCAN_EXCLUDE=(
   # que los dos anteriores — no un check estático que el paraguas repita.
   # Entró al set con nucleus v1.4.0.
   "nucleus/scripts/ci/run_showcase_smoke.sh"
+  # Helper PARAMETRIZADO del CI de nucleus (MAQ-5/NU7-4): aserta vía
+  # `go test -list` que cada rama de un filtro `-run` sigue seleccionando su
+  # test (caza el false-green de un -run que ya no casa nada tras renombrar).
+  # NO es un guard de certificación del set que el paraguas repita: (1) exige
+  # argumentos <pkg> <run-regex> — sin ellos es un error de uso, no un check
+  # con veredicto propio; (2) esos regex son los filtros de las lanes de test
+  # de nucleus y viven en su workflow de CI, no aquí — registrarlo obligaría al
+  # paraguas a duplicar y fosilizar la lista de nombres de test de nucleus; (3)
+  # protege la integridad de las lanes de nucleus, que el CI de nucleus ejerce
+  # en cada corrida con los args reales. Entró al set con nucleus v1.6.0
+  # (Arco de endurecimiento #1). Ver docs/AUDITORIA_CONTINUA.md §4.
+  "nucleus/scripts/ci/assert_run_selects.sh"
   # Guard-RECORDATORIO del CI de nucleus, NO de coherencia del set: compara
   # los pins de examples/ contra los tags remotos EN VIVO (git ls-remote).
   # Al pin quedará rojo de forma ESTRUCTURAL tras cada tren — nucleus taggea
