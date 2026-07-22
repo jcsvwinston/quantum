@@ -40,7 +40,52 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-21, 22ª sesión)
+## 3. Estado al cierre (2026-07-22, Arco de endurecimiento #1)
+
+### Sesión 2026-07-22 — Arco de endurecimiento #1 (micro-arco de seguridad, NO una ronda): backlog de REVISION_DIRIGIDA_SEG_1 a CERO (SEC-1..4, MAQ-1..5) → nucleus v1.6.0, orbit v1.5.1 (quark v1.4.0 sin cambios), quantum-app v0.1.2 y QUANTUM 1.10.0 CERTIFICADO
+
+- **Qué fue.** Primer arco de endurecimiento sobre la primera revisión dirigida
+  de seguridad que produjo el régimen continuo. Quantum 1.9.0 seguía
+  certificada; esto es hardening, no un bloqueador. El framework
+  (quark/nucleus/orbit) quedó LIMPIO en la revisión — NO se inventó trabajo de
+  seguridad en él. Lo accionable estaba en la app de referencia (anti-patrón
+  credencial-por-defecto) y en la maquinaria; SEC-3/SEC-4 en nucleus como
+  defensa en profundidad.
+- **Número 1.10.0, no «1.9.1»**: el minor de nucleus (v1.5.0→v1.6.0) obliga al
+  número de suite a reflejar el vX.Y.Z real (QADR-0002). Anticipado por el plan.
+- **quantum-app (SEC-1, SEC-2) — lo más importante**: `main` fail-closed
+  (`mustEnv` rechaza secretos vacíos o valores-ejemplo del repo → boot muere) y
+  sin downgrade a token estático en `/hooks/outbox` (solo firma HMAC del
+  cuerpo; rojo-sin-fix demostrado). Alineado a SEC-3 (decode por encoding
+  configurado, rechaza mismatch). PRs quantum-app#7 (A) y #8 (bump al set +
+  SEC-3 + etiquetas); tag v0.1.2. E2E Docker 7/7 real.
+- **nucleus v1.6.0 (SEC-3, SEC-4, MAQ-5)**: SEC-3 opción 2 — cabecera de
+  encoding informativa/sin firmar + helper `outbox.CheckPayloadEncoding` +
+  `ErrPayloadEncodingMismatch` (wire sin cambios; firmar la cabecera habría
+  bifurcado el esquema body-only); SEC-4 — boot rechaza `path=="/"` y módulos
+  con `..`/`/`; MAQ-5 — healthcheck MSSQL real **y** guard `assert_run_selects`
+  del false-green de `-run` (AMBAS mitades; nada se difirió). PRs nucleus#238,
+  #239.
+- **orbit v1.5.1 (MAQ-3)**: excepción root-edge del guard de pins ceñida al
+  único borde `root↔quarkdatasource` + contrato de datasource congelado
+  (ADR-001). PR orbit#132 (+ #134 deps→nucleus v1.6.0).
+- **Maquinaria del paraguas (MAQ-1, MAQ-2, MAQ-4; ya en main, #84)**: el guard
+  del tag exige que el tag CAPTURE el set de HEAD (assert 5, caza el tag
+  rancio-pero-autoconsistente); modo `--cierre` que trata el AVISO mid-tren
+  como NO-PASA; notificador robusto. **Este cierre ESTRENA el modo `--cierre`.**
+- **Clasificación anti-fósil**: `assert_run_selects.sh` (nucleus, MAQ-5) se
+  excluyó del registro de guards del paraguas con razón (helper parametrizado
+  del CI de nucleus, misma familia que los `run_*.sh` ya excluidos).
+- **Certificación**: `suite-integral.sh --cierre` **15/15 EXIT=0** con tag==HEAD
+  (assert de captura verde) + `guard-of-guards` **15/15 muerden** + E2E 7/7.
+  PR de certificación quantum#85; tag de suite **v1.10.0** (`15e32e51`) y
+  release publicada. `declared_lags` vacío.
+- **Cierre**: `auditoria/CIERRE_ENDURECIMIENTO_1.md` (fuera del repo, en
+  Documents) — DoD casilla a casilla, Pendiente VACÍA, y SOLICITUD de
+  verificación humana dirigida ACOTADA a (a) SEC-1/SEC-2 no dejan vivo ningún
+  camino de auth débil y (b) B.1/B.2 no rompen un flujo de certificación
+  legítimo (disparadores §6.1/§6.3 del runbook). **Pendiente de que un revisor
+  la ejecute.**
 
 ### Sesión 2026-07-21 (22ª) — 8ª ronda (consolidación): backlog de la 8ª a CERO, RÉGIMEN de auditoría continua ACTIVADO, contrato del outbox firmado → quark v1.4.0, nucleus v1.5.0, orbit v1.5.0, quantum-app v0.1.1 y QUANTUM 1.9.0 CERTIFICADO
 
