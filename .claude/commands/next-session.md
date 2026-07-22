@@ -40,9 +40,42 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-20, 21ª sesión)
+## 3. Estado al cierre (2026-07-21, 22ª sesión)
 
-### Sesión 2026-07-20 (21ª) — 7ª ronda «cierre definitivo»: backlog y lags a CERO, Jobs/Webhooks reales, quark#252 de raíz, quantum-app, certificación MECÁNICA → quark v1.3.3, nucleus v1.4.0, orbit v1.4.4, quantum-app v0.1.0 y QUANTUM 1.8.0 CERTIFICADO
+### Sesión 2026-07-21 (22ª) — 8ª ronda (consolidación): backlog de la 8ª a CERO, RÉGIMEN de auditoría continua ACTIVADO, contrato del outbox firmado → quark v1.4.0, nucleus v1.5.0, orbit v1.5.0, quantum-app v0.1.1 y QUANTUM 1.9.0 CERTIFICADO
+
+- **La rueda deja de girar.** La 8ª auditoría (última manual) dictaminó SÍ al
+  régimen de auditoría continua: desde la 9ª, certificar = lane semanal verde +
+  CI por-repo verde + juicio humano PUNTUAL por disparadores (no pasada
+  completa). Quantum 1.9.0 es la primera certificación por el régimen: **sin
+  pasada manual**, con suite-integral 15/15 + guard-of-guards 15/15.
+- **Número 1.9.0, no «1.8.1»** (el prompt decía 1.8.1): release-please dictó
+  MINORS en los tres pilares; QADR-0002 obliga al número de suite a reflejar el
+  real. Aprobado por Carlos.
+- **Lo grande**: (A, EL FRENO) el contrato del webhook del bridge del outbox
+  quedó versionado y FIRMADO en un solo cambio (HMAC en X-Nucleus-Signature,
+  cabecera X-Outbox-Payload-Encoding, default base64 con opt-in json que ampara
+  el #230 que la 8ª frenó, test de contrato del CUERPO byte a byte); (B) NU8-1
+  Oracle real en pkg/model (era SQL inválido en paquete stable), QA8-2 auth en
+  orders (PII); (C) todos los P3; (D) gobernanza: schedule semanal + issue
+  automático (QM8-1), runbook §6 con disparadores/decisor/plantilla (QM8-2),
+  guard del tag de suite (QM8-6, el 15º). quark: StrictReads + contador +
+  WARN. quantum-app: gate de etiquetas humanas, nosniff, unit tests reales.
+- **Desviaciones documentadas en el cierre**: GO-2026-5970 (x/text→v0.39.0 en
+  los 4 repos), lane Oracle endurecida (nucleus#235, healthcheck del
+  contenedor), guard root-edge ampliado a ≤1 minor de lag (orbit#131,
+  topológicamente forzado al cruzar el root un minor).
+- **CIERRE_8A_RONDA.md** en auditoria/ con Pendiente **VACÍA** y — primer acto
+  del régimen — la **solicitud de revisión humana DIRIGIDA** solo a la
+  superficie de seguridad (bloque A, auth orders, paths/anti-replay webhooks) y
+  maquinaria (root-edge, lane Oracle, schedule) que este arco tocó. NO es una
+  ronda: es una mirada acotada.
+- **PRÓXIMO FOCO**: (1) la revisión dirigida de seguridad que el cierre
+  solicita — si sale limpia, la 9ª «auditoría» es solo la lane verde; si
+  encuentra algo, es el backlog de un arco nuevo. (2) Régimen operativo: la
+  lane suite-integral corre los lunes 06:00 UTC e integration.yml 06:30; una
+  lane roja abre issue automático. Trabajo nuevo = por mejoras, vigilado por la
+  lane, ya no por rondas completas.
 
 - **Cierre completo**: `CIERRE_7A_RONDA.md` en auditoria/ con el DoD punto por
   punto. Tag de suite v1.8.0 cortado TRAS el último PR (quantum#79) —
