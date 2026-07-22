@@ -1,9 +1,11 @@
 # Auditoría continua — certificación mecánica de la suite
 
-Runbook interno del paraguas (7ª ronda). Describe qué comprueba la
-certificación mecánica, cómo se demuestra que los checks siguen vivos, el
-procedimiento de cierre de una ronda y qué queda deliberadamente fuera, para
-el juicio humano.
+Runbook interno del paraguas (7ª ronda; §6 y robustez QM8-* desde la 8ª).
+Describe qué comprueba la certificación mecánica, cómo se demuestra que los
+checks siguen vivos, el procedimiento de cierre de una ronda, qué queda
+deliberadamente fuera para el juicio humano — y, desde la 8ª, el régimen
+operativo de la auditoría continua (§6): la 8ª pasada fue LA ÚLTIMA manual
+completa.
 
 Piezas:
 
@@ -13,6 +15,8 @@ Piezas:
 | Lane de certificación | `scripts/suite-integral.sh` | Ejecuta TODOS los guards del registro contra el árbol pinado; tabla `guard → EXIT`. |
 | Guard-of-guards | `scripts/guard-of-guards.sh` + `tests/guard-fixtures/` | Ejecuta cada guard contra una fixture de fallo y exige que muera por la causa esperada. |
 | CI | `.github/workflows/suite-integral.yml` | Ambos, en PR (paths relevantes), a demanda y cada lunes 06:00 UTC. |
+| CI de integración | `.github/workflows/integration.yml` | Build + vet del set, lockstep de orbit y `go install @tag` con caché virgen — en PR, push a main y cada lunes 06:30 UTC (QM8-1, escalonado tras suite-integral). |
+| Aviso activo del schedule rojo | `scripts/notify_schedule_failure.sh` | En corridas programadas fallidas, ambos workflows abren o actualizan (dedupe por título) un issue `[lane] fallo del schedule <workflow> <fecha>` con el enlace al run (QM8-1: el rojo semanal no puede morir en el email default). |
 
 ## 1. Qué cubre la certificación mecánica
 
@@ -26,13 +30,14 @@ Los guards de producto corren **al pin** — el submódulo tal y como lo fija
 significa que el set que el manifiesto certifica no pasa sus propios guards,
 que es exactamente lo que reportaría un auditor.
 
-Registro actual (14 guards):
+Registro actual (15 guards):
 
 | Guard | Repo | Comando | Qué caza |
 |---|---|---|---|
 | umbrella-manifest-guard | paraguas | `bash scripts/manifest-guard.sh` | Manifiesto afirmando lo que git no respalda: pin ↔ tag ↔ gitlink (§1–§2), tags de módulo de orbit contra el root pinado (§3), tabla del README (§4), lags cross-repo no declarados (§5). |
 | umbrella-served-jargon | paraguas | `bash scripts/check_served_jargon.sh website/build` | Jerga interna (ADR-nnn, P0…, IDs de hallazgo QK/NU/OR/QMn-n) en el HTML **servido**, tras el build. |
-| umbrella-sidebar-sync | paraguas | `bash scripts/check_sidebar_sync.sh` | Sidebars espejadas (nucleus/quark) desincronizadas del sidebar del submódulo pinado. |
+| umbrella-sidebar-sync | paraguas | `bash scripts/check_sidebar_sync.sh` | Sidebars espejadas (nucleus/quark) desincronizadas del sidebar del submódulo pinado; parser sin ids = FAIL, no verde-vacío (QM8-3). |
+| umbrella-suite-tag | paraguas | `bash scripts/check_suite_tag.sh` | Tag de suite que no respalda lo que afirma: `v<quantum>` inexistente sin estar mid-tren, versions.yaml del tag declarando otra versión, o gitlinks del tag ≠ workspace_pins del tag (QM8-6; la clase QM7-3). |
 | nucleus-version-claims | nucleus | `bash scripts/ci/check_version_claims.sh` | Marcadores `x-release-please-version` desalineados, directivas Go del scaffold, estados README↔inventario. |
 | nucleus-product-voice | nucleus | `bash scripts/ci/check_docs_product_voice.sh` | Vocabulario interno en `website/docs/**`. |
 | nucleus-contract-freeze | nucleus | `bash scripts/ci/check_contract_freeze.sh` | Removals en los contratos congelados (CLI, config, símbolos estables) + firewall de tipos. |
@@ -47,21 +52,42 @@ Registro actual (14 guards):
 
 Notas operativas:
 
-- **Red y tags.** `manifest-guard` (§2–§3) y `check_internal_pins` comparan
-  contra tags publicados: los submódulos necesitan historia completa y tags
-  fetcheados. La lane completa la historia si el clone es shallow y fetchea
-  tags antes de ejecutar (con aviso si no hay red).
+- **Árbol limpio (QM8-5).** La lane exige `git status --porcelain` limpio,
+  submódulos incluidos, ANTES de ejecutar nada: un fichero editado en un
+  submódulo haría que los guards «al pin» certificaran algo que no es el pin.
+- **Red y tags (QM8-8).** `manifest-guard` (§2–§3) y `check_internal_pins`
+  comparan contra tags publicados: los submódulos necesitan historia completa
+  y tags fetcheados. La lane completa la historia si el clone es shallow y
+  fetchea tags antes de ejecutar. Un fetch de tags fallido es **FAIL** (tags
+  rancios = veredicto con datos viejos), no un aviso; en local sin red,
+  `QUANTUM_OFFLINE=1` lo degrada a AVISO visible — en CI siempre estricto.
 - **Fallos legítimos al pin.** Si la ronda en curso ya cortó tags nuevos en un
   remoto (p. ej. un `agent/vX.Y.Z` de orbit), `manifest-guard §3` y/o
   `orbit-internal-pins` se ponen rojos **con razón**: el set pinado quedó por
   detrás de lo publicado. No se silencia — es información de certificación.
   La corrida del lunes existe para que esa deriva aflore sin esperar a un PR.
+- **El tag de suite, mid-tren (QM8-6).** «Versión nueva en `versions.yaml`
+  pero tag aún sin cortar» es un estado LEGÍTIMO: el procedimiento (§3.5)
+  corta el tag DESPUÉS del último PR de la ronda, así que el propio PR de
+  re-pin corre la lane en ese estado. Decisión de diseño: en vez de «FAIL
+  salvo escape» (que pondría roja estructuralmente la lane del PR de re-pin,
+  la que debe salir verde **sin escapes**), `umbrella-suite-tag` verifica en
+  ese caso el ÚLTIMO tag existente contra SU propio árbol (su versions.yaml
+  declara su versión; sus gitlinks == sus workspace_pins; ancestro de HEAD) y
+  deja un AVISO visible «vX.Y.Z pre-tag — tren en marcha» que la corrida
+  semanal repite hasta que el tag se corte. Un tag olvidado no llega a un
+  cierre: la plantilla de CIERRE (§6) exige este guard con el tag YA cortado,
+  EXIT=0 y sin aviso.
 - **Escapes documentados** (solo a mitad de ronda, nunca en el cierre):
   - `QUANTUM_ALLOW_DECLARED_LAGS=1` — tolera `declared_lags` no vacío. El CI
     lo lleva puesto **hasta el tren de la 7ª** (el tren alinea los requires y
     vacía la lista); al re-pinar hay que quitarlo del workflow.
   - `QUANTUM_SKIP_BUILD=1` — reutiliza `website/build` existente para iterar
     en local. En CI siempre se construye.
+  - `QUANTUM_ALLOW_DIRTY=1` (QM8-5) — tolera árbol sucio SOLO en local, para
+    iterar sobre un guard a medio escribir. En CI se ignora: falla igual.
+  - `QUANTUM_OFFLINE=1` (QM8-8) — degrada el fetch de tags fallido a AVISO,
+    SOLO en local sin red. En CI se ignora: siempre estricto.
 
 ## 2. Qué prueba el guard-of-guards
 
@@ -107,7 +133,10 @@ version-coherence, etc.).
 5. **El tag de suite se corta DESPUÉS del último PR de la ronda** —
    procedimiento nuevo de esta ronda: primero se fusiona todo lo que forma
    parte del set, después se tagea; nunca un tag que apunte a un estado que
-   aún iba a cambiar.
+   aún iba a cambiar. Desde la 8ª el procedimiento tiene guard
+   (`umbrella-suite-tag`, QM8-6): tras cortar el tag,
+   `bash scripts/check_suite_tag.sh` debe salir EXIT=0 **sin** aviso pre-tag —
+   y así lo exige la plantilla de CIERRE (§6).
 6. **Cierre honesto:** los conteos del informe de cierre se copian de las
    tablas de las lanes (guards ejecutados, tests, fixtures), no se redactan de
    memoria — la lección QM7-2: nada de líneas-resumen infladas.
@@ -156,3 +185,87 @@ manual en:
   registrados muerden; no puede probar que no falte un guard por escribir.
   Detectar la clase de deriva sin check sigue siendo el trabajo de la
   auditoría.
+
+## 6. Régimen de auditoría continua (desde la 9ª)
+
+La 8ª pasada (REAUDITORIA8, dictamen del §5) fue **la última pasada manual
+completa**: desde la 9ª, la certificación descansa en la lane semanal verde +
+CI por-repo verde + los disparadores de mini-pasada de abajo. **Decisor:
+Carlos** — qué disparador ha saltado, cuánta superficie cubre la mini-pasada
+y cuándo un hallazgo frena un tren lo decide él, no un script.
+
+### Disparadores de mini-pasada dirigida (el «juicio humano puntual»)
+
+Copiados del dictamen (REAUDITORIA8 §5); si se da cualquiera, hay mini-pasada
+ANTES de certificar el set afectado:
+
+- Superficie de **seguridad** nueva o cambiada → revisión humana de ESA
+  superficie antes de certificar el set que la incluya.
+- **Feature minor** en cualquier producto → lectura de fidelidad de sus docs
+  + verificación de que su arco trajo rojo-sin-fix.
+- **Cambio en la propia maquinaria** (registry, fixtures, orquestadores,
+  workflows) → revisión humana del diff: la maquinaria no puede
+  auto-vigilarse.
+- Lane semanal **roja 2 corridas** sin PR que lo explique; **declared_lags
+  poblado >1 ronda**; guard nuevo sin negativo revisado.
+- **Cada 2 rondas, una pasada de «ojos frescos» ACOTADA** a la superficie más
+  cambiada — es la única fuente histórica de los P0 (OR-1/OR-2, NU6-1, QK7-1
+  nacieron así) y ningún guard la sustituye. No es la pasada completa de 5
+  auditores: es una, dirigida.
+
+### Lo estructuralmente sin red mecánica
+
+Asumido y por eso ligado a los disparadores (no hay guard que lo cubra; si un
+cambio toca una de estas clases, la mini-pasada correspondiente lo mira):
+
+- **Re-provocar rojos quitando fixes** (tests tautológicos): solo un humano
+  quita el fix y comprueba que el test muere.
+- **Honestidad semántica** de evidencias y clasificaciones (manifiestos,
+  informes de cierre): los gates cazan forma, no verdad.
+- **Wire-formats**: el contract-freeze es symbol-only — nucleus#230 lo
+  demuestra (cambió el wire del payload sin tocar un símbolo).
+- **Drift de main entre rondas**: lo que main acumula por delante de los tags
+  no está certificado hasta el siguiente tren.
+
+Con las condiciones del dictamen cumplidas, la «auditoría» de la 9ª+ es: lane
+semanal verde + CI por-repo verde + los disparadores que toquen.
+
+### Plantilla de CIERRE de ronda
+
+Los cierres se escriben sobre esta plantilla. Reglas duras: cada casilla del
+DoD lleva su **comando + EXIT** (no prosa); los conteos se **copian de las
+tablas de las lanes**, no se redactan de memoria (lección QM7-2); y la regla
+nueva de la 8ª (lección OR8-1: el CIERRE_7A marcó «✅ (con observación)» una
+cadena que tenía un carril roto): **un ✅ con asimetría conocida se escribe
+⚠️** — si un ítem pasa con un carril, caso o superficie conocidamente roto o
+excluido, su casilla es ⚠️ con la asimetría nombrada, nunca ✅.
+
+```markdown
+# CIERRE de la Nª ronda — Quantum X.Y.Z
+
+## DoD (casilla a casilla; comando + EXIT literal)
+
+- [ ] suite-integral al pin, sin escapes: `bash scripts/suite-integral.sh` → EXIT=0
+- [ ] guard-of-guards: `bash scripts/guard-of-guards.sh` → EXIT=0
+- [ ] tag de suite cortado tras el último PR: `bash scripts/check_suite_tag.sh` → EXIT=0 (sin aviso pre-tag)
+- [ ] declared_lags vacío en versions.yaml (lo exige suite-integral; se afirma aquí explícitamente)
+- [ ] CI por-repo verde en los tags del set (enlaces a las corridas)
+- [ ] disparadores del §6 evaluados: cuáles saltaron y qué mini-pasada se hizo (o «ninguno», con por qué)
+<!-- ⚠️ donde haya asimetría conocida: nómbrala en la propia casilla -->
+
+## Conteos (copiados de las tablas, no de memoria)
+
+<línea literal de suite-integral: «guards registrados: N · ejecutados: N · con fallo: 0»>
+<línea literal de guard-of-guards: «guards registrados: N · fixtures ejecutadas: N · muerden: N»>
+
+## Tags / PRs / desviaciones
+
+- Tags cortados (suite y módulos), en orden.
+- PRs de la ronda (número → una línea).
+- Desviaciones del procedimiento §3, cada una con su porqué. Sin desviaciones: «ninguna».
+
+## Pendiente
+
+(vacío) — o entradas «DECISIÓN REQUERIDA: …» con dueño (Carlos) y contexto.
+Nada de pendientes implícitos: lo que no está aquí, no existe.
+```

@@ -12,6 +12,10 @@
 # existe SOLO como transición: los snapshots servidos se limpiaron en sus repos
 # fuente, pero el paraguas los ensambla desde el submódulo PINADO, y el pin no
 # avanza hasta re-certificar el set. Al re-pinar, esta lista debe quedar VACÍA.
+#
+# Verde-vacío vetado (QM8-4): un build dir que existe pero no contiene NINGÚN
+# HTML no es «0 fugas» — es que no hay superficie que escanear (build roto o
+# ruta equivocada). 0 ficheros escaneados es FAIL con su causa.
 set -uo pipefail
 
 cd "$(dirname "$0")/.."
@@ -44,7 +48,9 @@ done
 
 status=0
 count=0
+scanned=0
 while IFS= read -r -d '' f; do
+  scanned=$((scanned + 1))
   if out=$(grep -noE "$REGEX" "$f" | head -3); then
     if [[ $status -eq 0 ]]; then
       echo "Vocabulario interno en el HTML servido:" >&2
@@ -64,5 +70,11 @@ if [[ $status -ne 0 ]]; then
   exit 1
 fi
 
+# QM8-4: 0 HTML escaneados no es un sitio limpio, es un sitio ausente.
+if [[ $scanned -eq 0 ]]; then
+  echo "FAIL: 0 ficheros HTML escaneados en $BUILD_DIR — build vacío o ruta equivocada; un «0 fugas» sin superficie escaneada es verde-vacío, no un veredicto (QM8-4)" >&2
+  exit 1
+fi
+
 n_excl=${EXCLUDES[@]+${#EXCLUDES[@]}}
-echo "OK: 0 fugas de jerga en el HTML servido ($BUILD_DIR; ${n_excl:-0} rutas de snapshot excluidas transitoriamente)"
+echo "OK: 0 fugas de jerga en el HTML servido ($scanned HTML escaneados en $BUILD_DIR; ${n_excl:-0} rutas de snapshot excluidas transitoriamente)"
