@@ -12,11 +12,11 @@ Piezas:
 | Pieza | Ruta | Qué hace |
 |---|---|---|
 | Registro de guards | `scripts/lib/guard-registry.sh` | Única fuente de verdad: nombre → cwd → comando de cada guard, más la aserción anti-fósil. |
-| Lane de certificación | `scripts/suite-integral.sh` | Ejecuta TODOS los guards del registro contra el árbol pinado; tabla `guard → EXIT`. |
+| Lane de certificación | `scripts/suite-integral.sh` | Ejecuta TODOS los guards del registro contra el árbol pinado; tabla `guard → EXIT`. Con `--cierre`/`QUANTUM_CERTIFYING=1` exige además que el tag de suite exista y capture HEAD (MAQ-2/B.2). |
 | Guard-of-guards | `scripts/guard-of-guards.sh` + `tests/guard-fixtures/` | Ejecuta cada guard contra una fixture de fallo y exige que muera por la causa esperada. |
 | CI | `.github/workflows/suite-integral.yml` | Ambos, en PR (paths relevantes), a demanda y cada lunes 06:00 UTC. |
 | CI de integración | `.github/workflows/integration.yml` | Build + vet del set, lockstep de orbit y `go install @tag` con caché virgen — en PR, push a main y cada lunes 06:30 UTC (QM8-1, escalonado tras suite-integral). |
-| Aviso activo del schedule rojo | `scripts/notify_schedule_failure.sh` | En corridas programadas fallidas, ambos workflows abren o actualizan (dedupe por título) un issue `[lane] fallo del schedule <workflow> <fecha>` con el enlace al run (QM8-1: el rojo semanal no puede morir en el email default). |
+| Aviso activo del schedule rojo | `scripts/notify_schedule_failure.sh` | En corridas programadas fallidas **o canceladas** (MAQ-4/(c)), ambos workflows abren o actualizan un issue `[lane] fallo del schedule <workflow> <fecha>` con el enlace al run. Dedupe **server-side** por etiqueta `lane-schedule-failure` + término de título (MAQ-4/(b): con >100 issues abiertos un `--limit 100` sin filtro duplicaba). Si el propio job de aviso falla, un step de **último recurso** (MAQ-4/(a)) emite `::error::` + resumen del job + issue de título fijo, para que el fallo del notificador no degrade al email default (QM8-1, insuficiente). |
 
 ## 1. Qué cubre la certificación mecánica
 
@@ -37,7 +37,7 @@ Registro actual (15 guards):
 | umbrella-manifest-guard | paraguas | `bash scripts/manifest-guard.sh` | Manifiesto afirmando lo que git no respalda: pin ↔ tag ↔ gitlink (§1–§2), tags de módulo de orbit contra el root pinado (§3), tabla del README (§4), lags cross-repo no declarados (§5). |
 | umbrella-served-jargon | paraguas | `bash scripts/check_served_jargon.sh website/build` | Jerga interna (ADR-nnn, P0…, IDs de hallazgo QK/NU/OR/QMn-n) en el HTML **servido**, tras el build. |
 | umbrella-sidebar-sync | paraguas | `bash scripts/check_sidebar_sync.sh` | Sidebars espejadas (nucleus/quark) desincronizadas del sidebar del submódulo pinado; parser sin ids = FAIL, no verde-vacío (QM8-3). |
-| umbrella-suite-tag | paraguas | `bash scripts/check_suite_tag.sh` | Tag de suite que no respalda lo que afirma: `v<quantum>` inexistente sin estar mid-tren, versions.yaml del tag declarando otra versión, o gitlinks del tag ≠ workspace_pins del tag (QM8-6; la clase QM7-3). |
+| umbrella-suite-tag | paraguas | `bash scripts/check_suite_tag.sh` | Tag de suite que no respalda lo que afirma. **Autoconsistencia (asserts 2-4):** `v<quantum>` inexistente sin estar mid-tren, versions.yaml del tag declarando otra versión, o gitlinks del tag ≠ workspace_pins del tag (QM8-6). **Captura (assert 5, MAQ-1/B.1):** gitlinks del tag ≠ gitlinks/workspace_pins de HEAD — un tag rancio pero autoconsistente (cortado antes del re-pin) que los asserts 2-4 no cazan. El assert 5 solo se exige al certificar (`--cierre`/`QUANTUM_CERTIFYING=1`) o con tag==HEAD; la lane semanal tolera HEAD>tag entre arcos. En certificación, además, el mid-tren sin tag es NO-PASA (MAQ-2/B.2). |
 | nucleus-version-claims | nucleus | `bash scripts/ci/check_version_claims.sh` | Marcadores `x-release-please-version` desalineados, directivas Go del scaffold, estados README↔inventario. |
 | nucleus-product-voice | nucleus | `bash scripts/ci/check_docs_product_voice.sh` | Vocabulario interno en `website/docs/**`. |
 | nucleus-contract-freeze | nucleus | `bash scripts/ci/check_contract_freeze.sh` | Removals en los contratos congelados (CLI, config, símbolos estables) + firewall de tipos. |
@@ -66,18 +66,30 @@ Notas operativas:
   `orbit-internal-pins` se ponen rojos **con razón**: el set pinado quedó por
   detrás de lo publicado. No se silencia — es información de certificación.
   La corrida del lunes existe para que esa deriva aflore sin esperar a un PR.
-- **El tag de suite, mid-tren (QM8-6).** «Versión nueva en `versions.yaml`
-  pero tag aún sin cortar» es un estado LEGÍTIMO: el procedimiento (§3.5)
-  corta el tag DESPUÉS del último PR de la ronda, así que el propio PR de
-  re-pin corre la lane en ese estado. Decisión de diseño: en vez de «FAIL
-  salvo escape» (que pondría roja estructuralmente la lane del PR de re-pin,
-  la que debe salir verde **sin escapes**), `umbrella-suite-tag` verifica en
-  ese caso el ÚLTIMO tag existente contra SU propio árbol (su versions.yaml
-  declara su versión; sus gitlinks == sus workspace_pins; ancestro de HEAD) y
-  deja un AVISO visible «vX.Y.Z pre-tag — tren en marcha» que la corrida
-  semanal repite hasta que el tag se corte. Un tag olvidado no llega a un
-  cierre: la plantilla de CIERRE (§6) exige este guard con el tag YA cortado,
-  EXIT=0 y sin aviso.
+- **El tag de suite, mid-tren y captura (QM8-6 + MAQ-1/MAQ-2).** «Versión
+  nueva en `versions.yaml` pero tag aún sin cortar» es un estado LEGÍTIMO EN LA
+  LANE SEMANAL: el procedimiento (§3.5) corta el tag DESPUÉS del último PR de la
+  ronda, así que el propio PR de re-pin corre la lane en ese estado. Decisión
+  de diseño: en vez de «FAIL salvo escape» (que pondría roja estructuralmente la
+  lane del PR de re-pin, la que debe salir verde **sin escapes**),
+  `umbrella-suite-tag` verifica en ese caso el ÚLTIMO tag existente contra SU
+  propio árbol (su versions.yaml declara su versión; sus gitlinks == sus
+  workspace_pins; ancestro de HEAD) y deja un AVISO visible «vX.Y.Z pre-tag —
+  tren en marcha» que la corrida semanal repite hasta que el tag se corte.
+  - **Certificar es más estricto que la lane semanal (MAQ-2/B.2).** En modo
+    `--cierre`/`QUANTUM_CERTIFYING=1` ese mismo mid-tren es **NO-PASA**:
+    certificar exige que el tag EXISTA. Así el conteo «15/15 EXIT=0 en --cierre»
+    no puede significar «tren a medias sin su tag». Un tag olvidado no llega a
+    un cierre: la plantilla de CIERRE (§6) corre el guard en `--cierre`.
+  - **El tag debe CAPTURAR HEAD, no solo ser autoconsistente (MAQ-1/B.1).** Los
+    asserts 2-4 comparan el tag CONSIGO MISMO; un tag cortado antes del re-pin
+    final puede ser rancio (gitlink viejo + su propio manifiesto viejo,
+    coherentes) y pasarlos. El **assert 5** compara los gitlinks del tag contra
+    los de HEAD y contra `workspace_pins` de HEAD: el tag tiene que apuntar al
+    MISMO set que HEAD certifica. Se EXIGE al certificar o con tag==HEAD; entre
+    arcos, la lane semanal ve HEAD por delante del último tag con el set
+    posiblemente drifteado y eso es legítimo, así que fuera de esos casos NO se
+    fuerza (romper ahí pondría roja la lane semanal en un estado válido).
 - **Escapes documentados** (solo a mitad de ronda, nunca en el cierre):
   - `QUANTUM_ALLOW_DECLARED_LAGS=1` — tolera `declared_lags` no vacío. El CI
     lo lleva puesto **hasta el tren de la 7ª** (el tren alinea los requires y
@@ -134,9 +146,12 @@ version-coherence, etc.).
    procedimiento nuevo de esta ronda: primero se fusiona todo lo que forma
    parte del set, después se tagea; nunca un tag que apunte a un estado que
    aún iba a cambiar. Desde la 8ª el procedimiento tiene guard
-   (`umbrella-suite-tag`, QM8-6): tras cortar el tag,
-   `bash scripts/check_suite_tag.sh` debe salir EXIT=0 **sin** aviso pre-tag —
-   y así lo exige la plantilla de CIERRE (§6).
+   (`umbrella-suite-tag`, QM8-6); desde MAQ-1/MAQ-2 el acto de certificar se
+   corre en modo `--cierre`: tras cortar el tag **en HEAD**,
+   `bash scripts/suite-integral.sh --cierre` (o `bash scripts/check_suite_tag.sh
+   --cierre`) debe salir EXIT=0 — el tag existe, captura HEAD (assert 5) y no hay
+   AVISO pre-tag. Corrida en `--cierre` ANTES de cortar el tag, o con un tag que
+   no captura HEAD, es FAIL por diseño. Así lo exige la plantilla de CIERRE (§6).
 6. **Cierre honesto:** los conteos del informe de cierre se copian de las
    tablas de las lanes (guards ejecutados, tests, fixtures), no se redactan de
    memoria — la lección QM7-2: nada de líneas-resumen infladas.
@@ -245,9 +260,9 @@ excluido, su casilla es ⚠️ con la asimetría nombrada, nunca ✅.
 
 ## DoD (casilla a casilla; comando + EXIT literal)
 
-- [ ] suite-integral al pin, sin escapes: `bash scripts/suite-integral.sh` → EXIT=0
+- [ ] certificación en modo CIERRE (tag cortado en HEAD, sin escapes): `bash scripts/suite-integral.sh --cierre` → EXIT=0
 - [ ] guard-of-guards: `bash scripts/guard-of-guards.sh` → EXIT=0
-- [ ] tag de suite cortado tras el último PR: `bash scripts/check_suite_tag.sh` → EXIT=0 (sin aviso pre-tag)
+- [ ] tag de suite cortado tras el último PR y captura HEAD: `bash scripts/check_suite_tag.sh --cierre` → EXIT=0 (tag existe, assert 5 verde, sin aviso pre-tag)
 - [ ] declared_lags vacío en versions.yaml (lo exige suite-integral; se afirma aquí explícitamente)
 - [ ] CI por-repo verde en los tags del set (enlaces a las corridas)
 - [ ] disparadores del §6 evaluados: cuáles saltaron y qué mini-pasada se hizo (o «ninguno», con por qué)

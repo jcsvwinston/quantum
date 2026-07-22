@@ -32,9 +32,33 @@
 #   QUANTUM_OFFLINE=1 (QM8-8) — degrada a AVISO el fetch de tags fallido SOLO
 #       en local sin red. En CI se ignora: tags rancios = veredicto con datos
 #       viejos, y eso en la lane es FAIL, no un aviso que nadie lee.
+#
+# Modo CIERRE (--cierre / env QUANTUM_CERTIFYING=1; MAQ-2/B.2). El acto de
+# certificar el set de un arco es MÁS estricto que la lane semanal: exige que el
+# tag de suite EXISTA y capture HEAD. Este modo exporta QUANTUM_CERTIFYING=1 a
+# toda la tanda de guards; el único que lo mira es check_suite_tag.sh, que en
+# certificación trata el AVISO mid-tren (versión sin tag) como NO-PASA y exige el
+# assert de captura de HEAD aunque el tag no sea HEAD. Así «15/15 EXIT=0 en
+# --cierre» ya no puede significar «tren a medias sin su tag», solo «tag cortado
+# que captura HEAD». FUERA de --cierre la lane semanal sigue tolerando HEAD>tag
+# entre arcos (el AVISO mid-tren pasa EXIT=0). Runbook: docs/AUDITORIA_CONTINUA.md.
 set -uo pipefail
 
 cd "$(dirname "$0")/.."
+
+# --cierre / QUANTUM_CERTIFYING=1: modo certificación (ver cabecera). Se exporta
+# para que TODOS los guards de la tanda lo hereden (check_suite_tag.sh lo usa).
+certifying=0
+if [[ "${QUANTUM_CERTIFYING:-0}" == "1" ]]; then certifying=1; fi
+for arg in "$@"; do
+  case "$arg" in
+    --cierre) certifying=1 ;;
+    *) echo "FAIL(pre): argumento no reconocido '$arg' (uso: suite-integral.sh [--cierre])" >&2; exit 2 ;;
+  esac
+done
+if [[ $certifying -eq 1 ]]; then
+  export QUANTUM_CERTIFYING=1
+fi
 
 # shellcheck source=scripts/lib/guard-registry.sh
 source scripts/lib/guard-registry.sh
@@ -42,7 +66,9 @@ source scripts/lib/guard-registry.sh
 overall=0
 fail_pre() { echo "FAIL(pre): $*" >&2; overall=1; }
 
-echo "== suite-integral: certificación mecánica del set $(grep -m1 '^quantum:' versions.yaml | awk '{print $2}' | tr -d '"') =="
+mode_label="lane semanal (HEAD>tag tolerado)"
+[[ $certifying -eq 1 ]] && mode_label="CIERRE/certificación (--cierre: tag debe existir y capturar HEAD)"
+echo "== suite-integral: certificación mecánica del set $(grep -m1 '^quantum:' versions.yaml | awk '{print $2}' | tr -d '"') — modo: $mode_label =="
 echo
 
 # ---------------------------------------------------------------------------

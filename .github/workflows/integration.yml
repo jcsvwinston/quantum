@@ -149,14 +149,16 @@ jobs:
 
   # QM8-1: el schedule rojo no puede morir en el email default de Actions.
   # Solo en corridas programadas (los PRs ya tienen su rojo a la vista): abre
-  # o actualiza (dedupe por título) el issue "[lane] fallo del schedule
-  # integration.yml <fecha>" con el enlace al run, vía GITHUB_TOKEN.
+  # o actualiza (dedupe server-side por etiqueta+título) el issue "[lane] fallo
+  # del schedule integration.yml <fecha>" con el enlace al run, vía GITHUB_TOKEN.
+  # MAQ-4/(c): además de failure(), cubre cancelled() — un schedule cancelado
+  # por `concurrency` perdía el aviso.
   notify-schedule-failure:
-    name: aviso activo del schedule rojo (issue)
+    name: aviso activo del schedule rojo/cancelado (issue)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [manifest-guard, go-install-tag, build, orbit-lockstep]
-    if: failure() && github.event_name == 'schedule'
+    if: (failure() || cancelled()) && github.event_name == 'schedule'
     permissions:
       contents: read
       issues: write
@@ -165,6 +167,33 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Abre o actualiza el issue del fallo
+        id: notify
         env:
           GH_TOKEN: ${{ github.token }}
         run: bash scripts/notify_schedule_failure.sh "integration.yml" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      # MAQ-4/(a): si el PROPIO aviso falló, el rojo no puede degradar al email
+      # default (QM8-1, insuficiente). Canal fijo de último recurso, siempre
+      # visible: anotación ::error::, resumen del job, y un issue de título FIJO
+      # (dedup bracket-free, independiente del canal principal que falló).
+      - name: Canal de último recurso si el aviso falló
+        if: always() && steps.notify.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "::error title=Notificador del schedule caído::El aviso del schedule rojo/cancelado de integration.yml FALLÓ (run: $run_url). Revisar permisos issues:write / la API de gh."
+          {
+            echo "## Notificador del schedule CAÍDO — integration.yml"
+            echo "El job de aviso no pudo abrir/actualizar su issue. Run: $run_url"
+            echo "El email default de Actions no basta (QM8-1); revisa el notificador."
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Último recurso best-effort: issue de título FIJO, dedup bracket-free.
+          fixed_prefix="NOTIFICADOR CAÍDO integration.yml"
+          if gh issue list --state open --search "$fixed_prefix in:title" --limit 20 --json title --jq '.[].title' 2>/dev/null | grep -Fq "$fixed_prefix"; then
+            echo "issue de último recurso ya abierto — no se duplica"
+          else
+            gh issue create --title "[lane] $fixed_prefix" \
+              --body "El aviso automático del schedule de integration.yml falló ANTES de registrar el rojo. Run: $run_url. Canal de último recurso (QM8-1/MAQ-4)." \
+              || echo "::error::Tampoco se pudo abrir el issue de último recurso; quedan el ::error:: y el resumen del job."
+          fi

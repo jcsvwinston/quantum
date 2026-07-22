@@ -108,6 +108,13 @@ for name in $(guard_names); do
   fi
   workdir=$(sed -n 's/^workdir=//p' "$fx_out" | tail -1)
   expect=$(sed -n 's/^expect=//p' "$fx_out" | tail -1)
+  # env= (opcional, 0..N líneas KEY=VALUE): entorno con el que se invoca el
+  # guard sobre la copia. Un guard con MODOS (p. ej. check_suite_tag.sh, cuyo
+  # assert de captura de HEAD y trato del mid-tren dependen de
+  # QUANTUM_CERTIFYING) necesita probarse EN el modo donde muerde: sin este
+  # canal el harness solo lo correría en el modo por defecto. Solo afecta a la
+  # subshell de ESTE guard; las fixtures que no lo declaran no cambian.
+  guard_env=$(sed -n 's/^env=//p' "$fx_out")
   if [[ -z "$workdir" || -z "$expect" || ! -d "$workdir" ]]; then
     echo "FAIL: la fixture de '$name' no declaró workdir=/expect= válidos" >&2
     results+="$(printf '%-28s %s' "$name" "FIXTURE-ROTA")"$'\n'
@@ -115,10 +122,20 @@ for name in $(guard_names); do
     continue
   fi
 
-  # 1b. Ejecutar el guard REAL (el comando del registro, sobre la copia).
+  # 1b. Ejecutar el guard REAL (el comando del registro, sobre la copia), con
+  #     el entorno que la fixture pida (env=), además de GOWORK=off.
   cmd=$(guard_cmd "$name")
   guard_out="$tmp/guard.out"
-  ( cd "$workdir" && export GOWORK=off && eval "$cmd" ) > "$guard_out" 2>&1
+  (
+    cd "$workdir"
+    export GOWORK=off
+    if [[ -n "$guard_env" ]]; then
+      while IFS= read -r _kv; do
+        [[ -n "$_kv" ]] && export "$_kv"
+      done <<<"$guard_env"
+    fi
+    eval "$cmd"
+  ) > "$guard_out" 2>&1
   ec=$?
 
   # 1c. Veredicto.
