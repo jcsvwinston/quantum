@@ -80,8 +80,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   (assert de captura verde) + `guard-of-guards` **15/15 muerden** + E2E 7/7.
   PR de certificación quantum#85; tag de suite **v1.10.0** (`15e32e51`) y
   release publicada. `declared_lags` vacío.
-- **Cierre**: `auditoria/CIERRE_ENDURECIMIENTO_1.md` (fuera del repo, en
-  Documents) — DoD casilla a casilla, Pendiente VACÍA, y SOLICITUD de
+- **Cierre**: `docs/auditoria/CIERRE_ENDURECIMIENTO_1.md` (versionado en el
+  paraguas) — DoD casilla a casilla, Pendiente VACÍA, y SOLICITUD de
   verificación humana dirigida ACOTADA a (a) SEC-1/SEC-2 no dejan vivo ningún
   camino de auth débil y (b) B.1/B.2 no rompen un flujo de certificación
   legítimo (disparadores §6.1/§6.3 del runbook). **Pendiente de que un revisor
