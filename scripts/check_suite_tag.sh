@@ -8,25 +8,49 @@
 # Un tag cortado un PR antes de tiempo certificaba un estado que aún iba a
 # cambiar — y solo un humano lo notaba.
 #
-# Qué se exige del tag verificado (las tres coordenadas, todas AL TAG):
+# Qué se exige del tag verificado:
+#   AL TAG (autoconsistencia — el tag respalda su propio nombre):
 #   1. El tag existe.
 #   2. El versions.yaml DE ESE TAG declara exactamente la versión del tag.
 #   3. Los gitlinks del tag (quark/nucleus/orbit) coinciden con los
 #      workspace_pins del versions.yaml de ese tag.
 #   4. El tag es ancestro de HEAD (el tag pertenece a esta historia; un tag
 #      igual de nombre sobre otra rama no respalda nada).
+#   TAG ↔ HEAD (captura — el tag apunta al set que HEAD certifica; MAQ-1/B.1):
+#   5. Los gitlinks del tag == los gitlinks de HEAD == los workspace_pins del
+#      versions.yaml de HEAD. Un tag AUTOCONSISTENTE (asserts 2-4 verdes) puede
+#      seguir siendo RANCIO: cortado antes del re-pin final, congela un set
+#      viejo (gitlink viejo + su propio manifiesto viejo, coherentes entre sí)
+#      bajo el nombre correcto. Los asserts 2-4 no lo cazan (el tag es coherente
+#      consigo mismo); el 5 sí — es la clase QM7-3 que este guard decía cazar y
+#      solo cubría a medias (la variante inconsistente). Abajo, cuándo aplica.
+#
+# Modo CERTIFICACIÓN (--cierre / env QUANTUM_CERTIFYING=1; MAQ-2/B.2). El acto
+# de certificar EXIGE que el tag de suite exista Y capture HEAD; la lane semanal
+# normal es más laxa (entre arcos HEAD puede ir por delante del último tag con
+# el set drifteado, y eso es legítimo). Por eso el assert 5 y el trato del caso
+# mid-tren dependen del modo:
+#   - assert 5 (captura de HEAD): se EXIGE cuando certificamos (--cierre) o
+#     cuando el tag ES HEAD (tag==HEAD, el commit de certificación por diseño de
+#     B.2). FUERA de ahí NO se fuerza — romper ahí pondría roja la lane semanal
+#     en un estado legítimo.
 #
 # Caso mid-tren (decisión QM8-6, documentada en docs/AUDITORIA_CONTINUA.md):
-# «versión nueva en main pero tag aún no cortado» es un estado LEGÍTIMO — el
-# procedimiento de ronda corta el tag después del último PR, así que el PR de
-# re-pin corre esta lane con la versión nueva y sin tag. Fallar ahí (o exigir
-# un escape) haría in-certificable el flujo correcto. En ese estado el guard:
+# «versión nueva en main pero tag aún no cortado» es un estado LEGÍTIMO EN LA
+# LANE SEMANAL — el procedimiento de ronda corta el tag después del último PR,
+# así que el PR de re-pin corre esta lane con la versión nueva y sin tag. Fallar
+# ahí (o exigir un escape) haría in-certificable el flujo correcto. En ese
+# estado el guard, FUERA de modo certificación:
 #   - verifica el ÚLTIMO tag de suite existente contra SU PROPIO árbol
 #     (asserts 2-4 con su propia versión), y
 #   - deja un AVISO visible de que la versión actual sigue pre-tag («tren en
 #     marcha») — la corrida semanal lo repite hasta que el tag se corte, y la
 #     plantilla de CIERRE exige este guard con el tag YA cortado (EXIT=0 sin
 #     aviso), así que un tag olvidado no puede llegar a un cierre.
+# En modo CERTIFICACIÓN el mismo estado mid-tren es NO-PASA (B.2): certificar
+# exige que el tag EXISTA y capture HEAD, así que el AVISO deja de contar como
+# EXIT=0 y pasa a FAIL. Así «15/15 EXIT=0 en --cierre» ya no puede significar
+# «tren a medias sin tag», solo «tag cortado que captura HEAD».
 # Sin NINGÚN tag de suite (hay tag desde v1.0.0) sí es FAIL: historia rota.
 #
 # Red: los tags del paraguas se refrescan si hay remoto origin; el fallo de
@@ -39,6 +63,20 @@ cd "$(dirname "$0")/.."
 
 manifest=versions.yaml
 status=0
+
+# Modo certificación (B.2): env QUANTUM_CERTIFYING=1 (lo exporta
+# suite-integral.sh --cierre para toda la tanda de guards) o el flag --cierre
+# (invocación directa / la orden de la plantilla de CIERRE). En este modo el
+# mid-tren sin tag es FAIL y el assert 5 (captura de HEAD) se exige aunque el
+# tag no sea HEAD. Fuera de él, la lane semanal es laxa (ver cabecera).
+certifying=0
+if [[ "${QUANTUM_CERTIFYING:-0}" == "1" ]]; then certifying=1; fi
+for arg in "$@"; do
+  case "$arg" in
+    --cierre) certifying=1 ;;
+    *) echo "AVISO: argumento no reconocido '$arg' (uso: check_suite_tag.sh [--cierre])" >&2 ;;
+  esac
+done
 
 # yaml_top KEY — valor de una clave de nivel superior (`KEY: "valor"`) de un
 # contenido de versions.yaml pasado por stdin. Sin yq: fichero plano conocido.
@@ -118,20 +156,72 @@ verify_tag() {
   fi
 }
 
+# assert_tag_captures_head TAG — assert 5 (MAQ-1/B.1): el tag apunta al MISMO
+# set que HEAD certifica. Compara, por módulo:
+#   gitlink del TAG  ==  gitlink de HEAD  ==  workspace_pin del versions.yaml
+#   de HEAD (el fichero del árbol de trabajo; suite-integral exige árbol limpio,
+#   así que == HEAD:versions.yaml).
+# Es lo que verify_tag NO mira: aquel compara el tag consigo mismo; este lo
+# compara con HEAD. Un tag rancio-pero-autoconsistente pasa verify_tag y muere
+# aquí. Acumula en $status.
+assert_tag_captures_head() {
+  local tag=$1 m tag_gl head_gl head_pin
+  for m in quark nucleus orbit; do
+    tag_gl=$(git ls-tree "$tag" "$m" 2>/dev/null | awk '$2 == "commit" {print $3}')
+    head_gl=$(git ls-tree HEAD "$m" 2>/dev/null | awk '$2 == "commit" {print $3}')
+    head_pin=$(yaml_section "$manifest" workspace_pins "$m")
+    if [[ -z "$tag_gl" || -z "$head_gl" || -z "$head_pin" ]]; then
+      echo "FAIL: $tag — no se pudo leer gitlink de $m (tag='${tag_gl:0:8}' HEAD='${head_gl:0:8}' pin='$head_pin') para el assert de captura de HEAD" >&2
+      status=1
+    elif [[ "$tag_gl" != "$head_gl" ]]; then
+      echo "FAIL: $tag — el gitlink de $m del tag (${tag_gl:0:8}) NO captura el de HEAD (${head_gl:0:8}) — el tag no apunta al set que HEAD certifica (QM7-3: tag rancio, aunque sea autoconsistente)" >&2
+      status=1
+    elif [[ "$head_gl" != "$head_pin"* ]]; then
+      echo "FAIL: $tag — el gitlink de $m de HEAD (${head_gl:0:8}) no coincide con workspace_pins de HEAD ($head_pin) — HEAD no es autoconsistente" >&2
+      status=1
+    else
+      echo "OK: $tag — captura el set de $m de HEAD (${head_gl:0:8} == pin $head_pin)"
+    fi
+  done
+}
+
 if git rev-parse -q --verify "refs/tags/v$current" >/dev/null; then
   echo "== tag de suite v$current (la versión que $manifest declara) =="
   verify_tag "v$current"
+
+  # Assert 5 (B.1): ¿el tag captura el set de HEAD? Solo se EXIGE al certificar
+  # (--cierre) o cuando el tag ES HEAD (el commit de certificación). Entre arcos
+  # la lane semanal puede ver HEAD por delante del tag con el set drifteado —
+  # legítimo, no fallo — así que fuera de esos casos NO se fuerza.
+  tag_commit=$(git rev-parse -q --verify "refs/tags/v$current^{commit}" 2>/dev/null)
+  head_commit=$(git rev-parse -q --verify HEAD 2>/dev/null)
+  if [[ $certifying -eq 1 || ( -n "$tag_commit" && "$tag_commit" == "$head_commit" ) ]]; then
+    if [[ $certifying -eq 1 ]]; then why="certificación"; else why="tag==HEAD"; fi
+    echo "-- assert de captura ($why): el tag v$current debe apuntar al MISMO set que HEAD certifica"
+    assert_tag_captures_head "v$current"
+  else
+    echo "nota: v$current tiene tag pero HEAD va por delante — la captura del set (assert 5) solo se EXIGE al certificar (--cierre/QUANTUM_CERTIFYING=1) o con tag==HEAD; la lane semanal lo tolera (HEAD>tag entre arcos es legítimo)."
+  fi
 else
-  # Mid-tren: la versión actual aún no tiene tag. Verifica el último existente
-  # contra su propio árbol (ver cabecera) y deja el estado pre-tag a la vista.
+  # Mid-tren: la versión actual aún no tiene tag.
   latest=$(git tag -l 'v*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
   if [[ -z "$latest" ]]; then
     echo "FAIL: no existe NINGÚN tag de suite v* — hay tag de suite desde v1.0.0; sin tags no hay estado certificado que verificar (¿faltó fetch --tags?)" >&2
     exit 1
   fi
-  echo "AVISO: v$current (la versión de $manifest) aún SIN tag — tren en marcha; se verifica el último tag existente ($latest) contra su propio árbol. El cierre de ronda exige este guard con el tag ya cortado."
-  echo "== tag de suite $latest (último existente; v$current pre-tag) =="
-  verify_tag "$latest"
+  if [[ $certifying -eq 1 ]]; then
+    # Certificar exige tag que exista y capture HEAD: el mid-tren es NO-PASA.
+    echo "FAIL(certificación): v$current (la versión de $manifest) aún SIN tag de suite — certificar (--cierre/QUANTUM_CERTIFYING=1) exige que el tag EXISTA y capture HEAD. Corta el tag en HEAD antes de certificar. Último tag existente para contexto: $latest." >&2
+    status=1
+    echo "== (contexto) tag de suite $latest (último existente; v$current sin tag) =="
+    verify_tag "$latest"
+  else
+    # Verifica el último existente contra su propio árbol (ver cabecera) y deja
+    # el estado pre-tag a la vista. Legítimo en la lane semanal.
+    echo "AVISO: v$current (la versión de $manifest) aún SIN tag — tren en marcha; se verifica el último tag existente ($latest) contra su propio árbol. El cierre de ronda exige este guard con el tag ya cortado (o --cierre, que lo hace FAIL)."
+    echo "== tag de suite $latest (último existente; v$current pre-tag) =="
+    verify_tag "$latest"
+  fi
 fi
 
 if [[ $status -ne 0 ]]; then

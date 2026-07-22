@@ -7,12 +7,18 @@
 #   - Prepara en $TMPDIR/tree una COPIA doctorada del árbol mínimo que el
 #     guard valida (patrón overlay: ficheros REALES del repo al pin, incluida
 #     la copia del propio script del guard, con UNA rotura concreta).
-#   - Imprime por stdout dos líneas de protocolo:
+#   - Imprime por stdout las líneas de protocolo:
 #         workdir=<ruta absoluta donde el harness lanzará el comando del guard>
 #         expect=<regex grep -E que la salida del guard DEBE contener>
+#         env=KEY=VALUE   (OPCIONAL, 0..N líneas)
 #     `expect` fija la causa de muerte esperada: si el guard sale !=0 por otra
 #     razón (p. ej. un error de setup de la propia fixture), el harness lo
 #     trata como fallo — un EXIT!=0 accidental no demuestra que el guard muerde.
+#     `env=` (opcional) declara el entorno con el que el harness invoca el guard
+#     sobre la copia — para guards con MODOS que solo muerden en cierto entorno
+#     (p. ej. check_suite_tag.sh en modo certificación, QUANTUM_CERTIFYING=1).
+#     Solo afecta a la subshell de ese guard; sin env= nada cambia (las fixtures
+#     existentes son retrocompatibles).
 #   - EXIT 0. Cualquier otro EXIT = fixture rota (falla el harness).
 #
 # Compatibilidad: bash 3.2 (macOS).
