@@ -24,6 +24,32 @@ el guard. Por eso (b) se verifica en **dos direcciones a la vez**:
 
 La prueba central es (b2): **el mismo árbol, dos modos, veredictos opuestos.**
 
+### Cómo leer los `EXIT=1` de este documento
+
+Varios escenarios de abajo terminan en `EXIT=1`. **Ninguno es un problema del
+repositorio: todos son el resultado DESEADO.** Salen de árboles *fabricados
+rotos a propósito* (fixtures en `/tmp`, nunca `main`) para comprobar que el
+guard muerde. Si uno de ellos diera `EXIT=0`, *eso* sí sería la mala noticia:
+significaría que un tag rancio puede colarse en una certificación.
+
+Ante cualquier `EXIT=1` de este tipo de informes, dos preguntas bastan:
+
+| Pregunta | Respuesta | Lectura |
+|---|---|---|
+| ¿Sobre qué árbol corrió? | una fixture fabricada | el guard funciona |
+| | el repo real | investigar |
+| ¿Era el resultado esperado? | sí (la fixture está rota adrede) | evidencia, no incidente |
+
+Es el mismo principio que `guard-of-guards`, cuyo resultado sano es «15/15
+**muerden**»: un guard que nunca produce `EXIT=1` en ningún escenario no está
+comprobando nada. **El rojo sobre una fixture es la prueba de que el guard está
+vivo.**
+
+Para que no haya duda sobre el estado real: el repositorio pasa **en los dos
+modos**, incluido el más estricto —`check_suite_tag.sh --cierre` sobre `main`
+hoy da `EXIT=0` con el assert de captura verde— y la lane semanal completa da
+15/15.
+
 ---
 
 ## Evidencia empírica: tres lanes semanales verdes, sin intervención humana
@@ -67,6 +93,18 @@ check_suite_tag: OK                                                    # EXIT=0
 El guard **declara en voz alta** por qué no aplica el assert 5 en vez de callarse
 — la distinción de modos es legible en el log, no implícita.
 
+Y en el modo **más estricto**, sobre el mismo repo real, también pasa: como el
+set no ha driftado, el assert de captura se exige y sale verde.
+
+```
+$ bash scripts/check_suite_tag.sh --cierre    # modo certificación, repo real
+-- assert de captura (certificación): el tag v1.10.0 debe apuntar al MISMO set que HEAD certifica
+OK: v1.10.0 — captura el set de quark de HEAD (36a1ab72 == pin 36a1ab72)
+OK: v1.10.0 — captura el set de nucleus de HEAD (26c5b60a == pin 26c5b60a)
+OK: v1.10.0 — captura el set de orbit de HEAD (bf5e0d7e == pin bf5e0d7e)
+check_suite_tag: OK                                                    # EXIT=0
+```
+
 ---
 
 ## (b2) · El caso crítico — HEAD por delante del tag **con el set drifteado**
@@ -89,7 +127,7 @@ $ cd /tmp/b-drift/tree
   gitlink quark en HEAD           : 36a1ab72      # set re-pinado  → DRIFT
 ```
 
-### Modo lane semanal → PASA (sin falso positivo)
+### Modo lane semanal → `EXIT=0`, pasa (sin falso positivo — lo que se quiere)
 
 ```
 $ bash scripts/check_suite_tag.sh
@@ -99,7 +137,7 @@ nota: … la lane semanal lo tolera (HEAD>tag entre arcos es legítimo).
 check_suite_tag: OK                                                    # EXIT=0
 ```
 
-### Modo certificación → FALLA (el guard sigue mordiendo)
+### Modo certificación → `EXIT=1`, **rechazo correcto** (el guard muerde — lo que se quiere)
 
 ```
 $ bash scripts/check_suite_tag.sh --cierre
@@ -179,13 +217,21 @@ suite-integral: OK — los 15 guards pasan sobre el árbol pinado.        # EXIT
 
 ## Matriz resumen
 
-| Escenario | Legítimo en… | Lane semanal | `--cierre` |
-|---|---|---|---|
-| **(b1)** HEAD>tag, set idéntico (hoy) | entre arcos | ✅ EXIT=0 | — |
-| **(b2)** HEAD>tag, **set drifteado** | entre arcos | ✅ EXIT=0 | ❌ EXIT=1 |
-| **(b3)** versión nueva **sin tag** (mid-tren) | durante el tren | ✅ EXIT=0 (AVISO) | ❌ EXIT=1 |
-| **tag==HEAD, set capturado** | certificación | ✅ | ✅ EXIT=0 (assert 5 exigido) |
-| **Lane completa (15 guards)** | operación normal | ✅ 15/15 | ✅ 15/15 en la certificación |
+Todas las celdas son el comportamiento **correcto**: `EXIT=0` donde el estado es
+legítimo, `EXIT=1` donde certificar debe rechazarlo. No hay ninguna celda que
+describa un fallo real.
+
+| Escenario | Árbol | Legítimo en… | Lane semanal | `--cierre` |
+|---|---|---|---|---|
+| **(b1)** HEAD>tag, set idéntico (hoy) | **repo real** | entre arcos | `EXIT=0` pasa | `EXIT=0` pasa |
+| **(b2)** HEAD>tag, **set drifteado** | fixture | entre arcos | `EXIT=0` pasa | `EXIT=1` **rechazo correcto** |
+| **(b3)** versión nueva **sin tag** (mid-tren) | fixture | durante el tren | `EXIT=0` pasa (AVISO) | `EXIT=1` **rechazo correcto** |
+| **tag==HEAD, set capturado** | **repo real** | certificación | `EXIT=0` pasa | `EXIT=0` pasa (assert 5 exigido) |
+| **Lane completa (15 guards)** | **repo real** | operación normal | `EXIT=0` — 15/15 | `EXIT=0` — 15/15 en la certificación |
+
+Los dos `EXIT=1` corresponden a **fixtures fabricadas rotas**, no al repositorio;
+son la prueba de que el guard muerde (ver «Cómo leer los `EXIT=1`» arriba). Sobre
+el **repo real**, las tres filas dan `EXIT=0` en ambos modos.
 
 ---
 
