@@ -165,3 +165,8 @@ Conforme a los disparadores §6.1/§6.3 del runbook (este arco tocó superficie 
 **(b) B.1/B.2 no rompen un flujo de certificación legítimo.** Confirmar que el assert de captura de HEAD y el modo `--cierre` no generan falsos positivos en la lane semanal normal: un `main` con el set drifteado por delante del último tag (estado legítimo entre arcos) debe seguir pasando la lane semanal (AVISO mid-tren, EXIT=0) y sólo el modo `--cierre` debe exigir el tag que captura HEAD.
 
 No es una ronda; es la comprobación puntual que el régimen prescribe cuando un arco toca seguridad y maquinaria.
+
+**Evidencia preparada para el revisor** (reproducciones ejecutadas, con comandos y salidas; no sustituyen su juicio, se lo ahorran):
+
+- (a) → [`VERIFICACION_DIRIGIDA_END1_a.md`](VERIFICACION_DIRIGIDA_END1_a.md) — rojo/verde de SEC-1 y SEC-2 sobre quantum-app v0.1.2.
+- (b) → [`VERIFICACION_DIRIGIDA_END1_b.md`](VERIFICACION_DIRIGIDA_END1_b.md) — el mismo árbol en modo lane vs `--cierre`, los estados legítimos entre arcos y mid-tren, y tres lanes semanales verdes en producción.
