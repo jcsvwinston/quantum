@@ -4,31 +4,34 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.10.0"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-07-22
-status: certified           # Arco de endurecimiento #1 (micro-arco de hardening, no una ronda): backlog de REVISION_DIRIGIDA_SEG_1 a cero (SEC-1..4, MAQ-1..5); minor de suite forzado por el minor de nucleus (v1.5.0→v1.6.0, QADR-0002)
+quantum: "1.10.1"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-08-16
+status: certified           # Arco QCD-CLI (micro-arco de reparación dirigido por la demo de cobertura externa quantum-coverage-demo): QCD-CLI-1..5 y QCD-FW-3 cerrados en producto; patches en los tres pilares → patch de suite (QADR-0002)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
-# standalone (build Y TEST con GOWORK=off, en CI): quarkbridge v0.3.6 y
-# quarkdatasource v0.2.7 (requires de quark alineados a v1.4.0; el pin del root
-# de quarkdatasource lag ≤1 minor topológicamente forzado, tolerado por el guard
-# extendido, ahora ceñido al único borde root↔quarkdatasource por MAQ-3), proto
-# v0.4.1 (sin cambios), agent v0.5.6, server v0.9.1 (pina agent v0.5.6).
-# Verificado con caché virgen:
-# `go install github.com/jcsvwinston/orbit/server/cmd/admin-server@v0.9.1`
-# (y el job go-install-tag del CI de integración lo re-ejecuta en cada corrida).
+# standalone (build Y TEST con GOWORK=off, en CI): quarkbridge v0.3.8 y
+# quarkdatasource v0.2.8 (requires de quark alineados a v1.4.1 y — bridge — de
+# nucleus a v1.6.2; el pin del root de quarkdatasource lag ≤1 minor
+# topológicamente forzado, tolerado por el guard extendido, ceñido al único
+# borde root↔quarkdatasource por MAQ-3), proto v0.4.2 (corte de la directiva
+# go 1.26.6), agent v0.5.9 (pina proto v0.4.2), server v0.9.4 (pina agent
+# v0.5.9 y proto v0.4.2).
+# Verificado con caché virgen en el arco de quark:
+# `go install github.com/jcsvwinston/quark/cmd/quark@v1.4.1`
+# (y el job go-install-tag del CI de integración re-ejecuta el del server en
+# cada corrida).
 modules:
-  quark:   "v1.4.0"
-  nucleus: "v1.6.0"
-  orbit:   "v1.5.1"
+  quark:   "v1.4.1"
+  nucleus: "v1.6.2"
+  orbit:   "v1.5.3"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
-  quark:   "36a1ab72"                                # = v1.4.0 exacto
-  nucleus: "26c5b60a"                                # = v1.6.0 exacto
-  orbit:   "bf5e0d7e"                                # = v1.5.1 exacto (contiene server/v0.9.1, agent/v0.5.6, proto/v0.4.1, quarkbridge/v0.3.6, quarkdatasource/v0.2.7 como ancestros — verificado por el manifest-guard §3 en cada corrida de CI)
+  quark:   "16fd4823"                                # = v1.4.1 exacto
+  nucleus: "fa068a7e"                                # = v1.6.2 exacto
+  orbit:   "7f022639"                                # = v1.5.3 exacto (contiene server/v0.9.4, agent/v0.5.9, proto/v0.4.2, quarkbridge/v0.3.8, quarkdatasource/v0.2.8 como ancestros — verificado por el manifest-guard §3 en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -42,7 +45,40 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.10.0 — Arco de endurecimiento #1 (micro-arco de hardening, NO una
+  Quantum 1.10.1 — Arco QCD-CLI (micro-arco de reparación, NO una ronda;
+  Quantum 1.10.0 seguía certificada). Primera vez que el detector es EXTERNO:
+  quantum-coverage-demo, un consumidor independiente que ejercita la suite
+  solo por module proxy, reportó 5 hallazgos de CLI con repro rojo ejecutado
+  (QCD-CLI-1..5) más papercuts de doc (QCD-FW-3); todos cerrados en producto
+  con disciplina rojo-sin-fix. **quark v1.4.1 (patch):** QCD-CLI-1 model
+  generate --fields compila y declara PK (imports derivados de los campos,
+  tag quark solo con vocabulario del ORM), QCD-CLI-2 receta de embebido con
+  commands.Main() que propaga errores (la impresa por el propio CLI salía 0
+  en silencio), QCD-CLI-3 tenant provision completa bajo schema_per_tenant
+  con gate de idempotencia en quark_tenants antes de cualquier DDL, más
+  papercuts (migrate status con pendientes y sin error en base fresca,
+  seeders en orden de registro, init lee go.mod, InstallRLSPolicies
+  re-ejecutable con DROP POLICY IF EXISTS — cambio de comportamiento
+  declarado). **nucleus v1.6.2 (2 patches):** QCD-CLI-4 generate
+  resource/startapp emiten DDL del dialecto de la base configurada (exports
+  nuevos db.SystemFromURL y model.BuildMigrationScaffoldForSystem) con
+  --dialect/--config/--database; QCD-CLI-5 loaddata carga en orden
+  topológico por FKs introspectadas y respeta --tables (round-trip
+  dump→load en una invocación); papercuts QCD-FW-3 (healthz honesto, import
+  path de storage, acciones CRUD en AUTH_GUIDE, Health sin cablear
+  declarado). **orbit v1.5.3 (2 patches):** alineación pura de deps (quark
+  v1.4.1, nucleus v1.6.2) en v1.5.2, y v1.5.3 recoge proto/v0.4.2 — la
+  directiva go del bump transversal tocó proto/go.mod y el guard §3 exige
+  que el pin no lleve código de módulo sin publicar; su onda re-pina agent
+  (v0.5.9) y server (v0.9.4). **Transversal a los tres pilares:**
+  toolchain/directiva go a 1.26.6 (CVEs stdlib GO-2026-6218/6091/6090/6089),
+  grpc v1.82.1 (GO-2026-6061) y otel v1.44.0 (GO-2026-5158) donde eran
+  alcanzables. Quedan REGISTRADOS para un arco propio (feats → minor):
+  QCD-FW-1 (la capa global de authz nunca ve claims JWT) y QCD-FW-2 (S3Store
+  sin bootstrap de bucket) — la demo opera con workarounds declarados.
+  Nombre 1.10.1 (patch): solo patches en los tres pilares (QADR-0002).
+
+  --- Quantum 1.10.0 (histórico) — Arco de endurecimiento #1 (micro-arco de hardening, NO una
   ronda; Quantum 1.9.0 seguía certificada). Cierra a CERO el backlog de
   REVISION_DIRIGIDA_SEG_1 — la primera revisión dirigida de seguridad del
   régimen de auditoría continua: SEC-1..4 y MAQ-1..5. Nombre 1.10.0 (minor) y
