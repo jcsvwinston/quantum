@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.11.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.12.0"           # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-08-16
-status: certified           # Arco QCD-FW (los hallazgos de framework de la demo de cobertura externa): QCD-FW-1 (authz global con claims JWT) y QCD-FW-2 (bootstrap de buckets S3) cerrados en producto + Health de services en /healthz; minor de suite forzado por el minor de nucleus (v1.6.2→v1.7.0, QADR-0002)
+status: certified           # Arco DX (informe 2026-08-16): los 27 ítems del backlog DX-1..DX-27 + los casos A4/A5 cerrados en producto; minors de quark (v1.5.0) y nucleus (v1.8.0) fuerzan el minor de suite (QADR-0002)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules», los seis módulos del
@@ -16,25 +16,25 @@ status: certified           # Arco QCD-FW (los hallazgos de framework de la demo
 # topológicamente forzado, tolerado por el guard extendido, ceñido al único
 # borde root↔quarkdatasource por MAQ-3.
 modules:
-  quark:   "v1.4.1"
-  nucleus: "v1.7.0"
-  orbit:   "v1.5.4"
+  quark:   "v1.5.0"
+  nucleus: "v1.8.0"
+  orbit:   "v1.6.1"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.2"
-  agent:           "v0.5.10"
-  server:          "v0.9.5"
-  quarkbridge:     "v0.3.9"
-  quarkdatasource: "v0.2.8"
+  agent:           "v0.5.11"
+  server:          "v0.9.6"
+  quarkbridge:     "v0.3.10"
+  quarkdatasource: "v0.2.10"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
-  quark:   "16fd4823"                                # = v1.4.1 exacto
-  nucleus: "705a7509"                                # = v1.7.0 exacto
-  orbit:   "8296ab2c"                                # = v1.5.4 exacto (contiene server/v0.9.5, agent/v0.5.10, proto/v0.4.2, quarkbridge/v0.3.9, quarkdatasource/v0.2.8 como ancestros — verificado por el manifest-guard §3 en cada corrida de CI)
+  quark:   "372afa40"                                # = v1.5.0 exacto
+  nucleus: "e41f0853"                                # = v1.8.0 exacto
+  orbit:   "a15764f7"                       # = v1.6.1 exacto (contiene server/v0.9.6, agent/v0.5.11, proto/v0.4.2, quarkbridge/v0.3.10, quarkdatasource/v0.2.10 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -48,10 +48,20 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.11.0 — Arco QCD-FW: cierra QCD-FW-1 (el authz global default-deny
-  ve claims JWT: sujetos uid → rol → anonymous) y QCD-FW-2 (bootstrap de
-  buckets S3: CreateBucketIfMissing/EnsureBucket, fallo alto sin opt-in),
-  más ServiceRegistration.Health cableado a /healthz. nucleus v1.7.0 (minor
-  → minor de suite, QADR-0002); orbit v1.5.4 = alineación de deps; quark
-  v1.4.1 sin cambios. El historial narrativo completo de este set y de los
-  anteriores vive en CHANGELOG.md.
+  Quantum 1.12.0 — Arco DX (informe de auditoría DX 2026-08-16: los 27 ítems
+  del backlog DX-1..DX-27 cerrados en producto con rojo-sin-fix donde
+  aplicaba, más los casos "exit 0 sin efecto" A4/A5). quark v1.5.0 (minor):
+  DDL de dominio con migrate create --from-models, vocabulario rico del
+  generador de modelos, timestamps automáticos, runner embebido de init,
+  linter de tags fail-fast, error accionable sin PK, build sin CGO y
+  quark.New estricto (opciones inválidas y driver desconocido = error).
+  nucleus v1.8.0 (minor): generate resource/startapp emiten Module()
+  montable con repositorio SQL real por dialecto, kit de test in-process
+  pkg/nucleustest + RunContext, profile: dev sin Docker, config estricta con
+  did-you-mean y el acantilado del quickstart convertido en test. orbit
+  v1.6.1: quick-start compilable, Makefile a 6 módulos, matriz de
+  compatibilidad generada, módulos re-pinados al set. Paraguas: guard nº16
+  umbrella-exit0-regressions (los 7 repros §4.A al pin), lane showcase-smoke
+  en integration.yml, quantum-env.sh y manifiesto a 9 módulos con
+  print-requires.sh. Minors de quark y nucleus fuerzan el minor de suite
+  (QADR-0002). El historial narrativo completo vive en CHANGELOG.md.

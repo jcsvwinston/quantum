@@ -6,7 +6,7 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
-## Quantum 1.11.0 (vigente — copia de la nota del manifiesto)
+## Quantum 1.11.0
 
 Quantum 1.11.0 — Arco QCD-FW (micro-arco de features dirigido por los
 hallazgos de framework de quantum-coverage-demo; Quantum 1.10.1 seguía

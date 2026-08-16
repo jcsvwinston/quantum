@@ -30,9 +30,9 @@ uno, qué rol juega en la suite y cómo encajan.
 
 | Pilar | Rol en la suite | Módulo Go | Versión | Submódulo | Uso en solitario |
 |---|---|---|---|---|---|
-| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.7.0` | [`nucleus/`](nucleus) | Sí (base de apps) |
-| **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.4.1` | [`quark/`](quark) | **Sí, en cualquier app Go** |
-| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.5.4` | [`orbit/`](orbit) | No (requiere Nucleus) |
+| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.8.0` | [`nucleus/`](nucleus) | Sí (base de apps) |
+| **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.5.0` | [`quark/`](quark) | **Sí, en cualquier app Go** |
+| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.6.1` | [`orbit/`](orbit) | No (requiere Nucleus) |
 
 Módulos de integración (repo orbit, opt-in; son los que materializan el puente quark↔orbit):
 

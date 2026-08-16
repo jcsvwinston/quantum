@@ -172,6 +172,12 @@ GUARD_SCAN_EXCLUDE=(
   # en cada corrida con los args reales. Entró al set con nucleus v1.6.0
   # (Arco de endurecimiento #1). Ver docs/AUDITORIA_CONTINUA.md §4.
   "nucleus/scripts/ci/assert_run_selects.sh"
+  # GENERADOR de orbit (DX-26): produce website/docs/reference/module-matrix.md
+  # (la matriz de compatibilidad de los 6 módulos). No tiene veredicto propio —
+  # emite un fichero; su frescura la exige el paso "module matrix freshness"
+  # del CI de orbit (ci.yml, regenera y compara con git diff). Mismo precedente
+  # que el gen-config-reference de nucleus. Entró al set con orbit v1.6.0.
+  "orbit/scripts/ci/gen_module_matrix.sh"
   # Guard-RECORDATORIO del CI de nucleus, NO de coherencia del set: compara
   # los pins de examples/ contra los tags remotos EN VIVO (git ls-remote).
   # Al pin quedará rojo de forma ESTRUCTURAL tras cada tren — nucleus taggea
