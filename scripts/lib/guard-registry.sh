@@ -49,6 +49,11 @@ GUARDS=(
   # Mid-tren (versión nueva sin tag) verifica el último tag existente contra su
   # propio árbol, con AVISO — ver cabecera del script y AUDITORIA_CONTINUA.md.
   "umbrella-suite-tag|.|bash scripts/check_suite_tag.sh"
+  # Los 7 repros "exit 0 sin efecto" del informe DX (§4.A) contra el árbol AL
+  # PIN: comandos que fracasaban con éxito aparente. Entra al set con Quantum
+  # 1.12.0 — con pines anteriores (quark < v1.5.0, nucleus < v1.8.0) sale rojo
+  # porque los tags no llevan los fixes: información de certificación, no ruido.
+  "umbrella-exit0-regressions|.|bash scripts/check_exit0_regressions.sh"
 
   # --- nucleus (al pin) -----------------------------------------------------
   # Marcadores x-release-please-version + directivas Go del scaffold + coherencia
