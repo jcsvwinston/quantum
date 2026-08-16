@@ -49,6 +49,11 @@ GUARDS=(
   # Mid-tren (versión nueva sin tag) verifica el último tag existente contra su
   # propio árbol, con AVISO — ver cabecera del script y AUDITORIA_CONTINUA.md.
   "umbrella-suite-tag|.|bash scripts/check_suite_tag.sh"
+  # Los 7 repros "exit 0 sin efecto" del informe DX (§4.A) contra el árbol AL
+  # PIN: comandos que fracasaban con éxito aparente. Entra al set con Quantum
+  # 1.12.0 — con pines anteriores (quark < v1.5.0, nucleus < v1.8.0) sale rojo
+  # porque los tags no llevan los fixes: información de certificación, no ruido.
+  "umbrella-exit0-regressions|.|bash scripts/check_exit0_regressions.sh"
 
   # --- nucleus (al pin) -----------------------------------------------------
   # Marcadores x-release-please-version + directivas Go del scaffold + coherencia
@@ -167,6 +172,12 @@ GUARD_SCAN_EXCLUDE=(
   # en cada corrida con los args reales. Entró al set con nucleus v1.6.0
   # (Arco de endurecimiento #1). Ver docs/AUDITORIA_CONTINUA.md §4.
   "nucleus/scripts/ci/assert_run_selects.sh"
+  # GENERADOR de orbit (DX-26): produce website/docs/reference/module-matrix.md
+  # (la matriz de compatibilidad de los 6 módulos). No tiene veredicto propio —
+  # emite un fichero; su frescura la exige el paso "module matrix freshness"
+  # del CI de orbit (ci.yml, regenera y compara con git diff). Mismo precedente
+  # que el gen-config-reference de nucleus. Entró al set con orbit v1.6.0.
+  "orbit/scripts/ci/gen_module_matrix.sh"
   # Guard-RECORDATORIO del CI de nucleus, NO de coherencia del set: compara
   # los pins de examples/ contra los tags remotos EN VIVO (git ls-remote).
   # Al pin quedará rojo de forma ESTRUCTURAL tras cada tren — nucleus taggea
@@ -177,6 +188,15 @@ GUARD_SCAN_EXCLUDE=(
   # que esta lane valida. Probado en la certificación 1.8.0: registrado aquí
   # salía rojo con el set correcto. Ver docs/AUDITORIA_CONTINUA.md §4.
   "nucleus/scripts/ci/check_example_pins.sh"
+  # GENERADOR de entorno para apps consumidoras (DX-24): traduce un .env
+  # neutro a las dos gramáticas de configuración (QUARK_* viper / NUCLEUS_*
+  # koanf). Emite exports, no tiene veredicto sobre el árbol — no es un guard.
+  "scripts/quantum-env.sh"
+  # Arnés PESADO de integración (DX-27): compila y ARRANCA showcase_demo en
+  # modo workspace, crea por HTTP y verifica feed en vivo + Data Studio. Es
+  # una lane de integration.yml (job showcase-smoke), misma familia que los
+  # run_* de nucleus — no un check estático que la certificación repita.
+  "scripts/ci/showcase_smoke.sh"
 )
 
 # guard_registry_selfcheck — EXIT!=0 si algún script escaneado no está ni

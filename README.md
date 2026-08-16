@@ -30,9 +30,9 @@ uno, qué rol juega en la suite y cómo encajan.
 
 | Pilar | Rol en la suite | Módulo Go | Versión | Submódulo | Uso en solitario |
 |---|---|---|---|---|---|
-| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.7.0` | [`nucleus/`](nucleus) | Sí (base de apps) |
-| **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.4.1` | [`quark/`](quark) | **Sí, en cualquier app Go** |
-| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.5.4` | [`orbit/`](orbit) | No (requiere Nucleus) |
+| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.8.0` | [`nucleus/`](nucleus) | Sí (base de apps) |
+| **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.5.0` | [`quark/`](quark) | **Sí, en cualquier app Go** |
+| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.6.1` | [`orbit/`](orbit) | No (requiere Nucleus) |
 
 Módulos de integración (repo orbit, opt-in; son los que materializan el puente quark↔orbit):
 
@@ -225,6 +225,23 @@ cada módulo resuelve sus dependencias por tag real.
 > productos a través de un symlink y el build del SSG falla con
 > `content.metadata.id` de `undefined`. El CI ya construye así
 > (`submodules: recursive`).
+
+## Un `.env`, dos gramáticas de configuración
+
+Quark lee `QUARK_*` (viper, anidado con `_`) y Nucleus lee `NUCLEUS_*`
+(koanf, anidado con `__`). Una app que usa ambos no necesita mantener dos
+juegos de variables: [`scripts/quantum-env.sh`](scripts/quantum-env.sh)
+traduce un `.env` neutro a las dos gramáticas a la vez.
+
+```bash
+eval "$(scripts/quantum-env.sh .env)"
+```
+
+Claves neutras entendidas: `DATABASE_URL` (→ DSN de quark **y** URL de
+nucleus), `DATABASE_DRIVER`, `ADMIN_DATABASE_URL`, `REDIS_URL`,
+`JWT_SECRET`, `LOG_LEVEL`, `TENANT_STRATEGY`, `TENANT_DSN_TEMPLATE`. Todo
+lo demás pasa sin tocar, así que un `.env` existente sigue funcionando.
+También puede materializar un fichero: `scripts/quantum-env.sh .env > both.env`.
 
 ## Documentación
 
