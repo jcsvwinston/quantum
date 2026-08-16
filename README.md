@@ -226,6 +226,23 @@ cada módulo resuelve sus dependencias por tag real.
 > `content.metadata.id` de `undefined`. El CI ya construye así
 > (`submodules: recursive`).
 
+## Un `.env`, dos gramáticas de configuración
+
+Quark lee `QUARK_*` (viper, anidado con `_`) y Nucleus lee `NUCLEUS_*`
+(koanf, anidado con `__`). Una app que usa ambos no necesita mantener dos
+juegos de variables: [`scripts/quantum-env.sh`](scripts/quantum-env.sh)
+traduce un `.env` neutro a las dos gramáticas a la vez.
+
+```bash
+eval "$(scripts/quantum-env.sh .env)"
+```
+
+Claves neutras entendidas: `DATABASE_URL` (→ DSN de quark **y** URL de
+nucleus), `DATABASE_DRIVER`, `ADMIN_DATABASE_URL`, `REDIS_URL`,
+`JWT_SECRET`, `LOG_LEVEL`, `TENANT_STRATEGY`, `TENANT_DSN_TEMPLATE`. Todo
+lo demás pasa sin tocar, así que un `.env` existente sigue funcionando.
+También puede materializar un fichero: `scripts/quantum-env.sh .env > both.env`.
+
 ## Documentación
 
 - [`docs/ROADMAP.md`](docs/ROADMAP.md) — plan de convergencia por fases.

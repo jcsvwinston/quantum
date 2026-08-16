@@ -177,6 +177,10 @@ GUARD_SCAN_EXCLUDE=(
   # que esta lane valida. Probado en la certificación 1.8.0: registrado aquí
   # salía rojo con el set correcto. Ver docs/AUDITORIA_CONTINUA.md §4.
   "nucleus/scripts/ci/check_example_pins.sh"
+  # GENERADOR de entorno para apps consumidoras (DX-24): traduce un .env
+  # neutro a las dos gramáticas de configuración (QUARK_* viper / NUCLEUS_*
+  # koanf). Emite exports, no tiene veredicto sobre el árbol — no es un guard.
+  "scripts/quantum-env.sh"
 )
 
 # guard_registry_selfcheck — EXIT!=0 si algún script escaneado no está ni
