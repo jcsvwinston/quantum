@@ -9,8 +9,8 @@ released: 2026-08-16
 status: certified           # Arco QCD-FW (los hallazgos de framework de la demo de cobertura externa): QCD-FW-1 (authz global con claims JWT) y QCD-FW-2 (bootstrap de buckets S3) cerrados en producto + Health de services en /healthz; minor de suite forzado por el minor de nucleus (v1.6.2→v1.7.0, QADR-0002)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
-# `go get`). Los tres pilares en modules:, los seis módulos del repo orbit en
-# orbit_modules: — ambos machine-readable (DX-25): manifest-guard verifica
+# `go get`). Los tres pilares en el bloque «modules», los seis módulos del
+# repo orbit en «orbit_modules» — ambos machine-readable (DX-25): manifest-guard verifica
 # las 9 contra los tags del pin, y scripts/print-requires.sh emite el bloque
 # require pegable. El pin del root de quarkdatasource lag ≤1 minor
 # topológicamente forzado, tolerado por el guard extendido, ceñido al único
