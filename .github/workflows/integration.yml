@@ -120,6 +120,31 @@ jobs:
       - name: Vet del trío junto
         run: go vet $MODULES
 
+  # DX-27: hasta esta lane, showcase_demo solo se COMPILABA. Este job ejecuta
+  # lo que el ejemplo promete (QADR-0006): arranca la app, crea un artículo por
+  # la API pública y exige que el feed SQL en vivo de Orbit haya visto el
+  # INSERT de Quark (Caso 1, quarkbridge) y que Data Studio liste los modelos
+  # (Caso 2, quarkdatasource). El CI falla si el feed en vivo deja de ver SQL
+  # de Quark.
+  showcase-smoke:
+    name: smoke funcional del showcase (los tres juntos)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout (con submódulos — son el trío fijado)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Go (versión declarada en go.work)
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.work
+          cache-dependency-path: '**/go.sum'
+
+      - name: Arranca, crea, y verifica feed en vivo + Data Studio
+        run: bash scripts/ci/showcase_smoke.sh
+
   orbit-lockstep:
     name: tests de orbit contra el nucleus fijado (lockstep, A-7)
     runs-on: ubuntu-latest

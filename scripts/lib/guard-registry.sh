@@ -186,6 +186,11 @@ GUARD_SCAN_EXCLUDE=(
   # neutro a las dos gramáticas de configuración (QUARK_* viper / NUCLEUS_*
   # koanf). Emite exports, no tiene veredicto sobre el árbol — no es un guard.
   "scripts/quantum-env.sh"
+  # Arnés PESADO de integración (DX-27): compila y ARRANCA showcase_demo en
+  # modo workspace, crea por HTTP y verifica feed en vivo + Data Studio. Es
+  # una lane de integration.yml (job showcase-smoke), misma familia que los
+  # run_* de nucleus — no un check estático que la certificación repita.
+  "scripts/ci/showcase_smoke.sh"
 )
 
 # guard_registry_selfcheck — EXIT!=0 si algún script escaneado no está ni
