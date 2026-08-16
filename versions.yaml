@@ -4,34 +4,34 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.10.1"           # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.11.0"           # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-08-16
-status: certified           # Arco QCD-CLI (micro-arco de reparación dirigido por la demo de cobertura externa quantum-coverage-demo): QCD-CLI-1..5 y QCD-FW-3 cerrados en producto; patches en los tres pilares → patch de suite (QADR-0002)
+status: certified           # Arco QCD-FW (los hallazgos de framework de la demo de cobertura externa): QCD-FW-1 (authz global con claims JWT) y QCD-FW-2 (bootstrap de buckets S3) cerrados en producto + Health de services en /healthz; minor de suite forzado por el minor de nucleus (v1.6.2→v1.7.0, QADR-0002)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con `go get`).
 # Módulos opt-in de integración y pata fleet (repo orbit), en tag y resolubles
-# standalone (build Y TEST con GOWORK=off, en CI): quarkbridge v0.3.8 y
+# standalone (build Y TEST con GOWORK=off, en CI): quarkbridge v0.3.9 y
 # quarkdatasource v0.2.8 (requires de quark alineados a v1.4.1 y — bridge — de
-# nucleus a v1.6.2; el pin del root de quarkdatasource lag ≤1 minor
+# nucleus a v1.7.0; el pin del root de quarkdatasource lag ≤1 minor
 # topológicamente forzado, tolerado por el guard extendido, ceñido al único
-# borde root↔quarkdatasource por MAQ-3), proto v0.4.2 (corte de la directiva
-# go 1.26.6), agent v0.5.9 (pina proto v0.4.2), server v0.9.4 (pina agent
-# v0.5.9 y proto v0.4.2).
+# borde root↔quarkdatasource por MAQ-3), proto v0.4.2 (sin cambios), agent
+# v0.5.10 (pina proto v0.4.2), server v0.9.5 (pina agent v0.5.10 y proto
+# v0.4.2).
 # Verificado con caché virgen en el arco de quark:
 # `go install github.com/jcsvwinston/quark/cmd/quark@v1.4.1`
 # (y el job go-install-tag del CI de integración re-ejecuta el del server en
 # cada corrida).
 modules:
   quark:   "v1.4.1"
-  nucleus: "v1.6.2"
-  orbit:   "v1.5.3"
+  nucleus: "v1.7.0"
+  orbit:   "v1.5.4"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "16fd4823"                                # = v1.4.1 exacto
-  nucleus: "fa068a7e"                                # = v1.6.2 exacto
-  orbit:   "7f022639"                                # = v1.5.3 exacto (contiene server/v0.9.4, agent/v0.5.9, proto/v0.4.2, quarkbridge/v0.3.8, quarkdatasource/v0.2.8 como ancestros — verificado por el manifest-guard §3 en cada corrida de CI)
+  nucleus: "705a7509"                                # = v1.7.0 exacto
+  orbit:   "8296ab2c"                                # = v1.5.4 exacto (contiene server/v0.9.5, agent/v0.5.10, proto/v0.4.2, quarkbridge/v0.3.9, quarkdatasource/v0.2.8 como ancestros — verificado por el manifest-guard §3 en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -45,7 +45,32 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.10.1 — Arco QCD-CLI (micro-arco de reparación, NO una ronda;
+  Quantum 1.11.0 — Arco QCD-FW (micro-arco de features dirigido por los
+  hallazgos de framework de quantum-coverage-demo; Quantum 1.10.1 seguía
+  certificada). Cierra los dos hallazgos que el arco QCD-CLI dejó
+  registrados con workaround declarado, más el cableado prometido en
+  v1.6.2. **nucleus v1.7.0 (minor):** QCD-FW-1 — el authz global
+  default-deny ve claims JWT: App.New monta el decoder opcional de bearer
+  por delante del enforcement y el middleware resuelve sujetos en orden
+  uid → rol → anonymous (primer permitido gana; el fallback anonymous
+  preserva el allowlist de bootstrap para autenticados — dirección
+  estrictamente no-restrictiva). El RBAC por roles del CSV de AUTH_GUIDE
+  es alcanzable en la capa global sin replicarlo por módulo. QCD-FW-2 —
+  bootstrap de buckets S3: CreateBucketIfMissing (opt-in, provisiona al
+  construir) y S3Store.EnsureBucket (programático, idempotente); cambio
+  declarado: sin opt-in, un bucket ausente falla ALTO en el constructor en
+  vez de bootear verde y reventar en el primer Put. Además,
+  ServiceRegistration.Health cableado a /healthz como service:<name> (503
+  si falla), con health.FuncProbe y app.RegisterHealthProbe como piezas
+  reutilizables. **orbit v1.5.4 (patch):** alineación pura de deps a
+  nucleus v1.7.0 (agent v0.5.10, server v0.9.5, quarkbridge v0.3.9; proto
+  y quarkdatasource sin cambios). **quark v1.4.1:** sin cambios, continúa
+  del set 1.10.1. La demo puede retirar sus dos workarounds declarados
+  (fila-puerta anonymous + RBAC por módulo, y el MakeBucket a mano en
+  OnStart). Nombre 1.11.0 (minor): el minor de nucleus arrastra el número
+  de suite (QADR-0002).
+
+  --- Quantum 1.10.1 (histórico) — Arco QCD-CLI (micro-arco de reparación, NO una ronda;
   Quantum 1.10.0 seguía certificada). Primera vez que el detector es EXTERNO:
   quantum-coverage-demo, un consumidor independiente que ejercita la suite
   solo por module proxy, reportó 5 hallazgos de CLI con repro rojo ejecutado
