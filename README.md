@@ -34,6 +34,15 @@ uno, qué rol juega en la suite y cómo encajan.
 | **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.4.1` | [`quark/`](quark) | **Sí, en cualquier app Go** |
 | **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.5.4` | [`orbit/`](orbit) | No (requiere Nucleus) |
 
+Módulos de integración (repo orbit, opt-in; son los que materializan el puente quark↔orbit):
+
+| Módulo | Rol | Versión |
+|---|---|---|
+| `github.com/jcsvwinston/orbit/quarkbridge` | Publica los statements de Quark en el feed vivo de Orbit | `v0.3.9` |
+| `github.com/jcsvwinston/orbit/quarkdatasource` | Expone los modelos Quark en el Data Studio de Orbit | `v0.2.8` |
+
+**¿Por dónde empiezo?** Solo la capa de datos → Quark. Una aplicación → Nucleus (Quark opcional dentro). Los tres juntos → el [ejemplo integrador `showcase_demo`](https://github.com/jcsvwinston/nucleus/tree/main/examples/showcase_demo) los cablea de punta a punta en ~30 minutos, `curl`s incluidos. Orbit siempre requiere Nucleus.
+
 Los nombres vienen de la **física de partículas**: **Nucleus** es el **núcleo** (el
 framework anfitrión); **Quark**, la **partícula fundamental** (la capa de datos,
 usable suelta); y **Orbit**, lo que **orbita** el núcleo (la administración que

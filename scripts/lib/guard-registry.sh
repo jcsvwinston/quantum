@@ -128,6 +128,11 @@ GUARD_SCAN_EXCLUDE=(
   # Registrarlos crearía recursión (la lane lanzándose a sí misma).
   "scripts/suite-integral.sh"
   "scripts/guard-of-guards.sh"
+  # Utillaje de CONSUMO del manifiesto (DX-25): imprime el bloque require
+  # pegable desde versions.yaml. No certifica nada — genera texto para el
+  # usuario; su corrección la cubre la verificación de las 9 versiones que
+  # manifest-guard hace sobre el mismo fichero.
+  "scripts/print-requires.sh"
   # Utillaje de NOTIFICACIÓN de los workflows programados (QM8-1): abre o
   # actualiza el issue del schedule rojo vía gh. No certifica nada del árbol —
   # avisa de que la certificación falló; registrarlo como guard sería circular.

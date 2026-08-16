@@ -108,8 +108,19 @@ for mod in proto agent server quarkbridge quarkdatasource; do
     echo "FAIL: orbit/$mod — the pinned root carries $mod/ changes not covered by $latest (unreleased module code in the certified set)" >&2
     status=1; mod_ok=0
   fi
+  # DX-25: the declared orbit_modules: version must equal the latest tag —
+  # the six submodule versions used to live in a prose comment that nothing
+  # enforced; now the manifest certifies 9 module versions, not 3.
+  declared=$(yaml_value orbit_modules "$mod")
+  if [[ -z "$declared" ]]; then
+    echo "FAIL: versions.yaml orbit_modules has no entry for $mod (all six orbit modules must be declared)" >&2
+    status=1; mod_ok=0
+  elif [[ "$mod/$declared" != "$latest" ]]; then
+    echo "FAIL: versions.yaml orbit_modules.$mod = $declared but the latest published tag is $latest" >&2
+    status=1; mod_ok=0
+  fi
   if [[ $mod_ok -eq 1 ]]; then
-    echo "OK: orbit/$mod $latest — ancestor of the root pin, module tree identical"
+    echo "OK: orbit/$mod $latest — ancestor of the root pin, module tree identical, declared in orbit_modules"
   fi
 done
 
