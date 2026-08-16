@@ -1,6 +1,6 @@
-go 1.26.5
+go 1.26.6
 
-toolchain go1.26.5
+toolchain go1.26.6
 
 // Conveniencia de desarrollo: enlaza los tres productos de la suite para
 // trabajarlos a la vez en local (mismo patrón que Orbit ya usa entre sus
