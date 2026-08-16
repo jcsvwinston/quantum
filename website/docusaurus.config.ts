@@ -7,7 +7,7 @@ import * as fs from 'node:fs';
 // El número Quantum y los tags reales de cada producto se muestran en la navbar
 // (doble selector): versión de la suite arriba + versión real de cada módulo.
 const suiteYaml = fs.readFileSync('../versions.yaml', 'utf8');
-const modulesBlock = suiteYaml.match(/modules:\s*([\s\S]*?)\n\w/)?.[1] ?? suiteYaml;
+const modulesBlock = suiteYaml.match(/^modules:\s*([\s\S]*?)\n\w/m)?.[1] ?? suiteYaml;
 const pick = (name: string): string =>
   (modulesBlock.match(new RegExp(`${name}:\\s*"?([^"#\\n]+)`))?.[1] ?? '').trim();
 const suite = {

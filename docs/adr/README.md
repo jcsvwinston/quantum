@@ -18,6 +18,7 @@
 | [QADR-0004](QADR-0004-versions-yaml-manifiesto.md) | `versions.yaml` como manifiesto de releases Quantum | Accepted | Fase 0 / Fase 3 |
 | [QADR-0005](QADR-0005-secuenciacion-convergencia.md) | Secuenciación de convergencia — Nucleus a v1.0 primero, Orbit en lockstep | Accepted | Fase 5 |
 | [QADR-0006](QADR-0006-integracion-quark-orbit.md) | Integración Quark↔Orbit — feed SQL en tiempo real y Data Studio sobre Quark | Accepted | Fase 4 |
+| [QADR-0007](QADR-0007-idioma-del-paraguas.md) | Idioma único del sitio del paraguas — inglés | Accepted | Fase 3 |
 
 ## Cómo añadir un QADR nuevo
 
