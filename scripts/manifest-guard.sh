@@ -151,6 +151,23 @@ for mod in . proto agent server quarkbridge quarkdatasource; do
   done
 done
 
+# 4b. The README's integration-modules table (DX-17) repeats quarkbridge and
+# quarkdatasource versions — hardcoded and unguarded, they drifted within one
+# train of being added. Each must equal the declared orbit_modules version.
+for mod in quarkbridge quarkdatasource; do
+  readme_v=$(grep "orbit/$mod\`" README.md | grep -o 'v[0-9][0-9.]*[0-9]' | head -1 || true)
+  declared=$(yaml_value orbit_modules "$mod")
+  if [[ -z "$readme_v" ]]; then
+    echo "FAIL: README.md — integration table row for $mod not found or carries no version" >&2
+    status=1
+  elif [[ "$readme_v" != "$declared" ]]; then
+    echo "FAIL: README.md integration table says $mod $readme_v but versions.yaml declares $declared" >&2
+    status=1
+  else
+    echo "OK: README integration table — $mod $readme_v matches orbit_modules"
+  fi
+done
+
 # 4. The README's pillar table repeats the three module versions. It drifted
 # once already (fixed by hand in the 1.4.0 certification) and nothing guarded
 # it — a hardcoded version with no check, the exact failure class of the 5ª

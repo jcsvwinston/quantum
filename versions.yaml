@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.12.0"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-08-16
-status: certified           # Arco DX (informe 2026-08-16): los 27 ítems del backlog DX-1..DX-27 + los casos A4/A5 cerrados en producto; minors de quark (v1.5.0) y nucleus (v1.8.0) fuerzan el minor de suite (QADR-0002)
+quantum: "1.13.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-08-19
+status: certified           # Arcos QCD-FW-4..11 (re-verificación de la demo externa): capa SSR utilizable por la vía documentada, outbox sin ventana de arranque ni owner compartido, config estricta sin claves anunciadas-pero-rechazadas; minor de nucleus (v1.8.0→v1.9.1) fuerza el minor de suite (QADR-0002)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules», los seis módulos del
@@ -17,24 +17,24 @@ status: certified           # Arco DX (informe 2026-08-16): los 27 ítems del ba
 # borde root↔quarkdatasource por MAQ-3.
 modules:
   quark:   "v1.5.0"
-  nucleus: "v1.8.0"
-  orbit:   "v1.6.1"
+  nucleus: "v1.9.1"
+  orbit:   "v1.6.2"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.2"
-  agent:           "v0.5.11"
-  server:          "v0.9.6"
-  quarkbridge:     "v0.3.10"
+  agent:           "v0.5.12"
+  server:          "v0.9.7"
+  quarkbridge:     "v0.3.11"
   quarkdatasource: "v0.2.10"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "372afa40"                                # = v1.5.0 exacto
-  nucleus: "e41f0853"                                # = v1.8.0 exacto
-  orbit:   "a15764f7"                       # = v1.6.1 exacto (contiene server/v0.9.6, agent/v0.5.11, proto/v0.4.2, quarkbridge/v0.3.10, quarkdatasource/v0.2.10 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
+  nucleus: "1ff498ad"                                # = v1.9.1 exacto
+  orbit:   "37783bd2"                                # = v1.6.2 exacto (contiene server/v0.9.7, agent/v0.5.12, proto/v0.4.2, quarkbridge/v0.3.11, quarkdatasource/v0.2.10 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -48,20 +48,21 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.12.0 — Arco DX (informe de auditoría DX 2026-08-16: los 27 ítems
-  del backlog DX-1..DX-27 cerrados en producto con rojo-sin-fix donde
-  aplicaba, más los casos "exit 0 sin efecto" A4/A5). quark v1.5.0 (minor):
-  DDL de dominio con migrate create --from-models, vocabulario rico del
-  generador de modelos, timestamps automáticos, runner embebido de init,
-  linter de tags fail-fast, error accionable sin PK, build sin CGO y
-  quark.New estricto (opciones inválidas y driver desconocido = error).
-  nucleus v1.8.0 (minor): generate resource/startapp emiten Module()
-  montable con repositorio SQL real por dialecto, kit de test in-process
-  pkg/nucleustest + RunContext, profile: dev sin Docker, config estricta con
-  did-you-mean y el acantilado del quickstart convertido en test. orbit
-  v1.6.1: quick-start compilable, Makefile a 6 módulos, matriz de
-  compatibilidad generada, módulos re-pinados al set. Paraguas: guard nº16
-  umbrella-exit0-regressions (los 7 repros §4.A al pin), lane showcase-smoke
-  en integration.yml, quantum-env.sh y manifiesto a 9 módulos con
-  print-requires.sh. Minors de quark y nucleus fuerzan el minor de suite
-  (QADR-0002). El historial narrativo completo vive en CHANGELOG.md.
+  Quantum 1.13.0 — Arcos QCD-FW-4..11 (la re-verificación continua de la demo
+  externa sobre la serie v1.8.x/v1.9.x de nucleus; quark v1.5.0 y el resto del
+  set continúan del 1.12.0). nucleus v1.9.1 acumula: FW-4
+  create_bucket_if_missing alcanzable desde nucleus.yml + paridad de espejos
+  de config por reflexión; FW-5 knobs de outbox (missing_route_policy,
+  lease_owner por instancia); FW-6 Flush sin pánico; FW-7 plantillas
+  recursivas con nombre por ruta relativa y scaffold renderizable; FW-8
+  newChild como única derivación de sub-routers (los módulos con Prefix
+  reciben motor y sesión — y el session manager por fin cableado al árbol);
+  FW-9 WithTemplateFuncs/WithTemplates; FW-10 el dispatcher del outbox
+  arranca tras las extensiones; FW-11 el builder re-expone toda app.Option
+  con guard de paridad app↔builder, y el baseline de API congelado exige
+  regenerarse ante adiciones. Suites nuevas en CI: conformidad SSR de 5
+  puntos y scaffold ejecutable. orbit v1.6.2: alineación de deps a nucleus
+  v1.9.1 (agent v0.5.12, server v0.9.7, quarkbridge v0.3.11; proto y
+  quarkdatasource sin cambios). Nombre 1.13.0 (minor): el minor de nucleus
+  arrastra el número de suite (QADR-0002). El historial narrativo completo
+  vive en CHANGELOG.md.
