@@ -6,6 +6,26 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.12.0 — Arco DX
+
+Quantum 1.12.0 — Arco DX (informe de auditoría DX 2026-08-16: los 27 ítems
+del backlog DX-1..DX-27 cerrados en producto con rojo-sin-fix donde
+aplicaba, más los casos "exit 0 sin efecto" A4/A5). quark v1.5.0 (minor):
+DDL de dominio con migrate create --from-models, vocabulario rico del
+generador de modelos, timestamps automáticos, runner embebido de init,
+linter de tags fail-fast, error accionable sin PK, build sin CGO y
+quark.New estricto (opciones inválidas y driver desconocido = error).
+nucleus v1.8.0 (minor): generate resource/startapp emiten Module()
+montable con repositorio SQL real por dialecto, kit de test in-process
+pkg/nucleustest + RunContext, profile: dev sin Docker, config estricta con
+did-you-mean y el acantilado del quickstart convertido en test. orbit
+v1.6.1: quick-start compilable, Makefile a 6 módulos, matriz de
+compatibilidad generada, módulos re-pinados al set. Paraguas: guard nº16
+umbrella-exit0-regressions (los 7 repros §4.A al pin), lane showcase-smoke
+en integration.yml, quantum-env.sh y manifiesto a 9 módulos con
+print-requires.sh. Minors de quark y nucleus fuerzan el minor de suite
+(QADR-0002). El historial narrativo completo vive en CHANGELOG.md.
+
 ## Quantum 1.11.0
 
 Quantum 1.11.0 — Arco QCD-FW (micro-arco de features dirigido por los
