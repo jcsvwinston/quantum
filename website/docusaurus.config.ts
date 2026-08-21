@@ -127,7 +127,18 @@ const config: Config = {
         path: '../nucleus/website/docs',
         routeBasePath: 'nucleus',
         sidebarPath: './sidebarsNucleus.ts',
-        editUrl: 'https://github.com/jcsvwinston/nucleus/edit/main/website/',
+        // editUrl como FUNCIÓN, no string: con string Docusaurus concatena la
+        // ruta del doc RELATIVA AL SITIO, que aquí es `../nucleus/website/docs/…`
+        // — el enlace "Edit this page" resultante normalizaba a
+        // `edit/main/nucleus/website/docs/…`, una ruta que no existe en el repo
+        // (206 enlaces rotos en el sitio publicado, las tres instancias). Para
+        // los snapshots (convención sin prefijo de la instancia default),
+        // versionDocsDirPath = `versioned_docs/version-X`, que coincide con el
+        // layout del repo nucleus y se conserva tal cual.
+        editUrl: ({versionDocsDirPath, docPath}) =>
+          versionDocsDirPath.startsWith('..')
+            ? `https://github.com/jcsvwinston/nucleus/edit/main/website/docs/${docPath}`
+            : `https://github.com/jcsvwinston/nucleus/edit/main/website/${versionDocsDirPath}/${docPath}`,
         // La raíz servida es SIEMPRE la doc actual, etiquetada con el tag real
         // del manifiesto. Sin esto, Docusaurus sirve por defecto el último
         // snapshot versionado — así es como el sitio publicado llegó a enseñar
@@ -143,7 +154,14 @@ const config: Config = {
         path: '../quark/website/docs',
         routeBasePath: 'quark',
         sidebarPath: './sidebarsQuark.ts',
-        editUrl: 'https://github.com/jcsvwinston/quark/edit/main/website/',
+        // Función por la misma razón que la instancia default. Los snapshots de
+        // Quark se sincronizan a `quark_versioned_docs/` en el paraguas
+        // (sync-versions.mjs), pero en el REPO quark viven en
+        // `website/versioned_docs/` — el replace deshace el prefijo del sync.
+        editUrl: ({versionDocsDirPath, docPath}) =>
+          versionDocsDirPath.startsWith('..')
+            ? `https://github.com/jcsvwinston/quark/edit/main/website/docs/${docPath}`
+            : `https://github.com/jcsvwinston/quark/edit/main/website/${versionDocsDirPath.replace(/^quark_/, '')}/${docPath}`,
         // Reescribe los enlaces `/docs/*` heredados de Quark a `/quark/*` (ver
         // remarkQuarkDocsBase arriba). Solo la instancia de Quark lo necesita.
         beforeDefaultRemarkPlugins: [remarkQuarkDocsBase],
@@ -159,7 +177,9 @@ const config: Config = {
         path: '../orbit/website/docs',
         routeBasePath: 'orbit',
         sidebarPath: './sidebarsOrbit.ts',
-        editUrl: 'https://github.com/jcsvwinston/orbit/edit/main/website/',
+        // Función por la misma razón que la instancia default (orbit no versiona).
+        editUrl: ({docPath}) =>
+          `https://github.com/jcsvwinston/orbit/edit/main/website/docs/${docPath}`,
       },
     ],
     [
