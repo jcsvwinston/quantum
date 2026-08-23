@@ -6,6 +6,27 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.13.0 — Arcos QCD-FW-4..11
+
+Quantum 1.13.0 — Arcos QCD-FW-4..11 (la re-verificación continua de la demo
+externa sobre la serie v1.8.x/v1.9.x de nucleus; quark v1.5.0 y el resto del
+set continúan del 1.12.0). nucleus v1.9.1 acumula: FW-4
+create_bucket_if_missing alcanzable desde nucleus.yml + paridad de espejos
+de config por reflexión; FW-5 knobs de outbox (missing_route_policy,
+lease_owner por instancia); FW-6 Flush sin pánico; FW-7 plantillas
+recursivas con nombre por ruta relativa y scaffold renderizable; FW-8
+newChild como única derivación de sub-routers (los módulos con Prefix
+reciben motor y sesión — y el session manager por fin cableado al árbol);
+FW-9 WithTemplateFuncs/WithTemplates; FW-10 el dispatcher del outbox
+arranca tras las extensiones; FW-11 el builder re-expone toda app.Option
+con guard de paridad app↔builder, y el baseline de API congelado exige
+regenerarse ante adiciones. Suites nuevas en CI: conformidad SSR de 5
+puntos y scaffold ejecutable. orbit v1.6.2: alineación de deps a nucleus
+v1.9.1 (agent v0.5.12, server v0.9.7, quarkbridge v0.3.11; proto y
+quarkdatasource sin cambios). Nombre 1.13.0 (minor): el minor de nucleus
+arrastra el número de suite (QADR-0002). El historial narrativo completo
+vive en CHANGELOG.md.
+
 ## Quantum 1.12.0 — Arco DX
 
 Quantum 1.12.0 — Arco DX (informe de auditoría DX 2026-08-16: los 27 ítems
