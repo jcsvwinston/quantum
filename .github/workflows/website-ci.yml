@@ -69,3 +69,10 @@ jobs:
       # semanas con el linter de fuente en verde.
       - name: Linter de jerga sobre lo servido
         run: bash scripts/check_served_jargon.sh website/build
+
+      # Docusaurus verifica sus enlaces internos, pero no mira los `<a href>`
+      # externos: los «Edit this page» de las tres instancias estuvieron rotos
+      # meses con el build en verde. Aquí se resuelven contra el checkout de
+      # cada repo — sin red, así que ni credenciales ni rate-limit.
+      - name: Enlaces del sitio construido
+        run: bash scripts/check_built_links.sh website/build
