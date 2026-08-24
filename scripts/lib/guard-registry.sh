@@ -49,6 +49,11 @@ GUARDS=(
   # Mid-tren (versión nueva sin tag) verifica el último tag existente contra su
   # propio árbol, con AVISO — ver cabecera del script y AUDITORIA_CONTINUA.md.
   "umbrella-suite-tag|.|bash scripts/check_suite_tag.sh"
+  # Los enlaces del sitio CONSTRUIDO resuelven: los `<a href>` a nuestros repos
+  # se verifican contra el checkout local (sin red, sin 429) y los internos
+  # contra el HTML generado. Docusaurus no mira los externos — así vivieron
+  # meses los «Edit this page» rotos de las tres instancias.
+  "umbrella-built-links|.|bash scripts/check_built_links.sh website/build"
   # Los 7 repros "exit 0 sin efecto" del informe DX (§4.A) contra el árbol AL
   # PIN: comandos que fracasaban con éxito aparente. Entra al set con Quantum
   # 1.12.0 — con pines anteriores (quark < v1.5.0, nucleus < v1.8.0) sale rojo
@@ -138,6 +143,11 @@ GUARD_SCAN_EXCLUDE=(
   # usuario; su corrección la cubre la verificación de las 9 versiones que
   # manifest-guard hace sobre el mismo fichero.
   "scripts/print-requires.sh"
+  # Utillaje de ESCRITURA del manifiesto (capa 1 de automatización de docs):
+  # mueve los submódulos al tag y reescribe las 8 versiones, los pins y las
+  # tablas del README. No certifica nada — PROPONE el re-pin; quien lo juzga
+  # es manifest-guard, que corre después sobre lo que este script escribió.
+  "scripts/bump-set.sh"
   # Utillaje de NOTIFICACIÓN de los workflows programados (QM8-1): abre o
   # actualiza el issue del schedule rojo vía gh. No certifica nada del árbol —
   # avisa de que la certificación falló; registrarlo como guard sería circular.
