@@ -30,7 +30,7 @@ Los guards de producto corren **al pin** — el submódulo tal y como lo fija
 significa que el set que el manifiesto certifica no pasa sus propios guards,
 que es exactamente lo que reportaría un auditor.
 
-Registro actual (15 guards):
+Registro actual (21 guards):
 
 | Guard | Repo | Comando | Qué caza |
 |---|---|---|---|
@@ -38,14 +38,20 @@ Registro actual (15 guards):
 | umbrella-served-jargon | paraguas | `bash scripts/check_served_jargon.sh website/build` | Jerga interna (ADR-nnn, P0…, IDs de hallazgo QK/NU/OR/QMn-n) en el HTML **servido**, tras el build. |
 | umbrella-sidebar-sync | paraguas | `bash scripts/check_sidebar_sync.sh` | Sidebars espejadas (nucleus/quark) desincronizadas del sidebar del submódulo pinado; parser sin ids = FAIL, no verde-vacío (QM8-3). |
 | umbrella-suite-tag | paraguas | `bash scripts/check_suite_tag.sh` | Tag de suite que no respalda lo que afirma. **Autoconsistencia (asserts 2-4):** `v<quantum>` inexistente sin estar mid-tren, versions.yaml del tag declarando otra versión, o gitlinks del tag ≠ workspace_pins del tag (QM8-6). **Captura (assert 5, MAQ-1/B.1):** gitlinks del tag ≠ gitlinks/workspace_pins de HEAD — un tag rancio pero autoconsistente (cortado antes del re-pin) que los asserts 2-4 no cazan. El assert 5 solo se exige al certificar (`--cierre`/`QUANTUM_CERTIFYING=1`) o con tag==HEAD; la lane semanal tolera HEAD>tag entre arcos. En certificación, además, el mid-tren sin tag es NO-PASA (MAQ-2/B.2). |
+| umbrella-built-links | paraguas | `bash scripts/check_built_links.sh website/build` | Enlaces del sitio **construido** que no resuelven: los `href` a nuestros repos se comprueban contra el checkout local (sin red, sin 429) y los internos contra el HTML generado. Docusaurus no mira los externos — así vivieron meses los «Edit this page» rotos de las tres instancias. |
+| umbrella-exit0-regressions | paraguas | `bash scripts/check_exit0_regressions.sh` | Los repros «exit 0 sin efecto» del informe DX (§4.A): comandos que fracasaban con éxito aparente, ejercidos contra el árbol al pin. |
 | nucleus-version-claims | nucleus | `bash scripts/ci/check_version_claims.sh` | Marcadores `x-release-please-version` desalineados, directivas Go del scaffold, estados README↔inventario. |
 | nucleus-product-voice | nucleus | `bash scripts/ci/check_docs_product_voice.sh` | Vocabulario interno en `website/docs/**`. |
 | nucleus-contract-freeze | nucleus | `bash scripts/ci/check_contract_freeze.sh` | Removals en los contratos congelados (CLI, config, símbolos estables) + firewall de tipos. |
 | nucleus-docs-coverage | nucleus | `bash scripts/website/check-coverage.sh --strict` | Tokens legacy, referencias `covers:` colgantes y (vía bodycheck) falsedades de cuerpo en la web pública. |
 | nucleus-bodycheck | nucleus | `go run ./scripts/website/bodycheck -strict` | Falsedades duras en el cuerpo de las páginas: versión de Go, símbolos Go inexistentes, tags `db:` que el parser real no reconoce. |
+| nucleus-docs-drift | nucleus | `bash scripts/ci/check_internal_docs_drift.sh` | Documentación **interna** (`docs/**`) citando ficheros ausentes: enlaces relativos y rutas entre comillas invertidas que no resuelven en el árbol. Los registros históricos (`adrs/`, `audits/`, `iterations/`…) quedan fuera — son actas, no manuales vivos. |
+| nucleus-docs-archive | nucleus | `bash scripts/ci/check_docs_archive_freshness.sh` | Archivo versionado del sitio por detrás de lo publicado: el snapshot más reciente no puede quedar bajo la MINOR publicada (un patch no exige corte). |
 | quark-version-coherence | quark | `bash scripts/check-version-coherence.sh` | Versión publicada ausente de README/SECURITY/CLAUDE/release-notes; roadmap con versiones hardcodeadas. |
 | quark-product-voice | quark | `bash scripts/ci/check_docs_product_voice.sh` | Vocabulario interno en `website/docs/**`. |
 | quark-lint-docs | quark | `bash scripts/lint-docs.sh` | Lenguaje de marketing, fugas `RELEASE_NOTES_V1`, enlaces relativos rotos. |
+| quark-docs-drift | quark | `bash scripts/ci/check_internal_docs_drift.sh` | Igual que en nucleus, con la lista de directorios de primer nivel de este repo. |
+| quark-docs-archive | quark | `bash scripts/ci/check_docs_archive_freshness.sh` | Igual que en nucleus: el archivo cubre la minor publicada. |
 | orbit-product-voice | orbit | `bash scripts/ci/check_docs_product_voice.sh` | Vocabulario interno en `website/docs/**`. |
 | orbit-docs-version-claims | orbit | `bash scripts/ci/check_docs_version_claims.sh` | Marcadores `x-release-please-version` desalineados con la versión publicada. |
 | orbit-internal-pins | orbit | `bash scripts/ci/check_internal_pins.sh` | Pins entre módulos hermanos por detrás del último tag publicado. |
