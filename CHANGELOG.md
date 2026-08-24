@@ -6,6 +6,31 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.14.0 — Arco vertical slices (ADR-022)
+
+Quantum 1.14.0 — Arco vertical slices (ADR-022 de nucleus, v1.10.0): un
+módulo montado lleva ahora TODO lo que su feature necesita. §1 Policies y
+CSRFExempt declarables (filas RBAC relativas al Prefix, solo in-memory; un
+deny del CSV anfitrión anula cualquier allow de módulo); §2 las Migrations
+embebidas se aplican con una llamada deliberada (Runtime.ApplyModuleMigrations,
+ledger con namespace por módulo + checksums, idempotente; el boot sigue sin
+mutar esquema por sí solo — ADR-013 §R1); §3 Templates fs.FS por módulo bajo
+su namespace (app.WithTemplatesFS, acumulativo; templates_dir del anfitrión
+gana la colisión); §4 nucleus generate module emite el slice
+paquete-por-feature autocontenido — el E2E del guard de scaffold arranca sin
+migrate y sin tocar rbac_policy.csv. quark v1.5.2: migrate up sin --steps
+aplicaba SOLO la primera migración pendiente (default del flag compartido
+entre up/down) y salía 0 — clase «exit 0 sin efecto». orbit v1.6.5:
+alineación de deps al set completa en dos pasos cazados por los guards
+(v1.6.3 dejó agent en nucleus v1.9.1 — manifest-guard §5; v1.6.4 dejó a
+server pinando agent v0.5.12 — orbit-internal-pins): server v0.9.9,
+agent v0.5.13, quarkbridge v0.3.12, quarkdatasource v0.2.11, proto sin
+cambios. Además: los 206
+enlaces «Edit this page» del sitio publicado estaban rotos (editUrl string)
+y quedaron corregidos con editUrl-función por instancia. Nombre 1.14.0
+(minor): el minor de nucleus arrastra el número de suite (QADR-0002). El
+historial narrativo completo vive en CHANGELOG.md.
+
 ## Quantum 1.13.0 — Arcos QCD-FW-4..11
 
 Quantum 1.13.0 — Arcos QCD-FW-4..11 (la re-verificación continua de la demo

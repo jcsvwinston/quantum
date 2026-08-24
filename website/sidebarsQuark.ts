@@ -19,6 +19,7 @@ const sidebars: SidebarsConfig = {
         'guides/migrations',
         'guides/transactions',
         'guides/hooks',
+        'guides/testing',
         'guides/cli',
         'guides/codegen',
       ],

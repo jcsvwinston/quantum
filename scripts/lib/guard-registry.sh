@@ -73,6 +73,15 @@ GUARDS=(
   # Fact-check del CUERPO de las páginas (versión de Go, símbolos, tags db:).
   # -strict: sin él, el binario avisa pero sale 0 — no sería un guard.
   "nucleus-bodycheck|nucleus|go run ./scripts/website/bodycheck -strict"
+  # La documentación INTERNA (docs/**) no cita ficheros ausentes: enlaces
+  # relativos y rutas entre comillas invertidas resuelven en el árbol. Los
+  # registros históricos (adrs/, audits/, iterations/…) quedan fuera a
+  # propósito — son actas, no manuales vivos. Entra al set con nucleus v1.11.0.
+  "nucleus-docs-drift|nucleus|bash scripts/ci/check_internal_docs_drift.sh"
+  # El archivo versionado del sitio no se queda atrás: el snapshot más reciente
+  # no puede estar por debajo de la MINOR publicada (un patch no exige corte).
+  # Entra al set con nucleus v1.11.0.
+  "nucleus-docs-archive|nucleus|bash scripts/ci/check_docs_archive_freshness.sh"
   # --- quark (al pin) -------------------------------------------------------
   # La versión del manifiesto mencionada en README/SECURITY/CLAUDE/release-notes
   # + roadmap sin versiones hardcodeadas (H-Q6, QK6-5).
@@ -81,6 +90,13 @@ GUARDS=(
   "quark-product-voice|quark|bash scripts/ci/check_docs_product_voice.sh"
   # Anti-marketing, fugas RELEASE_NOTES_V1 y enlaces relativos rotos (F0-10).
   "quark-lint-docs|quark|bash scripts/lint-docs.sh"
+  # La documentación INTERNA (docs/**) no cita ficheros ausentes — mismo guard
+  # que en nucleus, con la lista de directorios de primer nivel de este repo.
+  # Entra al set con quark v1.6.0.
+  "quark-docs-drift|quark|bash scripts/ci/check_internal_docs_drift.sh"
+  # El archivo versionado del sitio cubre la minor publicada. Entra al set con
+  # quark v1.6.0.
+  "quark-docs-archive|quark|bash scripts/ci/check_docs_archive_freshness.sh"
 
   # --- orbit (al pin) -------------------------------------------------------
   # Vocabulario interno (incluye la regla de IDs de hallazgo) fuera de website/docs.
@@ -198,6 +214,12 @@ GUARD_SCAN_EXCLUDE=(
   # que esta lane valida. Probado en la certificación 1.8.0: registrado aquí
   # salía rojo con el set correcto. Ver docs/AUDITORIA_CONTINUA.md §4.
   "nucleus/scripts/ci/check_example_pins.sh"
+  # SETUP de infraestructura del CI de quark (DX-2): levanta el contenedor de
+  # Oracle y espera a que acepte conexiones, para que las lanes de Oracle no
+  # dupliquen 40 líneas de YAML. No tiene veredicto sobre el árbol — prepara
+  # una base de datos; lo que certifica son los tests que corren después.
+  # Entra al set con quark v1.6.0.
+  "quark/scripts/ci/oracle-up.sh"
   # GENERADOR de entorno para apps consumidoras (DX-24): traduce un .env
   # neutro a las dos gramáticas de configuración (QUARK_* viper / NUCLEUS_*
   # koanf). Emite exports, no tiene veredicto sobre el árbol — no es un guard.
