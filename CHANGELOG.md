@@ -6,6 +6,48 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.15.0 — Arco DX-2 y consolidación documental
+
+Quantum 1.15.0 — Arco DX-2 (ergonomía de test y de contribuidor) y
+consolidación de la documentación. quark v1.6.0: §1 quarktest, kit de
+pruebas del ORM — SQLite(tb) da una base por test respaldada en fichero (no
+:memory:, que rompe con pools), Migrate(tb, client, models...) levanta el
+esquema desde los modelos y Tx(tb, client, fn) ejecuta el caso dentro de una
+transacción que SIEMPRE revierte; §2 quarktenant.VerifyRLSPolicies convierte
+el aislamiento multi-tenant en un preflight verificable (lee
+pg_class.relrowsecurity/relforcerowsecurity y pg_policies, devuelve hallazgos
+por tabla y sale 1 con ErrRLSNotEnforced) — antes «RLS activo» era una
+creencia, ahora es una comprobación; §3 make check reproduce en local la
+puerta de CI completa. nucleus v1.11.0: §1 nucleustest crece de arrancar un
+servidor a cerrar el círculo — Runtime(), DB(), TempSQLite(t) y MigrateDir()
+permiten afirmar contra la base con el esquema real (el kit monta un módulo
+sonda; el nombre nucleustest_probe queda reservado); §2 la validación de
+configuración emite UN solo veredicto: ValidateSemantics y ValidateReferential
+viven en pkg/app y LoadConfig las ejecuta siempre, así que un fichero
+inválido falla al cargarse y no tres capas más abajo; §3 parada grácil del
+outbox — Stop() deja terminar la pasada en vuelo (RunGraceful,
+GracefulStopTimeout de 5 s) y solo entonces escala a cancelación dura. NOTA
+honesta sobre §3: nace de un pánico de carrera visto UNA vez en la lane de
+race de CI (database/sql (*Rows).close→awaitDone); no se logró reproducir con
+estrés (-race -count=100, GOMAXPROCS variado), así que no se declara
+arreglado: lo que se entrega es un contrato de parada mejor, con su test en
+rojo antes del fix, no un diagnóstico cerrado. orbit v1.6.6: alineación de
+deps al set (agent v0.5.14, server v0.9.10, quarkbridge v0.3.13,
+quarkdatasource v0.2.12; proto sin cambios) en UNA ronda — el pin de agent se
+subió dentro de la propia release de server, que es lo que colapsó la cascada
+de dos rondas extra de los dos sets anteriores. Documentación: reescritura
+editorial de las páginas públicas de los tres productos (58 en total) para
+que se entiendan sin conocer el código; el archivo versionado queda
+consolidado con herramienta y guard propios (cut_docs_snapshot.sh corta el
+snapshot ANTES de que entre la release, check_docs_archive_freshness lo
+exige, y el checklist de release lo pone como paso 0) — no se rellenaron
+snapshots retroactivos: se documenta el hueco en vez de fabricarlo. Paraguas:
+guard nº17 (los enlaces del sitio construido se verifican contra los
+checkouts locales, sin red) y scripts/bump-set.sh, la capa 1 de automatización
+de docs — el escritor mecánico del set. Nombre 1.15.0 (minor): los minors de
+quark y nucleus arrastran el número de suite (QADR-0002). El historial
+narrativo completo vive en CHANGELOG.md.
+
 ## Quantum 1.14.0 — Arco vertical slices (ADR-022)
 
 Quantum 1.14.0 — Arco vertical slices (ADR-022 de nucleus, v1.10.0): un

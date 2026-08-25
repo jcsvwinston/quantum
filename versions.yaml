@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.15.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.16.0"           # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-08-25
-status: certified           # Arcos DX-2 (kits de test y ergonomía de contribuidor) y consolidación documental: quark v1.6.0 (quarktest, VerifyRLSPolicies, make check), nucleus v1.11.0 (nucleustest ampliado, config con un solo veredicto, parada grácil del outbox), reescritura editorial de la documentación pública de los tres productos y archivo versionado con guard propio; los minors de quark y nucleus fuerzan el minor de suite (QADR-0002)
+status: certified           # Track E de nucleus (baseline de seguridad y cumplimiento): perfil de hardening OBSERVADO y congelado, nucleus doctor security, prefijos de cookie al veredicto único; más cinco hallazgos de la pasada posterior. quark sin cambios (v1.6.0); el minor de nucleus fuerza el minor de suite (QADR-0002)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules», los seis módulos del
@@ -17,24 +17,24 @@ status: certified           # Arcos DX-2 (kits de test y ergonomía de contribui
 # borde root↔quarkdatasource por MAQ-3.
 modules:
   quark:   "v1.6.0"
-  nucleus: "v1.11.0"
-  orbit:   "v1.6.6"
+  nucleus: "v1.12.0"
+  orbit:   "v1.6.7"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.2"
-  agent:           "v0.5.14"
-  server:          "v0.9.10"
-  quarkbridge:     "v0.3.13"
+  agent:           "v0.5.15"
+  server:          "v0.9.11"
+  quarkbridge:     "v0.3.14"
   quarkdatasource: "v0.2.12"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "fe270c32"                                # = v1.6.0 exacto
-  nucleus: "c18edf43"                                # = v1.11.0 exacto
-  orbit:   "74a8b2a4"                                # = v1.6.6 exacto (contiene server/v0.9.10, agent/v0.5.14, proto/v0.4.2, quarkbridge/v0.3.13, quarkdatasource/v0.2.12 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
+  nucleus: "8bc9088f"                                # = v1.12.0 exacto
+  orbit:   "6214dd4d"                                # = v1.6.7 exacto (contiene server/v0.9.11, agent/v0.5.15, proto/v0.4.2, quarkbridge/v0.3.14, quarkdatasource/v0.2.12 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -48,42 +48,41 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.15.0 — Arco DX-2 (ergonomía de test y de contribuidor) y
-  consolidación de la documentación. quark v1.6.0: §1 quarktest, kit de
-  pruebas del ORM — SQLite(tb) da una base por test respaldada en fichero (no
-  :memory:, que rompe con pools), Migrate(tb, client, models...) levanta el
-  esquema desde los modelos y Tx(tb, client, fn) ejecuta el caso dentro de una
-  transacción que SIEMPRE revierte; §2 quarktenant.VerifyRLSPolicies convierte
-  el aislamiento multi-tenant en un preflight verificable (lee
-  pg_class.relrowsecurity/relforcerowsecurity y pg_policies, devuelve hallazgos
-  por tabla y sale 1 con ErrRLSNotEnforced) — antes «RLS activo» era una
-  creencia, ahora es una comprobación; §3 make check reproduce en local la
-  puerta de CI completa. nucleus v1.11.0: §1 nucleustest crece de arrancar un
-  servidor a cerrar el círculo — Runtime(), DB(), TempSQLite(t) y MigrateDir()
-  permiten afirmar contra la base con el esquema real (el kit monta un módulo
-  sonda; el nombre nucleustest_probe queda reservado); §2 la validación de
-  configuración emite UN solo veredicto: ValidateSemantics y ValidateReferential
-  viven en pkg/app y LoadConfig las ejecuta siempre, así que un fichero
-  inválido falla al cargarse y no tres capas más abajo; §3 parada grácil del
-  outbox — Stop() deja terminar la pasada en vuelo (RunGraceful,
-  GracefulStopTimeout de 5 s) y solo entonces escala a cancelación dura. NOTA
-  honesta sobre §3: nace de un pánico de carrera visto UNA vez en la lane de
-  race de CI (database/sql (*Rows).close→awaitDone); no se logró reproducir con
-  estrés (-race -count=100, GOMAXPROCS variado), así que no se declara
-  arreglado: lo que se entrega es un contrato de parada mejor, con su test en
-  rojo antes del fix, no un diagnóstico cerrado. orbit v1.6.6: alineación de
-  deps al set (agent v0.5.14, server v0.9.10, quarkbridge v0.3.13,
-  quarkdatasource v0.2.12; proto sin cambios) en UNA ronda — el pin de agent se
-  subió dentro de la propia release de server, que es lo que colapsó la cascada
-  de dos rondas extra de los dos sets anteriores. Documentación: reescritura
-  editorial de las páginas públicas de los tres productos (58 en total) para
-  que se entiendan sin conocer el código; el archivo versionado queda
-  consolidado con herramienta y guard propios (cut_docs_snapshot.sh corta el
-  snapshot ANTES de que entre la release, check_docs_archive_freshness lo
-  exige, y el checklist de release lo pone como paso 0) — no se rellenaron
-  snapshots retroactivos: se documenta el hueco en vez de fabricarlo. Paraguas:
-  guard nº17 (los enlaces del sitio construido se verifican contra los
-  checkouts locales, sin red) y scripts/bump-set.sh, la capa 1 de automatización
-  de docs — el escritor mecánico del set. Nombre 1.15.0 (minor): los minors de
-  quark y nucleus arrastran el número de suite (QADR-0002). El historial
-  narrativo completo vive en CHANGELOG.md.
+  Quantum 1.16.0 — Track E de nucleus (v1.12.0), el track de seguridad y
+  cumplimiento del roadmap enterprise, cerrado con evidencia. §1 el perfil de
+  hardening por defecto queda CONGELADO y, sobre todo, MEDIDO: un test arranca
+  una app real, le manda una petición real y graba lo que vuelve —cada cabecera
+  de seguridad, los atributos de cada cookie, lo que recibe un llamante
+  cross-origin— para los perfiles de desarrollo y producción, y lo compara byte
+  a byte contra un baseline versionado. Nada se transcribe, así que el fichero
+  no puede afirmar una protección que el framework no emite, que es el modo de
+  fallo de todo checklist de seguridad escrito a mano. La comparación es EXACTA
+  en ambos sentidos: aflojar un default es la regresión que esto caza,
+  endurecerlo es un evento de compatibilidad para quien dependía de la postura
+  anterior, y los dos exigen regenerar el baseline a propósito — que es el
+  criterio de salida «security-sensitive config changes always
+  compatibility-reviewed» en forma mecánica. §2 nucleus doctor --check security
+  cubre la configuración que carga bien y expone mal: CORS con comodín (fatal
+  con credenciales, que el estándar Fetch prohíbe), trusted_proxies con
+  catch-all (X-Forwarded-For bajo control del atacante), jwt_secret largo pero
+  adivinable (health --deploy mide LONGITUD y 32 caracteres iguales la pasan),
+  csrf_insecure_cookie en producción y rate limiting apagado. §3 los prefijos
+  __Host-/__Secure- se juzgan al cargar y no al arrancar: vivían solo en el
+  constructor de sesiones, así que una cookie imposible cargaba limpia y mataba
+  la app al arrancar. Exclusión DECLARADA: no se activa el rate limiting por
+  defecto — voltear ese default haría que cada despliegue existente empezara a
+  rechazar tráfico al actualizar, y eso pertenece a un major con ventana de
+  deprecación. Además, cinco hallazgos de la pasada posterior al track: config
+  print era la última superficie del CLI que leía configuración sin juzgarla
+  (ahora avisa por stderr y sigue renderizando); el bodycheck marcaba como
+  deriva las claves de módulo y los nombres elegidos por el usuario, dejando
+  permanentemente en rojo la página que enseña a configurar módulos; la página
+  pública anunciaba la capa 3 de validación como «rolling out» meses después de
+  que corriera en cada carga; el orden código-antes-que-prosa quedó escrito en
+  el mensaje del propio guard y en CONTRIBUTING; y el snapshot de documentación
+  se corta ahora el ÚLTIMO de los cambios de la ronda, porque un corte anterior
+  congela el texto equivocado para siempre y ningún guard lo ve. orbit v1.6.7:
+  alineación al set de root, server, agent y quarkbridge (quarkdatasource y
+  proto no requieren nucleus). quark sin cambios en v1.6.0. Nombre 1.16.0
+  (minor): el minor de nucleus arrastra el número de suite (QADR-0002). El
+  historial narrativo completo vive en CHANGELOG.md.

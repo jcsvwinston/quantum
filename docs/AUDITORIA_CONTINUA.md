@@ -247,6 +247,19 @@ cambio toca una de estas clases, la mini-pasada correspondiente lo mira):
   demuestra (cambió el wire del payload sin tocar un símbolo).
 - **Drift de main entre rondas**: lo que main acumula por delante de los tags
   no está certificado hasta el siguiente tren.
+- **Prosa que FUE verdad**: los guards de deriva cazan símbolos que
+  desaparecen y rutas que no resuelven, no afirmaciones que envejecen. La
+  página de configuración de nucleus declaró la capa 3 de validación
+  «rolling out» durante los meses en que ya corría en cada carga, y ningún
+  guard podía verlo. Solo lo ve alguien releyendo la página con el código
+  delante — por eso el arco que TOCA un subsistema relee sus páginas.
+- **Documentación de orbit sin versionar**: quark y nucleus publican
+  snapshots por minor y tienen guard de frescura del archivo; orbit sirve
+  siempre su doc actual, así que quien corre una versión anterior lee la del
+  set vigente. Es un estado CONOCIDO (el config del paraguas lo dice: «orbit
+  no versiona») pero no declarado en ningún sitio que el lector vea.
+  Cerrarlo cambia rutas públicas y obliga a cortar el primer snapshot: es
+  decisión de producto, no deriva que un guard deba forzar.
 
 Con las condiciones del dictamen cumplidas, la «auditoría» de la 9ª+ es: lane
 semanal verde + CI por-repo verde + los disparadores que toquen.
