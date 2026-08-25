@@ -177,9 +177,30 @@ const config: Config = {
         path: '../orbit/website/docs',
         routeBasePath: 'orbit',
         sidebarPath: './sidebarsOrbit.ts',
-        // Función por la misma razón que la instancia default (orbit no versiona).
-        editUrl: ({docPath}) =>
-          `https://github.com/jcsvwinston/orbit/edit/main/website/docs/${docPath}`,
+        // Función porque un editUrl string concatena la ruta RELATIVA AL SITIO
+        // y manda a los lectores a un 404 (así vivieron meses los 206 enlaces
+        // «Edit this page» rotos de las tres instancias). Desde que orbit
+        // versiona (v1.6.7), además hay que distinguir la doc actual de un
+        // snapshot: `versionDocsDirPath` empieza por `..` solo para current.
+        // Y los snapshots se sincronizan a `orbit_versioned_docs/` en el
+        // paraguas, mientras en el REPO viven en `website/versioned_docs/` —
+        // el replace deshace el prefijo del sync, igual que en Quark. Sin él
+        // el enlace «Edit this page» de cada página de snapshot apunta a una
+        // ruta que no existe en GitHub (lo cazó el guard de enlaces).
+        editUrl: ({versionDocsDirPath, docPath}) =>
+          versionDocsDirPath.startsWith('..')
+            ? `https://github.com/jcsvwinston/orbit/edit/main/website/docs/${docPath}`
+            : `https://github.com/jcsvwinston/orbit/edit/main/website/${versionDocsDirPath.replace(/^orbit_/, '')}/${docPath}`,
+        // La raíz servida es SIEMPRE la doc actual, etiquetada con el tag real
+        // del manifiesto — igual que nucleus y quark. Sin esto Docusaurus
+        // sirve por defecto el último snapshot, que es como el sitio llegó a
+        // enseñar docs viejas contradiciendo la portada (QM5-1).
+        //
+        // Consecuencia deliberada: NINGUNA ruta existente se mueve. `/orbit/…`
+        // sigue sirviendo la doc actual; los snapshots aparecen bajo su ruta
+        // de versión. El cambio es aditivo.
+        lastVersion: 'current',
+        versions: {current: {label: suite.orbit}},
       },
     ],
     [
@@ -278,6 +299,13 @@ const config: Config = {
           // scoping por swizzle que el de Quark.
           type: 'docsVersionDropdown',
           docsPluginId: 'default',
+          position: 'right',
+        },
+        {
+          // Selector de versión de Orbit. Existe desde que orbit versiona
+          // (v1.6.7); mismo scoping por swizzle que los otros dos.
+          type: 'docsVersionDropdown',
+          docsPluginId: 'orbit',
           position: 'right',
         },
         {

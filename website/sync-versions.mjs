@@ -28,6 +28,11 @@ const PRODUCTS = [
     prefix: '',
     renameSidebar: {from: 'tutorialSidebar', to: 'nucleusSidebar'},
   },
+  // orbit versiona desde v1.6.7 (antes servía siempre su doc actual, así que
+  // quien corría una versión anterior leía la del set vigente). Su sidebar
+  // versionada ya se llama `orbitSidebar` y es autogenerada, así que no hay
+  // renombrado que hacer al ensamblar.
+  {id: 'orbit', src: '../orbit/website', prefix: 'orbit_'},
 ];
 
 // Cola de snapshots servidos por el paraguas (decisión de la 5ª ronda, QM5-1):

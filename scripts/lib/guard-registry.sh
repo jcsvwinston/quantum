@@ -109,6 +109,11 @@ GUARDS=(
   # remoto, este guard se pone rojo AL PIN: eso es información de certificación
   # (el set pinado quedó atrás), no ruido. Ver docs/AUDITORIA_CONTINUA.md.
   "orbit-internal-pins|orbit|bash scripts/ci/check_internal_pins.sh"
+  # El archivo versionado del sitio cubre la minor publicada. Orbit versiona
+  # desde v1.6.7 — antes servía siempre su doc actual, así que quien corría
+  # una versión anterior leía la del set vigente. Entra al set con orbit
+  # v1.6.8.
+  "orbit-docs-archive|orbit|bash scripts/ci/check_docs_archive_freshness.sh"
 )
 
 # ---------------------------------------------------------------------------
