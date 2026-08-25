@@ -6,6 +6,47 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.16.0 — Track E de nucleus (seguridad y cumplimiento)
+
+Quantum 1.16.0 — Track E de nucleus (v1.12.0), el track de seguridad y
+cumplimiento del roadmap enterprise, cerrado con evidencia. §1 el perfil de
+hardening por defecto queda CONGELADO y, sobre todo, MEDIDO: un test arranca
+una app real, le manda una petición real y graba lo que vuelve —cada cabecera
+de seguridad, los atributos de cada cookie, lo que recibe un llamante
+cross-origin— para los perfiles de desarrollo y producción, y lo compara byte
+a byte contra un baseline versionado. Nada se transcribe, así que el fichero
+no puede afirmar una protección que el framework no emite, que es el modo de
+fallo de todo checklist de seguridad escrito a mano. La comparación es EXACTA
+en ambos sentidos: aflojar un default es la regresión que esto caza,
+endurecerlo es un evento de compatibilidad para quien dependía de la postura
+anterior, y los dos exigen regenerar el baseline a propósito — que es el
+criterio de salida «security-sensitive config changes always
+compatibility-reviewed» en forma mecánica. §2 nucleus doctor --check security
+cubre la configuración que carga bien y expone mal: CORS con comodín (fatal
+con credenciales, que el estándar Fetch prohíbe), trusted_proxies con
+catch-all (X-Forwarded-For bajo control del atacante), jwt_secret largo pero
+adivinable (health --deploy mide LONGITUD y 32 caracteres iguales la pasan),
+csrf_insecure_cookie en producción y rate limiting apagado. §3 los prefijos
+__Host-/__Secure- se juzgan al cargar y no al arrancar: vivían solo en el
+constructor de sesiones, así que una cookie imposible cargaba limpia y mataba
+la app al arrancar. Exclusión DECLARADA: no se activa el rate limiting por
+defecto — voltear ese default haría que cada despliegue existente empezara a
+rechazar tráfico al actualizar, y eso pertenece a un major con ventana de
+deprecación. Además, cinco hallazgos de la pasada posterior al track: config
+print era la última superficie del CLI que leía configuración sin juzgarla
+(ahora avisa por stderr y sigue renderizando); el bodycheck marcaba como
+deriva las claves de módulo y los nombres elegidos por el usuario, dejando
+permanentemente en rojo la página que enseña a configurar módulos; la página
+pública anunciaba la capa 3 de validación como «rolling out» meses después de
+que corriera en cada carga; el orden código-antes-que-prosa quedó escrito en
+el mensaje del propio guard y en CONTRIBUTING; y el snapshot de documentación
+se corta ahora el ÚLTIMO de los cambios de la ronda, porque un corte anterior
+congela el texto equivocado para siempre y ningún guard lo ve. orbit v1.6.7:
+alineación al set de root, server, agent y quarkbridge (quarkdatasource y
+proto no requieren nucleus). quark sin cambios en v1.6.0. Nombre 1.16.0
+(minor): el minor de nucleus arrastra el número de suite (QADR-0002). El
+historial narrativo completo vive en CHANGELOG.md.
+
 ## Quantum 1.15.0 — Arco DX-2 y consolidación documental
 
 Quantum 1.15.0 — Arco DX-2 (ergonomía de test y de contribuidor) y

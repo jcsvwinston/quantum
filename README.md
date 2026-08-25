@@ -32,7 +32,7 @@ uno, qué rol juega en la suite y cómo encajan.
 |---|---|---|---|---|---|
 | **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.12.0` | [`nucleus/`](nucleus) | Sí (base de apps) |
 | **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.6.0` | [`quark/`](quark) | **Sí, en cualquier app Go** |
-| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.6.7` | [`orbit/`](orbit) | No (requiere Nucleus) |
+| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.7.0` | [`orbit/`](orbit) | No (requiere Nucleus) |
 
 Módulos de integración (repo orbit, opt-in; son los que materializan el puente quark↔orbit):
 

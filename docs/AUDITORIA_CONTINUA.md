@@ -30,7 +30,7 @@ Los guards de producto corren **al pin** — el submódulo tal y como lo fija
 significa que el set que el manifiesto certifica no pasa sus propios guards,
 que es exactamente lo que reportaría un auditor.
 
-Registro actual (21 guards):
+Registro actual (22 guards):
 
 | Guard | Repo | Comando | Qué caza |
 |---|---|---|---|
@@ -55,6 +55,7 @@ Registro actual (21 guards):
 | orbit-product-voice | orbit | `bash scripts/ci/check_docs_product_voice.sh` | Vocabulario interno en `website/docs/**`. |
 | orbit-docs-version-claims | orbit | `bash scripts/ci/check_docs_version_claims.sh` | Marcadores `x-release-please-version` desalineados con la versión publicada. |
 | orbit-internal-pins | orbit | `bash scripts/ci/check_internal_pins.sh` | Pins entre módulos hermanos por detrás del último tag publicado. |
+| orbit-docs-archive | orbit | `bash scripts/ci/check_docs_archive_freshness.sh` | Archivo versionado por detrás de lo publicado. Orbit versiona desde v1.6.7; antes servía siempre su doc actual. |
 
 Notas operativas:
 
@@ -253,13 +254,13 @@ cambio toca una de estas clases, la mini-pasada correspondiente lo mira):
   «rolling out» durante los meses en que ya corría en cada carga, y ningún
   guard podía verlo. Solo lo ve alguien releyendo la página con el código
   delante — por eso el arco que TOCA un subsistema relee sus páginas.
-- **Documentación de orbit sin versionar**: quark y nucleus publican
-  snapshots por minor y tienen guard de frescura del archivo; orbit sirve
-  siempre su doc actual, así que quien corre una versión anterior lee la del
-  set vigente. Es un estado CONOCIDO (el config del paraguas lo dice: «orbit
-  no versiona») pero no declarado en ningún sitio que el lector vea.
-  Cerrarlo cambia rutas públicas y obliga a cortar el primer snapshot: es
-  decisión de producto, no deriva que un guard deba forzar.
+- ~~**Documentación de orbit sin versionar**~~ — CERRADO. Orbit versiona
+  desde v1.6.7 con su propio `cut_docs_snapshot.sh` (operaciones de fichero:
+  no tiene instalación de Docusaurus, y su sidebar es autogenerada) y el
+  guard `orbit-docs-archive`. No movió ninguna ruta: `lastVersion: 'current'`
+  mantiene la doc actual en `/orbit/…` y añade los snapshots aparte. El hueco
+  HISTÓRICO (minors 1.0–1.5 sin snapshot) queda declarado y sin rellenar: un
+  snapshot retroactivo afirmaría que la doc de hoy fue la de entonces.
 
 Con las condiciones del dictamen cumplidas, la «auditoría» de la 9ª+ es: lane
 semanal verde + CI por-repo verde + los disparadores que toquen.
