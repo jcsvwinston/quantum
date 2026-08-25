@@ -6,6 +6,36 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.17.0 — orbit versiona su documentación
+
+Quantum 1.17.0 — orbit v1.7.0 versiona su documentación, y con eso los TRES
+productos publican archivo por minor. Era el único que servía siempre su doc
+actual: quien corría orbit 1.2 leía la del set vigente sin que nada se lo
+dijera. El paraguas lo sabía —lo decía un comentario de su config— pero el
+lector no. NINGUNA ruta se mueve: lastVersion current mantiene la doc actual
+en /orbit/ y los snapshots aparecen aparte; el cambio es aditivo. El corte no
+usa `docusaurus docs:version` porque orbit no tiene instalación propia (su
+website/ es solo docs/ y el sitio lo ensambla el paraguas, QADR-0003): son
+tres operaciones de fichero, y como su sidebar es AUTOGENERADA desde la
+estructura de carpetas, la versionada es la misma declaración de una línea —
+añadir una página no obliga a tocar nada. HUECO HISTÓRICO DECLARADO: el
+archivo empieza en 1.6.7, la versión publicada al instalar el versionado; las
+minors 1.0-1.5 no tienen snapshot y NO se fabrican, porque un snapshot
+retroactivo afirmaría que la doc de hoy fue la de entonces — la mentira que
+este mecanismo existe para impedir. Registro de guards 21 → 22 con
+orbit-docs-archive y su fixture. Dos cosas las cazaron los guards durante el
+arco, ambas del propio cableado: el guard nº17 de enlaces vio que el «Edit
+this page» de los snapshots apuntaba a orbit_versioned_docs/, el prefijo de
+ENSAMBLADO del paraguas, que en el repo de orbit no existe (mismo replace que
+ya tenía quark); y el guard de frescura recién instalado mordió su primer
+caso real al exigir el snapshot de 1.7.0. Además se REVIRTIÓ un arreglo
+propio: hacer que la matriz de módulos leyera el manifiesto para cerrar su
+ventana rancia dejaba el PR de release en ROJO sin arreglo posible —empujar a
+una rama de release-please la deja sin CI—, así que se asume la ventana y
+queda escrito en el script POR QUÉ el arreglo obvio no vale. quark v1.6.0 y
+nucleus v1.12.0 sin cambios. El historial narrativo completo vive en
+CHANGELOG.md.
+
 ## Quantum 1.16.0 — Track E de nucleus (seguridad y cumplimiento)
 
 Quantum 1.16.0 — Track E de nucleus (v1.12.0), el track de seguridad y

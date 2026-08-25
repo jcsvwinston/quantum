@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.17.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.17.1"           # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-08-25
-status: certified           # Orbit versiona su documentación: era el único de los tres que servía siempre su doc actual. quark y nucleus sin cambios; el minor de orbit y la capacidad nueva para el lector dan el minor de suite
+status: certified           # Ronda de hallazgos de la demo externa quantum-coverage-demo: 11 defectos en los tres repos, dos de seguridad, todos de la clase «reporta éxito y no hace lo que dice». Set de parches en los tres pilares
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules», los seis módulos del
@@ -16,25 +16,25 @@ status: certified           # Orbit versiona su documentación: era el único de
 # topológicamente forzado, tolerado por el guard extendido, ceñido al único
 # borde root↔quarkdatasource por MAQ-3.
 modules:
-  quark:   "v1.6.0"
-  nucleus: "v1.12.0"
-  orbit:   "v1.7.0"
+  quark:   "v1.6.1"
+  nucleus: "v1.12.1"
+  orbit:   "v1.7.3"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.2"
-  agent:           "v0.5.15"
-  server:          "v0.9.11"
-  quarkbridge:     "v0.3.14"
-  quarkdatasource: "v0.2.12"
+  agent:           "v0.5.16"
+  server:          "v0.9.12"
+  quarkbridge:     "v0.3.15"
+  quarkdatasource: "v0.2.13"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
-  quark:   "fe270c32"                                # = v1.6.0 exacto
-  nucleus: "8bc9088f"                                # = v1.12.0 exacto
-  orbit:   "0a665268"                                # = v1.7.0 exacto (contiene server/v0.9.11, agent/v0.5.15, proto/v0.4.2, quarkbridge/v0.3.14, quarkdatasource/v0.2.12 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
+  quark:   "7fa5eb80"                                # = v1.6.1 exacto
+  nucleus: "3ccd316c"                                # = v1.12.1 exacto
+  orbit:   "5ee98756"                                # = v1.7.3 exacto (contiene server/v0.9.12, agent/v0.5.16, proto/v0.4.2, quarkbridge/v0.3.15, quarkdatasource/v0.2.13 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -48,30 +48,45 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.17.0 — orbit v1.7.0 versiona su documentación, y con eso los TRES
-  productos publican archivo por minor. Era el único que servía siempre su doc
-  actual: quien corría orbit 1.2 leía la del set vigente sin que nada se lo
-  dijera. El paraguas lo sabía —lo decía un comentario de su config— pero el
-  lector no. NINGUNA ruta se mueve: lastVersion current mantiene la doc actual
-  en /orbit/ y los snapshots aparecen aparte; el cambio es aditivo. El corte no
-  usa `docusaurus docs:version` porque orbit no tiene instalación propia (su
-  website/ es solo docs/ y el sitio lo ensambla el paraguas, QADR-0003): son
-  tres operaciones de fichero, y como su sidebar es AUTOGENERADA desde la
-  estructura de carpetas, la versionada es la misma declaración de una línea —
-  añadir una página no obliga a tocar nada. HUECO HISTÓRICO DECLARADO: el
-  archivo empieza en 1.6.7, la versión publicada al instalar el versionado; las
-  minors 1.0-1.5 no tienen snapshot y NO se fabrican, porque un snapshot
-  retroactivo afirmaría que la doc de hoy fue la de entonces — la mentira que
-  este mecanismo existe para impedir. Registro de guards 21 → 22 con
-  orbit-docs-archive y su fixture. Dos cosas las cazaron los guards durante el
-  arco, ambas del propio cableado: el guard nº17 de enlaces vio que el «Edit
-  this page» de los snapshots apuntaba a orbit_versioned_docs/, el prefijo de
-  ENSAMBLADO del paraguas, que en el repo de orbit no existe (mismo replace que
-  ya tenía quark); y el guard de frescura recién instalado mordió su primer
-  caso real al exigir el snapshot de 1.7.0. Además se REVIRTIÓ un arreglo
-  propio: hacer que la matriz de módulos leyera el manifiesto para cerrar su
-  ventana rancia dejaba el PR de release en ROJO sin arreglo posible —empujar a
-  una rama de release-please la deja sin CI—, así que se asume la ventana y
-  queda escrito en el script POR QUÉ el arreglo obvio no vale. quark v1.6.0 y
-  nucleus v1.12.0 sin cambios. El historial narrativo completo vive en
-  CHANGELOG.md.
+  Quantum 1.17.1 — set de PARCHES que cierra la ronda de hallazgos de la
+  demo externa quantum-coverage-demo, re-verificada contra lo publicado: 11
+  defectos en los tres repos, dos de seguridad, todos de la misma clase —
+  reportan éxito y no hacen lo que dicen. quark v1.6.1: el preflight de RLS
+  comprobaba el NOMBRE de la política y nunca su predicado, así que una
+  política llamada <tabla>_tenant_isolation con USING (true) sacaba luz
+  verde mientras cada tenant leía las filas de todos; peor que no tener
+  check, porque un check en verde es lo que hace que dejes de mirar. Ahora
+  lee USING y WITH CHECK y exige referencia a la columna de tenant y lectura
+  de la variable de sesión. Además el preflight ya funciona con el cliente
+  que su propia documentación prescribe (usaba RawQuery, apagado por
+  defecto, y fallaba igual que una caída real) y los flags que no cambian el
+  veredicto se rechazan en vez de ignorarse. nucleus v1.12.1: siete
+  arreglos. Los dos primeros no son bugs sueltos sino del CONTRATO DE
+  EXTENSIÓN de ADR-022 — un módulo con Prefix no podía declarar su propia
+  raíz (el objeto más corto resolvía a «<prefix>/» y el enforcer casa con
+  keyMatch, donde esa barra es otra ruta), y CSRFExempt no tenía ni veto del
+  operador ni rastro en el arranque, de modo que un módulo SIN Prefix
+  declarando «/» apagaba CSRF en toda la aplicación, módulos hermanos
+  incluidos. S3Store.Delete no alcanzaba NUNCA el bucket público porque
+  RemoveObject es idempotente y el bucle cortaba en el primer nil: con
+  public_bucket configurado los objetos públicos eran indeleteables por la
+  API pública del Store, y Delete lo reportaba en verde. Una entrada mal
+  escrita de trusted_proxies se descartaba en silencio dejando la lista
+  vacía; y doctor security juzgaba esas entradas de una en una, así que un
+  catch-all partido en dos pasaba limpio cubriendo el mismo espacio que el
+  entero — con el agravante de que su mensaje nombraba la cabecera
+  equivocada (bajo catch-all lo explotable es X-Real-IP, no
+  X-Forwarded-For). nucleustest gana WithDatabases en el builder, porque la
+  remediación que el propio kit sugería no era expresable desde su entrada
+  principal, y avisa cuando la capa de entorno le cambia la base bajo el
+  test. Y nucleus version dice por fin su versión real tras un go install a
+  versión exacta, leyéndola de su propia build info como ya hacía quark.
+  orbit v1.7.3: el binding modules.orbit.* que el README documenta era
+  INERTE —los hooks tiraban la config bindeada y cerraban sobre la de
+  construcción, en silencio porque el módulo sí está montado—, así que quien
+  creyera haber fijado bootstrap_password no lo había fijado; más la
+  alineación al set. Método: rojo-sin-fix ANTES de cada arreglo, y los dos
+  de seguridad con test que FABRICA la condición insegura y exige que el
+  producto la detecte — un test del camino feliz no habría valido, porque el
+  hallazgo era justo que el check pasaba en verde sobre algo peligroso. El
+  historial narrativo completo vive en CHANGELOG.md.
