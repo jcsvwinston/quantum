@@ -6,6 +6,51 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.17.1 — ronda de hallazgos de la demo externa
+
+Quantum 1.17.1 — set de PARCHES que cierra la ronda de hallazgos de la
+demo externa quantum-coverage-demo, re-verificada contra lo publicado: 11
+defectos en los tres repos, dos de seguridad, todos de la misma clase —
+reportan éxito y no hacen lo que dicen. quark v1.6.1: el preflight de RLS
+comprobaba el NOMBRE de la política y nunca su predicado, así que una
+política llamada <tabla>_tenant_isolation con USING (true) sacaba luz
+verde mientras cada tenant leía las filas de todos; peor que no tener
+check, porque un check en verde es lo que hace que dejes de mirar. Ahora
+lee USING y WITH CHECK y exige referencia a la columna de tenant y lectura
+de la variable de sesión. Además el preflight ya funciona con el cliente
+que su propia documentación prescribe (usaba RawQuery, apagado por
+defecto, y fallaba igual que una caída real) y los flags que no cambian el
+veredicto se rechazan en vez de ignorarse. nucleus v1.12.1: siete
+arreglos. Los dos primeros no son bugs sueltos sino del CONTRATO DE
+EXTENSIÓN de ADR-022 — un módulo con Prefix no podía declarar su propia
+raíz (el objeto más corto resolvía a «<prefix>/» y el enforcer casa con
+keyMatch, donde esa barra es otra ruta), y CSRFExempt no tenía ni veto del
+operador ni rastro en el arranque, de modo que un módulo SIN Prefix
+declarando «/» apagaba CSRF en toda la aplicación, módulos hermanos
+incluidos. S3Store.Delete no alcanzaba NUNCA el bucket público porque
+RemoveObject es idempotente y el bucle cortaba en el primer nil: con
+public_bucket configurado los objetos públicos eran indeleteables por la
+API pública del Store, y Delete lo reportaba en verde. Una entrada mal
+escrita de trusted_proxies se descartaba en silencio dejando la lista
+vacía; y doctor security juzgaba esas entradas de una en una, así que un
+catch-all partido en dos pasaba limpio cubriendo el mismo espacio que el
+entero — con el agravante de que su mensaje nombraba la cabecera
+equivocada (bajo catch-all lo explotable es X-Real-IP, no
+X-Forwarded-For). nucleustest gana WithDatabases en el builder, porque la
+remediación que el propio kit sugería no era expresable desde su entrada
+principal, y avisa cuando la capa de entorno le cambia la base bajo el
+test. Y nucleus version dice por fin su versión real tras un go install a
+versión exacta, leyéndola de su propia build info como ya hacía quark.
+orbit v1.7.3: el binding modules.orbit.* que el README documenta era
+INERTE —los hooks tiraban la config bindeada y cerraban sobre la de
+construcción, en silencio porque el módulo sí está montado—, así que quien
+creyera haber fijado bootstrap_password no lo había fijado; más la
+alineación al set. Método: rojo-sin-fix ANTES de cada arreglo, y los dos
+de seguridad con test que FABRICA la condición insegura y exige que el
+producto la detecte — un test del camino feliz no habría valido, porque el
+hallazgo era justo que el check pasaba en verde sobre algo peligroso. El
+historial narrativo completo vive en CHANGELOG.md.
+
 ## Quantum 1.17.0 — orbit versiona su documentación
 
 Quantum 1.17.0 — orbit v1.7.0 versiona su documentación, y con eso los TRES
