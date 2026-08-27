@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.18.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.19.0"           # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-08-26
-status: certified           # Arco A del plan de extensibilidad: los subsistemas que eligen backend dejan de hacerlo con un switch cerrado (almacenamiento, store de sesión) y nace la costura de backends de autenticación. Minor de nucleus, minor de suite (QADR-0002)
+status: certified           # Arcos B y C del plan de extensibilidad: un proveedor registrado declara su configuración, la superficie de extensión queda acotada y congelada, y la cadena de autenticación se declara desde la config consumiendo UserProvider — con el panel de orbit autenticando por ella sin delegar la autorización
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules», los seis módulos del
@@ -17,24 +17,24 @@ status: certified           # Arco A del plan de extensibilidad: los subsistemas
 # borde root↔quarkdatasource por MAQ-3.
 modules:
   quark:   "v1.6.1"
-  nucleus: "v1.13.0"
-  orbit:   "v1.7.4"
+  nucleus: "v1.14.0"
+  orbit:   "v1.8.1"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.2"
-  agent:           "v0.5.17"
-  server:          "v0.9.13"
-  quarkbridge:     "v0.3.16"
-  quarkdatasource: "v0.2.13"
+  agent:           "v0.6.0"
+  server:          "v0.10.0"
+  quarkbridge:     "v0.4.0"
+  quarkdatasource: "v0.2.14"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "7fa5eb80"                                # = v1.6.1 exacto
-  nucleus: "3570e085"                                # = v1.13.0 exacto
-  orbit:   "cf94c479"                                # = v1.7.4 exacto (contiene server/v0.9.13, agent/v0.5.17, proto/v0.4.2, quarkbridge/v0.3.16, quarkdatasource/v0.2.13 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
+  nucleus: "4d9e7864"                                # = v1.14.0 exacto
+  orbit:   "215e5c4e"                                # = v1.8.1 exacto (contiene server/v0.10.0, agent/v0.6.0, proto/v0.4.2, quarkbridge/v0.4.0, quarkdatasource/v0.2.14 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -48,35 +48,42 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.18.0 — Arco A del plan de extensibilidad (nucleus v1.13.0). El
-  problema que cierra: de seis subsistemas que eligen backend, exactamente
-  UNO era extensible desde fuera —el correo—; los demás lo elegían con un
-  switch sobre constantes, así que quien corre Ceph, Swift, un almacén
-  interno o un directorio corporativo no tenía más camino que forkear el
-  framework. Eso es lo que impide que nazca un ecosistema, y es la ventana
-  que conviene cerrar ANTES del lanzamiento, porque después cada contrato
-  cuesta una major con ventana de deprecación. §1 el almacenamiento se
-  registra por nombre (storage.RegisterProvider), y todo lo que el framework
-  pone encima —breaker, prefijo por tenant, mapeador de URL pública— se
-  aplica alrededor de lo que devuelva la factoría, así que un proveedor no
-  reimplementa nada. Había TRES puertas cerradas y no una: construcción,
-  validación de config y el paraguas de pkg/app. §2 el store de sesión
-  igual, con hook de apagado opcional para el que sostiene un pool. §3 la
-  costura de autenticación: auth.RegisterBackend más una CADENA ORDENADA,
-  que es lo que permite «el directorio primero, una cuenta local después» —
-  cuando el directorio no responde, alguien tiene que poder entrar a
-  arreglarlo. Tres resultados y no dos: aceptación, rechazo cierto y NO
-  DISPONIBLE; si todos rechazaron el llamante recibe credenciales
-  inválidas, y si alguno no respondía recibe un error que lo dice, porque
-  «contraseña mala» y «el directorio está caído» mandan al operador a
-  sitios muy distintos. Un error inesperado cuenta como no disponible: un
-  backend fallando de forma imprevista no puede dejar a todo el mundo
-  fuera. Dos cosas las cazaron los propios guards durante el arco: el
-  firewall de dependencias vio que el registro de sesión devolvía el tipo de
-  la librería interna, lo que habría obligado a cada autor de plugins a
-  depender de ella (ahora hay interfaz propia con tipos de stdlib y un
-  adaptador dentro), y el paraguas de storage caía a «local» por defecto,
-  así que un nombre mal escrito escribía las subidas al disco EN SILENCIO —
-  misma clase que los once hallazgos del set anterior. quark v1.6.1 y orbit
-  v1.7.4 sin cambios de comportamiento; orbit solo se alinea. El historial
-  narrativo completo vive en CHANGELOG.md.
+  Quantum 1.19.0 — Arcos B y C del plan de extensibilidad (nucleus v1.14.0,
+  orbit v1.8.1). §1 un proveedor REGISTRADO declara su propia configuración:
+  el Arco A dejaba enchufar un backend por nombre pero no configurarlo,
+  porque storage.ceph.endpoint moría como clave desconocida antes de que el
+  proveedor llegara a correr — un backend que nadie puede configurar es un
+  backend que nadie puede desplegar. La exención del guard es SOLO para
+  nombres registrados: un typo bajo storage. sigue fallando, o el namespace
+  se convertiría en un agujero donde cualquier errata pasa. §2 la superficie
+  que una extensión puede tocar deja de ser un cheque en blanco: el contrato
+  decía que podía «asignar campos en App», así que lo que tocara se volvía
+  API de hecho sin estar cubierto por nada prometible entre versiones — y no
+  lo usaba nadie (el único consumidor real lee cinco campos y no escribe
+  ninguno). Ahora lee, y lo que puede leer está congelado junto a los
+  símbolos, los comandos y las claves. §3 la cadena de autenticación se
+  declara con auth_backends y consume por fin auth.UserProvider, que llevaba
+  desde v0.x declarado, CONGELADO en el baseline y llamado por nadie. Un
+  backend no registrado rompe el ARRANQUE y no el primer login, que es el
+  peor momento para descubrir una errata en una lista de autenticación. §4
+  el panel de orbit autentica por esa cadena: quien configuró un directorio
+  corporativo obtiene login de directorio sin que orbit lleve un cliente
+  LDAP dentro. Delega la AUTENTICACIÓN, no la autorización — un usuario del
+  directorio que no esté dado de alta como admin se rechaza, porque sin esa
+  frontera conectar un directorio convertiría en silencio a toda la
+  plantilla en administradora del panel. Y al revés: una fila local no es un
+  bypass, la cadena sigue teniendo que aceptar la contraseña, así que una
+  cuenta revocada no entra por una fila rancia. La temporización se cuidó en
+  los dos sitios: el trabajo caro corre en TODOS los caminos antes de
+  decidir, o «no eres admin» respondería más rápido que «contraseña mala» y
+  volveríamos a publicar el enumerador de usuarios por otra puerta. quark
+  v1.6.1 sin cambios. §5 de propina, la certificación destapó que
+  orbit/quarkdatasource requería el root dos minors por detrás: dentro del
+  repo no se nota —el workspace resuelve el root desde el checkout— pero
+  quien instalaba ese módulo se llevaba de paso un root viejo. La excepción
+  que tolera un minor de lag en esa arista existe por una razón topológica
+  real, pero lo hacía imprimiendo una línea «ok» indistinguible de un pin al
+  día, así que el pin se pudrió un ciclo entero sin que nadie lo viera y el
+  guard sólo se puso rojo TARDE, en plena certificación, donde deshacerlo
+  cuesta un tag de root nuevo. Ahora avisa mientras el lag existe. El
+  historial narrativo completo vive en CHANGELOG.md.

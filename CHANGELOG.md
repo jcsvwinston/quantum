@@ -6,6 +6,41 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.18.0 — Arco A del plan de extensibilidad
+
+Quantum 1.18.0 — Arco A del plan de extensibilidad (nucleus v1.13.0). El
+problema que cierra: de seis subsistemas que eligen backend, exactamente
+UNO era extensible desde fuera —el correo—; los demás lo elegían con un
+switch sobre constantes, así que quien corre Ceph, Swift, un almacén
+interno o un directorio corporativo no tenía más camino que forkear el
+framework. Eso es lo que impide que nazca un ecosistema, y es la ventana
+que conviene cerrar ANTES del lanzamiento, porque después cada contrato
+cuesta una major con ventana de deprecación. §1 el almacenamiento se
+registra por nombre (storage.RegisterProvider), y todo lo que el framework
+pone encima —breaker, prefijo por tenant, mapeador de URL pública— se
+aplica alrededor de lo que devuelva la factoría, así que un proveedor no
+reimplementa nada. Había TRES puertas cerradas y no una: construcción,
+validación de config y el paraguas de pkg/app. §2 el store de sesión
+igual, con hook de apagado opcional para el que sostiene un pool. §3 la
+costura de autenticación: auth.RegisterBackend más una CADENA ORDENADA,
+que es lo que permite «el directorio primero, una cuenta local después» —
+cuando el directorio no responde, alguien tiene que poder entrar a
+arreglarlo. Tres resultados y no dos: aceptación, rechazo cierto y NO
+DISPONIBLE; si todos rechazaron el llamante recibe credenciales
+inválidas, y si alguno no respondía recibe un error que lo dice, porque
+«contraseña mala» y «el directorio está caído» mandan al operador a
+sitios muy distintos. Un error inesperado cuenta como no disponible: un
+backend fallando de forma imprevista no puede dejar a todo el mundo
+fuera. Dos cosas las cazaron los propios guards durante el arco: el
+firewall de dependencias vio que el registro de sesión devolvía el tipo de
+la librería interna, lo que habría obligado a cada autor de plugins a
+depender de ella (ahora hay interfaz propia con tipos de stdlib y un
+adaptador dentro), y el paraguas de storage caía a «local» por defecto,
+así que un nombre mal escrito escribía las subidas al disco EN SILENCIO —
+misma clase que los once hallazgos del set anterior. quark v1.6.1 y orbit
+v1.7.4 sin cambios de comportamiento; orbit solo se alinea. El historial
+narrativo completo vive en CHANGELOG.md.
+
 ## Quantum 1.17.1 — ronda de hallazgos de la demo externa
 
 Quantum 1.17.1 — set de PARCHES que cierra la ronda de hallazgos de la
