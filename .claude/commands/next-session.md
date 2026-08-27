@@ -15,16 +15,23 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ## 1. Protocolo de arranque (hazlo SIEMPRE antes de tocar nada)
 
-1. **Lee** [`docs/ROADMAP.md`](../../docs/ROADMAP.md) (las fases) y
-   [`versions.yaml`](../../versions.yaml) (el trío declarado).
+1. **Lee** [`versions.yaml`](../../versions.yaml) (el set certificado vigente) y
+   el §3 de abajo (estado al cierre). [`docs/ROADMAP.md`](../../docs/ROADMAP.md)
+   guarda las cinco fases, **todas cerradas** desde Quantum 1.0.0: hoy el
+   trabajo entra por **arcos**, no por fases.
 2. **Audita el estado real** con bash:
    - `git submodule status` — ¿siguen los submódulos en el trío de `versions.yaml`?
    - `git -C quark describe --tags`, idem `nucleus`, `orbit` — ¿coinciden con `workspace_pins`?
    - `go build ./quark/... ./nucleus/... ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/server/...`
      (el root del workspace no es un módulo; patrones explícitos).
-3. **Reconcilia** con el §3 de abajo (estado al cierre): ¿qué fase toca?
-4. **Propón el foco** de la sesión (una fase concreta del roadmap) antes de trabajar,
-   y deja que el responsable lo confirme.
+   - `gh pr list` y `gh issue list` en los cinco repos (quantum, quark, nucleus,
+     orbit, quantum-app) — qué quedó abierto.
+   - `scripts/suite-integral.sh` si vas a certificar o sospechas deriva; la lane
+     semanal (§5) ya la corre los lunes.
+3. **Reconcilia** con el §3: ¿qué arco quedó a medias y cuál es el siguiente?
+   Los pendientes con destinatario están en el §5.
+4. **Propón el foco** de la sesión (un arco concreto) antes de trabajar, y deja
+   que el responsable lo confirme.
 
 ## 2. Reglas duras que NO se rompen (mismas que el brief de Fase 0 y los QADR)
 
@@ -40,7 +47,381 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-07-22, Arco de endurecimiento #1)
+## 3. Estado al cierre (2026-08-27, Arcos B y C del plan de extensibilidad)
+
+### Sesión 2026-08-27 — Arcos B y C del plan de extensibilidad → nucleus v1.14.0, orbit v1.8.1 y QUANTUM 1.19.0 CERTIFICADO
+
+- **Set**: quark **v1.6.1** (sin cambios) · nucleus **v1.14.0** · orbit **v1.8.1**
+  (proto v0.4.2, agent v0.6.0, server v0.10.0, quarkbridge v0.4.0,
+  quarkdatasource v0.2.14). `--cierre` **22/22**, tag `v1.19.0`, release GH
+  publicada y Pages desplegado. ADR nuevo: nucleus
+  `docs/adrs/ADR-023-provider-registries.md`.
+- **Arco B §1 — un proveedor REGISTRADO declara su propia configuración.** El
+  Arco A dejaba enchufar un backend por nombre pero no configurarlo:
+  `storage.ceph.endpoint` moría como clave desconocida antes de que el
+  proveedor llegara a correr, y un backend que nadie puede configurar es un
+  backend que nadie puede desplegar. La exención del guard es SOLO para
+  nombres registrados: una errata bajo `storage.` sigue fallando, o el
+  namespace se convierte en un agujero por donde pasa cualquier typo.
+- **Arco B §2 — la superficie que una extensión puede tocar deja de ser un
+  cheque en blanco.** El contrato decía «puede asignar campos en App», así que
+  todo lo que tocara se volvía superficie pública de facto. `Attach` ahora LEE
+  (ya no reasigna) y lo legible está congelado en
+  `contracts/baseline/extension_surface.txt` — 15 campos, y el baseline
+  bloquea en AMBAS direcciones (añadir superficie es tan deliberado como
+  quitarla).
+- **Arco C — `auth_backends` declara la cadena** y consume por fin
+  `auth.UserProvider`, que llevaba desde v0.x congelado y sin un solo
+  consumidor. Un backend no registrado rompe el ARRANQUE, no el primer login.
+- **Frontera que NO se relaja** (orbit `internal/admin/default_auth.go`): el
+  panel delega la AUTENTICACIÓN a la cadena, la AUTORIZACIÓN no. Un usuario
+  del directorio que no esté en la tabla de admins se rechaza — si no,
+  conectar un LDAP corporativo convierte en silencio a toda la plantilla en
+  administradora; y al revés, una fila local NO es bypass: la cadena tiene que
+  aceptar la contraseña igual. **El trabajo caro corre en TODOS los caminos
+  antes de decidir**, en los dos sitios, o «no eres admin» respondería más
+  rápido que «contraseña mala» y volvería a publicarse el enumerador de
+  usuarios por temporización.
+- **Quedan del plan de extensibilidad**: **D** (LDAP — el primer plugin real
+  que consume A+B+C, y el siguiente foco natural), **E** (SAML/OIDC), **F**
+  (bus de eventos más allá del CRUD de modelos), **G** (kit de conformidad +
+  scaffold de proveedor), **H** (congelar contratos de plugin + baseline de
+  estabilidad).
+- **Pendientes vivos al cierre**: (a) quark#265 (binder de codegen F6-3b),
+  aplazado por disposición escrita; (b) cierres S8/S9 de quark y Tracks F
+  (cloud) y G (tooling) del roadmap enterprise de nucleus. Cero PRs abiertos en
+  los cinco repos, y las releases de GitHub del paraguas completas (los tags
+  v1.10.1–v1.13.0 se publicaron con retraso el 2026-08-27, en esta misma
+  sesión).
+
+### Sesión 2026-08-26 — Arco A del plan de extensibilidad → nucleus v1.13.0 y QUANTUM 1.18.0 CERTIFICADO
+
+- **Set**: quark v1.6.1 y orbit **v1.7.4** sin cambios de comportamiento (orbit
+  solo se alinea) · nucleus **v1.13.0**. `--cierre` 22/22, tag `v1.18.0`.
+- **El problema que cierra**: de seis subsistemas que eligen backend,
+  exactamente UNO era extensible desde fuera —el correo—; los demás lo elegían
+  con un `switch` sobre constantes, así que quien corre Ceph, Swift, un
+  almacén interno o un directorio corporativo no tenía más camino que forkear
+  el framework. Es la ventana que conviene cerrar ANTES del lanzamiento:
+  después, cada contrato cuesta una major con ventana de deprecación.
+- **§1 almacenamiento por nombre** (`storage.RegisterProvider`): breaker,
+  prefijo por tenant y mapeador de URL pública se aplican ALREDEDOR de lo que
+  devuelva la factoría, así que un proveedor no reimplementa nada. Había TRES
+  puertas cerradas y no una: construcción, validación de config y el paraguas
+  de `pkg/app`. **§2** el store de sesión igual, con hook de apagado opcional
+  para quien sostiene un pool. **§3** la costura de autenticación:
+  `auth.RegisterBackend` + CADENA ORDENADA — «el directorio primero, una
+  cuenta local después», porque cuando el directorio no responde alguien tiene
+  que poder entrar a arreglarlo. **Tres resultados y no dos**: aceptación,
+  rechazo cierto y NO DISPONIBLE (un error inesperado cuenta como no
+  disponible: un backend fallando de forma imprevista no puede dejar a todo el
+  mundo fuera).
+- **Dos hallazgos los cazaron los propios guards durante el arco**: el firewall
+  de dependencias vio que el registro de sesión devolvía el tipo de la
+  librería interna —lo que habría obligado a cada autor de plugins a depender
+  de ella (ahora hay interfaz propia con tipos de stdlib y adaptador dentro)—,
+  y el paraguas de storage caía a «local» por defecto, así que un nombre mal
+  escrito escribía las subidas al disco EN SILENCIO: misma clase que los once
+  hallazgos del set anterior.
+
+### Sesión 2026-08-25 (c) — ronda de hallazgos de la demo externa → QUANTUM 1.17.1 CERTIFICADO (set de PARCHES)
+
+- **Set**: quark **v1.6.1** · nucleus **v1.12.1** · orbit **v1.7.3**. `--cierre`
+  22/22, tag `v1.17.1`.
+- **11 defectos en los tres repos, dos de seguridad, todos de la misma clase:
+  reportan éxito y no hacen lo que dicen.** Origen: la demo externa
+  `quantum-coverage-demo`, re-verificada contra lo PUBLICADO.
+- **quark**: el preflight de RLS comprobaba el NOMBRE de la política y nunca su
+  predicado, así que una política llamada `<tabla>_tenant_isolation` con
+  `USING (true)` sacaba luz verde mientras cada tenant leía las filas de todos
+  — peor que no tener check, porque un check en verde es lo que hace que dejes
+  de mirar. Ahora lee `USING`/`WITH CHECK` y exige referencia a la columna de
+  tenant y lectura de la variable de sesión; además funciona con el cliente
+  que su propia documentación prescribe (usaba `RawQuery`, apagado por
+  defecto, y fallaba igual que una caída real).
+- **nucleus** (siete arreglos): dos son del CONTRATO DE EXTENSIÓN de ADR-022 —
+  un módulo con `Prefix` no podía declarar su propia raíz, y `CSRFExempt` no
+  tenía ni veto del operador ni rastro en el arranque, de modo que un módulo
+  SIN `Prefix` declarando `/` apagaba CSRF en TODA la aplicación, hermanos
+  incluidos. `S3Store.Delete` no alcanzaba NUNCA el bucket público
+  (`RemoveObject` es idempotente y el bucle cortaba en el primer nil): con
+  `public_bucket` configurado los objetos públicos eran indeleteables por la
+  API pública del Store, y Delete lo reportaba en verde. Entrada mal escrita
+  de `trusted_proxies` descartada en silencio; y `doctor security` juzgaba las
+  entradas de una en una, así que un catch-all partido en dos pasaba limpio
+  (y su mensaje nombraba la cabecera equivocada: bajo catch-all lo explotable
+  es `X-Real-IP`).
+- **orbit**: el binding `modules.orbit.*` que el README documenta era INERTE —
+  los hooks tiraban la config bindeada y cerraban sobre la de construcción, en
+  silencio porque el módulo sí está montado—, así que quien creyera haber
+  fijado `bootstrap_password` no lo había fijado.
+- **Método**: rojo-sin-fix ANTES de cada arreglo, y los dos de seguridad con un
+  test que FABRICA la condición insegura y exige que el producto la detecte —
+  un test del camino feliz no habría valido, porque el hallazgo era justo que
+  el check pasaba en verde sobre algo peligroso.
+
+### Sesión 2026-08-25 (b) — orbit versiona su documentación → orbit v1.7.0 y QUANTUM 1.17.0 CERTIFICADO
+
+- **Set**: quark v1.6.0 y nucleus v1.12.0 sin cambios · orbit **v1.7.0**.
+  `--cierre` 22/22, tag `v1.17.0`. Con esto los TRES productos publican
+  archivo por minor: orbit era el único que servía siempre su doc actual (quien
+  corría orbit 1.2 leía la del set vigente sin que nada se lo dijera).
+- **Cómo se corta sin Docusaurus propio**: `orbit/website` es solo `docs/` (el
+  sitio lo ensambla el paraguas, QADR-0003), así que `docusaurus docs:version`
+  no existe ahí — y no hace falta: son tres operaciones de fichero
+  (`cut_docs_snapshot.sh`). Su sidebar es AUTOGENERADA, así que la versionada
+  es la misma declaración de una línea: añadir una página no obliga a tocar
+  nada. NINGUNA ruta se mueve (`lastVersion: 'current'`).
+- **Hueco histórico DECLARADO**: el archivo empieza en 1.6.7; las minors
+  1.0–1.5 no tienen snapshot y NO se fabrican — uno retroactivo afirmaría que
+  la doc de hoy fue la de entonces, justo la mentira que el mecanismo existe
+  para impedir.
+- **Cableado del paraguas** (para el próximo producto que versione):
+  `sync-versions.mjs` gana `{id:'orbit', src:'../orbit/website',
+  prefix:'orbit_'}`, y el `editUrl` DEBE hacer `.replace(/^orbit_/, '')` — el
+  prefijo es del ENSAMBLADO, no del repo. Lo cazó el guard nº17 de enlaces.
+  Registro de guards **21 → 22** (`orbit-docs-archive` + fixture).
+- **ARREGLO REVERTIDO — no reintentarlo**: hacer que `gen_module_matrix.sh`
+  leyera `.release-please-manifest.json` (para cerrar su ventana rancia
+  post-tag) BLOQUEA la release — en el PR de release el manifiesto ya dice la
+  versión nueva, el generador pide una fila que el fichero commiteado no
+  tiene, el PR se pone rojo, y no se puede arreglar porque empujar a una rama
+  de release-please la deja sin CI. Revertido en orbit#220, con el porqué EN
+  LA CABECERA del script.
+
+### Sesión 2026-08-25 (a) — Track E de nucleus (seguridad y cumplimiento) → nucleus v1.12.0 y QUANTUM 1.16.0 CERTIFICADO
+
+- **Set**: quark v1.6.0 sin cambios · nucleus **v1.12.0** · orbit **v1.6.7**.
+  `--cierre` 21/21, tag `v1.16.0`. PRs nucleus #296/#297/#299/#300.
+- **El roadmap enterprise lo pintaba como trabajo grande; el repo ya estaba
+  MUCHO más endurecido que su propio roadmap.** Lo que faltaba de verdad era
+  hacer la postura AUDITABLE, no añadir defensas.
+- **§1 defecto real**: las reglas de los prefijos `__Host-`/`__Secure-` vivían
+  SOLO en el constructor de sesiones, así que `LoadConfig` aceptaba una cookie
+  imposible y la app moría al arrancar — clase «mismo fichero, dos veredictos».
+  Pasan a `ValidateReferential`; el guard del constructor queda como defensa en
+  profundidad.
+- **§2 el perfil de hardening queda CONGELADO y MEDIDO**: un test arranca una
+  app real, le manda una petición real y graba lo que vuelve (cada cabecera,
+  los atributos de cada cookie, lo que recibe un llamante cross-origin) contra
+  `contracts/baseline/security_posture.txt`. **Ningún valor se transcribe**, así
+  que el fichero no puede afirmar una protección que el framework no emite —
+  el modo de fallo de todo checklist escrito a mano. Dos perfiles (HSTS
+  difiere) y comparación EXACTA en ambos sentidos: aflojar es la regresión que
+  esto caza, endurecer es un evento de compatibilidad. Regenerar:
+  `go test ./contracts/ -run TestSecurityPosture -update`.
+- **§3 `nucleus doctor --check security`**: CORS comodín (fatal con
+  credenciales), `trusted_proxies` catch-all, `jwt_secret` largo pero
+  adivinable (`health --deploy` mide LONGITUD y 32 caracteres iguales la
+  pasan), `csrf_insecure_cookie` en prod, rate limiting apagado. No repite
+  `health --deploy` a propósito.
+- **Exclusión DECLARADA**: no se activa el rate limiting por defecto — voltear
+  `rate_limit_requests: 0` haría que cada despliegue existente empezara a
+  rechazar tráfico al actualizar; pertenece a un major con ventana de
+  deprecación. Escrito así en el roadmap.
+- **Cinco hallazgos de la pasada posterior** (nucleus #301–#305), uno de clase
+  nueva: la web anunciaba la capa 3 de validación como «rolling out» meses
+  después de correr en cada carga — **prosa que FUE verdad, que ningún guard
+  caza**. Y la lección operativa: **el snapshot de docs se corta el ÚLTIMO de
+  los cambios de la ronda** (cortarlo «antes de la release» no basta: es una
+  copia byte a byte servida para siempre, y un corte anterior a una corrección
+  congela el texto malo; ningún guard lo ve porque la copia es coherente
+  CONSIGO MISMA).
+- **Trampas del tren, importantes para el siguiente**: `chore(deps)` NO sube
+  versión (la alineación de orbit va como `fix(deps)`); **NUNCA empujar
+  commits a mano a una rama de release-please** (la deja sin disparar CI:
+  probado con push, cierre/reapertura y SHA nueva → 0 check-runs); el root de
+  orbit se corta SIN contener los tags de módulo como ancestros si su rama es
+  anterior a ellos → cerrar el PR, borrar la rama, relanzar «Release Please» y
+  verificar con `git merge-base --is-ancestor` antes de fusionar.
+- **Fuera del Track E** (el roadmap no lo pedía): Tracks **F** (cloud: Secrets
+  Manager/KMS/Lambda, Pub/Sub, Service Bus) y **G** (tooling: doctor
+  unificado, wizard, asistentes de migración) siguen abiertos.
+
+### Sesión 2026-08-24 — Arco DX-2 (ergonomía de test y de contribuidor) + consolidación documental → quark v1.6.0, nucleus v1.11.0 y QUANTUM 1.15.0 CERTIFICADO
+
+- **Set**: quark **v1.6.0** · nucleus **v1.11.0** · orbit **v1.6.6** (agent
+  v0.5.14, server v0.9.10, quarkbridge v0.3.13, quarkdatasource v0.2.12).
+  `--cierre` 21/21, tag `v1.15.0`. Minor de suite arrastrado por los minors de
+  quark y nucleus (QADR-0002).
+- **quark**: `quarktest` (SQLite(tb) sobre FICHERO — cada conexión pooled a
+  `:memory:` es su propia base vacía, trampa fijada con test —, `Migrate`
+  fail-fast que aflora el linter de tags, `Tx` con rollback SIEMPRE);
+  `quarktenant.VerifyRLSPolicies` + acción gateable, que convierte «RLS
+  activo» de creencia en comprobación; `make check` espejo de la puerta de CI.
+- **nucleus**: `nucleustest` cierra el círculo (`Runtime()`, `DB()`,
+  `TempSQLite`, `MigrateDir` — monta un módulo sonda, nombre
+  `nucleustest_probe` reservado); la validación de config emite UN SOLO
+  VEREDICTO (semántica y referencial suben a `pkg/app` y `LoadConfig` las
+  ejecuta siempre: muere «el mismo yml, dos veredictos»); espejo de storage
+  COMPLETO y TIPADO con guard de paridad RECURSIVO sin exclusiones.
+- **Parada grácil del outbox, con nota honesta**: `Stop()` deja terminar la
+  pasada en vuelo (`RunGraceful`, 5 s) y solo entonces escala. Nace de un
+  pánico de carrera visto UNA vez en la lane de race
+  (`database/sql.(*Rows).close→awaitDone`), **no reproducible** con estrés, así
+  que no se declara arreglado: lo entregado es un contrato de parada mejor.
+  Para recuperar traces de intentos anteriores:
+  `gh api repos/<r>/actions/runs/<id>/attempts/1/jobs` — `gh run view` solo
+  enseña el último intento, así que un rerun verde ESCONDE el pánico.
+- **Consolidación documental (capa 2)**: reescritura editorial de las 58
+  páginas públicas de los tres productos; `cut_docs_snapshot.sh` +
+  `check_docs_archive_freshness.sh` + paso 0 del checklist de release. Sin
+  snapshots retroactivos: el hueco se documenta, no se fabrica.
+- **Paraguas**: guard nº17 `check_built_links.sh` (enlaces del sitio
+  construido contra los checkouts LOCALES, sin red — GitHub devuelve 429 al
+  verificar en paralelo) y `scripts/bump-set.sh`, la capa 1 de automatización:
+  el escritor mecánico del set (submódulos al tag, 8 versiones, pins y tablas
+  del README); el juicio lo pone manifest-guard después. Registro **17 → 21**.
+- **Trampas del tren**: **la cascada de orbit se colapsa en UNA ronda**
+  subiendo el pin de `agent` DENTRO de la propia release de `server` y
+  bumpeando los cinco módulos a la vez (los dos sets anteriores gastaron 2
+  rondas extra por hacerlo en secuencia); release-please hace reemplazo GLOBAL
+  de versión en los `extra-files` y reescribió la línea de HISTORIAL de
+  CLAUDE.md, falsificando el registro (sacado de extra-files); el espejo
+  `website/sidebarsQuark.ts` se olvida SIEMPRE y sale rojo al pin en la
+  certificación, no en el PR del producto; MDX v3 no tolera `<!-- -->` (el
+  marcador `x-release-please-version` va como `{/* */}`).
+
+### Sesión 2026-08-23 — Arco de vertical slices (ADR-022) → nucleus v1.10.0 y QUANTUM 1.14.0 CERTIFICADO
+
+- **Set**: quark **v1.5.2** · nucleus **v1.10.0** · orbit **v1.6.5** (proto
+  v0.4.2, agent v0.5.13, server v0.9.9, quarkbridge v0.3.12, quarkdatasource
+  v0.2.11). `--cierre` 16/16, tag `v1.14.0`.
+- **Un módulo montado lleva ahora TODO lo que su feature necesita** (nucleus
+  #277/#279/#280/#281, ADR-022): **§1** `Policies` y `CSRFExempt` declarables
+  (filas RBAC relativas al `Prefix`, solo in-memory; un deny del CSV anfitrión
+  anula cualquier allow de módulo — «el módulo propone, el operador dispone»);
+  **§2** las `Migrations` embebidas se aplican con una llamada DELIBERADA
+  (`Runtime.ApplyModuleMigrations`, ledger con namespace por módulo +
+  checksums, idempotente) — el boot sigue sin mutar esquema por sí solo
+  (ADR-013 §R1); **§3** `Templates fs.FS` por módulo bajo su namespace
+  (`app.WithTemplatesFS`, acumulativo; `templates_dir` del anfitrión gana la
+  colisión); **§4** `nucleus generate module` emite el slice
+  paquete-por-feature autocontenido — su E2E arranca sin `migrate` y sin tocar
+  `rbac_policy.csv`.
+- **quark v1.5.2**: `migrate up` sin `--steps` aplicaba SOLO la primera
+  migración pendiente (default del flag compartido entre up/down) y salía 0 —
+  clase «exit 0 sin efecto».
+- **Docs**: los 206 enlaces «Edit this page» del sitio publicado estaban rotos
+  (`editUrl` string concatena la ruta relativa al SITIO) → `editUrl` como
+  FUNCIÓN por instancia.
+- **Trampas del tren**: la cascada de orbit necesitó DOS vueltas cazadas por
+  guards EN VIVO — `agent/go.mod` en nucleus v1.9.1 (manifest-guard §5, lag no
+  declarado) y `server` pinando `agent` v0.5.12 (orbit-internal-pins).
+  Moraleja: al alinear orbit, bumpear TODOS los módulos que requieren al
+  hermano (root, server, quarkbridge, quarkdatasource **y agent**) y comprobar
+  los pins internos. `gh pr checks --watch` sale ANTES de que se registren los
+  checks: esperar a que EXISTAN. El pre-check de suite-integral exige árbol
+  limpio (`QUANTUM_ALLOW_DIRTY=1` para iterar en local) y la corrida `--cierre`
+  va TRAS el tag (QM7-3).
+- **Capa 1 de automatización de docs ejecutada**: quark#284 y nucleus#286
+  (extra-files + markers `x-release-please-version` + generador idempotente de
+  esqueleto de release-notes) y quantum#98 (`scripts/bump-set.sh`). Capas 2 y 3
+  quedaron propuestas (la 2 se hizo en 1.15.0; la 3 —la lane que REDACTA— sigue
+  abierta).
+
+### Sesión 2026-08-19 — Arcos QCD-FW-4..11 → nucleus v1.9.1 y QUANTUM 1.13.0 CERTIFICADO
+
+- **Set**: quark v1.5.0 (continúa del 1.12.0) · nucleus **v1.9.1** · orbit
+  **v1.6.2** (agent v0.5.12, server v0.9.7, quarkbridge v0.3.11). `--cierre`
+  16/16, tag `v1.13.0`. Release GH publicada con retraso el 2026-08-27.
+- **La re-verificación continua de la demo externa sobre la serie v1.8.x/v1.9.x
+  de nucleus**, acumulada: **FW-4** `create_bucket_if_missing` alcanzable desde
+  `nucleus.yml` — el espejo de config no tenía el campo y la config estricta
+  rechazaba la clave que el propio error de arranque prescribe (+
+  `TestStorageConfigMirrorParity`, el guard cuya ausencia causó el hallazgo);
+  **FW-5** knobs de outbox (`missing_route_policy`, `lease_owner` por
+  instancia); **FW-6** `Flush` sin pánico; **FW-7** plantillas recursivas con
+  nombre por ruta relativa + scaffold renderizable; **FW-8** `newChild` como
+  ÚNICA derivación de sub-routers (`Route` perdía templates/sesión, y
+  `SetSessionManager` no tenía NINGÚN caller); **FW-9**
+  `WithTemplateFuncs`/`WithTemplates`; **FW-10** el dispatcher del outbox
+  arranca TRAS las extensiones (moría la ventana que quemaba reintentos de
+  pendientes durables); **FW-11** el builder re-expone toda `app.Option` con
+  guard de paridad app↔builder (tercera aparición del patrón
+  espejo-sin-paridad) y el baseline de API congelado FALLA ante adiciones sin
+  regenerar.
+- **Después del set** (arco QCD-FW §1/§2): **quark v1.5.1** — bajo
+  `RowLevelSecurityNative`, `QueryRowContext` dejaba la tx implícita abierta y
+  `context.AfterFunc` comiteaba EN OTRA GOROUTINE, sin happens-before con el
+  retorno de `Create`: un 2xx podía MENTIR sobre durabilidad (flake 1/27 de la
+  demo, misma clase que v1.3.1). Fix: QueryRow materializa la fila, COMITEA
+  síncrono y re-sirve los valores; el diferido queda solo en la ruta
+  multi-fila. **nucleus v1.9.2** — el godoc de `EnsureBucket` prometía algo que
+  el constructor impide; contrato reescrito.
+- **Trampa del tren (costó 9 h de parada)**: tras close/reopen de release PRs,
+  los runs de Actions pueden quedar en `action_required` (aprobar con
+  `gh api -X POST repos/<r>/actions/runs/<id>/approve`) o zombis en `queued`
+  (otro close/reopen crea run fresco). Los monitores ahora auto-aprueban.
+- **manifest-guard** gana **§4b** (tabla de módulos de integración del README
+  contra `orbit_modules` — había derivado sin guard).
+
+### Sesión 2026-08-16 (b) — Arco DX completo (DX-1..DX-27 + A4/A5) → quark v1.5.0, nucleus v1.8.0 y QUANTUM 1.12.0 CERTIFICADO
+
+- **Set**: quark **v1.5.0** · nucleus **v1.8.0** · orbit **v1.6.1** (proto
+  v0.4.2, agent v0.5.11, server v0.9.6, quarkbridge v0.3.10, quarkdatasource
+  v0.2.10). `--cierre` 16/16, tag `v1.12.0`. Release GH publicada con retraso el
+  2026-08-27. Los minors de quark y nucleus fuerzan el minor de
+  suite (QADR-0002).
+- **quark v1.5.0**: DDL de dominio con `migrate create --from-models`,
+  vocabulario rico del generador de modelos, timestamps automáticos, runner
+  embebido de `init`, linter de tags fail-fast, error accionable sin PK, build
+  sin CGO y `quark.New` estricto (opciones inválidas y driver desconocido =
+  error).
+- **nucleus v1.8.0**: `generate resource`/`startapp` emiten `Module()` montable
+  con repositorio SQL real por dialecto, kit de test in-process
+  `pkg/nucleustest` + `RunContext`, `profile: dev` sin Docker, config estricta
+  con did-you-mean, y el acantilado del quickstart convertido en test.
+- **orbit v1.6.1**: quick-start compilable, Makefile a 6 módulos, matriz de
+  compatibilidad generada, módulos re-pinados al set.
+- **Paraguas**: guard nº16 `umbrella-exit0-regressions` (los 7 repros §4.A al
+  pin, con `QUANTUM_EXIT0_*` para verificar antes del tren), lane
+  `showcase-smoke` en integration.yml, `scripts/quantum-env.sh` y manifiesto a
+  9 módulos con `print-requires.sh`.
+- **Trampas del tren que siguen vigentes**: release-please parte los commits
+  POR RUTAS TOCADAS — un commit VACÍO no se atribuye a ningún módulo y se
+  descarta («No user facing commits»), y `Release-As` en un `chore` también se
+  ignora en esta config: para forzar un corte hace falta un `fix` que toque un
+  fichero real del módulo. GitHub puede DEJAR DE ENTREGAR eventos de un release
+  PR tras varios close/reopen (precedente aceptado: si solo toca
+  changelog/manifest, mergear y validar con el CI del push a main). El repo
+  nucleus NO permite auto-merge. `check_example_pins` obliga a re-pinar el
+  showcase tras CADA tag nuevo de cualquier hermano (en ese tren, tres chores).
+  El guard `orbit-docs-version-claims` corre AL PIN: un tag de orbit sin su
+  sección en release-notes invalida el set (forzó v1.6.1). Y los resúmenes de
+  compactación pueden AFIRMAR trabajo no hecho: verificar SIEMPRE en disco o en
+  main antes de re-implementar.
+
+### Sesión 2026-08-16 (a) — Arcos QCD-CLI y QCD-FW → QUANTUM 1.10.1 y 1.11.0 CERTIFICADAS
+
+- **Origen**: la demo externa `quantum-coverage-demo` como detector
+  (`CLI_FINDINGS.md` + hallazgos de framework). Dos sets en la misma jornada
+  (tags `v1.10.1` y `v1.11.0`); sus releases de GitHub se publicaron con
+  retraso el 2026-08-27.
+- **Quantum 1.10.1** (arco QCD-CLI, tag `v1.10.1`): quark **v1.4.1**
+  (QCD-CLI-1/2/3 + papercuts), nucleus **v1.6.2** (QCD-CLI-4/5 + QCD-FW-3),
+  orbit **v1.5.3**. Transversal: go 1.26.6, grpc v1.82.1, otel v1.44.0.
+- **Quantum 1.11.0** (arco QCD-FW, tag `v1.11.0`, `--cierre` 15/15): nucleus
+  **v1.7.0** — **QCD-FW-1** el authz global default-deny ve claims JWT
+  (`App.New` monta el decoder de bearer POR DELANTE del enforcement y el
+  middleware resuelve sujetos en orden uid → rol → anonymous, primer permitido
+  gana; dirección estrictamente NO restrictiva), así que el RBAC por roles del
+  CSV es alcanzable en la capa global sin replicarlo por módulo; **QCD-FW-2**
+  bootstrap de buckets S3 (`CreateBucketIfMissing` opt-in + `EnsureBucket`
+  idempotente) con cambio DECLARADO: sin opt-in, un bucket ausente falla ALTO
+  en el constructor en vez de botear verde y reventar en el primer Put. Además
+  `ServiceRegistration.Health` cableado a `/healthz` (`service:<name>`, 503).
+  orbit **v1.5.4** = alineación pura; quark v1.4.1 sin cambios.
+- **Efecto en la demo**: puede retirar sus dos workarounds declarados
+  (fila-puerta anonymous + RBAC por módulo, y el `MakeBucket` a mano en
+  `OnStart`).
+- **Trampas del tren estrenadas aquí**: release-please ignora el footer
+  `Release-As` si el squash lo anida en un bullet (controlar el mensaje del
+  merge con `--subject/--body`); un bump transversal que toque el go.mod de un
+  módulo «sin cambios» obliga a cortarlo y re-pinar agent/server EN CASCADA
+  (manifest-guard §3 exige tag ancestro + árbol idéntico); `go work sync`
+  ensucia los go.mod de los submódulos pinados (descartar antes de certificar);
+  `setup-go` instala la versión de la directiva `go`, NO la de `toolchain`.
 
 ### Sesión 2026-07-22 — Arco de endurecimiento #1 (micro-arco de seguridad, NO una ronda): backlog de REVISION_DIRIGIDA_SEG_1 a CERO (SEC-1..4, MAQ-1..5) → nucleus v1.6.0, orbit v1.5.1 (quark v1.4.0 sin cambios), quantum-app v0.1.2 y QUANTUM 1.10.0 CERTIFICADO
 
@@ -1863,6 +2244,11 @@ ir en paralelo. Nada de esto bloquea la Fase 2/3 en curso.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
+> **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
+> pilares en major 1 bajo un manifiesto de suite, con régimen de majors en
+> lockstep (QADR-0002). La tabla queda como referencia histórica; el trabajo
+> nuevo entra por arcos (§5) bajo el régimen de auditoría continua.
+
 | Fase | Objetivo | Hecho cuando |
 |---|---|---|
 | 1 | **Identidad/marca Quantum**, portada de la suite | Front page que nombra y enlaza los tres pilares y aclara el uso standalone de Quark |
@@ -1873,43 +2259,88 @@ ir en paralelo. Nada de esto bloquea la Fase 2/3 en curso.
 
 ## 5. Pendientes técnicos anotados (revísalos cuando apliquen)
 
-**Integración Quark↔Orbit y convergencia (QADR-0005/0006, orbit/ADR-001; toca repos de PRODUCTO):**
+> Puesto al día el 2026-08-27. Lo que esta sección listaba antes (integración
+> Quark↔Orbit de QADR-0005/0006, pin de nucleus en `8714882c`, `status:
+> pre-fusion`, retirada de los Pages standalone de los productos) está **todo
+> hecho y publicado**: los tres pilares llevan desde Quantum 1.0.0 (2026-07-11)
+> en major 1 con los pines EN TAG, `quarkbridge`/`quarkdatasource` van en el
+> set (v0.4.0 / v0.2.14) y `jcsvwinston.github.io/{quark,nucleus,orbit}` ya
+> sirven el redirector al sitio unificado. El histórico de cómo se llegó ahí
+> vive en el §3 y en `docs/auditoria/`.
 
-- **[Nucleus] Ingest SQL público ✅ HECHO** (2026-07-01, nucleus#168, ADR-020):
-  `EventBus.EmitSQL(SQLEvent)` en la superficie del `Runtime`. [QADR-0006]
-- **[Orbit] `orbit/quarkbridge` ✅ HECHO** (2026-07-02, orbit#2): módulo opt-in,
-  `quark.Middleware` ctx-aware → `EmitSQL`. Redacción por defecto. Queda su
-  validación end-to-end en la demo de Fase 4. [QADR-0006, Caso 1]
-- **[Orbit] Desacople `datasource` de Data Studio ✅ HECHO** (2026-07-02, orbit#3,
-  ADR-001 accepted): contrato neutral + adaptador Nucleus; O1–O3 confirmados, SPA
-  intacta. [QADR-0006, Caso 2]
-- **[Orbit] `orbit/quarkdatasource` ✅ HECHO** (2026-07-02, orbit#4): 2ª
-  implementación del contrato — Data Studio sobre modelos Quark, inyectado vía
-  `orbit.Config.DataSource`. Contrato movido de `internal/` a `orbit/datasource`
-  (público) como corrección de la validación; se congela en el v1.0 de Orbit.
-  Queda su validación end-to-end en la demo de Fase 4. [QADR-0006, Caso 2]
-- **[Suite] Secuenciación** (sigue vigente): no arrancar el freeze de Orbit sobre
-  la pseudo-version de Nucleus; Nucleus→v1.0 primero, Orbit en lockstep. Las
-  interfaces `datasource` se congelan en el v1.0 de Orbit. [QADR-0005]
+**Trabajo con destinatario (por orden de arranque):**
 
-- **Pin de Nucleus**: hoy `workspace_pins.nucleus = 8714882c` (pre-release de v0.9.1)
-  porque Orbit v0.1.0 lo exige. Cuando Nucleus **tague la línea que Orbit consume**
-  (será v0.10.0 — la extracción del admin ya está en su `main`), actualiza
-  `workspace_pins.nucleus` a ese tag y revisa si `modules.nucleus` sube. [QADR-0004]
-- **CI de integración ✅**: `.github/workflows/integration.yml` (Fase 3, PR #17) hace
-  `go build`+`go vet` del trío en cada push/PR. `status: pre-fusion` sigue en
-  `versions.yaml` hasta certificar Quantum 0.1.0 (limpiar los pines a tag).
-- **Docs unificadas (Fase 2)**: `website/` (Docusaurus 3.10.1) ensambla los TRES
-  productos, con doble selector de versión, **tema de marca pulido (UI/UX)**,
-  **búsqueda local offline** (PR #21) y **deploy live** en
-  https://jcsvwinston.github.io/quantum/. Enlaces `/docs/*` heredados de Quark
-  reescritos en el ensamblaje (PR #20). CI de PR: `website-ci.yml` (PR #23) construye
-  el sitio en PRs que lo toquen. Pendiente: retirar los Pages standalone de
-  Quark/Nucleus + redirects (plan en `docs/RETIRE_PRODUCT_PAGES.md`; toca repos de
-  producto). `cd website && npm install && npm run build`.
+- **Plan de extensibilidad, arcos D–H** — **D (LDAP)** es el siguiente: el
+  primer plugin real que consume los arcos A+B+C (registro por nombre,
+  configuración propia del proveedor, cadena de autenticación declarada). Luego
+  **E** (SAML/OIDC), **F** (bus de eventos más allá del CRUD de modelos), **G**
+  (kit de conformidad + scaffold de proveedor) y **H** (congelar contratos de
+  plugin + baseline de estabilidad). Contexto y frontera de autorización que NO
+  se relaja: entrada del 2026-08-27 en el §3; ADR de referencia: nucleus
+  `docs/adrs/ADR-023-provider-registries.md`.
+- **Backlog DX abierto** (del diagnóstico de los arcos DX y DX-2): `quark
+  migrate diff`, clasificación de errores exportada de quark
+  (`IsUniqueViolation` — hoy degrada a `lib/pq`), ayuda del CLI de nucleus,
+  `doctor` unificado, `profile: dev` visible, snapshots de quark congelados,
+  índice de ADRs, y la **capa 3 de automatización de docs**: la que REDACTA la
+  narrativa, no solo la que mueve versiones (capas 1 y 2 hechas —
+  `scripts/bump-set.sh`, `cut_docs_snapshot.sh` + guard de frescura).
+- **Roadmap enterprise de nucleus**: Tracks **F** (cloud — Secrets Manager/KMS/
+  Lambda, Pub/Sub, Service Bus) y **G** (tooling — doctor unificado, wizard,
+  asistentes de migración) siguen abiertos. El **Track E** (seguridad) se cerró
+  con evidencia en Quantum 1.16.0.
+- **quark**: cierres **S8/S9** pendientes.
+
+**Deuda DECLARADA por escrito (no es olvido; no reabrir sin motivo nuevo):**
+
+- **quark#265** — binder generado de codegen (F6-3b), aplazado por disposición
+  escrita. Reabrir solo por type-safety o corrección, no por estética.
+- **Rate limiting apagado por defecto** (nucleus): voltear
+  `rate_limit_requests: 0` haría que cada despliegue existente empezara a
+  rechazar tráfico al actualizar → pertenece a una **major con ventana de
+  deprecación**. Escrito así en el roadmap de nucleus (Track E).
+- **Huecos del archivo de documentación**: el de orbit empieza en 1.6.7. No se
+  fabrican snapshots retroactivos — uno afirmaría que la doc de hoy fue la de
+  entonces, justo lo que el mecanismo existe para impedir.
+
+**Vigilancias abiertas (nada que hacer hoy; qué mirar si rebrota):**
+
+- **Flake NO cerrado**: pánico `-race` en el teardown de `pkg/outbox` de nucleus
+  (`database/sql.(*Rows).close→awaitDone`), visto UNA vez en CI y no
+  reproducible en local. El `Stop` grácil de v1.11.0 elimina el disparador más
+  plausible y arregla un abandono real de entregas a medio pase, pero **no se
+  declara arreglado**; hay canario de 50 ciclos Start/Stop en la suite. Si
+  rebrota: `GOTRACEBACK=all` en linux/amd64, y para recuperar el trace de un
+  intento anterior `gh api repos/<r>/actions/runs/<id>/attempts/1/jobs` — un
+  rerun verde ESCONDE el pánico (`gh run view` solo enseña el último intento).
+- **Prosa que FUE verdad**: la clase de hallazgo que ningún guard caza (la web
+  anunciando como «en despliegue» algo que llevaba meses corriendo). Al tocar
+  una feature, mirar la página que la describe.
+
+**Régimen operativo vigente (desde Quantum 1.9.0):**
+
+- Certificar = lane semanal verde + CI por repo verde + juicio humano por
+  disparadores. **Ya no hay rondas completas de auditoría**; el trabajo entra
+  por arcos. Runbook: [`docs/AUDITORIA_CONTINUA.md`](../../docs/AUDITORIA_CONTINUA.md).
+- `suite-integral.yml` corre los **lunes 06:00 UTC** e `integration.yml` a las
+  **06:30**; una lane roja abre issue automático. Hoy hay **22 guards**
+  registrados y `guard-of-guards` prueba con fixture que cada uno muerde.
+- Escribir el set: `scripts/bump-set.sh` (submódulos al tag, las 9 versiones,
+  pins y tablas del README); el juicio lo pone `manifest-guard.sh` después. La
+  corrida `suite-integral.sh --cierre` va **TRAS** el tag de suite (QM7-3), y el
+  pre-check exige árbol limpio (`QUANTUM_ALLOW_DIRTY=1` solo para iterar en
+  local).
+- Al cerrar un arco, el snapshot de docs se corta **el último** de los cambios
+  de la ronda, y el re-pin de `examples/showcase_demo` (nucleus) va **después**
+  de todos los tags del set.
 
 ## 6. Cómo cerrar la sesión
 
 Actualiza el §3 de este archivo (estado al cierre) con lo que avanzaste y el
-próximo foco, para no romper el contexto a la siguiente sesión. Si cambia una
-decisión de coordinación, abre un QADR sucesor (no reabras uno aceptado).
+próximo foco, para no romper el contexto a la siguiente sesión — entrada nueva
+ARRIBA, no al final. Si un pendiente del §5 se cierra o nace uno nuevo, tócalo
+allí en el mismo cambio: un §5 rancio contradice al §3 y desorienta más que la
+ausencia de nota.
+
+Si cambia una decisión de coordinación, abre un QADR sucesor (no reabras uno
+aceptado).
