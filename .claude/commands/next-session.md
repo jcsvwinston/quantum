@@ -59,6 +59,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   **Causa raíz, peor que el síntoma: ese commit fue DIRECTO A MAIN.** La regla
   de rama+PR existe para que manifest-guard hable ANTES del merge; saltársela
   «por ser solo documentación» es lo que convirtió un descuido en un main rojo.
+- **Y volvió a pasar en el MISMO sitio una hora después** (quantum#110, esta
+  vez cazado por el PR): el commit del handoff se llevó otra vez el puntero.
+  Dos veces el mismo error significa que la lección estaba mal escrita —
+  decía «trabaja en rama», y lo que hacía falta era **cómo hacer el add**:
+  > **En el paraguas, `git add` de ficheros CONCRETOS. Nunca `git add -A`**
+  > mientras un submódulo pueda estar en una rama de trabajo: se lleva el
+  > gitlink y el manifiesto queda afirmando un set que git no respalda.
+  Precedente idéntico: `.claude/launch.json` colado por un `git add -A` en la
+  certificación 1.2.0.
 - **Arco G, primer tramo — VERDE SIN FUSIONAR: nucleus#342.**
   `pkg/auth/backend/backendtest` es la suite de conformidad que un autor
   apunta contra su propio backend (cuatro líneas en vez de leer la prosa con
