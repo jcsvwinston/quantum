@@ -140,9 +140,31 @@ paquetes hoja, **los built-ins se registran desde FUERA del paquete que
 posee el registro**. ADR-023 pedía que entraran «por la misma puerta que
 cualquiera» como disciplina; ahora no hay otra puerta.
 
-**Lo primero tras el próximo corte de nucleus**: migrar `providers/ldap` a
-importar el paquete hoja — hoy no puede, su módulo requiere v1.15.0, que no
-lo tiene (misma restricción de siempre: módulo y API en el mismo tren).
+**AVISO — el release PR rodante de nucleus propone un NÚMERO EQUIVOCADO.**
+Los tres commits de extracción se tiparon `refactor:`, que release-please
+mapea a PATCH, así que propone `v1.15.2`. Desde `v1.15.1` han aparecido
+**tres paquetes públicos nuevos con 141 símbolos exportados**: eso es API
+aditiva y por semver es **MINOR**. Cortarlo tal cual publicaría un patch
+que falsea lo que la gente puede instalar, justo lo que QADR-0002 prohíbe.
+**No fusionar ese PR sin forzar antes `v1.16.0`** — y recordar que
+`Release-As` en un `chore` se ignora en esta config: hace falta un commit
+`feat:` que toque un fichero real del módulo.
+
+**Decisión tomada (Carlos, 2026-08-28): NO se corta todavía.** El release PR
+queda RODANDO a propósito. El arreglo que motivaría la ronda ya está en
+`main`, y el único consumidor que espera —la migración de `providers/ldap`
+al paquete hoja— se puede escribir y cortar en el MISMO tren en vez de en
+dos. Cortar ahora obligaría además a realinear orbit y re-certificar el
+paraguas por segunda vez en el día.
+
+**Cuando se corte esa ronda, en este orden**: forzar el minor → cortar
+nucleus v1.16.0 (+ `providers/ldap` en el mismo commit, que es la única
+forma de que el módulo sea certificable) → migrar `providers/ldap` a
+importar `pkg/auth/backend` → alinear orbit → certificar Quantum 1.21.0.
+
+**Por qué `providers/ldap` no puede migrar hoy**: su módulo requiere
+v1.15.1, que no tiene los paquetes hoja. La misma restricción de siempre —
+módulo y API en el mismo tren.
 
 **TRAMPAS NUEVAS DEL TREN (importantes para el siguiente):**
 
