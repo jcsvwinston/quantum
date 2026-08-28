@@ -103,6 +103,25 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   despliegue correcto); y la página del sitio, que decía «Nucleus does not
   ship an LDAP client» — cierto ayer.
 
+**DESPUÉS de certificar — primer tramo del Arco H, YA EN `main` de nucleus
+(nucleus#338), sin release todavía:** el contrato que un backend implementa
+vive ahora en **`pkg/auth/backend`**, un paquete hoja. Medición: `pkg/auth`
+linkaba **115** paquetes de terceros (sesiones, JWT, Redis, Prometheus,
+OTel, gateway de gRPC) para implementar dos métodos; el hoja linka **2**, de
+un solo módulo. El REGISTRO se mueve con el contrato, porque un backend que
+tuviera que llamar a `auth.RegisterBackend` seguiría pagando los 115 solo
+por registrarse. Los nombres de `pkg/auth` son **alias, no copias** (mismo
+tipo, mismo valor de centinela, `errors.Is` casa), con test que incluye la
+asignación que solo compila si el alias es alias. El paquete queda
+**congelado** — la otra mitad que ADR-024 dejó anotada. ADR-025.
+El baseline registra un MOVIMIENTO de diez entradas, no un borrado: go/doc
+las atribuye al paquete que las define y los nombres que la gente escribe
+siguen bajo `pkg/auth`.
+
+**Lo primero tras el próximo corte de nucleus**: migrar `providers/ldap` a
+importar el paquete hoja — hoy no puede, su módulo requiere v1.15.0, que no
+lo tiene (misma restricción de siempre: módulo y API en el mismo tren).
+
 **TRAMPAS NUEVAS DEL TREN (importantes para el siguiente):**
 
 - **Un tag de módulo cortado DESPUÉS del tag raíz NO ES CERTIFICABLE.** El
@@ -169,7 +188,12 @@ principio la segunda alineación de orbit no habría hecho falta.
   y es entrada real para el **Arco H**: las interfaces que un tercero debe
   implementar estarían mejor en un paquete que no arrastre el runtime.
 - **La superficie de `providers/ldap` NO está en el baseline congelado** — el
-  freeze recorre el módulo raíz y este es otro. También Arco H.
+  freeze recorre el módulo raíz y este es otro. Sigue abierto: el tramo de H
+  congeló el CONTRATO (`pkg/auth/backend`), no el módulo proveedor.
+- **Los otros tres registros** (storage, correo, store de sesión) tienen la
+  misma forma de problema que tenía auth y NO están medidos. Merecen su
+  propia pasada; hacerlo de rebote daría un diff imposible de juzgar por
+  partes.
 
 **Quedan del plan de extensibilidad**: **E** (SAML/OIDC — la costura ya está
 probada por D), **F** (bus de eventos más allá del CRUD), **G** (kit de
