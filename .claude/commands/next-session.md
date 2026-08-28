@@ -118,6 +118,28 @@ El baseline registra un MOVIMIENTO de diez entradas, no un borrado: go/doc
 las atribuye al paquete que las define y los nombres que la gente escribe
 siguen bajo `pkg/auth`.
 
+**La pasada de los OTROS TRES registros, también hecha** (ADR-026). Se
+midieron antes de tocar, y NO eran el mismo problema:
+
+| Contrato que importa un proveedor | Antes | Después | Estado |
+|---|---|---|---|
+| `pkg/storage/provider` | 301 | **2** | en `main` (nucleus#340) |
+| `pkg/auth/backend` | 115 | **2** | en `main` (nucleus#338) |
+| `pkg/auth/sessionstore` | 115 | **0** | **VERDE SIN FUSIONAR: nucleus#341** |
+| `pkg/mail` | 0 | 0 | ya estaba limpio; no se tocó |
+
+Hallazgos de la medición: storage era TRES veces peor que el caso que
+justificó el arco (s3.go/gcs.go/azure.go viven en el mismo paquete que la
+interfaz); **correo, el registro que ADR-023 señaló como el único ya
+extensible, resulta ser también el único ya limpio** — hallazgo, no
+omisión; y el store de sesión sale el mejor de los tres porque sus
+parámetros son tipados y no necesita ni el decoder.
+
+Efecto lateral que vale más que los números: al bajar los registros a los
+paquetes hoja, **los built-ins se registran desde FUERA del paquete que
+posee el registro**. ADR-023 pedía que entraran «por la misma puerta que
+cualquiera» como disciplina; ahora no hay otra puerta.
+
 **Lo primero tras el próximo corte de nucleus**: migrar `providers/ldap` a
 importar el paquete hoja — hoy no puede, su módulo requiere v1.15.0, que no
 lo tiene (misma restricción de siempre: módulo y API en el mismo tren).
@@ -190,10 +212,7 @@ principio la segunda alineación de orbit no habría hecho falta.
 - **La superficie de `providers/ldap` NO está en el baseline congelado** — el
   freeze recorre el módulo raíz y este es otro. Sigue abierto: el tramo de H
   congeló el CONTRATO (`pkg/auth/backend`), no el módulo proveedor.
-- **Los otros tres registros** (storage, correo, store de sesión) tienen la
-  misma forma de problema que tenía auth y NO están medidos. Merecen su
-  propia pasada; hacerlo de rebote daría un diff imposible de juzgar por
-  partes.
+- ~~Los otros tres registros sin medir~~ — HECHO (ADR-026), ver arriba.
 
 **Quedan del plan de extensibilidad**: **E** (SAML/OIDC — la costura ya está
 probada por D), **F** (bus de eventos más allá del CRUD), **G** (kit de
