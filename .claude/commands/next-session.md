@@ -47,9 +47,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-08-28, Arco D del plan de extensibilidad)
+## 3. Estado al cierre (2026-08-28, Arco D — QUANTUM 1.20.0 CERTIFICADO)
 
-### Sesión 2026-08-28 — Arco D (LDAP integrado) → nucleus v1.15.0 + providers/ldap v0.1.0 publicados; QUANTUM 1.20.0 **SIN CERTIFICAR TODAVÍA**
+### Sesión 2026-08-28 — Arco D (LDAP integrado) → nucleus v1.15.1 + providers/ldap v0.1.1, orbit v1.8.3 y QUANTUM 1.20.0 CERTIFICADO
 
 - **Publicado y verificado**: nucleus **v1.15.0** y **`providers/ldap/v0.1.0`**
   (los dos en el MISMO commit `1776e70c`). Probado como consumidor real:
@@ -142,29 +142,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   grep que los excluía, y sí lo hace en `internal/admin/auth_chain_test.go`.
   La ruptura tuvo consumidor de primera parte; lo cazó la alineación.
 
-**ESTADO EXACTO AL CIERRE — el tren de 1.20.0 está a UN paso, bloqueado
-fuera del proyecto:**
+**SET CERTIFICADO**: quark **v1.6.1** · nucleus **v1.15.1** +
+**`providers/ldap/v0.1.1`** · orbit **v1.8.3** (agent v0.6.2, server
+v0.10.2, quarkbridge v0.4.2, proto v0.4.2, quarkdatasource v0.2.14).
+`--cierre` **22/22 EXIT=0** con tag == HEAD, tag `v1.20.0` y release de
+GitHub publicada. `declared_lags` VACÍO.
 
-Publicado y verificado: nucleus **v1.15.1** + **`providers/ldap/v0.1.1`**
-(mismo commit `620eed1d`) · orbit **v1.8.2** (agent v0.6.1, server v0.10.1,
-quarkbridge v0.4.1) · quark v1.6.1 sin cambios.
-
-1. **BLOQUEO ACTUAL: `sum.golang.org` no ha indexado `v1.15.1`.** El proxy sí
-   lo tiene (`go list -m` lo resuelve); la base de sumas va por detrás y
-   devuelve 404, así que `go mod tidy` no puede escribir un go.sum
-   verificado. Sonda validada (v1.15.0 → 200, v1.15.1 → 404). **NO se salta
-   con flags**: un go.sum sin verificación de sumdb es justo lo que
-   `-mod=readonly` existe para cazar. Reintentar:
-   `curl -sf https://sum.golang.org/lookup/github.com/jcsvwinston/nucleus@v1.15.1`
-2. En cuanto responda 200: la rama **`fix/align-nucleus-1.15.1`** de orbit ya
-   tiene los cuatro go.mod subidos a v1.15.1 y solo le falta `go mod tidy` +
-   build; luego su cascada (colapsable en una ronda: subir el pin de `agent`
-   DENTRO de la release de `server`) y re-pinar el submódulo.
-3. La rama **`feat/quantum-1.20.0-arco-d`** del paraguas está lista salvo el
-   pin de orbit: `go.work`, `nucleus_modules`, `manifest-guard` §3b/§5b y el
-   README ya al día, `declared_lags` VACÍO. PR de certificación abierto:
-   **quantum#108**.
-4. Después: tag de suite `v1.20.0` y `suite-integral.sh --cierre` TRAS el tag.
+**El tren costó DOS vueltas de orbit, y la segunda fue culpa de un error de
+modelo mío**: corté nucleus v1.15.1 para desatascar una certificación que en
+realidad bloqueaba mi propio guard (ver la trampa del borde topológico
+abajo). El corte se justifica solo —el `release-as` consumido impedía al
+proveedor publicar versión nunca— pero con el guard bien modelado desde el
+principio la segunda alineación de orbit no habría hecho falta.
 
 **Deuda declarada de este arco (no es olvido):**
 
@@ -172,11 +161,9 @@ quarkbridge v0.4.1) · quark v1.6.1 sin cambios.
   dos lags distintos de `nucleus` a la vez (el de orbit y la pseudo-versión
   del proveedor). Se resolvió alineando orbit; si vuelve a pasar, el
   mecanismo necesita ser por módulo, no por dependencia.
-- **`providers/ldap` v0.1.0 se publicó requiriendo una pseudo-versión** del
-  framework (su API viajó en el mismo tren). `main` YA está re-pinado a
-  v1.15.0 (nucleus#335); ese corte va DENTRO de la próxima release de la
-  raíz. Para el próximo módulo nuevo: cortar antes la release del framework
-  y que el módulo nazca pinado a ella.
+- **El borde módulo→raíz del MISMO repo no es deuda, es topología.** Se
+  resolvió con el guard, no con un lag declarado. Queda tolerado UN release
+  y anunciado con AVISO.
 - **El contrato que un plugin implementa arrastra 117 paquetes de terceros**
   (`pkg/auth` linka sesiones, Redis, JWT, OTel). Medido, escrito en ADR-024,
   y es entrada real para el **Arco H**: las interfaces que un tercero debe
@@ -2410,10 +2397,6 @@ ir en paralelo. Nada de esto bloquea la Fase 2/3 en curso.
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **CERRAR EL TREN DE QUANTUM 1.20.0** — es lo primero, y está a cuatro pasos
-  descritos casilla a casilla en la entrada del 2026-08-28 del §3: fusionar
-  orbit#282 (verde), cortar los tags de orbit en UNA ronda, re-pinar, y la
-  rama `feat/quantum-1.20.0-arco-d` del paraguas se pone verde sola.
 - **Plan de extensibilidad, arcos E–H** — **D (LDAP) CERRADO** en nucleus
   v1.15.0 + providers/ldap v0.1.0. El siguiente es **E** (SAML/OIDC), que
   estrena la costura sobre dependencias que sí son pesadas (32 módulos, 18
