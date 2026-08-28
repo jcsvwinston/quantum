@@ -47,7 +47,123 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-08-27, Arcos B y C del plan de extensibilidad)
+## 3. Estado al cierre (2026-08-28, Arco D del plan de extensibilidad)
+
+### Sesión 2026-08-28 — Arco D (LDAP integrado) → nucleus v1.15.0 + providers/ldap v0.1.0 publicados; QUANTUM 1.20.0 **SIN CERTIFICAR TODAVÍA**
+
+- **Publicado y verificado**: nucleus **v1.15.0** y **`providers/ldap/v0.1.0`**
+  (los dos en el MISMO commit `1776e70c`). Probado como consumidor real:
+  `go get` del tag + `import _` → `RegisteredBackends()` imprime `[ldap]`.
+  ADR nuevo: nucleus `docs/adrs/ADR-024-ldap-provider-module.md`; ADR-023
+  enmendado.
+- **La pregunta de partida era «¿plugin o integrado?»** y la respuesta salió
+  de MEDIR, no de suponer: LDAP añade 3 módulos MIT y linka 5 paquetes de
+  terceros; SAML+OIDC son 32 y 18. Contra un `go.mod` que ya carga los SDK de
+  AWS, Azure y Google Cloud, el argumento de «dependencias pesadas» de
+  ADR-023 §5 **no se sostiene para LDAP** — pero sí para el Arco E, y por eso
+  la costura se queda. Forma elegida: **módulo hermano en el repo de
+  nucleus** (`providers/ldap`), separado para el compilador y un solo
+  producto para todo lo demás. No contradice §5.
+- **§1 — el prerrequisito que el arco no tenía**: de las cuatro factorías del
+  framework, `auth.BackendFactory` era la ÚNICA que no recibía configuración,
+  mientras su godoc ya PROMETÍA el subárbol. Pasa a
+  `func(cfg BackendConfig) (Backend, error)` + `NewChainFrom(ChainConfig)`.
+  **Ruptura de fuente en paquete estable y congelado, sin ventana de
+  deprecación**, razonada en el ADR: símbolo de un día, y el baseline congela
+  NOMBRES y no FIRMAS — ningún guard habría objetado en ninguna dirección,
+  que es justo lo que obliga a escribirlo.
+- **Defecto real del Arco B, reproducido antes de tocarlo**: la exención de
+  clave desconocida vivía en DOS validadores y solo uno la tenía. Un
+  despliegue sobre un backend de terceros arrancaba un servidor sano cuyo
+  propio `nucleus check`/`doctor`/`config print` llamaban malformada a la
+  configuración que estaba corriendo — «el mismo fichero, dos veredictos»,
+  tercera aparición. Una sola implementación ahora (`internal/providerns`),
+  con test que pregunta a ambos por el mismo fichero.
+- **Segunda puerta del Arco B**: configurar `auth.ldap.*` y olvidarlo en
+  `auth_backends` era un no-op SILENCIOSO que ninguna guarda podía ver (el
+  nombre sí está registrado, así que la sección está legítimamente eximida, y
+  la cadena —su único consumidor— nunca la pide). Ahora es error. Storage NO
+  recibe el equivalente y está escrito por qué: allí una sección sin usar es
+  configuración guardada para otro entorno.
+- **§2 — el backend**, con cada propiedad de seguridad respaldada por un test
+  que FALLA si se quita la guarda (verificado por mutación, no por lectura):
+  contraseña vacía rechazada antes de abrir conexión, nombre escapado antes
+  del filtro, match ambiguo = rechazo, bind de igualación de tiempos para el
+  usuario ausente, y **UN solo código de resultado (49) es rechazo** —
+  equivocarse hacia «no disponible» cuesta una caída al siguiente backend;
+  hacia «rechazo», la caída del servicio. Lane nuevo en la puerta requerida
+  contra **OpenLDAP real**, que enlaza el módulo al ÁRBOL bajo revisión (con
+  `GOWORK=off` una rotura de `pkg/auth` pasaría verde) y comprueba la
+  resolución standalone aparte.
+- **§3 — la capa integrada**: el arranque da la receta (`go get` + `import _`
+  exactos) vía `internal/knownproviders`, que es TABLA DE DATOS — el core
+  lleva el nombre del satélite y nada de su código; `doctor --check auth`,
+  que a propósito **no juzga registro** (corre en el binario `nucleus`, que
+  no importa los proveedores de la app: sería falsa alarma en todo
+  despliegue correcto); y la página del sitio, que decía «Nucleus does not
+  ship an LDAP client» — cierto ayer.
+
+**TRAMPAS NUEVAS DEL TREN (importantes para el siguiente):**
+
+- **Un tag de módulo cortado DESPUÉS del tag raíz NO ES CERTIFICABLE.** El
+  pin del paraguas debe ser el commit exacto de la raíz (manifest-guard §2),
+  así que el tag del módulo tiene que ser ancestro. `providers/ldap/v0.1.0`
+  certifica porque se cortó en el MISMO commit que `v1.15.0`. Corolario: los
+  bumps de módulo van DENTRO de la release de la raíz, nunca detrás.
+- **Al añadir un paquete a release-please, el PR de release antiguo queda
+  ZOMBI**: el nombre de rama codifica el conjunto de paquetes
+  (`…--components--<pkg>` → `…--branches--main`), así que el viejo sobrevive
+  huérfano en vez de actualizarse. Cerrarlo a mano (fue nucleus#331).
+- **NO copiar `separate-pull-requests` de orbit**: sin él, release-please
+  agrupa raíz y módulo en UN PR y la cascada de manifiestos no existe.
+  Estrenado con éxito en este tren.
+- **Un paquete NUEVO sin tag previo hace que release-please barra historia
+  hacia atrás** y atribuya commits ajenos a su primer changelog (aquí, un
+  arreglo de storage de v1.9.2). El número es correcto; miente el cuerpo, y
+  el changelog queda CONGELADO dentro del tag: corregir ANTES de cortar.
+- **Las ramas de release-please SÍ disparan CI cuando el push es humano** —
+  la nota anterior de que no lo hacían aplica a los commits del bot.
+- **«No lo usa nadie» hay que comprobarlo INCLUYENDO los `_test.go` del
+  hermano**: se afirmó que orbit no consume `auth.RegisterBackend` con un
+  grep que los excluía, y sí lo hace en `internal/admin/auth_chain_test.go`.
+  La ruptura tuvo consumidor de primera parte; lo cazó la alineación.
+
+**ESTADO EXACTO AL CIERRE — lo que queda para certificar Quantum 1.20.0:**
+
+1. **[orbit#282](https://github.com/jcsvwinston/orbit/pull/282) VERDE, sin
+   fusionar** — alinea los cuatro módulos que requieren nucleus a v1.15.0.
+2. Fusionarlo → cortar los tags de orbit (root + agent/server/quarkbridge;
+   **colapsar la cascada en UNA ronda**) → re-pinar el submódulo orbit.
+3. La rama **`feat/quantum-1.20.0-arco-d`** del paraguas ya lleva el cableado
+   hecho y empujado: `go.work` con `./nucleus/providers/ldap`, bloque
+   `nucleus_modules` en `versions.yaml` (10 versiones certificadas, no 9),
+   `manifest-guard` §3b (tag de módulo de nucleus) y §5b (disclosure del
+   propio módulo), README al día. **Se pone verde en cuanto orbit tenga sus
+   tags**; hoy falla exactamente en las cuatro líneas de orbit.
+4. Después: tag de suite `v1.20.0` y `suite-integral.sh --cierre` TRAS el tag.
+
+**Deuda declarada de este arco (no es olvido):**
+
+- **`declared_lags` admite UNA entrada por dependencia**, y este set necesitó
+  dos lags distintos de `nucleus` a la vez (el de orbit y la pseudo-versión
+  del proveedor). Se resolvió alineando orbit; si vuelve a pasar, el
+  mecanismo necesita ser por módulo, no por dependencia.
+- **`providers/ldap` v0.1.0 se publicó requiriendo una pseudo-versión** del
+  framework (su API viajó en el mismo tren). `main` YA está re-pinado a
+  v1.15.0 (nucleus#335); ese corte va DENTRO de la próxima release de la
+  raíz. Para el próximo módulo nuevo: cortar antes la release del framework
+  y que el módulo nazca pinado a ella.
+- **El contrato que un plugin implementa arrastra 117 paquetes de terceros**
+  (`pkg/auth` linka sesiones, Redis, JWT, OTel). Medido, escrito en ADR-024,
+  y es entrada real para el **Arco H**: las interfaces que un tercero debe
+  implementar estarían mejor en un paquete que no arrastre el runtime.
+- **La superficie de `providers/ldap` NO está en el baseline congelado** — el
+  freeze recorre el módulo raíz y este es otro. También Arco H.
+
+**Quedan del plan de extensibilidad**: **E** (SAML/OIDC — la costura ya está
+probada por D), **F** (bus de eventos más allá del CRUD), **G** (kit de
+conformidad + scaffold de proveedor) y **H** (congelar contratos de plugin +
+baseline, con las dos entradas de arriba).
 
 ### Sesión 2026-08-27 — Arcos B y C del plan de extensibilidad → nucleus v1.14.0, orbit v1.8.1 y QUANTUM 1.19.0 CERTIFICADO
 
@@ -2270,14 +2386,19 @@ ir en paralelo. Nada de esto bloquea la Fase 2/3 en curso.
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **Plan de extensibilidad, arcos D–H** — **D (LDAP)** es el siguiente: el
-  primer plugin real que consume los arcos A+B+C (registro por nombre,
-  configuración propia del proveedor, cadena de autenticación declarada). Luego
-  **E** (SAML/OIDC), **F** (bus de eventos más allá del CRUD de modelos), **G**
-  (kit de conformidad + scaffold de proveedor) y **H** (congelar contratos de
-  plugin + baseline de estabilidad). Contexto y frontera de autorización que NO
-  se relaja: entrada del 2026-08-27 en el §3; ADR de referencia: nucleus
-  `docs/adrs/ADR-023-provider-registries.md`.
+- **CERRAR EL TREN DE QUANTUM 1.20.0** — es lo primero, y está a cuatro pasos
+  descritos casilla a casilla en la entrada del 2026-08-28 del §3: fusionar
+  orbit#282 (verde), cortar los tags de orbit en UNA ronda, re-pinar, y la
+  rama `feat/quantum-1.20.0-arco-d` del paraguas se pone verde sola.
+- **Plan de extensibilidad, arcos E–H** — **D (LDAP) CERRADO** en nucleus
+  v1.15.0 + providers/ldap v0.1.0. El siguiente es **E** (SAML/OIDC), que
+  estrena la costura sobre dependencias que sí son pesadas (32 módulos, 18
+  paquetes linkados — medido). Luego **F** (bus de eventos más allá del CRUD
+  de modelos), **G** (kit de conformidad + scaffold de proveedor) y **H**
+  (congelar contratos de plugin + baseline). ADRs de referencia: nucleus
+  `docs/adrs/ADR-023-provider-registries.md` (enmendado) y
+  `ADR-024-ldap-provider-module.md`. Frontera de autorización que NO se
+  relaja: entrada del 2026-08-27 en el §3.
 - **Backlog DX abierto** (del diagnóstico de los arcos DX y DX-2): `quark
   migrate diff`, clasificación de errores exportada de quark
   (`IsUniqueViolation` — hoy degrada a `lib/pq`), ayuda del CLI de nucleus,
