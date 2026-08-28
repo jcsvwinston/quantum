@@ -124,6 +124,47 @@ for mod in proto agent server quarkbridge quarkdatasource; do
   fi
 done
 
+# 3b. Nucleus became multi-module in v1.15.0: providers/ldap ships the LDAP
+# authentication backend as its own module, so the framework does not carry an
+# LDAP client. The certification covers its tag the same way it covers orbit's
+# five — the manifest now certifies 10 module versions, not 9.
+#
+# The ancestor rule is not bureaucracy here: a module tag cut AFTER the root
+# tag cannot be certified at all, because the pin must be exactly the root
+# tag's commit (check 2 above). That is what forces a new module's bump to
+# ride INSIDE the root's release rather than trailing it — the cascade orbit
+# learned to collapse into one round.
+nucleus_pin=$(yaml_value workspace_pins nucleus)
+for mod in providers/ldap; do
+  key=${mod##*/}
+  latest=$(git -C nucleus tag -l "$mod/v*" | grep -E "^$mod/v[0-9]+\.[0-9]+\.[0-9]+$" | sort -V | tail -1)
+  if [[ -z "$latest" ]]; then
+    echo "FAIL: nucleus/$mod — no published tag found (did the checkout fetch tags?)" >&2
+    status=1
+    continue
+  fi
+  mod_ok=1
+  if ! git -C nucleus merge-base --is-ancestor "$latest" "$nucleus_pin" 2>/dev/null; then
+    echo "FAIL: nucleus/$mod — latest tag $latest is not an ancestor of the pinned root $nucleus_pin (a module tag cut after the root tag cannot be certified: cut them together)" >&2
+    status=1; mod_ok=0
+  fi
+  if [[ $mod_ok -eq 1 && -n $(git -C nucleus diff "$latest".."$nucleus_pin" -- "$mod/" 2>/dev/null) ]]; then
+    echo "FAIL: nucleus/$mod — the pinned root carries $mod/ changes not covered by $latest (unreleased module code in the certified set)" >&2
+    status=1; mod_ok=0
+  fi
+  declared=$(yaml_value nucleus_modules "$key")
+  if [[ -z "$declared" ]]; then
+    echo "FAIL: versions.yaml nucleus_modules has no entry for $key" >&2
+    status=1; mod_ok=0
+  elif [[ "$mod/$declared" != "$latest" ]]; then
+    echo "FAIL: versions.yaml nucleus_modules.$key = $declared but the latest published tag is $latest" >&2
+    status=1; mod_ok=0
+  fi
+  if [[ $mod_ok -eq 1 ]]; then
+    echo "OK: nucleus/$mod $latest — ancestor of the root pin, module tree identical, declared in nucleus_modules"
+  fi
+done
+
 # 5 (checked before 4 for output grouping with the orbit sections). Cross-repo
 # disclosure (QM6-1): every DIRECT require of jcsvwinston/{quark,nucleus} in
 # orbit's six module go.mods must equal the certified version above OR be
@@ -149,6 +190,28 @@ for mod in . proto agent server quarkbridge quarkdatasource; do
       status=1
     fi
   done
+done
+
+# 5b. Same disclosure rule for nucleus's own module: it requires the framework
+# it extends, and a module published against an unnamed commit is exactly the
+# staleness this check exists to surface rather than to forbid.
+for gomod in nucleus/providers/ldap/go.mod; do
+  ver=$(awk -v p="github.com/jcsvwinston/nucleus" '$1 == p && $NF != "indirect" {print $2}' "$gomod")
+  if [[ -z "$ver" ]]; then
+    echo "FAIL: $gomod — no direct require of the framework it extends" >&2
+    status=1
+    continue
+  fi
+  want=$(yaml_value modules nucleus)
+  lag=$(yaml_value declared_lags nucleus)
+  if [[ "$ver" == "$want" ]]; then
+    echo "OK: $gomod — nucleus $ver == certified"
+  elif [[ -n "$lag" && "$ver" == "$lag" ]]; then
+    echo "OK: $gomod — nucleus $ver (lag DECLARED in versions.yaml; certified is $want)"
+  else
+    echo "FAIL: $gomod — requires nucleus $ver, but the certified version is $want and no matching declared_lags entry exists (undisclosed staleness)" >&2
+    status=1
+  fi
 done
 
 # 4b. The README's integration-modules table (DX-17) repeats quarkbridge and
@@ -196,4 +259,4 @@ if [[ $status -ne 0 ]]; then
   exit 1
 fi
 
-echo "manifest-guard OK: pin ↔ tag ↔ gitlink agree for quark, nucleus, orbit — and orbit's five module tags back the pinned root"
+echo "manifest-guard OK: pin ↔ tag ↔ gitlink agree for quark, nucleus, orbit — and the module tags of orbit (five) and nucleus (one) back the pinned roots"

@@ -4,8 +4,8 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.19.0"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-08-26
+quantum: "1.20.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-08-28
 status: certified           # Arcos B y C del plan de extensibilidad: un proveedor registrado declara su configuración, la superficie de extensión queda acotada y congelada, y la cadena de autenticación se declara desde la config consumiendo UserProvider — con el panel de orbit autenticando por ella sin delegar la autorización
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
@@ -17,8 +17,19 @@ status: certified           # Arcos B y C del plan de extensibilidad: un proveed
 # borde root↔quarkdatasource por MAQ-3.
 modules:
   quark:   "v1.6.1"
-  nucleus: "v1.14.0"
+  nucleus: "v1.15.0"
   orbit:   "v1.8.1"
+
+# Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
+# en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
+# no cargue un cliente LDAP. manifest-guard §3b verifica su tag igual que los
+# cinco de orbit — y con una restricción que conviene tener presente: el tag
+# del módulo debe ser ANCESTRO del pin raíz, y el pin raíz debe ser
+# exactamente el commit del tag raíz, así que un tag de módulo cortado
+# DESPUÉS del de la raíz no es certificable. Los bumps de módulo van dentro
+# de la release de la raíz, no detrás.
+nucleus_modules:
+  ldap: "v0.1.0"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
@@ -33,7 +44,7 @@ orbit_modules:
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "7fa5eb80"                                # = v1.6.1 exacto
-  nucleus: "4d9e7864"                                # = v1.14.0 exacto
+  nucleus: "1776e70c"                                # = v1.15.0 exacto (y = providers/ldap/v0.1.0: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)
   orbit:   "215e5c4e"                                # = v1.8.1 exacto (contiene server/v0.10.0, agent/v0.6.0, proto/v0.4.2, quarkbridge/v0.4.0, quarkdatasource/v0.2.14 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
@@ -45,7 +56,17 @@ workspace_pins:
 # VACÍO desde Quantum 1.8.0 (7ª ronda): todos los requires cross-repo de los
 # módulos de orbit están alineados con el set certificado — el estado que la
 # lane suite-integral exige para certificar (sin QUANTUM_ALLOW_DECLARED_LAGS).
-declared_lags: {}
+declared_lags:
+  # providers/ldap v0.1.0 se publicó requiriendo una PSEUDO-VERSIÓN del
+  # framework: la API que consume (la configuración por backend de
+  # autenticación) solo existía en main cuando se escribió el módulo, porque
+  # el módulo y esa API viajaron en el mismo tren. Verificado como consumidor
+  # real —`go get` del tag, import por efecto, RegisteredBackends() imprime
+  # [ldap]—: funciona, y MVS eleva la versión en cualquier aplicación que
+  # además requiera v1.15.0. Se declara en vez de taparse.
+  # main YA está re-pinado a v1.15.0; el corte de ese arreglo va DENTRO de la
+  # próxima release de la raíz, no detrás de ella (§3b explica por qué).
+  nucleus: "v1.14.1-0.20260827172321-32cceb4a3921"
 
 notes: >
   Quantum 1.19.0 — Arcos B y C del plan de extensibilidad (nucleus v1.14.0,

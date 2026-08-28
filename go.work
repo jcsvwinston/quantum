@@ -12,6 +12,7 @@ toolchain go1.26.6
 use (
 	./nucleus
 	./nucleus/examples/showcase_demo
+	./nucleus/providers/ldap
 	./orbit
 	./orbit/agent
 	./orbit/proto
