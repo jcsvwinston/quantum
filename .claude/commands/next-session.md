@@ -219,7 +219,15 @@ módulo y API en el mismo tren.
 - **Al añadir un paquete a release-please, el PR de release antiguo queda
   ZOMBI**: el nombre de rama codifica el conjunto de paquetes
   (`…--components--<pkg>` → `…--branches--main`), así que el viejo sobrevive
-  huérfano en vez de actualizarse. Cerrarlo a mano (fue nucleus#331).
+  huérfano en vez de actualizarse. Cerrarlo a mano (fue nucleus#331) —
+  **y QUITARLE LA ETIQUETA `autorelease: pending`**. Cerrarlo no basta:
+  release-please se fija en la ETIQUETA, no en el estado, y un zombi
+  etiquetado bloquea el corte siguiente con «There are untagged, merged
+  release PRs outstanding - aborting». Costó el corte de v1.16.0, que hubo
+  que taggear a mano desde el commit de merge (verificando que su
+  `.release-please-manifest.json` dijera la versión correcta) y re-etiquetar
+  el PR como `autorelease: tagged`; después release-please volvió a correr
+  limpio.
 - **NO copiar `separate-pull-requests` de orbit**: sin él, release-please
   agrupa raíz y módulo en UN PR y la cascada de manifiestos no existe.
   Estrenado con éxito en este tren.
