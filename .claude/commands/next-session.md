@@ -47,7 +47,50 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-08-28, Arco D — QUANTUM 1.20.0 CERTIFICADO)
+## 3. Estado al cierre (2026-08-28, Arco D certificado + Arcos H y G en main sin release)
+
+### Sesión 2026-08-28 (b) — arranque `auto`: main del paraguas ROTO y reparado + primer tramo del Arco G
+
+- **`main` del paraguas llevaba roto desde el commit del handoff anterior**
+  (`75233b0`): un `git add -A` se llevó el puntero del submódulo —el checkout
+  de nucleus estaba en `main`, tres commits por delante de v1.15.1— y el
+  manifiesto seguía diciendo `620eed1d`. El CI de integración llevaba rojo
+  desde entonces. Restaurado en **quantum#109** (fusionado, guard verde).
+  **Causa raíz, peor que el síntoma: ese commit fue DIRECTO A MAIN.** La regla
+  de rama+PR existe para que manifest-guard hable ANTES del merge; saltársela
+  «por ser solo documentación» es lo que convirtió un descuido en un main rojo.
+- **Y volvió a pasar en el MISMO sitio una hora después** (quantum#110, esta
+  vez cazado por el PR): el commit del handoff se llevó otra vez el puntero.
+  Dos veces el mismo error significa que la lección estaba mal escrita —
+  decía «trabaja en rama», y lo que hacía falta era **cómo hacer el add**:
+  > **En el paraguas, `git add` de ficheros CONCRETOS. Nunca `git add -A`**
+  > mientras un submódulo pueda estar en una rama de trabajo: se lleva el
+  > gitlink y el manifiesto queda afirmando un set que git no respalda.
+  Precedente idéntico: `.claude/launch.json` colado por un `git add -A` en la
+  certificación 1.2.0.
+- **Arco G, primer tramo — VERDE SIN FUSIONAR: nucleus#342.**
+  `pkg/auth/backend/backendtest` es la suite de conformidad que un autor
+  apunta contra su propio backend (cuatro líneas en vez de leer la prosa con
+  cuidado). Comprueba propiedades del CONTRATO, no calidad.
+- **Los checks son funciones puras que devuelven error**, adaptadas a
+  `*testing.T` por `Run`. Eso es lo que permite probar la suite contra
+  backends rotos A PROPÓSITO: sus tests le dan de comer seis defectos y
+  exigen que se queje EL CHECK CORRECTO con un mensaje que nombre el
+  problema. Una suite que nadie ha visto fallar es una suite que nadie sabe
+  si muerde.
+- **Escribirla destapó un defecto en el backend del propio framework**: el
+  adaptador del `UserProvider` NO rechazaba la contraseña vacía —delegaba la
+  decisión—, así que contra un proveedor que devuelve el usuario sin comparar
+  (fila legacy con hash vacío, o un bug) autenticaba. Arreglado con test que
+  fabrica el proveedor inseguro. Es el argumento del kit en una línea: la
+  implementación propia pasaba ese check solo porque el proveedor del test
+  resultaba ser cuidadoso. ADR-027.
+- **Fuera a propósito y escrito**: los TIEMPOS. La propiedad es real (el
+  backend LDAP hace un bind señuelo por eso) pero una aserción de tiempo
+  fiable para bloquear CI necesita más muestras de las que una corrida puede
+  pagar, y un check inestable sobre seguridad es peor que ninguno — se salta,
+  y entonces nadie mira. También queda fuera el mismo tratamiento para
+  storage, correo y store de sesión.
 
 ### Sesión 2026-08-28 — Arco D (LDAP integrado) → nucleus v1.15.1 + providers/ldap v0.1.1, orbit v1.8.3 y QUANTUM 1.20.0 CERTIFICADO
 
