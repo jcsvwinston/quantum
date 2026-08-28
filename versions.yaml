@@ -18,7 +18,7 @@ status: certified           # Arco D del plan de extensibilidad: el primer prove
 modules:
   quark:   "v1.6.1"
   nucleus: "v1.15.1"
-  orbit:   "v1.8.2"
+  orbit:   "v1.8.3"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -35,9 +35,9 @@ nucleus_modules:
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.2"
-  agent:           "v0.6.1"
-  server:          "v0.10.1"
-  quarkbridge:     "v0.4.1"
+  agent:           "v0.6.2"
+  server:          "v0.10.2"
+  quarkbridge:     "v0.4.2"
   quarkdatasource: "v0.2.14"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
@@ -45,7 +45,7 @@ orbit_modules:
 workspace_pins:
   quark:   "7fa5eb80"                                # = v1.6.1 exacto
   nucleus: "620eed1d"                                # = v1.15.1 exacto (y = providers/ldap/v0.1.1: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)
-  orbit:   "87fd5ab2"                                # = v1.8.2 exacto (contiene agent/v0.6.1, server/v0.10.1, quarkbridge/v0.4.1, proto/v0.4.2 y quarkdatasource/v0.2.14 como ancestros)
+  orbit:   "15c59582"                                # = v1.8.3 exacto (contiene agent/v0.6.2, server/v0.10.2, quarkbridge/v0.4.2, proto/v0.4.2 y quarkdatasource/v0.2.14 como ancestros)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -59,8 +59,8 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.20.0 — Arco D del plan de extensibilidad (nucleus v1.15.0 con su
-  primer módulo hermano, providers/ldap v0.1.0; orbit v1.8.2 de alineación;
+  Quantum 1.20.0 — Arco D del plan de extensibilidad (nucleus v1.15.1 con su
+  primer módulo hermano, providers/ldap v0.1.1; orbit v1.8.3 de alineación;
   quark v1.6.1 sin cambios). La pregunta de partida era si el primer
   proveedor real debía ser un plugin o venir integrado, y se respondió
   MIDIENDO en vez de suponiendo: LDAP añade tres módulos MIT y linka cinco
@@ -101,9 +101,13 @@ notes: >
   no juzga registro porque corre en un binario que no importa los
   proveedores de la aplicación; y la página del sitio dejó de decir que
   Nucleus no trae cliente LDAP, que era cierto ayer.
-  Deuda declarada de este set: providers/ldap v0.1.0 se publicó requiriendo
-  una pseudo-versión del framework —su API viajó en el mismo tren— y ese
-  lag va DECLARADO arriba; main ya está re-pinado y el corte va dentro de la
-  próxima release de la raíz, porque un tag de módulo posterior al de la
-  raíz no es certificable. El historial narrativo completo vive en
-  CHANGELOG.md.
+  Un apunte del tren, porque volverá a pasar: providers/ldap requiere la
+  RAÍZ DE SU PROPIO REPO, y ese borde no puede estar nunca perfectamente al
+  día — cualquier release que contenga su require es posterior a él. Es la
+  misma necesidad topológica que orbit documenta en root↔quarkdatasource, y
+  NO es la staleness cross-repo que declared_lags vigila: modelarlo como tal
+  dejaría el set incertificable para siempre. manifest-guard lo tolera un
+  release y lo dice con un AVISO, no con un «ok» indistinguible de un pin al
+  día — que es exactamente como el borde equivalente de orbit se pudrió un
+  ciclo entero sin que nadie lo viera. El historial narrativo completo vive
+  en CHANGELOG.md.
