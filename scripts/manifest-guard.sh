@@ -192,9 +192,17 @@ for mod in . proto agent server quarkbridge quarkdatasource; do
   done
 done
 
-# 5b. Same disclosure rule for nucleus's own module: it requires the framework
-# it extends, and a module published against an unnamed commit is exactly the
-# staleness this check exists to surface rather than to forbid.
+# 5b. Nucleus's own module requires the ROOT of its own repository, and that
+# edge cannot ever be perfectly current: any release that CONTAINS the
+# module's require statement is by definition later than it. It is the same
+# topological necessity orbit documents for its root↔quarkdatasource edge,
+# and it is NOT the cross-repo staleness declared_lags exists for — treating
+# it as such would make the set permanently uncertifiable.
+#
+# So: equal to the certified version, or at most one release behind it. And
+# it AVISA while the lag exists rather than printing an "ok" line
+# indistinguishable from an up-to-date pin — that is exactly how orbit's
+# equivalent edge rotted for a whole cycle before anyone noticed.
 for gomod in nucleus/providers/ldap/go.mod; do
   ver=$(awk -v p="github.com/jcsvwinston/nucleus" '$1 == p && $NF != "indirect" {print $2}' "$gomod")
   if [[ -z "$ver" ]]; then
@@ -203,13 +211,16 @@ for gomod in nucleus/providers/ldap/go.mod; do
     continue
   fi
   want=$(yaml_value modules nucleus)
-  lag=$(yaml_value declared_lags nucleus)
   if [[ "$ver" == "$want" ]]; then
     echo "OK: $gomod — nucleus $ver == certified"
-  elif [[ -n "$lag" && "$ver" == "$lag" ]]; then
-    echo "OK: $gomod — nucleus $ver (lag DECLARED in versions.yaml; certified is $want)"
+    continue
+  fi
+  # One release behind is the forced case; anything older is real staleness.
+  prev=$(git -C nucleus tag -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | grep -B1 -x "$want" | head -1)
+  if [[ "$ver" == "$prev" ]]; then
+    echo "AVISO: $gomod — nucleus $ver, one release behind the certified $want. Topologically forced (a root release cannot precede the require it contains), NOT undisclosed staleness. It is an aviso and not an ok line so the pin cannot rot unseen."
   else
-    echo "FAIL: $gomod — requires nucleus $ver, but the certified version is $want and no matching declared_lags entry exists (undisclosed staleness)" >&2
+    echo "FAIL: $gomod — requires nucleus $ver, more than one release behind the certified $want: that is staleness, not the forced root edge" >&2
     status=1
   fi
 done

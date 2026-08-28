@@ -123,23 +123,47 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   el changelog queda CONGELADO dentro del tag: corregir ANTES de cortar.
 - **Las ramas de release-please SÍ disparan CI cuando el push es humano** —
   la nota anterior de que no lo hacían aplica a los commits del bot.
+- **Un `release-as` consumido FIJA LA VERSIÓN PARA SIEMPRE.** El del proveedor
+  se quedó puesto y el PR de release proponía cortar «0.1.0 → 0.1.0»: el
+  módulo no podía volver a publicar nunca. Es la misma deuda que mordió con
+  los puentes de orbit. Retirarlo SIEMPRE en el PR siguiente.
+- **Un módulo que requiere la raíz de SU PROPIO repo no puede estar al día**:
+  cualquier release que contenga su `require` es posterior a él. Es el mismo
+  borde topológico que orbit documenta en `root↔quarkdatasource`, y NO es la
+  staleness cross-repo que `declared_lags` vigila — modelarlo como tal deja
+  el set permanentemente incertificable (error cometido y corregido en
+  manifest-guard §5b, que ahora avisa mientras el lag existe en vez de
+  imprimir un «ok» indistinguible).
+- **`sum.golang.org` va por detrás del proxy.** Un tag recién cortado se
+  resuelve con `go list -m` y aún así rompe `go mod tidy` en los hermanos.
+  Se espera; no se salta con flags.
 - **«No lo usa nadie» hay que comprobarlo INCLUYENDO los `_test.go` del
   hermano**: se afirmó que orbit no consume `auth.RegisterBackend` con un
   grep que los excluía, y sí lo hace en `internal/admin/auth_chain_test.go`.
   La ruptura tuvo consumidor de primera parte; lo cazó la alineación.
 
-**ESTADO EXACTO AL CIERRE — lo que queda para certificar Quantum 1.20.0:**
+**ESTADO EXACTO AL CIERRE — el tren de 1.20.0 está a UN paso, bloqueado
+fuera del proyecto:**
 
-1. **[orbit#282](https://github.com/jcsvwinston/orbit/pull/282) VERDE, sin
-   fusionar** — alinea los cuatro módulos que requieren nucleus a v1.15.0.
-2. Fusionarlo → cortar los tags de orbit (root + agent/server/quarkbridge;
-   **colapsar la cascada en UNA ronda**) → re-pinar el submódulo orbit.
-3. La rama **`feat/quantum-1.20.0-arco-d`** del paraguas ya lleva el cableado
-   hecho y empujado: `go.work` con `./nucleus/providers/ldap`, bloque
-   `nucleus_modules` en `versions.yaml` (10 versiones certificadas, no 9),
-   `manifest-guard` §3b (tag de módulo de nucleus) y §5b (disclosure del
-   propio módulo), README al día. **Se pone verde en cuanto orbit tenga sus
-   tags**; hoy falla exactamente en las cuatro líneas de orbit.
+Publicado y verificado: nucleus **v1.15.1** + **`providers/ldap/v0.1.1`**
+(mismo commit `620eed1d`) · orbit **v1.8.2** (agent v0.6.1, server v0.10.1,
+quarkbridge v0.4.1) · quark v1.6.1 sin cambios.
+
+1. **BLOQUEO ACTUAL: `sum.golang.org` no ha indexado `v1.15.1`.** El proxy sí
+   lo tiene (`go list -m` lo resuelve); la base de sumas va por detrás y
+   devuelve 404, así que `go mod tidy` no puede escribir un go.sum
+   verificado. Sonda validada (v1.15.0 → 200, v1.15.1 → 404). **NO se salta
+   con flags**: un go.sum sin verificación de sumdb es justo lo que
+   `-mod=readonly` existe para cazar. Reintentar:
+   `curl -sf https://sum.golang.org/lookup/github.com/jcsvwinston/nucleus@v1.15.1`
+2. En cuanto responda 200: la rama **`fix/align-nucleus-1.15.1`** de orbit ya
+   tiene los cuatro go.mod subidos a v1.15.1 y solo le falta `go mod tidy` +
+   build; luego su cascada (colapsable en una ronda: subir el pin de `agent`
+   DENTRO de la release de `server`) y re-pinar el submódulo.
+3. La rama **`feat/quantum-1.20.0-arco-d`** del paraguas está lista salvo el
+   pin de orbit: `go.work`, `nucleus_modules`, `manifest-guard` §3b/§5b y el
+   README ya al día, `declared_lags` VACÍO. PR de certificación abierto:
+   **quantum#108**.
 4. Después: tag de suite `v1.20.0` y `suite-integral.sh --cierre` TRAS el tag.
 
 **Deuda declarada de este arco (no es olvido):**

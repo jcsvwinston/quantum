@@ -17,7 +17,7 @@ status: certified           # Arco D del plan de extensibilidad: el primer prove
 # borde root↔quarkdatasource por MAQ-3.
 modules:
   quark:   "v1.6.1"
-  nucleus: "v1.15.0"
+  nucleus: "v1.15.1"
   orbit:   "v1.8.2"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
@@ -29,7 +29,7 @@ modules:
 # DESPUÉS del de la raíz no es certificable. Los bumps de módulo van dentro
 # de la release de la raíz, no detrás.
 nucleus_modules:
-  ldap: "v0.1.0"
+  ldap: "v0.1.1"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
@@ -44,7 +44,7 @@ orbit_modules:
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "7fa5eb80"                                # = v1.6.1 exacto
-  nucleus: "1776e70c"                                # = v1.15.0 exacto (y = providers/ldap/v0.1.0: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)
+  nucleus: "620eed1d"                                # = v1.15.1 exacto (y = providers/ldap/v0.1.1: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)
   orbit:   "87fd5ab2"                                # = v1.8.2 exacto (contiene agent/v0.6.1, server/v0.10.1, quarkbridge/v0.4.1, proto/v0.4.2 y quarkdatasource/v0.2.14 como ancestros)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
@@ -56,17 +56,7 @@ workspace_pins:
 # VACÍO desde Quantum 1.8.0 (7ª ronda): todos los requires cross-repo de los
 # módulos de orbit están alineados con el set certificado — el estado que la
 # lane suite-integral exige para certificar (sin QUANTUM_ALLOW_DECLARED_LAGS).
-declared_lags:
-  # providers/ldap v0.1.0 se publicó requiriendo una PSEUDO-VERSIÓN del
-  # framework: la API que consume (la configuración por backend de
-  # autenticación) solo existía en main cuando se escribió el módulo, porque
-  # el módulo y esa API viajaron en el mismo tren. Verificado como consumidor
-  # real —`go get` del tag, import por efecto, RegisteredBackends() imprime
-  # [ldap]—: funciona, y MVS eleva la versión en cualquier aplicación que
-  # además requiera v1.15.0. Se declara en vez de taparse.
-  # main YA está re-pinado a v1.15.0; el corte de ese arreglo va DENTRO de la
-  # próxima release de la raíz, no detrás de ella (§3b explica por qué).
-  nucleus: "v1.14.1-0.20260827172321-32cceb4a3921"
+declared_lags: {}
 
 notes: >
   Quantum 1.20.0 — Arco D del plan de extensibilidad (nucleus v1.15.0 con su
