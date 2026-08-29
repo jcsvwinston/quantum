@@ -6,6 +6,72 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.21.0 — Arcos H y G del plan de extensibilidad
+
+Quantum 1.21.0 — Arcos H y G del plan de extensibilidad (nucleus v1.16.1
+con providers/ldap v0.1.2; orbit v1.8.5 de alineación; quark v1.6.1 sin
+cambios). Los dos arcos atacan la misma pregunta por lados opuestos: qué
+le cuesta a alguien de fuera escribir un proveedor, y cómo sabe que lo ha
+escrito bien. El Arco D dejó la costura utilizable; estos dos la dejan
+barata y comprobable, que es lo que decide si nace un ecosistema o no.
+§1 (Arco H) EL CONTRATO VIVE EN UN PAQUETE HOJA. La medición que lo
+motiva, hecha antes de mover nada: implementar un backend de
+autenticación obligaba a compilar 115 paquetes de terceros; uno de
+almacenamiento, 301; uno de store de sesión, otros 115. Ninguno de esos
+números tenía que ver con el contrato —tres métodos y dos errores
+centinela— sino con que el contrato compartía paquete con el registro, la
+validación de configuración y las implementaciones propias del framework,
+y en Go importar un paquete es importar su grafo entero. Ahora cada
+contrato tiene su hoja: pkg/auth/backend enlaza 2 paquetes de terceros,
+pkg/storage/provider 2 y pkg/auth/sessionstore 0. Los nombres viejos
+siguen siendo los MISMOS símbolos —alias de tipo, no copias—, así que
+ningún consumidor cambia una línea: orbit se alineó sin tocar más que el
+pin, y eso es la prueba, no la promesa. Dos tests de contrato lo
+sostienen: uno fija el techo en 2 y otro exige que los alias sigan
+resolviendo al tipo de la hoja. Hacen falta los dos porque esta deriva no
+rompe ninguna compilación —solo engorda en silencio la de todos los
+demás—, y una cifra que nadie vigila vuelve a subir. ADR-025 y ADR-026.
+§2 (Arco G) EL CONTRATO TRAE SU PROPIO KIT DE CONFORMIDAD. De las
+propiedades del contrato de autenticación, las que más cuesta acertar
+estaban solo en prosa: que un rechazo y una fuente inalcanzable son
+respuestas DISTINTAS —confundirlas hacia «rechazo» tira el servicio
+entero, porque deja fuera también a la cuenta local de emergencia—, que
+un usuario desconocido y una contraseña mala deben ser
+indistinguibles, y que una contraseña vacía no es una credencial. Quien
+lee la firma Authenticate(ctx, user, pass) no tiene modo de descubrir
+ninguna de las tres. pkg/auth/backend/backendtest las convierte en siete
+comprobaciones que un autor apunta contra su backend en cuatro líneas.
+Los checks son funciones puras que devuelven error, adaptadas a testing.T
+por Run, y eso es lo que permite lo importante: probar la suite contra
+backends rotos A PROPÓSITO, exigiendo que se queje EL check correcto con
+un mensaje que nombre el problema. Una suite que nadie ha visto fallar es
+una suite que nadie sabe si muerde. Escribirla destapó un defecto en el
+backend del propio framework: el adaptador del UserProvider no rechazaba
+la contraseña vacía, delegaba la decisión —así que contra un proveedor
+que devuelve el usuario sin comparar autenticaba—, y pasaba ese check
+solo porque el proveedor de su test resultaba ser cuidadoso. Fuera a
+propósito y escrito: los TIEMPOS. La propiedad es real y el backend LDAP
+hace un bind señuelo por ella, pero una aserción de tiempo fiable
+necesita más muestras de las que cabe pagar en una corrida, y un check
+inestable sobre seguridad es peor que ninguno: se salta, y entonces nadie
+mira. ADR-027.
+§3 MAQUINARIA (nucleus v1.16.1). Un cambio en un proveedor corta ya CON
+la raíz: el root excluía providers/ del cómputo de release, así que el
+módulo hermano podía sacar tag sin que la raíz sacara el suyo — y el
+manifest-guard §3b exige justo lo contrario, que el tag del módulo sea
+ancestro del pin raíz. Era la causa estructural de que en el set anterior
+hubiera que forzar la release a mano; v1.16.1 y providers/ldap v0.1.2 son
+los primeros que salen del MISMO commit sin intervención.
+§4 EL PARAGUAS. bump-set.sh, el escritor mecánico del set, no conocía el
+bloque nucleus_modules —se añadió cuando nucleus pasó a multi-módulo y
+nadie volvió al escritor—, de modo que la versión de ldap se transcribía
+a mano en cada re-pin con el guard como única red. Ya lo escribe, leído
+del manifiesto de release AL PIN y no del último tag publicado, que es la
+diferencia que §3b vigila. Y se recuperó la entrada de Quantum 1.19.0,
+que al certificar 1.20.0 se sobreescribió en versions.yaml sin llegar al
+CHANGELOG: la regla DX-25 dice mover, y mover tiene dos mitades. El
+historial narrativo completo vive en CHANGELOG.md.
+
 ## Quantum 1.20.0 — Arco D del plan de extensibilidad (LDAP integrado)
 
 Quantum 1.20.0 — Arco D del plan de extensibilidad (nucleus v1.15.1 con su
