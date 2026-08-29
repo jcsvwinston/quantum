@@ -47,7 +47,82 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-08-28, Arco D certificado + Arcos H y G en main sin release)
+## 3. Estado al cierre (2026-08-29, Quantum 1.21.0 certificado — Arcos H y G)
+
+### Sesión 2026-08-29 — QUANTUM 1.21.0 CERTIFICADO (Arcos H y G) + el tren en cuatro repos
+
+- **SET**: quark **v1.6.1** (sin cambios) · nucleus **v1.16.1** +
+  **`providers/ldap/v0.1.2`** · orbit **v1.8.5** (agent v0.6.4, server
+  v0.10.4, quarkbridge v0.4.4, proto v0.4.2, quarkdatasource v0.2.14).
+  `suite-integral.sh --cierre` en verde DESPUÉS del tag; `declared_lags`
+  vacío.
+- **Arco H publicado** (nucleus#338/#340/#341): el contrato que implementa
+  un proveedor vive en paquetes hoja. `pkg/storage/provider` 301→2,
+  `pkg/auth/backend` 115→2, `pkg/auth/sessionstore` 115→0; `pkg/mail` ya
+  estaba limpio. Alias de tipo, así que orbit se alineó sin tocar más que
+  el pin. ADR-025, ADR-026.
+- **Arco G publicado** (nucleus#342): `pkg/auth/backend/backendtest`,
+  siete comprobaciones de CONTRATO. ADR-027.
+- **La causa estructural de forzar releases a mano, arreglada**
+  (nucleus#343 → v1.16.1): el root excluía `providers/` del cómputo, así
+  que el módulo hermano podía sacar tag sin que la raíz sacara el suyo — y
+  §3b exige que el tag del módulo sea ANCESTRO del pin raíz. v1.16.1 y
+  `providers/ldap/v0.1.2` son los primeros que salen del mismo commit sin
+  intervención.
+
+**TRAMPAS DEL TREN (las cuatro que costaron rondas hoy):**
+
+- **release-please NO rebasa la rama del release del ROOT** cuando entre
+  medias se corta el tag de un módulo hermano — su `head` se queda donde
+  estaba y el tag de raíz saldría SIN el del módulo como ancestro, que es
+  justo lo que rechaza `manifest-guard §3`. Ya estaba escrito para 1.19.0
+  y volvió a pasar, así que la regla es: **verificar SIEMPRE antes de
+  fusionar el release del root**, no solo cuando se sospecha —
+  `git merge-base --is-ancestor <mod>/vX.Y.Z <head-del-PR>` por cada
+  módulo. Receta cuando falla: `gh pr close N` →
+  `git push origin --delete 'release-please--branches--main--components--github.com/jcsvwinston/orbit'`
+  → `gh workflow run "Release Please"` → re-verificar.
+- **La cascada de manifiestos SÍ se resuelve sola** por fusión a tres vías
+  (cada módulo vive en su línea), incluso con la rama rancia: se fusionó
+  `quarkbridge` con `agent: 0.6.3` en su rama y `main` conservó `0.6.4`.
+  Vale igualmente **verificar el manifiesto de `main` tras cada merge**;
+  es una línea y es la que decide qué versión se taggea.
+- **Las notas `## vX.Y.Z` de orbit las escribe una persona, no
+  release-please** — que solo reescribe el marcador
+  `x-release-please-version`. `check_docs_version_claims.sh` las exige en
+  cuanto el manifiesto pasa a la versión nueva. Meterlas en el MISMO PR
+  que el bump del pin de `agent` en `server` ahorra una ronda entera: el
+  release del root las encuentra ya en `main` al regenerarse.
+- **El escritor mecánico se quedó atrás cuando el modelo creció**:
+  `scripts/bump-set.sh` no conocía el bloque `nucleus_modules`, añadido
+  cuando nucleus pasó a multi-módulo, así que la versión de `ldap` se
+  transcribía a mano con el guard como única red. Ya lo escribe, **leído
+  del `.release-please-manifest.json` AL PIN** y no del último tag
+  publicado — que es exactamente la diferencia que §3b vigila. Regla
+  general: al añadir una clave a `versions.yaml`, mirar si bump-set.sh
+  debe escribirla.
+- **DX-25 dice MOVER, y mover tiene dos mitades**: al certificar 1.20.0
+  las notas de 1.19.0 se sobreescribieron en `versions.yaml` sin llegar al
+  `CHANGELOG.md`. Recuperadas de `git show v1.19.0:versions.yaml`. Al
+  certificar: primero copiar la entrada anterior al CHANGELOG, después
+  redactar la nueva.
+- **El re-pin de `examples/showcase_demo` va DESPUÉS de todos los tags del
+  set** (nucleus#345) y como `chore:`, que no mueve la versión ya
+  certificada. Hasta que entra, la lane requerida `Showcase Smoke` de
+  nucleus está roja por diseño.
+
+**PENDIENTE, en este orden:**
+
+1. **Migrar `providers/ldap` a importar `pkg/auth/backend`** y adoptar
+   `backendtest`. Estaba bloqueado porque el módulo requería una release
+   sin los paquetes hoja; **v1.16.1 ya los tiene, así que está
+   desbloqueado**. Es el consumidor de primera parte que demuestra que la
+   hoja sirve para lo que se hizo.
+2. **Arco E** — SAML/OIDC. Aquí el argumento de dependencias pesadas de
+   ADR-023 §5 SÍ se sostiene (32 y 18 módulos frente a los 3 de LDAP), que
+   es por lo que la costura se dejó puesta en el Arco D.
+3. **Arco F**.
+
 
 ### Sesión 2026-08-28 (b) — arranque `auto`: main del paraguas ROTO y reparado + primer tramo del Arco G
 
