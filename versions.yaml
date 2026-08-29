@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.20.0"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-08-28
-status: certified           # Arco D del plan de extensibilidad: el primer proveedor real — autenticación LDAP — se publica como módulo hermano dentro del repo del framework, con la configuración por backend que le faltaba a la costura y la experiencia de algo integrado en vez de un plugin que hay que descubrir
+quantum: "1.21.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-08-29
+status: certified           # Arcos H y G del plan de extensibilidad: el contrato que implementa un proveedor de terceros se muda a paquetes hoja —de 301, 115 y 115 paquetes de terceros arrastrados a 2, 2 y 0— y el de autenticación pasa a traer un kit de conformidad que su autor apunta contra su propio backend
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules», los seis módulos del
@@ -17,8 +17,8 @@ status: certified           # Arco D del plan de extensibilidad: el primer prove
 # borde root↔quarkdatasource por MAQ-3.
 modules:
   quark:   "v1.6.1"
-  nucleus: "v1.15.1"
-  orbit:   "v1.8.3"
+  nucleus: "v1.16.1"
+  orbit:   "v1.8.5"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -29,23 +29,23 @@ modules:
 # DESPUÉS del de la raíz no es certificable. Los bumps de módulo van dentro
 # de la release de la raíz, no detrás.
 nucleus_modules:
-  ldap: "v0.1.1"
+  ldap: "v0.1.2"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.2"
-  agent:           "v0.6.2"
-  server:          "v0.10.2"
-  quarkbridge:     "v0.4.2"
+  agent:           "v0.6.4"
+  server:          "v0.10.4"
+  quarkbridge:     "v0.4.4"
   quarkdatasource: "v0.2.14"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "7fa5eb80"                                # = v1.6.1 exacto
-  nucleus: "620eed1d"                                # = v1.15.1 exacto (y = providers/ldap/v0.1.1: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)
-  orbit:   "15c59582"                                # = v1.8.3 exacto (contiene agent/v0.6.2, server/v0.10.2, quarkbridge/v0.4.2, proto/v0.4.2 y quarkdatasource/v0.2.14 como ancestros)
+  nucleus: "69821fc0"                                # = v1.16.1 exacto (y = providers/ldap/v0.1.2: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)
+  orbit:   "7ec8c655"                                # = v1.8.5 exacto (contiene server/v0.10.4, agent/v0.6.4, proto/v0.4.2, quarkbridge/v0.4.4, quarkdatasource/v0.2.14 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -59,55 +59,66 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.20.0 — Arco D del plan de extensibilidad (nucleus v1.15.1 con su
-  primer módulo hermano, providers/ldap v0.1.1; orbit v1.8.3 de alineación;
-  quark v1.6.1 sin cambios). La pregunta de partida era si el primer
-  proveedor real debía ser un plugin o venir integrado, y se respondió
-  MIDIENDO en vez de suponiendo: LDAP añade tres módulos MIT y linka cinco
-  paquetes de terceros, mientras que SAML+OIDC juntos son treinta y dos
-  módulos y dieciocho paquetes. Contra un go.mod que ya carga los SDK de
-  AWS, Azure y Google Cloud, el argumento de las dependencias pesadas no se
-  sostiene para LDAP — pero sí para el arco siguiente, y por eso la costura
-  se queda igualmente. La forma elegida es módulo hermano en el repo del
-  framework: separado para el compilador y para go.mod, un solo producto
-  para el tren de release, la CI, la documentación y este manifiesto, que
-  pasa a certificar diez versiones de módulo en vez de nueve.
-  El arco no pudo empezar por el backend porque le faltaba el suelo: de las
-  cuatro factorías de registro del framework, la de autenticación era la
-  ÚNICA que no recibía configuración, así que un backend de directorio no
-  tenía de dónde leer su URL — y su propio godoc ya prometía el subárbol que
-  no existía. Al cerrarlo aparecieron dos defectos del arco anterior que
-  nadie había visto. El primero: la exención de clave desconocida vivía en
-  dos validadores y solo uno la tenía, de modo que un despliegue sobre un
-  backend de terceros arrancaba un servidor sano cuyo propio `check` llamaba
-  malformada a la configuración que estaba corriendo — «el mismo fichero,
-  dos veredictos», tercera aparición, ahora con una sola implementación y un
-  test que pregunta a los dos. El segundo no lo podía ver ninguna guarda:
-  configurar un backend y olvidar añadirlo a la cadena era un no-op
-  silencioso, porque el nombre SÍ está registrado y la sección está
-  legítimamente eximida, pero la cadena —su único consumidor— nunca la pide.
-  Del backend importa tanto lo que se niega a hacer: rechaza una contraseña
-  vacía antes de abrir conexión, escapa el nombre antes del filtro, trata un
-  match ambiguo como rechazo, y reserva el rechazo a UN solo código de
-  resultado — equivocarse hacia «no disponible» cuesta una caída al
-  siguiente backend, hacia «rechazo» cuesta la caída del servicio, porque
-  deja fuera también a la cuenta local de emergencia. Cada una de esas
-  propiedades tiene un test que falla si se quita la guarda, verificado por
-  mutación y no por lectura, y un lane en la puerta requerida contra un
-  OpenLDAP real que enlaza el módulo al árbol bajo revisión.
-  Lo que lo vuelve integrado y no un plugin: el arranque ya no responde
-  «backend desconocido» a un nombre que este proyecto publica, sino el
-  `go get` y el `import` exactos; hay `doctor --check auth`, que a propósito
-  no juzga registro porque corre en un binario que no importa los
-  proveedores de la aplicación; y la página del sitio dejó de decir que
-  Nucleus no trae cliente LDAP, que era cierto ayer.
-  Un apunte del tren, porque volverá a pasar: providers/ldap requiere la
-  RAÍZ DE SU PROPIO REPO, y ese borde no puede estar nunca perfectamente al
-  día — cualquier release que contenga su require es posterior a él. Es la
-  misma necesidad topológica que orbit documenta en root↔quarkdatasource, y
-  NO es la staleness cross-repo que declared_lags vigila: modelarlo como tal
-  dejaría el set incertificable para siempre. manifest-guard lo tolera un
-  release y lo dice con un AVISO, no con un «ok» indistinguible de un pin al
-  día — que es exactamente como el borde equivalente de orbit se pudrió un
-  ciclo entero sin que nadie lo viera. El historial narrativo completo vive
-  en CHANGELOG.md.
+  Quantum 1.21.0 — Arcos H y G del plan de extensibilidad (nucleus v1.16.1
+  con providers/ldap v0.1.2; orbit v1.8.5 de alineación; quark v1.6.1 sin
+  cambios). Los dos arcos atacan la misma pregunta por lados opuestos: qué
+  le cuesta a alguien de fuera escribir un proveedor, y cómo sabe que lo ha
+  escrito bien. El Arco D dejó la costura utilizable; estos dos la dejan
+  barata y comprobable, que es lo que decide si nace un ecosistema o no.
+  §1 (Arco H) EL CONTRATO VIVE EN UN PAQUETE HOJA. La medición que lo
+  motiva, hecha antes de mover nada: implementar un backend de
+  autenticación obligaba a compilar 115 paquetes de terceros; uno de
+  almacenamiento, 301; uno de store de sesión, otros 115. Ninguno de esos
+  números tenía que ver con el contrato —tres métodos y dos errores
+  centinela— sino con que el contrato compartía paquete con el registro, la
+  validación de configuración y las implementaciones propias del framework,
+  y en Go importar un paquete es importar su grafo entero. Ahora cada
+  contrato tiene su hoja: pkg/auth/backend enlaza 2 paquetes de terceros,
+  pkg/storage/provider 2 y pkg/auth/sessionstore 0. Los nombres viejos
+  siguen siendo los MISMOS símbolos —alias de tipo, no copias—, así que
+  ningún consumidor cambia una línea: orbit se alineó sin tocar más que el
+  pin, y eso es la prueba, no la promesa. Dos tests de contrato lo
+  sostienen: uno fija el techo en 2 y otro exige que los alias sigan
+  resolviendo al tipo de la hoja. Hacen falta los dos porque esta deriva no
+  rompe ninguna compilación —solo engorda en silencio la de todos los
+  demás—, y una cifra que nadie vigila vuelve a subir. ADR-025 y ADR-026.
+  §2 (Arco G) EL CONTRATO TRAE SU PROPIO KIT DE CONFORMIDAD. De las
+  propiedades del contrato de autenticación, las que más cuesta acertar
+  estaban solo en prosa: que un rechazo y una fuente inalcanzable son
+  respuestas DISTINTAS —confundirlas hacia «rechazo» tira el servicio
+  entero, porque deja fuera también a la cuenta local de emergencia—, que
+  un usuario desconocido y una contraseña mala deben ser
+  indistinguibles, y que una contraseña vacía no es una credencial. Quien
+  lee la firma Authenticate(ctx, user, pass) no tiene modo de descubrir
+  ninguna de las tres. pkg/auth/backend/backendtest las convierte en siete
+  comprobaciones que un autor apunta contra su backend en cuatro líneas.
+  Los checks son funciones puras que devuelven error, adaptadas a testing.T
+  por Run, y eso es lo que permite lo importante: probar la suite contra
+  backends rotos A PROPÓSITO, exigiendo que se queje EL check correcto con
+  un mensaje que nombre el problema. Una suite que nadie ha visto fallar es
+  una suite que nadie sabe si muerde. Escribirla destapó un defecto en el
+  backend del propio framework: el adaptador del UserProvider no rechazaba
+  la contraseña vacía, delegaba la decisión —así que contra un proveedor
+  que devuelve el usuario sin comparar autenticaba—, y pasaba ese check
+  solo porque el proveedor de su test resultaba ser cuidadoso. Fuera a
+  propósito y escrito: los TIEMPOS. La propiedad es real y el backend LDAP
+  hace un bind señuelo por ella, pero una aserción de tiempo fiable
+  necesita más muestras de las que cabe pagar en una corrida, y un check
+  inestable sobre seguridad es peor que ninguno: se salta, y entonces nadie
+  mira. ADR-027.
+  §3 MAQUINARIA (nucleus v1.16.1). Un cambio en un proveedor corta ya CON
+  la raíz: el root excluía providers/ del cómputo de release, así que el
+  módulo hermano podía sacar tag sin que la raíz sacara el suyo — y el
+  manifest-guard §3b exige justo lo contrario, que el tag del módulo sea
+  ancestro del pin raíz. Era la causa estructural de que en el set anterior
+  hubiera que forzar la release a mano; v1.16.1 y providers/ldap v0.1.2 son
+  los primeros que salen del MISMO commit sin intervención.
+  §4 EL PARAGUAS. bump-set.sh, el escritor mecánico del set, no conocía el
+  bloque nucleus_modules —se añadió cuando nucleus pasó a multi-módulo y
+  nadie volvió al escritor—, de modo que la versión de ldap se transcribía
+  a mano en cada re-pin con el guard como única red. Ya lo escribe, leído
+  del manifiesto de release AL PIN y no del último tag publicado, que es la
+  diferencia que §3b vigila. Y se recuperó la entrada de Quantum 1.19.0,
+  que al certificar 1.20.0 se sobreescribió en versions.yaml sin llegar al
+  CHANGELOG: la regla DX-25 dice mover, y mover tiene dos mitades. El
+  historial narrativo completo vive en CHANGELOG.md.

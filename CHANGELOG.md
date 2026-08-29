@@ -6,6 +6,103 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.20.0 — Arco D del plan de extensibilidad (LDAP integrado)
+
+Quantum 1.20.0 — Arco D del plan de extensibilidad (nucleus v1.15.1 con su
+primer módulo hermano, providers/ldap v0.1.1; orbit v1.8.3 de alineación;
+quark v1.6.1 sin cambios). La pregunta de partida era si el primer
+proveedor real debía ser un plugin o venir integrado, y se respondió
+MIDIENDO en vez de suponiendo: LDAP añade tres módulos MIT y linka cinco
+paquetes de terceros, mientras que SAML+OIDC juntos son treinta y dos
+módulos y dieciocho paquetes. Contra un go.mod que ya carga los SDK de
+AWS, Azure y Google Cloud, el argumento de las dependencias pesadas no se
+sostiene para LDAP — pero sí para el arco siguiente, y por eso la costura
+se queda igualmente. La forma elegida es módulo hermano en el repo del
+framework: separado para el compilador y para go.mod, un solo producto
+para el tren de release, la CI, la documentación y este manifiesto, que
+pasa a certificar diez versiones de módulo en vez de nueve.
+El arco no pudo empezar por el backend porque le faltaba el suelo: de las
+cuatro factorías de registro del framework, la de autenticación era la
+ÚNICA que no recibía configuración, así que un backend de directorio no
+tenía de dónde leer su URL — y su propio godoc ya prometía el subárbol que
+no existía. Al cerrarlo aparecieron dos defectos del arco anterior que
+nadie había visto. El primero: la exención de clave desconocida vivía en
+dos validadores y solo uno la tenía, de modo que un despliegue sobre un
+backend de terceros arrancaba un servidor sano cuyo propio `check` llamaba
+malformada a la configuración que estaba corriendo — «el mismo fichero,
+dos veredictos», tercera aparición, ahora con una sola implementación y un
+test que pregunta a los dos. El segundo no lo podía ver ninguna guarda:
+configurar un backend y olvidar añadirlo a la cadena era un no-op
+silencioso, porque el nombre SÍ está registrado y la sección está
+legítimamente eximida, pero la cadena —su único consumidor— nunca la pide.
+Del backend importa tanto lo que se niega a hacer: rechaza una contraseña
+vacía antes de abrir conexión, escapa el nombre antes del filtro, trata un
+match ambiguo como rechazo, y reserva el rechazo a UN solo código de
+resultado — equivocarse hacia «no disponible» cuesta una caída al
+siguiente backend, hacia «rechazo» cuesta la caída del servicio, porque
+deja fuera también a la cuenta local de emergencia. Cada una de esas
+propiedades tiene un test que falla si se quita la guarda, verificado por
+mutación y no por lectura, y un lane en la puerta requerida contra un
+OpenLDAP real que enlaza el módulo al árbol bajo revisión.
+Lo que lo vuelve integrado y no un plugin: el arranque ya no responde
+«backend desconocido» a un nombre que este proyecto publica, sino el
+`go get` y el `import` exactos; hay `doctor --check auth`, que a propósito
+no juzga registro porque corre en un binario que no importa los
+proveedores de la aplicación; y la página del sitio dejó de decir que
+Nucleus no trae cliente LDAP, que era cierto ayer.
+Un apunte del tren, porque volverá a pasar: providers/ldap requiere la
+RAÍZ DE SU PROPIO REPO, y ese borde no puede estar nunca perfectamente al
+día — cualquier release que contenga su require es posterior a él. Es la
+misma necesidad topológica que orbit documenta en root↔quarkdatasource, y
+NO es la staleness cross-repo que declared_lags vigila: modelarlo como tal
+dejaría el set incertificable para siempre. manifest-guard lo tolera un
+release y lo dice con un AVISO, no con un «ok» indistinguible de un pin al
+día — que es exactamente como el borde equivalente de orbit se pudrió un
+ciclo entero sin que nadie lo viera. El historial narrativo completo vive
+en CHANGELOG.md.
+
+## Quantum 1.19.0 — Arcos B y C del plan de extensibilidad
+
+Quantum 1.19.0 — Arcos B y C del plan de extensibilidad (nucleus v1.14.0,
+orbit v1.8.1). §1 un proveedor REGISTRADO declara su propia configuración:
+el Arco A dejaba enchufar un backend por nombre pero no configurarlo,
+porque storage.ceph.endpoint moría como clave desconocida antes de que el
+proveedor llegara a correr — un backend que nadie puede configurar es un
+backend que nadie puede desplegar. La exención del guard es SOLO para
+nombres registrados: un typo bajo storage. sigue fallando, o el namespace
+se convertiría en un agujero donde cualquier errata pasa. §2 la superficie
+que una extensión puede tocar deja de ser un cheque en blanco: el contrato
+decía que podía «asignar campos en App», así que lo que tocara se volvía
+API de hecho sin estar cubierto por nada prometible entre versiones — y no
+lo usaba nadie (el único consumidor real lee cinco campos y no escribe
+ninguno). Ahora lee, y lo que puede leer está congelado junto a los
+símbolos, los comandos y las claves. §3 la cadena de autenticación se
+declara con auth_backends y consume por fin auth.UserProvider, que llevaba
+desde v0.x declarado, CONGELADO en el baseline y llamado por nadie. Un
+backend no registrado rompe el ARRANQUE y no el primer login, que es el
+peor momento para descubrir una errata en una lista de autenticación. §4
+el panel de orbit autentica por esa cadena: quien configuró un directorio
+corporativo obtiene login de directorio sin que orbit lleve un cliente
+LDAP dentro. Delega la AUTENTICACIÓN, no la autorización — un usuario del
+directorio que no esté dado de alta como admin se rechaza, porque sin esa
+frontera conectar un directorio convertiría en silencio a toda la
+plantilla en administradora del panel. Y al revés: una fila local no es un
+bypass, la cadena sigue teniendo que aceptar la contraseña, así que una
+cuenta revocada no entra por una fila rancia. La temporización se cuidó en
+los dos sitios: el trabajo caro corre en TODOS los caminos antes de
+decidir, o «no eres admin» respondería más rápido que «contraseña mala» y
+volveríamos a publicar el enumerador de usuarios por otra puerta. quark
+v1.6.1 sin cambios. §5 de propina, la certificación destapó que
+orbit/quarkdatasource requería el root dos minors por detrás: dentro del
+repo no se nota —el workspace resuelve el root desde el checkout— pero
+quien instalaba ese módulo se llevaba de paso un root viejo. La excepción
+que tolera un minor de lag en esa arista existe por una razón topológica
+real, pero lo hacía imprimiendo una línea «ok» indistinguible de un pin al
+día, así que el pin se pudrió un ciclo entero sin que nadie lo viera y el
+guard sólo se puso rojo TARDE, en plena certificación, donde deshacerlo
+cuesta un tag de root nuevo. Ahora avisa mientras el lag existe. El
+historial narrativo completo vive en CHANGELOG.md.
+
 ## Quantum 1.18.0 — Arco A del plan de extensibilidad
 
 Quantum 1.18.0 — Arco A del plan de extensibilidad (nucleus v1.13.0). El

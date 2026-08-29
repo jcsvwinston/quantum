@@ -8,8 +8,9 @@
 #   1. trae tags en los submódulos quark/nucleus/orbit,
 #   2. mueve cada submódulo al último tag semver publicado (o al que se pase:
 #      bump-set.sh [quark_tag] [nucleus_tag] [orbit_tag]),
-#   3. reescribe en versions.yaml: modules (3), orbit_modules (5, leídos del
-#      .release-please-manifest.json de orbit AL PIN) y workspace_pins (3,
+#   3. reescribe en versions.yaml: modules (3), orbit_modules (5) y
+#      nucleus_modules (1) —todos leídos del .release-please-manifest.json del
+#      repo correspondiente AL PIN, no de tags sueltos— y workspace_pins (3,
 #      SHAs cortos con el comentario de ancestría regenerado),
 #   4. actualiza las versiones de las tablas del README (pilares + módulos de
 #      integración).
@@ -46,7 +47,16 @@ import json
 m=json.load(open('orbit/.release-please-manifest.json'))
 print('v'+m['proto'],'v'+m['agent'],'v'+m['server'],'v'+m['quarkbridge'],'v'+m['quarkdatasource'])")"
 
-export QT NT OT QS NS OS O_PROTO O_AGENT O_SERVER O_QB O_QDS
+# Idem para el módulo hermano de nucleus. Su tag DEBE salir del mismo commit
+# que el de la raíz (manifest-guard §3b: un tag de módulo cortado después del
+# de la raíz no es certificable), así que se lee del manifiesto al pin y no
+# del último tag publicado.
+N_LDAP=$(python3 -c "
+import json
+m=json.load(open('nucleus/.release-please-manifest.json'))
+print('v'+m['providers/ldap'])")
+
+export QT NT OT QS NS OS O_PROTO O_AGENT O_SERVER O_QB O_QDS N_LDAP
 python3 - <<'PY'
 import os, re
 e=os.environ
@@ -64,8 +74,10 @@ sub(r'^(  agent:           )"v[^"]+"', rf'\1"{e["O_AGENT"]}"')
 sub(r'^(  server:          )"v[^"]+"', rf'\1"{e["O_SERVER"]}"')
 sub(r'^(  quarkbridge:     )"v[^"]+"', rf'\1"{e["O_QB"]}"')
 sub(r'^(  quarkdatasource: )"v[^"]+"', rf'\1"{e["O_QDS"]}"')
+sub(r'^(  ldap: )"v[^"]+"', rf'\1"{e["N_LDAP"]}"')
 sub(r'^  quark:   "[0-9a-f]+"( +)#.*$', rf'  quark:   "{e["QS"]}"\1# = {e["QT"]} exacto')
-sub(r'^  nucleus: "[0-9a-f]+"( +)#.*$', rf'  nucleus: "{e["NS"]}"\1# = {e["NT"]} exacto')
+sub(r'^  nucleus: "[0-9a-f]+"( +)#.*$',
+    rf'  nucleus: "{e["NS"]}"\1# = {e["NT"]} exacto (y = providers/ldap/{e["N_LDAP"]}: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)')
 sub(r'^  orbit:   "[0-9a-f]+"( +)#.*$',
     rf'  orbit:   "{e["OS"]}"\1# = {e["OT"]} exacto (contiene server/{e["O_SERVER"]}, agent/{e["O_AGENT"]}, proto/{e["O_PROTO"]}, quarkbridge/{e["O_QB"]}, quarkdatasource/{e["O_QDS"]} como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)')
 open(p,'w').write(s)
