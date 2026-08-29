@@ -47,7 +47,71 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-08-29, Quantum 1.21.0 certificado; Arcos E y F en main sin release)
+## 3. Estado al cierre (2026-08-29, QUANTUM 1.22.0 certificado — Arcos E y F publicados)
+
+### Sesión 2026-08-29 (c) — QUANTUM 1.22.0 CERTIFICADO (Arcos E y F publicados)
+
+- **SET**: quark **v1.6.1** · nucleus **v1.17.0** + **`providers/ldap/v0.2.0`**
+  (mismo commit) · orbit **v1.8.6** (agent v0.6.5, server v0.10.5,
+  quarkbridge v0.4.5, proto v0.4.2, quarkdatasource v0.2.14).
+  `suite-integral.sh --cierre` **23/23**, tag capturando el set exacto,
+  release publicada. El registro de guards sube a 23 con `nucleus-adr-index`.
+
+**PENDIENTE QUE ENTRA SOLO EN LA PRÓXIMA RELEASE DE NUCLEUS** (decidido con
+Carlos: no merece un tren propio, pero NO se puede perder):
+
+1. **Registrar `nucleus-versioned-markers` en el paraguas.** El guard
+   `nucleus/scripts/ci/check_versioned_docs_markers.sh` se fusionó DESPUÉS
+   del tag v1.17.0, así que no existe en el pin certificado y registrarlo
+   rompería el set. En cuanto un tag lo contenga: añadirlo a
+   `scripts/lib/guard-registry.sh` + fixture en
+   `tests/guard-fixtures/nucleus-versioned-markers/` (la fixture ya se
+   escribió y se borró; baja el marcador de un snapshot a v0.0.1).
+2. **Los dos arreglos de doc publicada NO están en lo publicado.** El tag
+   v1.17.0 no los contiene, así que el sitio unificado sigue con el
+   marcador MDX colándose en el `<meta description>` de las notas de
+   release y con el snapshot `version-1.17.0` diciendo v1.16.1. Están en
+   `main` con guard, así que entran solos.
+
+**ERROR DE SECUENCIA QUE LO CAUSÓ, Y LA REGLA QUE SALE DE ÉL:**
+
+> **Todo PR que toque documentación de release, guards o baselines se
+> fusiona ANTES de cortar el tag, no mientras el tag se corta.**
+
+Se abrió el PR de arreglos, se dejó en CI y se fusionó el release PR
+mientras tanto. Resultado: dos arreglos y un guard fuera del tag, y el
+paraguas certificando un pin que no los tiene. El coste no es el defecto
+—es menor— sino que la corrección queda a deber un ciclo entero.
+
+**TRAMPAS DEL TREN (las mismas de la mañana, esta vez previstas):**
+
+- **release-please NO rebasa** la rama del release. Pasó DOS veces hoy: en
+  nucleus (la rama no traía las notas ni el snapshot que se acababan de
+  fusionar) y en el root de orbit (sin `server/v0.10.5` como ancestro).
+  Verificar SIEMPRE `git merge-base --is-ancestor origin/main <head>` y los
+  tags de módulo antes de fusionar. Receta: cerrar → **quitar la etiqueta
+  `autorelease: pending`** → borrar la rama → `gh workflow run "Release
+  Please"` → re-verificar.
+- **La etiqueta zombi apareció TRES veces hoy** (nucleus#347, orbit#305 y
+  #308, #311). Cerrar un release PR NO basta: release-please mira la
+  ETIQUETA. Quitarla siempre en el mismo comando que lo cierra.
+- **Un release PR puede tener CONFLICTO real**, no sólo estar rancio
+  (orbit#305). Ahí la fusión a tres vías no vale: regenerar.
+- **El release PR de nucleus no dispara CI solo** (main exige
+  `CI Required Gate`): push humano de commit vacío a su rama, que es más
+  determinista que close/reopen.
+- **El re-pin del showcase tenía roja la lane requerida del PR de docs**
+  hasta que orbit cortó sus tags: meterlo en ESE mismo PR lo desbloquea.
+
+**LO QUE SE APRENDIÓ MIRANDO PAGES Y NO EL REPO:**
+
+- El sitio propio de nucleus (y de quark/orbit) es un **redirector**: toda
+  la doc pública vive en el sitio unificado del paraguas, que sirve el TAG
+  PINADO. Corolario: **nada de documentación es visible hasta certificar el
+  set**, y comprobar «la doc está al día» mirando `main` no prueba nada.
+- Cada snapshot versionado anunciaba una versión ajena (5 afectados) y el
+  marcador MDX salía como meta description. Los dos sólo se ven desde fuera.
+
 
 ### Sesión 2026-08-29 (b) — el pendiente 1 cerrado y los Arcos E y F, ambos con su costura
 
