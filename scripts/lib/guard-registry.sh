@@ -82,6 +82,11 @@ GUARDS=(
   # no puede estar por debajo de la MINOR publicada (un patch no exige corte).
   # Entra al set con nucleus v1.11.0.
   "nucleus-docs-archive|nucleus|bash scripts/ci/check_docs_archive_freshness.sh"
+  # Cada ADR del directorio está en el índice, y cada enlace del índice
+  # resuelve. El índice se quedó en ADR-022 con veintinueve records: diecisiete
+  # decisiones sólo alcanzables listando la carpeta. Entra al set con nucleus
+  # v1.17.0.
+  "nucleus-adr-index|nucleus|bash scripts/ci/check_adr_index.sh"
   # --- quark (al pin) -------------------------------------------------------
   # La versión del manifiesto mencionada en README/SECURITY/CLAUDE/release-notes
   # + roadmap sin versiones hardcodeadas (H-Q6, QK6-5).
