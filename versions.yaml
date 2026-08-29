@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.21.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.22.0"           # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-08-29
-status: certified           # Arcos H y G del plan de extensibilidad: el contrato que implementa un proveedor de terceros se muda a paquetes hoja —de 301, 115 y 115 paquetes de terceros arrastrados a 2, 2 y 0— y el de autenticación pasa a traer un kit de conformidad que su autor apunta contra su propio backend
+status: certified           # Arcos E y F del plan de extensibilidad: la autenticación federada y los interceptores de petición estrenan cada uno su costura, con los proveedores parametrizables desde el .yml — y el observador de SQL deja de ser un hueco único que un tercero pisaba en silencio
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules», los seis módulos del
@@ -17,8 +17,8 @@ status: certified           # Arcos H y G del plan de extensibilidad: el contrat
 # borde root↔quarkdatasource por MAQ-3.
 modules:
   quark:   "v1.6.1"
-  nucleus: "v1.16.1"
-  orbit:   "v1.8.5"
+  nucleus: "v1.17.0"
+  orbit:   "v1.8.6"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -29,23 +29,23 @@ modules:
 # DESPUÉS del de la raíz no es certificable. Los bumps de módulo van dentro
 # de la release de la raíz, no detrás.
 nucleus_modules:
-  ldap: "v0.1.2"
+  ldap: "v0.2.0"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.2"
-  agent:           "v0.6.4"
-  server:          "v0.10.4"
-  quarkbridge:     "v0.4.4"
+  agent:           "v0.6.5"
+  server:          "v0.10.5"
+  quarkbridge:     "v0.4.5"
   quarkdatasource: "v0.2.14"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "7fa5eb80"                                # = v1.6.1 exacto
-  nucleus: "69821fc0"                                # = v1.16.1 exacto (y = providers/ldap/v0.1.2: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)
-  orbit:   "7ec8c655"                                # = v1.8.5 exacto (contiene server/v0.10.4, agent/v0.6.4, proto/v0.4.2, quarkbridge/v0.4.4, quarkdatasource/v0.2.14 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
+  nucleus: "72e24976"                                # = v1.17.0 exacto (y = providers/ldap/v0.2.0: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)
+  orbit:   "fdcfa706"                                # = v1.8.6 exacto (contiene server/v0.10.5, agent/v0.6.5, proto/v0.4.2, quarkbridge/v0.4.5, quarkdatasource/v0.2.14 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -59,66 +59,93 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.21.0 — Arcos H y G del plan de extensibilidad (nucleus v1.16.1
-  con providers/ldap v0.1.2; orbit v1.8.5 de alineación; quark v1.6.1 sin
-  cambios). Los dos arcos atacan la misma pregunta por lados opuestos: qué
-  le cuesta a alguien de fuera escribir un proveedor, y cómo sabe que lo ha
-  escrito bien. El Arco D dejó la costura utilizable; estos dos la dejan
-  barata y comprobable, que es lo que decide si nace un ecosistema o no.
-  §1 (Arco H) EL CONTRATO VIVE EN UN PAQUETE HOJA. La medición que lo
-  motiva, hecha antes de mover nada: implementar un backend de
-  autenticación obligaba a compilar 115 paquetes de terceros; uno de
-  almacenamiento, 301; uno de store de sesión, otros 115. Ninguno de esos
-  números tenía que ver con el contrato —tres métodos y dos errores
-  centinela— sino con que el contrato compartía paquete con el registro, la
-  validación de configuración y las implementaciones propias del framework,
-  y en Go importar un paquete es importar su grafo entero. Ahora cada
-  contrato tiene su hoja: pkg/auth/backend enlaza 2 paquetes de terceros,
-  pkg/storage/provider 2 y pkg/auth/sessionstore 0. Los nombres viejos
-  siguen siendo los MISMOS símbolos —alias de tipo, no copias—, así que
-  ningún consumidor cambia una línea: orbit se alineó sin tocar más que el
-  pin, y eso es la prueba, no la promesa. Dos tests de contrato lo
-  sostienen: uno fija el techo en 2 y otro exige que los alias sigan
-  resolviendo al tipo de la hoja. Hacen falta los dos porque esta deriva no
-  rompe ninguna compilación —solo engorda en silencio la de todos los
-  demás—, y una cifra que nadie vigila vuelve a subir. ADR-025 y ADR-026.
-  §2 (Arco G) EL CONTRATO TRAE SU PROPIO KIT DE CONFORMIDAD. De las
-  propiedades del contrato de autenticación, las que más cuesta acertar
-  estaban solo en prosa: que un rechazo y una fuente inalcanzable son
-  respuestas DISTINTAS —confundirlas hacia «rechazo» tira el servicio
-  entero, porque deja fuera también a la cuenta local de emergencia—, que
-  un usuario desconocido y una contraseña mala deben ser
-  indistinguibles, y que una contraseña vacía no es una credencial. Quien
-  lee la firma Authenticate(ctx, user, pass) no tiene modo de descubrir
-  ninguna de las tres. pkg/auth/backend/backendtest las convierte en siete
-  comprobaciones que un autor apunta contra su backend en cuatro líneas.
-  Los checks son funciones puras que devuelven error, adaptadas a testing.T
-  por Run, y eso es lo que permite lo importante: probar la suite contra
-  backends rotos A PROPÓSITO, exigiendo que se queje EL check correcto con
-  un mensaje que nombre el problema. Una suite que nadie ha visto fallar es
-  una suite que nadie sabe si muerde. Escribirla destapó un defecto en el
-  backend del propio framework: el adaptador del UserProvider no rechazaba
-  la contraseña vacía, delegaba la decisión —así que contra un proveedor
-  que devuelve el usuario sin comparar autenticaba—, y pasaba ese check
-  solo porque el proveedor de su test resultaba ser cuidadoso. Fuera a
-  propósito y escrito: los TIEMPOS. La propiedad es real y el backend LDAP
-  hace un bind señuelo por ella, pero una aserción de tiempo fiable
-  necesita más muestras de las que cabe pagar en una corrida, y un check
-  inestable sobre seguridad es peor que ninguno: se salta, y entonces nadie
-  mira. ADR-027.
-  §3 MAQUINARIA (nucleus v1.16.1). Un cambio en un proveedor corta ya CON
-  la raíz: el root excluía providers/ del cómputo de release, así que el
-  módulo hermano podía sacar tag sin que la raíz sacara el suyo — y el
-  manifest-guard §3b exige justo lo contrario, que el tag del módulo sea
-  ancestro del pin raíz. Era la causa estructural de que en el set anterior
-  hubiera que forzar la release a mano; v1.16.1 y providers/ldap v0.1.2 son
-  los primeros que salen del MISMO commit sin intervención.
-  §4 EL PARAGUAS. bump-set.sh, el escritor mecánico del set, no conocía el
-  bloque nucleus_modules —se añadió cuando nucleus pasó a multi-módulo y
-  nadie volvió al escritor—, de modo que la versión de ldap se transcribía
-  a mano en cada re-pin con el guard como única red. Ya lo escribe, leído
-  del manifiesto de release AL PIN y no del último tag publicado, que es la
-  diferencia que §3b vigila. Y se recuperó la entrada de Quantum 1.19.0,
-  que al certificar 1.20.0 se sobreescribió en versions.yaml sin llegar al
-  CHANGELOG: la regla DX-25 dice mover, y mover tiene dos mitades. El
-  historial narrativo completo vive en CHANGELOG.md.
+  Quantum 1.22.0 — Arcos E y F del plan de extensibilidad (nucleus v1.17.0
+  con providers/ldap v0.2.0; orbit v1.8.6 de alineación; quark v1.6.1 sin
+  cambios). Los dos arcos que quedaban del plan, y los dos empezaron por
+  descubrir que el trabajo no era el que estaba anotado.
+  §1 (Arco E) LA AUTENTICACIÓN FEDERADA TIENE SU PROPIA COSTURA. El arco
+  estaba escrito como «SAML y OIDC», dando por hecho que la costura del
+  Arco A servía — y el propio repo lo afirmaba, en el test del registro:
+  «desbloquea LDAP, SAML y OIDC como módulos externos». Es cierto para uno
+  de los tres. backend.Backend es Authenticate(usuario, contraseña) y un
+  flujo federado no tiene credenciales que entregar: la persona se va al
+  proveedor de identidad y la respuesta llega a OTRA URL más tarde. La
+  afirmación se corrige en el mismo cambio que la deja de ser válida, que
+  es la única forma de que una frase falsa no sobreviva a quien la
+  descubre. pkg/auth/federated es un contrato SEGUNDO —Begin dice a dónde
+  mandar el navegador, Complete valida lo que vuelve—, paquete hoja con el
+  mismo techo de dependencias que los otros tres.
+  Lo que lo vuelve una costura y no una interfaz: EL STATE ANTI-CSRF ES DEL
+  FRAMEWORK y el proveedor no lo ve nunca. El framework lo emite, custodia
+  el flujo pendiente y rechaza un callback que no lo traiga ANTES de llamar
+  al proveedor. Un flujo de redirección sin esa comprobación funciona
+  perfectamente hasta que alguien lo ataca, así que al autor no se le da la
+  opción de olvidarla — la misma disciplina con la que el Arco A dejó los
+  tres resultados en el framework en vez de en cada backend. Cuatro
+  propiedades verificadas POR MUTACIÓN: state desconocido rechazado sin
+  consultar al proveedor, un solo uso, atado a la instancia que lo emitió,
+  y caducidad que además lo consume.
+  Parametrizable desde el .yml separando INSTANCIA y TIPO: `name` es la
+  instancia —el segmento de URL y el subárbol auth.<name>.*, el mismo canal
+  que un backend de credenciales— y `provider` es el protocolo registrado.
+  Dos proveedores de identidad del mismo protocolo es el caso ORDINARIO, un
+  tenant corporativo y uno de partners, y un registro con clave por tipo lo
+  habría hecho inexpresable sin publicar un segundo módulo.
+  La exención de auth.<instancia>.* es la primera que depende de la
+  CONFIGURACIÓN y no de un registro: la instancia es legítima porque el
+  operador la declaró. Habría sido la CUARTA aparición de «el mismo
+  fichero, dos veredictos» —los dos validadores corren en momentos
+  distintos y sólo uno tiene la declaración a mano—, así que la regla se
+  les pasa construida del mismo fichero, con test de que ambos aceptan lo
+  mismo y de que la exención es por instancia declarada y nunca de
+  namespace.
+  §2 (Arco F) UN TERCERO PUEDE INTERCEPTAR EL CICLO DE LA PETICIÓN. Este
+  arco no estaba definido en ninguna parte: era una etiqueta que se
+  arrastraba desde hacía tres sesiones sin ADR ni frase que dijera qué
+  problema cerraba. Se definió con el único respaldo escrito que había —
+  ADR-023 cierra diciendo que interceptar el ciclo de la petición es la
+  pieza siguiente— porque una etiqueta de plan sin contenido no es trabajo
+  pendiente, es una decisión sin tomar.
+  Interceptar HTTP SÍ se podía, pero no como plugin: AppBuilder.Use y el
+  campo Middleware de un módulo exigen que quien ENSAMBLA la aplicación
+  escriba el código, en el sitio y el orden correctos. Era el único hueco
+  con forma de registro sin registro, y por eso un interceptor no se podía
+  distribuir, sólo pegar en el arranque de alguien. http_interceptors es
+  una lista ORDENADA porque el orden ES el comportamiento, con
+  interceptors.<name>.* como subárbol, y se montan DENTRO del middleware
+  del framework: uno que desplazara el request ID, la sesión o el hook de
+  observabilidad rompería todo lo de abajo, incluido su propio log.
+  Al comprobar la premisa apareció lo que no estaba en la nota:
+  model.SetDefaultSQLObserver guardaba en un HUECO ÚNICO. pkg/app instala
+  el suyo al arrancar —es el que alimenta el bus de observabilidad y con él
+  la vista de SQL en vivo de Orbit—, así que un tercero haciendo lo ÚNICO
+  que ADR-023 dice que puede hacer apagaba ese bus al hacerlo. Sin error,
+  sin log y sin test que fallara: un feed que dejaba de actualizarse en el
+  despliegue de otro, atribuible a nada. Ahora suscribe, y un suscriptor
+  que entra en pánico queda contenido sin parar a los demás.
+  §3 EL PROVEEDOR LDAP COMO CONSUMIDOR DE PRIMERA PARTE. El Arco H prometía
+  que un proveedor dejaría de arrastrar el árbol del framework y la única
+  prueba era el test del propio paquete hoja. Migrado: 235 → 11 paquetes de
+  terceros en el paquete de producción. El go.mod NO baja de 143
+  indirectas, y está escrito así en vez de dejar que el número sugiera otra
+  cosa — el test en vivo carga un fichero real por pkg/app para probar el
+  cable de punta a punta, y la mejora es del grafo de COMPILACIÓN, no del
+  de módulos. Adoptar el kit de conformidad reprodujo aquí el fallo que el
+  kit existe para evitar: el primer directorio falso rechazaba el bind de
+  contraseña vacía, así que la suite pasaba con la guarda del backend
+  BORRADA. Un directorio real responde SUCCESS, y un fixture más amable que
+  la realidad no califica nada.
+  §4 LA DOCUMENTACIÓN PUBLICADA, MIRADA EN LO QUE SIRVE Y NO EN EL REPO.
+  Dos defectos que sólo se ven desde fuera. Cada snapshot versionado
+  anunciaba una versión que no era la suya —la doc archivada de 1.14.0
+  decía «the current release is v1.13.0»— y en la página que el sitio
+  publica en la RAÍZ, porque la última versión archivada es la que se sirve
+  por defecto; cinco salieron así, y la causa es de procedimiento: el
+  snapshot congela la doc antes de que release-please suba el marcador. Y
+  el comentario MDX del marcador se colaba como meta description, invisible
+  en la página —por eso nadie lo vio— y visible en un resultado de búsqueda
+  o al compartir el enlace. Los dos con guard nuevo y verificados por
+  mutación. También se completó el índice de ADRs, que se había quedado en
+  el 022 con veintinueve en el directorio: diecisiete decisiones sólo
+  alcanzables listando la carpeta, que es justo el estado que un índice
+  existe para evitar. El historial narrativo completo vive en CHANGELOG.md.
