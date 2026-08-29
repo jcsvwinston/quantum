@@ -30,3 +30,4 @@ if grep -q "($victim)" "$TREE/docs/adrs/README.md"; then
 fi
 
 echo "workdir=$TREE"
+echo "expect=is not listed in docs/adrs/README.md"
