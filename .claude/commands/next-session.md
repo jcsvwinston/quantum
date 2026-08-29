@@ -47,7 +47,97 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-08-29, Quantum 1.21.0 certificado — Arcos H y G)
+## 3. Estado al cierre (2026-08-29, Quantum 1.21.0 certificado; Arcos E y F en main sin release)
+
+### Sesión 2026-08-29 (b) — el pendiente 1 cerrado y los Arcos E y F, ambos con su costura
+
+Todo en `main` de nucleus, **sin release**: el release PR rodante propone
+`v1.17.0` + `providers/ldap/v0.2.0` (minor correcto: API aditiva). Cortarlo
+arrastra alinear orbit y certificar Quantum 1.22.0 — decisión aparte.
+
+- **1. `providers/ldap` usa el paquete hoja** (nucleus#346). El consumidor
+  de primera parte que el Arco H prometía: **235 → 11** paquetes de
+  terceros en el paquete de producción. Los once son el cliente LDAP con
+  su ASN.1 y su NTLM, el decodificador de config y x/crypto.
+  **El `go.mod` NO baja de 143 indirectas** y está escrito así en el README
+  y en la enmienda de ADR-024: el test en vivo carga un fichero real por
+  `pkg/app` para probar el cable de punta a punta, y vale lo que arrastra.
+  La mejora es del grafo de COMPILACIÓN, no del de módulos.
+  Adopta `backendtest` — y escribirlo **reprodujo aquí el fallo que el kit
+  existe para evitar**: el primer directorio falso respondía con rechazo al
+  bind de contraseña vacía, así que la suite pasaba con la guarda del
+  backend BORRADA. Un directorio real responde SUCCESS (RFC 4513 §5.1.2).
+  Un fixture más amable que la realidad no califica nada.
+
+- **2. Arco E — la costura federada** (nucleus#348, ADR-028). El arco
+  estaba anotado como «SAML y OIDC» dando por hecho que la costura del
+  Arco A servía. **No sirve**, y el repo lo afirmaba: el test del registro
+  decía que esa costura «desbloquea LDAP, SAML y OIDC». Es cierto para uno
+  de los tres. `pkg/auth/federated` es un contrato SEGUNDO (Begin/Complete),
+  paquete hoja, 2 dependencias.
+  **Lo que lo hace una costura y no una interfaz**: el state anti-CSRF es
+  del framework y el proveedor no lo ve nunca. Se rechaza el callback
+  ANTES de llamar al proveedor. Cuatro propiedades verificadas por
+  mutación.
+  **Parametrizable desde el .yml separando instancia y tipo** (petición
+  explícita de Carlos): `name` es la instancia y `provider` el protocolo,
+  porque dos IdP del mismo protocolo es el caso ORDINARIO. `public_base_url`
+  obligatorio: la URL de callback se deriva de él y es lo único que hay que
+  registrar en el IdP.
+  La exención de `auth.<instancia>.*` es la primera que depende de la
+  CONFIGURACIÓN y no de un registro → `providerns.Declared` a los dos
+  validadores. Habría sido la CUARTA aparición de «el mismo fichero, dos
+  veredictos».
+
+- **3. Arco F — DEFINIDO Y HECHO** (nucleus#349, ADR-029). Era una etiqueta
+  vacía: no estaba en ningún ADR ni roadmap. Se definió con el respaldo
+  escrito que sí había — ADR-023 cierra diciendo que interceptar el ciclo
+  de la petición «es la siguiente pieza de trabajo».
+  Interceptar HTTP **sí se podía, pero no como plugin**: `AppBuilder.Use` y
+  el `Middleware` de un módulo exigen que quien ENSAMBLA escriba el código.
+  Era el único hueco con forma de registro sin registro.
+  `pkg/router/interceptor` + `http_interceptors: [a, b]` ordenado, con
+  `interceptors.<name>.*` como subárbol. Montados DENTRO del middleware del
+  framework.
+  **Y el hallazgo que no estaba en la nota**: `model.SetDefaultSQLObserver`
+  guardaba en un HUECO ÚNICO. `pkg/app` instala el suyo al arrancar, así
+  que un tercero haciendo lo único que ADR-023 le permite **apagaba el bus
+  de observabilidad de Orbit al hacerlo**, sin error ni log. Ahora
+  SUSCRIBE, con la misma firma.
+
+**LECCIONES:**
+
+- **Una etiqueta de plan sin ADR no es trabajo, es un recordatorio de que
+  falta decidir.** «Arco F» se arrastró tres sesiones sin contenido. Antes
+  de anotar un arco en el handoff, o tiene ADR o tiene una frase que diga
+  qué problema cierra.
+- **Verificar la premisa del arco antes de dimensionarlo.** El Arco E
+  estaba dimensionado como «dos proveedores» y era «una costura nueva más
+  dos proveedores», porque nadie había comprobado la afirmación del test de
+  que la costura existente servía. La comprobación cuesta un grep.
+- **Al escribir un fixture para un kit de conformidad, preguntarse qué
+  respondería el sistema REAL, no qué respuesta es cómoda.** El fixture
+  amable pasa la suite con la guarda borrada.
+- **Los guards de congelación muerden al final, no al escribir**: superficie
+  de API, superficie de extensión y registro de posturas de paquete. Un
+  paquete público nuevo son TRES sitios que actualizar en el mismo cambio.
+- **Arreglar corrección no puede pagarse en el camino caliente.** El primer
+  arreglo del observador copiaba el slice bajo RLock en CADA consulta SQL,
+  donde antes había un atomic load sin asignación. Ahora el slice es
+  inmutable y los escritores lo intercambian (copy-on-write): suscribirse
+  ocurre al arrancar, leer en cada consulta.
+- **Un test de concurrencia que afirma «ya ha ocurrido» depende del
+  planificador.** El de suscripción concurrente pasaba en local, con -race
+  incluido, y falló en CI. Un test inestable sobre concurrencia es peor que
+  ninguno: se silencia y entonces nadie mira. La aserción va DESPUÉS de
+  parar la emisión; lo concurrente lo comprueba -race.
+- **No aliasar un tipo por parecido.** El contrato de interceptores tomaba
+  `Config` del de autenticación porque la forma coincide: eso obligaba a
+  cada interceptor de terceros a compilar el contrato de auth para leer un
+  mapa. Dependencia heredada por parecido y no por razón.
+- **La doc pública no puede citar ADRs** (`check_docs_product_voice.sh`).
+  Explicar la decisión en prosa; el lector no abre nuestros ADRs.
+
 
 ### Sesión 2026-08-29 — QUANTUM 1.21.0 CERTIFICADO (Arcos H y G) + el tren en cuatro repos
 
