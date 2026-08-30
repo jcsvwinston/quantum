@@ -30,16 +30,16 @@ uno, qué rol juega en la suite y cómo encajan.
 
 | Pilar | Rol en la suite | Módulo Go | Versión | Submódulo | Uso en solitario |
 |---|---|---|---|---|---|
-| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.17.0` | [`nucleus/`](nucleus) | Sí (base de apps) |
-| **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.6.1` | [`quark/`](quark) | **Sí, en cualquier app Go** |
-| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.8.6` | [`orbit/`](orbit) | No (requiere Nucleus) |
+| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.20.1` | [`nucleus/`](nucleus) | Sí (base de apps) |
+| **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.7.0` | [`quark/`](quark) | **Sí, en cualquier app Go** |
+| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.8.10` | [`orbit/`](orbit) | No (requiere Nucleus) |
 
 Módulos de integración (repo orbit, opt-in; son los que materializan el puente quark↔orbit):
 
 | Módulo | Rol | Versión |
 |---|---|---|
-| `github.com/jcsvwinston/orbit/quarkbridge` | Publica los statements de Quark en el feed vivo de Orbit | `v0.4.5` |
-| `github.com/jcsvwinston/orbit/quarkdatasource` | Expone los modelos Quark en el Data Studio de Orbit | `v0.2.14` |
+| `github.com/jcsvwinston/orbit/quarkbridge` | Publica los statements de Quark en el feed vivo de Orbit | `v0.4.7` |
+| `github.com/jcsvwinston/orbit/quarkdatasource` | Expone los modelos Quark en el Data Studio de Orbit | `v0.2.15` |
 
 **¿Por dónde empiezo?** Solo la capa de datos → Quark. Una aplicación → Nucleus (Quark opcional dentro). Los tres juntos → el [ejemplo integrador `showcase_demo`](https://github.com/jcsvwinston/nucleus/tree/main/examples/showcase_demo) los cablea de punta a punta en ~30 minutos, `curl`s incluidos. Orbit siempre requiere Nucleus.
 
