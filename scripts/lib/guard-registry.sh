@@ -54,6 +54,12 @@ GUARDS=(
   # contra el HTML generado. Docusaurus no mira los externos — así vivieron
   # meses los «Edit this page» rotos de las tres instancias.
   "umbrella-built-links|.|bash scripts/check_built_links.sh website/build"
+  # Bloques de código VACÍOS en el HTML servido (SD-01, 9ª ronda): una fence
+  # ```lang file=…``` sin resolver (remark-code-import descableado en el
+  # ensamblaje) se publica como <code></code> y el build sale verde — así salió
+  # el quickstart de nucleus con sus 3 bloques vacíos en las 13 versiones.
+  # Requiere website/build construido — suite-integral construye el sitio antes.
+  "umbrella-built-codeblocks|.|bash scripts/check_built_codeblocks.sh website/build"
   # Los 7 repros "exit 0 sin efecto" del informe DX (§4.A) contra el árbol AL
   # PIN: comandos que fracasaban con éxito aparente. Entra al set con Quantum
   # 1.12.0 — con pines anteriores (quark < v1.5.0, nucleus < v1.8.0) sale rojo
