@@ -6,6 +6,166 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.23.0 — Arco DX-3 y arco de anomalías QCD
+
+Quantum 1.23.0 (quark v1.7.0; nucleus v1.20.1 con providers/ldap v0.2.2;
+orbit v1.8.10 con agent v0.6.7, server v0.10.7 y quarkbridge v0.4.7). Dos
+arcos que resultaron ser el mismo defecto visto desde dos alturas, más una
+auditoría externa que midió la superficie de extensión ejecutándola.
+
+§1 CLASIFICAR POR EL CÓDIGO DEL DRIVER, NO POR EL IDIOMA DEL MENSAJE. Quark
+clasificaba errores de PostgreSQL contra el TIPO CONCRETO de pgx mientras su
+guía prescribe lib/pq, así que bajo el driver documentado no reconocía nada
+y tres decisiones fallaban calladas. El mismo defecto, un piso más arriba,
+estaba en el bootstrap del panel de orbit: comparaba subcadenas INGLESAS del
+mensaje. Reproducido con motores reales — un PostgreSQL con
+lc_messages='es_ES.utf8' responde «llave duplicada viola restricción de
+unicidad» y un MySQL con --lc-messages=fr_FR responde «Duplicata du champ» —
+ninguna casaba, el duplicado no se reconocía y nucleus abortaba la
+aplicación entera. Alcance real, sin exagerarlo: un reinicio normal no lo
+toca, porque el recuento corta antes del insert; se alcanza en el primer
+arranque concurrente de varias réplicas, donde las que pierden la carrera
+entran en crash-loop. El predicado se exporta desde nucleus
+(db.IsUniqueViolation) y no desde orbit porque pkg/db ya importa los cinco
+drivers y el consumidor ya importa pkg/db: la delegación no añade ninguna
+arista al grafo, mientras que implementarlo local obligaría a promover
+cuatro drivers de indirect a direct.
+
+§2 UN INTERRUPTOR DE APAGADO QUE BORRABA DATOS. `storage.cleanup.enabled:
+false` no apagaba nada: el limpiador no guardaba el flag en ningún sitio y
+las dos ramas del condicional devolvían structs idénticos, así que cada
+arranque barría el prefijo — y barre una vez de inmediato, antes del primer
+tick. Silencioso: nada registraba que hubiera arrancado contra un `false`
+explícito.
+
+§3 UNA CADENA DE AUTENTICACIÓN QUE DEJABA ENTRAR A QUIEN EL DIRECTORIO
+ACABABA DE RECHAZAR. `auth_backends` trataba el rechazo y el no-alcanzable
+con el mismo `continue`, así que una cuenta revocada en el directorio
+entraba por una fila local rancia. Era una contradicción interna: el godoc
+documentaba el fail-open mientras el README, la referencia de configuración,
+el kit de conformidad para terceros y el README de orbit prometían lo
+contrario. Gana la documentación. El arreglo es `break` y no `return`: con
+[directorio caído, local rechaza] no se puede afirmar que la credencial sea
+falsa, y un control que ya existía lo cazó. Consecuencia que conviene decir
+en voz alta: una cadena es un FALLBACK ante indisponibilidad, no una forma
+de federar varias poblaciones de usuarios.
+
+§4 LA SUPERFICIE DE EXTENSIÓN DE v1.13–v1.17 NO ERA ALCANZABLE POR LA VÍA
+QUE DOCUMENTA. Cinco costuras estrenadas y ninguna usable como se describe:
+el adaptador que instala todo store de sesión configurado borraba sus
+capacidades opcionales, dejando ciego al visor de sesiones del panel bajo
+`session_store: redis`; la capa de validación comparaba `session_store`
+contra un enum escrito a mano, así que un store de terceros lo construía el
+contenedor y lo rechazaba el runner; la vía fluida no capturaba ni los
+subárboles de interceptores ni los de instancias federadas, que arrancaban
+con sus valores por defecto; `orbit.Config` sólo llevaba tags `yaml:`
+mientras nucleus bindea con `koanf`, y 16 de sus 19 claves se descartaban en
+silencio; y las rutas federadas que el arranque imprimía para registrar en
+el proveedor de identidad no las montaba nadie, ni un test.
+
+§5 LA LECCIÓN, PORQUE SE REPITIÓ TRES VECES. En el limpiador, en la cadena
+de autenticación y en el store de sesión, el test que existía pasaba porque
+entraba por una puerta que no es la que usa el framework — y así CODIFICABA
+el defecto como comportamiento esperado. Al arreglar se movió el test a la
+vía real, no se añadió un caso al lado. Y de los catorce hallazgos del
+informe externo, dos resultaron ya arreglados o exagerados al medirlos: el
+check de proxies de confianza ya juzgaba la unión de las entradas, y los
+interceptores nunca pudieron reescribir la dirección de origen por delante
+del limitador de peticiones. Medir antes de creer, incluido el informe.
+
+## Quantum 1.22.0 — Arcos E y F del plan de extensibilidad
+
+Quantum 1.22.0 — Arcos E y F del plan de extensibilidad (nucleus v1.17.0
+con providers/ldap v0.2.0; orbit v1.8.6 de alineación; quark v1.6.1 sin
+cambios). Los dos arcos que quedaban del plan, y los dos empezaron por
+descubrir que el trabajo no era el que estaba anotado.
+§1 (Arco E) LA AUTENTICACIÓN FEDERADA TIENE SU PROPIA COSTURA. El arco
+estaba escrito como «SAML y OIDC», dando por hecho que la costura del
+Arco A servía — y el propio repo lo afirmaba, en el test del registro:
+«desbloquea LDAP, SAML y OIDC como módulos externos». Es cierto para uno
+de los tres. backend.Backend es Authenticate(usuario, contraseña) y un
+flujo federado no tiene credenciales que entregar: la persona se va al
+proveedor de identidad y la respuesta llega a OTRA URL más tarde. La
+afirmación se corrige en el mismo cambio que la deja de ser válida, que
+es la única forma de que una frase falsa no sobreviva a quien la
+descubre. pkg/auth/federated es un contrato SEGUNDO —Begin dice a dónde
+mandar el navegador, Complete valida lo que vuelve—, paquete hoja con el
+mismo techo de dependencias que los otros tres.
+Lo que lo vuelve una costura y no una interfaz: EL STATE ANTI-CSRF ES DEL
+FRAMEWORK y el proveedor no lo ve nunca. El framework lo emite, custodia
+el flujo pendiente y rechaza un callback que no lo traiga ANTES de llamar
+al proveedor. Un flujo de redirección sin esa comprobación funciona
+perfectamente hasta que alguien lo ataca, así que al autor no se le da la
+opción de olvidarla — la misma disciplina con la que el Arco A dejó los
+tres resultados en el framework en vez de en cada backend. Cuatro
+propiedades verificadas POR MUTACIÓN: state desconocido rechazado sin
+consultar al proveedor, un solo uso, atado a la instancia que lo emitió,
+y caducidad que además lo consume.
+Parametrizable desde el .yml separando INSTANCIA y TIPO: `name` es la
+instancia —el segmento de URL y el subárbol auth.<name>.*, el mismo canal
+que un backend de credenciales— y `provider` es el protocolo registrado.
+Dos proveedores de identidad del mismo protocolo es el caso ORDINARIO, un
+tenant corporativo y uno de partners, y un registro con clave por tipo lo
+habría hecho inexpresable sin publicar un segundo módulo.
+La exención de auth.<instancia>.* es la primera que depende de la
+CONFIGURACIÓN y no de un registro: la instancia es legítima porque el
+operador la declaró. Habría sido la CUARTA aparición de «el mismo
+fichero, dos veredictos» —los dos validadores corren en momentos
+distintos y sólo uno tiene la declaración a mano—, así que la regla se
+les pasa construida del mismo fichero, con test de que ambos aceptan lo
+mismo y de que la exención es por instancia declarada y nunca de
+namespace.
+§2 (Arco F) UN TERCERO PUEDE INTERCEPTAR EL CICLO DE LA PETICIÓN. Este
+arco no estaba definido en ninguna parte: era una etiqueta que se
+arrastraba desde hacía tres sesiones sin ADR ni frase que dijera qué
+problema cerraba. Se definió con el único respaldo escrito que había —
+ADR-023 cierra diciendo que interceptar el ciclo de la petición es la
+pieza siguiente— porque una etiqueta de plan sin contenido no es trabajo
+pendiente, es una decisión sin tomar.
+Interceptar HTTP SÍ se podía, pero no como plugin: AppBuilder.Use y el
+campo Middleware de un módulo exigen que quien ENSAMBLA la aplicación
+escriba el código, en el sitio y el orden correctos. Era el único hueco
+con forma de registro sin registro, y por eso un interceptor no se podía
+distribuir, sólo pegar en el arranque de alguien. http_interceptors es
+una lista ORDENADA porque el orden ES el comportamiento, con
+interceptors.<name>.* como subárbol, y se montan DENTRO del middleware
+del framework: uno que desplazara el request ID, la sesión o el hook de
+observabilidad rompería todo lo de abajo, incluido su propio log.
+Al comprobar la premisa apareció lo que no estaba en la nota:
+model.SetDefaultSQLObserver guardaba en un HUECO ÚNICO. pkg/app instala
+el suyo al arrancar —es el que alimenta el bus de observabilidad y con él
+la vista de SQL en vivo de Orbit—, así que un tercero haciendo lo ÚNICO
+que ADR-023 dice que puede hacer apagaba ese bus al hacerlo. Sin error,
+sin log y sin test que fallara: un feed que dejaba de actualizarse en el
+despliegue de otro, atribuible a nada. Ahora suscribe, y un suscriptor
+que entra en pánico queda contenido sin parar a los demás.
+§3 EL PROVEEDOR LDAP COMO CONSUMIDOR DE PRIMERA PARTE. El Arco H prometía
+que un proveedor dejaría de arrastrar el árbol del framework y la única
+prueba era el test del propio paquete hoja. Migrado: 235 → 11 paquetes de
+terceros en el paquete de producción. El go.mod NO baja de 143
+indirectas, y está escrito así en vez de dejar que el número sugiera otra
+cosa — el test en vivo carga un fichero real por pkg/app para probar el
+cable de punta a punta, y la mejora es del grafo de COMPILACIÓN, no del
+de módulos. Adoptar el kit de conformidad reprodujo aquí el fallo que el
+kit existe para evitar: el primer directorio falso rechazaba el bind de
+contraseña vacía, así que la suite pasaba con la guarda del backend
+BORRADA. Un directorio real responde SUCCESS, y un fixture más amable que
+la realidad no califica nada.
+§4 LA DOCUMENTACIÓN PUBLICADA, MIRADA EN LO QUE SIRVE Y NO EN EL REPO.
+Dos defectos que sólo se ven desde fuera. Cada snapshot versionado
+anunciaba una versión que no era la suya —la doc archivada de 1.14.0
+decía «the current release is v1.13.0»— y en la página que el sitio
+publica en la RAÍZ, porque la última versión archivada es la que se sirve
+por defecto; cinco salieron así, y la causa es de procedimiento: el
+snapshot congela la doc antes de que release-please suba el marcador. Y
+el comentario MDX del marcador se colaba como meta description, invisible
+en la página —por eso nadie lo vio— y visible en un resultado de búsqueda
+o al compartir el enlace. Los dos con guard nuevo y verificados por
+mutación. También se completó el índice de ADRs, que se había quedado en
+el 022 con veintinueve en el directorio: diecisiete decisiones sólo
+alcanzables listando la carpeta, que es justo el estado que un índice
+existe para evitar. El historial narrativo completo vive en CHANGELOG.md.
+
 ## Quantum 1.21.0 — Arcos H y G del plan de extensibilidad
 
 Quantum 1.21.0 — Arcos H y G del plan de extensibilidad (nucleus v1.16.1

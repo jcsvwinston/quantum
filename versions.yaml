@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.22.0"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-08-29
-status: certified           # Arcos E y F del plan de extensibilidad: la autenticación federada y los interceptores de petición estrenan cada uno su costura, con los proveedores parametrizables desde el .yml — y el observador de SQL deja de ser un hueco único que un tercero pisaba en silencio
+quantum: "1.23.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-08-30
+status: certified           # Arcos DX-3 y de anomalías QCD: clasificar por el CÓDIGO que reporta el driver y no por el idioma del mensaje llega de quark a nucleus y a orbit — y la superficie de extensión de v1.13–v1.17 (auth enchufable, store de sesión, interceptores, federada) pasa a ser alcanzable por la vía que documenta
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules», los seis módulos del
@@ -16,9 +16,9 @@ status: certified           # Arcos E y F del plan de extensibilidad: la autenti
 # topológicamente forzado, tolerado por el guard extendido, ceñido al único
 # borde root↔quarkdatasource por MAQ-3.
 modules:
-  quark:   "v1.6.1"
-  nucleus: "v1.17.0"
-  orbit:   "v1.8.6"
+  quark:   "v1.7.0"
+  nucleus: "v1.20.1"
+  orbit:   "v1.8.10"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -29,23 +29,23 @@ modules:
 # DESPUÉS del de la raíz no es certificable. Los bumps de módulo van dentro
 # de la release de la raíz, no detrás.
 nucleus_modules:
-  ldap: "v0.2.0"
+  ldap: "v0.2.2"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.2"
-  agent:           "v0.6.5"
-  server:          "v0.10.5"
-  quarkbridge:     "v0.4.5"
-  quarkdatasource: "v0.2.14"
+  agent:           "v0.6.7"
+  server:          "v0.10.7"
+  quarkbridge:     "v0.4.7"
+  quarkdatasource: "v0.2.15"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
-  quark:   "7fa5eb80"                                # = v1.6.1 exacto
-  nucleus: "72e24976"                                # = v1.17.0 exacto (y = providers/ldap/v0.2.0: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)
-  orbit:   "fdcfa706"                                # = v1.8.6 exacto (contiene server/v0.10.5, agent/v0.6.5, proto/v0.4.2, quarkbridge/v0.4.5, quarkdatasource/v0.2.14 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
+  quark:   "2ee24392"                                # = v1.7.0 exacto
+  nucleus: "b171b591"                                # = v1.20.1 exacto (y = providers/ldap/v0.2.2: los dos tags salieron del MISMO commit — ver manifest-guard §3b)
+  orbit:   "a03675be"                                # = v1.8.10 exacto (contiene agent/v0.6.7, server/v0.10.7, quarkbridge/v0.4.7, proto/v0.4.2 y quarkdatasource/v0.2.15 como ancestros — verificado antes de fusionar su release)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -59,93 +59,103 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.22.0 — Arcos E y F del plan de extensibilidad (nucleus v1.17.0
-  con providers/ldap v0.2.0; orbit v1.8.6 de alineación; quark v1.6.1 sin
-  cambios). Los dos arcos que quedaban del plan, y los dos empezaron por
-  descubrir que el trabajo no era el que estaba anotado.
-  §1 (Arco E) LA AUTENTICACIÓN FEDERADA TIENE SU PROPIA COSTURA. El arco
-  estaba escrito como «SAML y OIDC», dando por hecho que la costura del
-  Arco A servía — y el propio repo lo afirmaba, en el test del registro:
-  «desbloquea LDAP, SAML y OIDC como módulos externos». Es cierto para uno
-  de los tres. backend.Backend es Authenticate(usuario, contraseña) y un
-  flujo federado no tiene credenciales que entregar: la persona se va al
-  proveedor de identidad y la respuesta llega a OTRA URL más tarde. La
-  afirmación se corrige en el mismo cambio que la deja de ser válida, que
-  es la única forma de que una frase falsa no sobreviva a quien la
-  descubre. pkg/auth/federated es un contrato SEGUNDO —Begin dice a dónde
-  mandar el navegador, Complete valida lo que vuelve—, paquete hoja con el
-  mismo techo de dependencias que los otros tres.
-  Lo que lo vuelve una costura y no una interfaz: EL STATE ANTI-CSRF ES DEL
-  FRAMEWORK y el proveedor no lo ve nunca. El framework lo emite, custodia
-  el flujo pendiente y rechaza un callback que no lo traiga ANTES de llamar
-  al proveedor. Un flujo de redirección sin esa comprobación funciona
-  perfectamente hasta que alguien lo ataca, así que al autor no se le da la
-  opción de olvidarla — la misma disciplina con la que el Arco A dejó los
-  tres resultados en el framework en vez de en cada backend. Cuatro
-  propiedades verificadas POR MUTACIÓN: state desconocido rechazado sin
-  consultar al proveedor, un solo uso, atado a la instancia que lo emitió,
-  y caducidad que además lo consume.
-  Parametrizable desde el .yml separando INSTANCIA y TIPO: `name` es la
-  instancia —el segmento de URL y el subárbol auth.<name>.*, el mismo canal
-  que un backend de credenciales— y `provider` es el protocolo registrado.
-  Dos proveedores de identidad del mismo protocolo es el caso ORDINARIO, un
-  tenant corporativo y uno de partners, y un registro con clave por tipo lo
-  habría hecho inexpresable sin publicar un segundo módulo.
-  La exención de auth.<instancia>.* es la primera que depende de la
-  CONFIGURACIÓN y no de un registro: la instancia es legítima porque el
-  operador la declaró. Habría sido la CUARTA aparición de «el mismo
-  fichero, dos veredictos» —los dos validadores corren en momentos
-  distintos y sólo uno tiene la declaración a mano—, así que la regla se
-  les pasa construida del mismo fichero, con test de que ambos aceptan lo
-  mismo y de que la exención es por instancia declarada y nunca de
-  namespace.
-  §2 (Arco F) UN TERCERO PUEDE INTERCEPTAR EL CICLO DE LA PETICIÓN. Este
-  arco no estaba definido en ninguna parte: era una etiqueta que se
-  arrastraba desde hacía tres sesiones sin ADR ni frase que dijera qué
-  problema cerraba. Se definió con el único respaldo escrito que había —
-  ADR-023 cierra diciendo que interceptar el ciclo de la petición es la
-  pieza siguiente— porque una etiqueta de plan sin contenido no es trabajo
-  pendiente, es una decisión sin tomar.
-  Interceptar HTTP SÍ se podía, pero no como plugin: AppBuilder.Use y el
-  campo Middleware de un módulo exigen que quien ENSAMBLA la aplicación
-  escriba el código, en el sitio y el orden correctos. Era el único hueco
-  con forma de registro sin registro, y por eso un interceptor no se podía
-  distribuir, sólo pegar en el arranque de alguien. http_interceptors es
-  una lista ORDENADA porque el orden ES el comportamiento, con
-  interceptors.<name>.* como subárbol, y se montan DENTRO del middleware
-  del framework: uno que desplazara el request ID, la sesión o el hook de
-  observabilidad rompería todo lo de abajo, incluido su propio log.
-  Al comprobar la premisa apareció lo que no estaba en la nota:
-  model.SetDefaultSQLObserver guardaba en un HUECO ÚNICO. pkg/app instala
-  el suyo al arrancar —es el que alimenta el bus de observabilidad y con él
-  la vista de SQL en vivo de Orbit—, así que un tercero haciendo lo ÚNICO
-  que ADR-023 dice que puede hacer apagaba ese bus al hacerlo. Sin error,
-  sin log y sin test que fallara: un feed que dejaba de actualizarse en el
-  despliegue de otro, atribuible a nada. Ahora suscribe, y un suscriptor
-  que entra en pánico queda contenido sin parar a los demás.
-  §3 EL PROVEEDOR LDAP COMO CONSUMIDOR DE PRIMERA PARTE. El Arco H prometía
-  que un proveedor dejaría de arrastrar el árbol del framework y la única
-  prueba era el test del propio paquete hoja. Migrado: 235 → 11 paquetes de
-  terceros en el paquete de producción. El go.mod NO baja de 143
-  indirectas, y está escrito así en vez de dejar que el número sugiera otra
-  cosa — el test en vivo carga un fichero real por pkg/app para probar el
-  cable de punta a punta, y la mejora es del grafo de COMPILACIÓN, no del
-  de módulos. Adoptar el kit de conformidad reprodujo aquí el fallo que el
-  kit existe para evitar: el primer directorio falso rechazaba el bind de
-  contraseña vacía, así que la suite pasaba con la guarda del backend
-  BORRADA. Un directorio real responde SUCCESS, y un fixture más amable que
-  la realidad no califica nada.
-  §4 LA DOCUMENTACIÓN PUBLICADA, MIRADA EN LO QUE SIRVE Y NO EN EL REPO.
-  Dos defectos que sólo se ven desde fuera. Cada snapshot versionado
-  anunciaba una versión que no era la suya —la doc archivada de 1.14.0
-  decía «the current release is v1.13.0»— y en la página que el sitio
-  publica en la RAÍZ, porque la última versión archivada es la que se sirve
-  por defecto; cinco salieron así, y la causa es de procedimiento: el
-  snapshot congela la doc antes de que release-please suba el marcador. Y
-  el comentario MDX del marcador se colaba como meta description, invisible
-  en la página —por eso nadie lo vio— y visible en un resultado de búsqueda
-  o al compartir el enlace. Los dos con guard nuevo y verificados por
-  mutación. También se completó el índice de ADRs, que se había quedado en
-  el 022 con veintinueve en el directorio: diecisiete decisiones sólo
-  alcanzables listando la carpeta, que es justo el estado que un índice
-  existe para evitar. El historial narrativo completo vive en CHANGELOG.md.
+  Quantum 1.23.0 — la clasificación de errores de quark, y dos motores donde
+  no funcionaba (quark v1.7.0; nucleus v1.17.1, doc publicada; orbit
+  v1.8.7 de alineación).
+  §1 QUARK NO RECONOCÍA LOS ERRORES DE POSTGRESQL BAJO EL DRIVER QUE SU
+  PROPIA GUÍA PRESCRIBE. Quark clasifica errores de driver para decidir tres
+  cosas por su cuenta: si reintentar una transacción que el motor eligió como
+  víctima de un deadlock, si un enlace duplicado puede ignorarse, y si una
+  lectura debe caer de una réplica inalcanzable a la primaria. Esa
+  clasificación casaba el TIPO CONCRETO de pgx, mientras el dialecto acepta
+  «postgres», «pgx», «pgx/v5» y «pq», y la guía de instalación prescribe
+  lib/pq afirmando que cubre todo menos el listener de eventos.
+  Bajo lib/pq ninguna de las tres reconocía nada, y las tres fallan calladas:
+  la opción se acepta, aparenta estar activa y no hace nada. Verificado
+  contra el TAG PUBLICADO v1.6.1 con un Postgres real: el error llega como
+  «pq: deadlock detected (40P01)» —el código exacto que el clasificador
+  busca— y WithDeadlockRetry devolvía el fallo sin reintentar.
+  El propio paquete YA tenía la forma correcta: isPGLockTimeout asierta sobre
+  el método SQLState(), que exponen los dos drivers, y por eso era el único
+  camino de PostgreSQL que funcionaba con ambos. Los tres clasificadores
+  comparten ahora ese helper en vez de re-derivarlo — la duplicación es lo
+  que les dejó divergir — y el import de pgconn desaparece.
+  §2 LA CLASIFICACIÓN SE EXPORTA. Sólo existía en privado. El único camino
+  público era el sentinel ErrConstraintViolation, producido comparando
+  SUBCADENAS del mensaje del driver en minúsculas —lo que el propio módulo se
+  niega a hacer explícitamente— y que funde unique, clave ajena, not-null y
+  check en un solo valor: distinguir un 409 de un 500 exigía importar el
+  driver a mano y perder por el camino las sutilezas que el código documenta.
+  IsUniqueViolation e IsDeadlock casan por CÓDIGO, así que no dependen del
+  idioma del servidor; wrapDBError consulta el código antes que el texto, con
+  lo que ErrConstraintViolation deja de depender del idioma para el caso más
+  común.
+  §3 Y EN SQL SERVER NINGÚN INSERT RECHAZADO ERA DIAGNOSTICABLE. Lo destapó
+  el exerciser nuevo al provocar la violación DE VERDAD en los seis motores:
+  cinco la reconocían y SQL Server devolvía «converting NULL to int64 is
+  unsupported». Create manda el INSERT y SCOPE_IDENTITY() en UN batch, así que
+  al rechazarse el INSERT el servidor todavía responde a la SELECT — con NULL;
+  escanear eso en un int64 falla, y database/sql devuelve ESA conversión en
+  lugar del error del driver, que sólo se entrega si el escaneo sale bien. El
+  mensaje real del motor se tiraba y se sustituía por un error que no nombra
+  restricción, ni tabla, ni columna. La lane de integración de MSSQL llevaba
+  años en verde porque ninguna prueba provocaba un rechazo real.
+  §4 EL DEFECTO DE DOC PUBLICADA QUE QUEDÓ A DEBER, PAGADO — Y ENCONTRADO
+  TAMBIÉN EN QUARK. nucleus v1.17.1 publica los dos arreglos que el tag
+  anterior no contenía: cada snapshot versionado anuncia su propia versión, y
+  el marcador deja de colarse en el meta description. Al portar el guard se
+  vio que quark tenía el MISMO defecto sin vigilancia: su archivo de 1.6.0
+  anunciaba «Quark is v1.5.2». Corregido y guardado en los dos repos. El
+  registro de guards del paraguas sube de 23 a 25, y su tabla —que iba dos
+  guards por detrás— vuelve a coincidir con el registro.
+  §5 EL MISMO DEFECTO DE CLASIFICACIÓN ESTABA EN ORBIT, Y AHORA NUCLEUS LO
+  EXPONE. El bootstrap del panel decidía si el admin ya existía comparando
+  subcadenas INGLESAS del mensaje del driver. Reproducido contra motores
+  reales: un PostgreSQL con lc_messages='es_ES.utf8' responde «llave duplicada
+  viola restricción de unicidad» y un MySQL con --lc-messages=fr_FR responde
+  «Duplicata du champ»; ninguna casaba, así que el duplicado no se reconocía,
+  EnsureBootstrapAdminUser devolvía error y nucleus abortaba la aplicación
+  entera. Alcance real, sin exagerarlo: un reinicio normal NO lo toca —el
+  COUNT corta antes del INSERT—; se alcanza en el PRIMER ARRANQUE CONCURRENTE
+  de varias réplicas, donde las que pierden la carrera entran en crash-loop.
+  El predicado vive en nucleus (db.IsUniqueViolation) y no en orbit porque
+  pkg/db ya importa los cinco drivers e internal/admin ya importa pkg/db: la
+  delegación no añade ninguna arista al grafo, mientras que implementarlo
+  local obligaría a promover cuatro drivers de indirect a direct en el go.mod
+  raíz de orbit.
+  §6 UN INTERRUPTOR DE APAGADO QUE BORRABA DATOS, Y UNA CADENA QUE DEJABA
+  ENTRAR A QUIEN EL DIRECTORIO ACABABA DE RECHAZAR. `storage.cleanup.enabled:
+  false` no apagaba nada: el Cleaner no guardaba el flag y las dos ramas del
+  if devolvían structs idénticos, así que cada arranque barría el prefijo —y
+  run() barre una vez de inmediato, antes del primer tick. Y `auth_backends`
+  trataba el rechazo y el no-alcanzable con el mismo `continue`, así que una
+  cuenta revocada en el directorio entraba por una fila local rancia. Eso
+  último era una contradicción interna: el godoc documentaba el fail-open
+  mientras el README, la referencia de configuración, el kit backendtest y el
+  README de orbit prometían lo contrario. Gana la documentación. El arreglo es
+  `break` y no `return`: con [directorio caído, local rechaza] no se puede
+  afirmar que la credencial sea falsa, y un control que ya existía lo cazó.
+  Consecuencia que conviene decir en voz alta: una cadena es un FALLBACK ante
+  indisponibilidad, no una forma de federar varias poblaciones de usuarios.
+  §7 LA SUPERFICIE DE EXTENSIÓN DE v1.13–v1.17 NO ERA ALCANZABLE POR LA VÍA
+  QUE DOCUMENTA. Cinco costuras estrenadas y ninguna usable como se describe:
+  el adaptador que instala TODO store de sesión configurado borraba sus
+  capacidades opcionales (el visor de sesiones de orbit respondía «no
+  soportado» con 0 sesiones bajo session_store: redis); la capa 3 validaba
+  session_store contra un enum escrito a mano, así que un store de terceros lo
+  construía el contenedor y lo rechazaba el runner; la vía fluida no capturaba
+  ni `interceptors.<name>.*` ni las instancias federadas, que arrancaban con
+  sus defaults; orbit.Config sólo llevaba tags `yaml:` mientras nucleus bindea
+  con `koanf`, y 16 de sus 19 claves —bootstrap_password incluida— se
+  descartaban en silencio; y las rutas federadas que el arranque imprimía para
+  registrar en el proveedor de identidad no las montaba nadie, ni un test.
+  §8 LA LECCIÓN, PORQUE SE REPITIÓ TRES VECES. En cleanup, en la cadena de
+  autenticación y en el store de sesión, el test que existía pasaba porque
+  entraba por una puerta que no es la que usa el framework —runCleanup en vez
+  de Start, un rechazo que esperaba fall-through, SetStore en vez de
+  SetSessionStore— y así CODIFICABA el defecto como comportamiento esperado.
+  Al arreglar se movió el test a la vía real, no se añadió un caso al lado.
+  De los catorce hallazgos del informe, dos resultaron ya arreglados o
+  exagerados al medirlos: el check de trusted_proxies ya juzgaba la unión, y
+  los interceptores nunca pudieron reescribir RemoteAddr por delante del rate
+  limiter. Medir antes de creer, incluido el informe.

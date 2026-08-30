@@ -87,10 +87,20 @@ GUARDS=(
   # decisiones sólo alcanzables listando la carpeta. Entra al set con nucleus
   # v1.17.0.
   "nucleus-adr-index|nucleus|bash scripts/ci/check_adr_index.sh"
+  # Cada snapshot versionado del sitio anuncia SU propia versión. El snapshot
+  # congela la doc antes de que release-please suba el marcador, así que cinco
+  # salieron afirmando la versión anterior — y en la página que el sitio sirve
+  # en la RAÍZ, porque el archivo más reciente es el que se sirve por defecto.
+  # Sólo se ve desde fuera. Entra al set con nucleus v1.17.1: el guard se
+  # fusionó DESPUÉS del tag v1.17.0, así que hasta este pin no existía.
+  "nucleus-versioned-markers|nucleus|bash scripts/ci/check_versioned_docs_markers.sh"
   # --- quark (al pin) -------------------------------------------------------
   # La versión del manifiesto mencionada en README/SECURITY/CLAUDE/release-notes
   # + roadmap sin versiones hardcodeadas (H-Q6, QK6-5).
   "quark-version-coherence|quark|bash scripts/check-version-coherence.sh"
+  # Mismo guard que en nucleus, y por el mismo defecto real: el snapshot de
+  # 1.6.0 anunciaba «Quark is v1.5.2». Entra al set con quark v1.7.0.
+  "quark-versioned-markers|quark|bash scripts/ci/check_versioned_docs_markers.sh"
   # Vocabulario interno fuera de website/docs.
   "quark-product-voice|quark|bash scripts/ci/check_docs_product_voice.sh"
   # Anti-marketing, fugas RELEASE_NOTES_V1 y enlaces relativos rotos (F0-10).
