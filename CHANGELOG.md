@@ -6,6 +6,62 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.24.0 — Deuda del arco de anomalías QCD, saldada y medida
+
+Quantum 1.24.0 — la deuda que dejó el arco de anomalías QCD, saldada y
+medida (quark v1.7.1; nucleus v1.21.0 con providers/ldap v0.2.3; orbit
+v1.8.13 con agent v0.6.8, server v0.10.8, quarkbridge v0.4.8,
+quarkdatasource v0.2.17). Nada de esto son los catorce hallazgos de aquel
+arco —ya cerrados en 1.23.0—; es lo que se observó mientras se arreglaban.
+La regla del arco se mantuvo: medir antes de creer, y dos de las premisas
+del encargo resultaron falsas al ejecutarlas.
+
+§1 RELEASE-PLEASE YA ETIQUETA LAS MINOR DE NUCLEUS SIN INTERVENCIÓN, Y LAS
+RELEASES TRAEN BINARIOS. Las minor v1.18.0, v1.19.0 y v1.20.0 se habían
+fusionado con CI en verde y sin cortar el tag, y el diagnóstico de la ronda
+—que la culpa era del árbol de docs versionadas que sólo las minor
+añaden— era una correlación, no la causa. Medido: falla todo release PR de
+SOLO-ROOT, porque su rama compartida no lleva componente y la vía standalone
+del etiquetador lo compara contra la ruta del módulo y se rinde; las patch
+que funcionaron llevaban el módulo ldap de acompañante. La cura es cortar
+los release PR por componente. El mismo arreglo destapó que TODAS las
+releases auto-etiquetadas de la historia salían con cero binarios —los tags
+del token del bot no disparan el workflow de assets—, encadenado ahora
+explícitamente. Ambas cosas verificadas EN VIVO al cortar este set: v1.21.0
+etiquetó sola y salió con sus siete assets.
+
+§2 EL RE-PIN DEL EJEMPLO YA NO ENROJECE TODOS LOS PRS A LA VEZ. El guard de
+pins del showcase era de igualdad estricta, así que cualquier tag de un
+hermano ponía en rojo cada PR abierto de nucleus —la ronda anterior necesitó
+seis re-pins de emergencia—. Ahora tolera un minor de retraso con aviso, y
+un escritor y un workflow cierran el retraso solos. El recordatorio sigue
+existiendo (el aviso y el reloj de un minor); lo que desaparece es el bloqueo
+de PRs ajenos.
+
+§3 EL BORDE QUARKDATASOURCE→ROOT DE ORBIT VUELVE A ESTAR AL DÍA. Pinaba el
+root diez parches por detrás dentro del mismo minor: tolerado hoy, pero un
+minor del root lo habría sacado de rango en plena certificación. Subido antes
+de que pudra.
+
+§4 DOS DEFECTOS REALES DESTAPADOS BARRIENDO LOS TESTS QUE ENTRAN POR LA
+PUERTA EQUIVOCADA. En quark, bajo RLS nativo la clave de la caché L2 no
+llevaba el tenant, así que dos tenants con la misma consulta compartían clave
+y el resultado cacheado de uno se servía al otro: el motor protegía la base
+de datos, nada protegía la caché. En orbit, el navegador de ficheros del
+panel no confinaba la ruta al directorio de subidas cuando había un backend
+de almacenamiento configurado —la rama de producción—, así que una sesión con
+permiso de lectura podía enumerar cualquier prefijo del bucket. Ambos con
+rojo reproducido antes del arreglo; ambos con el test movido a la puerta real.
+
+Y los cabos sueltos del arco: el modo de autorización abierta de nucleus
+ahora sí decodifica el bearer (apagaba la autorización y de paso la
+autenticación, dejando ciegos a interceptores y handlers); la vía documentada
+para montar las rutas federadas tiene por fin un ejemplo ejecutable, que
+destapó tres desajustes de la prosa; y los snapshots de documentación que
+anunciaban una versión anterior —en nucleus y en orbit, visibles en el sitio
+publicado— quedaron corregidos y con guardas que cazan también la forma que
+se colaba sin marcador.
+
 ## Quantum 1.23.0 — Arco DX-3 y arco de anomalías QCD
 
 Quantum 1.23.0 (quark v1.7.0; nucleus v1.20.1 con providers/ldap v0.2.2;

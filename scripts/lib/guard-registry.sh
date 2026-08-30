@@ -129,6 +129,12 @@ GUARDS=(
   # una versión anterior leía la del set vigente. Entra al set con orbit
   # v1.6.8.
   "orbit-docs-archive|orbit|bash scripts/ci/check_docs_archive_freshness.sh"
+  # Cada snapshot versionado anuncia SU propia versión — mismo guard que en
+  # nucleus/quark, y por el mismo defecto real: los snapshots 1.7.0 y 1.8.0 de
+  # orbit anunciaban «current release v1.6.7» y «v1.7.4», rancios en
+  # producción. orbit-docs-version-claims sólo mira website/docs (el árbol
+  # actual), no el archivo. Entra al set con orbit v1.8.11 (arco de deuda QCD).
+  "orbit-versioned-markers|orbit|bash scripts/ci/check_versioned_docs_markers.sh"
 )
 
 # ---------------------------------------------------------------------------
