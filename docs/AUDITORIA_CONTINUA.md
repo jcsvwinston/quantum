@@ -157,7 +157,14 @@ version-coherence, etc.).
    `QUANTUM_ALLOW_DECLARED_LAGS` del workflow si estaba puesto. En ese PR la
    lane suite-integral debe salir verde **sin escapes**: eso es el set
    certificable.
-4. **quantum-app** (si la ronda la toca) contra el set re-pinado.
+4. **quantum-app se re-pina en CADA corte**, ya no «si la ronda lo toca»
+   (D6/QADR-0008). Y no aquí: el consumidor externo sigue al set
+   **certificado**, así que su bump va DESPUÉS del tag del punto 5 y lo
+   dispara la fase `cierre` del tren (`scripts/train/dispatch-app-bump.sh`),
+   que le pasa el bloque require de `scripts/print-requires.sh`. Allí un
+   workflow reescribe el pin, corre sus gates y abre un PR — que se revisa
+   como cualquier otro. Un rojo en ese PR es deuda de quantum-app contra el
+   set nuevo, no un motivo para no certificar.
 5. **El tag de suite se corta DESPUÉS del último PR de la ronda** —
    procedimiento nuevo de esta ronda: primero se fusiona todo lo que forma
    parte del set, después se tagea; nunca un tag que apunte a un estado que
