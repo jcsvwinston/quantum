@@ -52,10 +52,25 @@ const sidebars: SidebarsConfig = {
           'Auth, multi-tenancy, observability, storage, background tasks, and the orbit admin module.',
       },
       items: [
-        'features/admin',
-        'features/auth',
-        'features/observability',
+        {
+          type: 'category',
+          label: 'Authentication & authorization',
+          link: {type: 'doc', id: 'features/auth/index'},
+          items: [
+            'features/auth/your-first-login',
+            'features/auth/sessions-and-passwords',
+            'features/auth/jwt',
+            'features/auth/rbac-and-middleware',
+            'features/auth/backends-and-federation',
+          ],
+        },
+        'features/using-quark',
         'features/storage-and-tasks',
+        'features/events',
+        'features/i18n',
+        'features/cache',
+        'features/observability',
+        'features/admin',
       ],
     },
     {

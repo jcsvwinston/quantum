@@ -6,6 +6,55 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.25.0 — La auditoría integral de producto y DX, publicada
+
+Quantum 1.25.0 (quark v1.8.0; nucleus v1.22.0 con providers/ldap v0.2.4;
+orbit v1.8.14 con agent v0.6.9, server v0.10.9, quarkbridge v0.4.9,
+quarkdatasource v0.2.18) es el set que lleva al público una auditoría de la
+suite entera hecha con las manos: doce auditores ejecutando los CLIs,
+siguiendo los quickstarts publicados con `go get` de tags reales, levantando
+el panel y construyendo el sitio, más una verificación adversarial de cada
+hallazgo grave. De 147 hallazgos, tres eran defectos que un evaluador pisaba
+en su primera hora, y los tres están cerrados aquí.
+
+**Los tres P0.** El quickstart de nucleus se publicaba con sus tres bloques
+de código VACÍOS —las fences que importan el ejemplo no se resolvían en el
+ensamblaje del paraguas—, y así llevaba en las trece versiones del sitio: el
+paso «escribe tu primer módulo» no se veía. `nucleus generate module` con
+cualquier nombre ya plural (`products`, `users`, `notes`) generaba una
+aplicación que paniqueaba al arrancar por registrar dos veces la misma ruta.
+Y el Data Studio sobre quark mostraba «—» en todas las celdas del propio
+ejemplo certificado, porque el esquema declaraba columnas snake_case
+mientras los registros llegaban con las claves del struct de Go.
+
+**El sitio tiene por fin una puerta de entrada.** Hasta ahora eran tres
+quickstarts sin relación entre sí: la portada bifurcaba a tres productos y
+nada contaba la suite. Se estrena una sección /start con qué es Quantum y
+para quién, un quickstart de los tres productos juntos derivado del ejemplo
+que ya existía, una página que explica cómo elegir capa de datos y otra con
+el bloque `require` del set generado desde este manifiesto. Y las primeras
+capturas del panel: orbit es un producto visual que se documentaba solo en
+prosa.
+
+**En el código.** quark expone `NewWithDB` para montarse sobre el pool que
+la aplicación ya tiene —la costura con nucleus—, valida columnas contra el
+modelo con `WithStrictColumns` (un typo pasaba el guard y en SQLite devolvía
+todas las filas sin error), deja filtrar por columnas cualificadas bajo un
+JOIN y permite escribir una sola fila sin re-grabar las asociaciones
+precargadas. nucleus elige líder para el scheduler de jobs —con el provider
+asynq cada réplica arrancaba el suyo y los ticks se duplicaban—, completa
+i18n y caché, que eran comandos sin runtime que los consumiera, y documenta
+un login de punta a punta que antes había que reconstruir de cuatro sitios.
+orbit dice su propio nombre en su interfaz, sirve un identificador opaco en
+vez del token de sesión completo, cierra una carrera de datos alcanzable en
+cada petición de esquema y pinta el SQL que su feed en vivo prometía.
+
+**Y el tren.** La certificación pasa a ser semanal y desacoplada de los
+arcos (QADR-0008): se pagaba el coste completo del tren casi por arco, 24
+sets en siete semanas. La conducción vive ahora en `scripts/train/`, la
+alineación de los seis módulos de orbit cabe en un commit, y el consumidor
+de referencia externo vuelve a seguir el set en cada corte.
+
 ## Quantum 1.24.0 — Deuda del arco de anomalías QCD, saldada y medida
 
 Quantum 1.24.0 — la deuda que dejó el arco de anomalías QCD, saldada y
