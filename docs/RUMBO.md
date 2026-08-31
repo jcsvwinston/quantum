@@ -42,13 +42,17 @@ el anterior.
    `align_set.sh`; sus lecciones están en el runbook de esa carpeta. **El
    consumidor externo (quantum-app) se re-pina solo en cada corte** (D6): el
    anuncio abre su PR, que sigue necesitando revisión humana.
-1. **Adelgazado del grafo (D3) — el arco SIGUIENTE.** Providers cloud
-   (S3/GCS/Azure/minio) y el runtime asynq de nucleus salen a módulos propios
-   con el patrón ya probado de `providers/ldap`; los drivers de quark pasan a
-   registro por subpaquete con clasificación de errores enchufable. Es
-   empaquetado, no API. **Objetivo medible: hello-world < 30 MB y < 150
-   módulos** (hoy 79 MB / 347). Es la primera impresión de todo evaluador y
-   hoy contradice el «stdlib-first» (AN-01, PR-DX-01, AQ-05).
+1. **Adelgazado del grafo (D3) — EN MARCHA.** Primer tramo hecho y fusionado
+   (nucleus#407, ADR-030): S3, GCS, Azure y AWS Secrets Manager salen a
+   módulos hermanos. **Medido: 75,6 → 42,0 MB · 346 → 176 módulos**, con una
+   lane que asserta que el core no vuelve a enlazar un SDK de nube.
+   Dos premisas del plan cayeron al medir: `asynq` ya no estaba en el grafo, y
+   los 57 paquetes de AWS entraban por el gestor de secretos, no por storage.
+   **Lo que falta para < 30 MB / < 150, medido y sin decidir:** el exportador
+   OTLP arrastra gRPC+protobuf (**106 paquetes**) por `pkg/observe`, y los
+   drivers de BD de `pkg/db` suman **42**. Ninguno estaba en el alcance.
+   Aparte y sí aprobados: los **drivers de quark** por registro — frente
+   distinto, reducen una app quark standalone, no el hola-mundo de nucleus.
 2. **API keys y luego accounts (D4).** `pkg/auth/apikeys`: emisión con
    hash+prefijo mostrable, scopes proyectados como sujeto/roles Casbin,
    middleware Bearer/X-API-Key, CLI (`apikey create/revoke/list`) y rate limit
