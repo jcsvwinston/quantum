@@ -133,6 +133,33 @@ Tras fusionar el PR de re-pin (quantum usa MERGE COMMIT):
   vieja sin componente + rama nueva): cerrar el de la rama vieja y borrar la
   rama.
 
+### El `!` de un commit decide el número del set entero
+
+Un commit `feat(algo)!:` hace que release-please proponga un **major**, y en
+esta suite un major **no es una decisión local**: QADR-0002 mantiene los majors
+de los tres pilares en lockstep, así que un `!` de más en nucleus arrastra a
+quark y a orbit a la 2.0.
+
+Mordió en el arco D3 (nucleus#407 → #408 proponiendo `2.0.0` por un cambio de
+empaquetado). La regla que sale:
+
+> El `!` es para rupturas de lo que el framework **hace**, no de dónde se
+> compila algo. Si el compilador nombra lo que falta y la receta cabe en el
+> error, es una minor.
+
+Y si ya está fusionado, no se arregla reescribiendo el commit: se **fuerza el
+número** con un `Release-As:` en el footer de otro PR. Dos condiciones que
+cuestan una ronda cada una si se olvidan:
+
+- el `Release-As` tiene que ir en un commit que **toque un fichero real del
+  módulo** — en un `chore` suelto se ignora;
+- al fusionar hay que **controlar el mensaje del squash** (`--subject` /
+  `--body`): si el footer queda anidado dentro de un bullet, release-please no
+  lo lee.
+
+Comprobación barata antes de fusionar cualquier release PR: que el título diga
+el número que esperabas. Es la única señal que da el bot, y llega tarde.
+
 ### Lo que aprendió el tren de 1.25.0 (el primero conducido con estos scripts)
 
 - **Fusionar el release de un módulo REGENERA la rama del root, y se lleva por
