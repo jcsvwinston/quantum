@@ -24,8 +24,9 @@
 #   paraguas             re-pin mecánico (bump-set.sh) + manifest-guard, y
 #                        parada manual: versión de suite, notes, CHANGELOG,
 #                        PR de re-pin.
-#   cierre               tras fusionar el PR de re-pin: tag de suite EN HEAD
-#                        y suite-integral --cierre (MAQ-1/MAQ-2).
+#   cierre               tras fusionar el PR de re-pin: tag de suite EN HEAD,
+#                        suite-integral --cierre (MAQ-1/MAQ-2) y el anuncio
+#                        del set al consumidor externo quantum-app (D6/RT-5).
 #
 # Uso: train.sh [--dry-run] [--desde <fase>] [--hasta <fase>]
 #   --dry-run   imprime todos los pasos sin ejecutar nada con efectos.
@@ -233,6 +234,14 @@ fase_cierre() {
   fi
   say "PASO: certificación en modo CIERRE (tag existe + captura HEAD + sin escapes; MAQ-1/MAQ-2)"
   run bash scripts/suite-integral.sh --cierre || die "suite-integral --cierre en rojo — el set NO queda certificado"
+  say "PASO: anunciar el set al consumidor EXTERNO de referencia (D6/RT-5)"
+  say "  quantum-app se re-pina en cada corte: el dispatch le pasa este set y el"
+  say "  bloque require de print-requires.sh; allí un workflow reescribe el pin,"
+  say "  corre SUS gates y abre un PR (no fusiona). Va DESPUÉS de certificar: el"
+  say "  consumidor externo sigue al set certificado, nunca al mid-tren."
+  run bash scripts/train/dispatch-app-bump.sh $DRYFLAG \
+    || die "el anuncio a quantum-app falló. El set SIGUE certificado (esto es el paso de después); relanza solo esta pieza:
+    bash scripts/train/dispatch-app-bump.sh"
   say ""
   say "OK: set v$ver certificado. Queda lo humano: CIERRE de ronda con la plantilla"
   say "de docs/AUDITORIA_CONTINUA.md §6 (conteos COPIADOS de las tablas de las lanes),"

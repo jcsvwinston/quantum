@@ -17,6 +17,7 @@ queda fuera del escaneo anti-fósil a propósito (solo cubre `scripts/`,
 | `train.sh` | Driver por fases: `preflight → quark → nucleus → orbit → paraguas → cierre`. Imprime SIEMPRE qué va a hacer antes de hacerlo, para EN SECO al primer rojo, y donde hace falta juicio humano se detiene con la instrucción exacta (EXIT=2). `--dry-run` para ensayar; `--desde <fase>` para retomar. |
 | `merge-bot-pr.sh <repo> <pr>` | Fusiona UN release PR del bot: push humano de commit vacío (dispara el CI que el token del bot no puede), espera de checks con `gh pr checks --watch --fail-fast`, `update-branch` si queda BEHIND, merge con el método del repo, y espera del tag con receta de recuperación si release-please se atasca. |
 | `check-anchored-release-branch.sh <repo> [pr]` | Detecta la rama de release del ROOT anclada al main viejo: `git merge-base --is-ancestor` de cada último tag de módulo contra el head del PR. Si falla, imprime la receta cerrar + borrar rama + re-dispatch. Se ejecuta JUSTO ANTES de fusionar el root. |
+| `dispatch-app-bump.sh` | Anuncia el set YA certificado al consumidor externo `quantum-app` (`repository_dispatch` con el número de suite y la salida de `print-requires.sh`). Allí un workflow reescribe el pin, corre sus gates y abre un PR. Exige `status: certified` y que el tag de suite exista; no fusiona ni escribe nada en el otro repo. |
 
 ## El tren, paso a paso
 
@@ -94,7 +95,14 @@ Tras fusionar el PR de re-pin (quantum usa MERGE COMMIT):
 3. `bash scripts/suite-integral.sh --cierre` → EXIT=0 (el tag existe, captura
    HEAD — assert 5 — y sin escapes). Correrlo ANTES de taggear es FAIL por
    diseño (MAQ-2/B.2).
-4. El CIERRE de ronda se escribe con la plantilla de `AUDITORIA_CONTINUA.md`
+4. `dispatch-app-bump.sh` — el consumidor EXTERNO de referencia se entera del
+   set (D6/RT-5). Va aquí y no antes: `quantum-app` sigue al set **certificado**,
+   nunca al mid-tren, y el script se niega si `versions.yaml` no dice
+   `status: certified` o si el tag `vX.Y.Z` no existe todavía. Si el dispatch
+   falla no se pierde nada: el set ya está certificado y la pieza se relanza
+   sola (`bash scripts/train/dispatch-app-bump.sh`) o se dispara a mano desde
+   la pestaña Actions de quantum-app.
+5. El CIERRE de ronda se escribe con la plantilla de `AUDITORIA_CONTINUA.md`
    §6 (conteos COPIADOS de las tablas de las lanes) y se actualiza
    `docs/RUMBO.md`.
 
@@ -115,6 +123,12 @@ Tras fusionar el PR de re-pin (quantum usa MERGE COMMIT):
 - **Los tags del token del bot no disparan `push:tags`**: los assets salen
   porque «Release Please» encadena `release.yml` por `workflow_dispatch`
   (arreglado en 1.24.0) — si una release sale sin binarios, mirar ahí.
+- **El PR del bump de quantum-app puede salir sin checks**: lo abre el
+  `GITHUB_TOKEN` de Actions, y GitHub no dispara workflows `pull_request` para
+  PRs creados con ese token — la misma familia de trampa que los release PRs
+  del bot. La evidencia entonces son los gates de la corrida que abrió el PR
+  (van en su cuerpo); para que corra además el CI del PR, un commit vacío en
+  la rama o el secreto `QUANTUM_APP_PR_TOKEN` en quantum-app.
 - **PRs zombi** al cambiar la configuración de ramas de release-please (rama
   vieja sin componente + rama nueva): cerrar el de la rama vieja y borrar la
   rama.
