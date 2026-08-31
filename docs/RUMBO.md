@@ -13,16 +13,17 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
 ## Estado real (2026-08-31)
 
-- **Set certificado: Quantum 1.24.0** (2026-08-30) — quark v1.7.1 · nucleus
-  v1.21.0 (providers/ldap v0.2.3) · orbit v1.8.13 (proto v0.4.2, agent v0.6.8,
-  server v0.10.8, quarkbridge v0.4.8, quarkdatasource v0.2.17). La fuente de
+- **Set certificado: Quantum 1.25.0** (2026-08-31) — quark v1.8.0 · nucleus
+  v1.22.0 (providers/ldap v0.2.4) · orbit v1.8.14 (proto v0.4.2, agent v0.6.9,
+  server v0.10.9, quarkbridge v0.4.9, quarkdatasource v0.2.18). La fuente de
   verdad es [`versions.yaml`](../versions.yaml), siempre.
-- **Certificación mecánica:** 26 guards en el registro, lane semanal + modo
+- **Certificación mecánica:** 28 guards en el registro, lane semanal + modo
   `--cierre` ([`AUDITORIA_CONTINUA.md`](AUDITORIA_CONTINUA.md)). La 8ª pasada
   fue la última auditoría manual completa; rige el régimen del §6.
-- **Auditoría integral 2026-08-30 sobre 1.24.0:** 147 hallazgos, 52 graves,
-  3 P0 — los tres en el embudo de entrada, no en el runtime. **Ejecutada: 20
-  PRs fusionados** en los cuatro repos (los 3 P0 cerrados y verificados).
+- **Auditoría integral 2026-08-30 sobre 1.24.0: ejecutada y PUBLICADA.** 147
+  hallazgos, 52 graves, 3 P0 — los tres en el embudo de entrada, no en el
+  runtime. 20 PRs fusionados y el set 1.25.0 los lleva al público (verificado
+  en el sitio construido al pin: 0 bloques de código vacíos donde había 56).
 - **Las seis decisiones de rumbo D1–D6 están TOMADAS** (2026-08-31), y fijan
   el orden de trabajo de los frentes de abajo. D1 tiene ADR propio:
   [QADR-0008](adr/QADR-0008-cadencia-de-certificacion.md).
@@ -33,11 +34,14 @@ Las decisiones D1–D6 de la auditoría quedaron tomadas el 2026-08-31; lo que
 sigue es su traducción a trabajo. El orden importa: cada frente supone hecho
 el anterior.
 
-0. **Cadencia del tren (D1) — DECIDIDO, en vigor.** Arcos y sets se
+0. **Cadencia del tren (D1) — EN VIGOR y estrenada.** Arcos y sets se
    desacoplan: el set se certifica **semanalmente**, pegado a la corrida del
-   lunes, o antes por hito con razón escrita.
-   [QADR-0008](adr/QADR-0008-cadencia-de-certificacion.md). La conducción va
-   por [`scripts/train/`](../scripts/train/) (RT-1), no de memoria.
+   lunes, o antes por hito con razón escrita
+   ([QADR-0008](adr/QADR-0008-cadencia-de-certificacion.md)). El tren de
+   1.25.0 fue el primero conducido con [`scripts/train/`](../scripts/train/) y
+   `align_set.sh`; sus lecciones están en el runbook de esa carpeta. **El
+   consumidor externo (quantum-app) se re-pina solo en cada corte** (D6): el
+   anuncio abre su PR, que sigue necesitando revisión humana.
 1. **Adelgazado del grafo (D3) — el arco SIGUIENTE.** Providers cloud
    (S3/GCS/Azure/minio) y el runtime asynq de nucleus salen a módulos propios
    con el patrón ya probado de `providers/ldap`; los drivers de quark pasan a
@@ -65,11 +69,11 @@ el anterior.
    El borrador está en orbit `docs/adrs/ADR-002`; esta decisión lo acepta en
    esa dirección — la alternativa (declarar el fleet «telemetría + lectura»)
    queda descartada.
-5. **quantum-app revive con bump automatizado (D6).** El consumidor de
-   referencia externo se re-pina en cada corte de set mediante
-   `workflow_dispatch` alimentado por `scripts/print-requires.sh`, y sus gates
-   corren contra el set nuevo. Con la cadencia de D1 es sostenible; archivarlo
-   queda descartado (RT-5). *Mecanizado*: la fase `cierre` del tren llama a
+5. ~~**quantum-app revive con bump automatizado (D6).**~~ **HECHO** y
+   estrenado en el corte de 1.25.0. Queda abierta una pregunta que el bump
+   destapó y que no decide un script: si el consumidor de referencia debe
+   llevar además una suite in-process sobre `nucleustest`/`quarktest`, hoy
+   clasificada como no cubierta. *Mecanizado*: la fase `cierre` del tren llama a
    [`scripts/train/dispatch-app-bump.sh`](../scripts/train/dispatch-app-bump.sh),
    que anuncia el set certificado a quantum-app; allí un workflow reescribe el
    pin, corre sus gates y abre un PR (nunca empuja a main).

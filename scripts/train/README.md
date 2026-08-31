@@ -132,3 +132,42 @@ Tras fusionar el PR de re-pin (quantum usa MERGE COMMIT):
 - **PRs zombi** al cambiar la configuración de ramas de release-please (rama
   vieja sin componente + rama nueva): cerrar el de la rama vieja y borrar la
   rama.
+
+### Lo que aprendió el tren de 1.25.0 (el primero conducido con estos scripts)
+
+- **Fusionar el release de un módulo REGENERA la rama del root, y se lleva por
+  delante lo que hubieras escrito a mano en ella.** Pasó con nucleus: las notas
+  de la versión, el snapshot de docs versionadas y el arreglo de la sidebar
+  desaparecieron al fusionar `providers/ldap`. Se recuperaron porque el
+  worktree seguía montado; a la segunda hubo que reescribirlas.
+  **Regla: las deudas de doc del root se escriben CUANDO LA CASCADA DE MÓDULOS
+  YA ESTÁ CERRADA**, no antes. Y mientras haya trabajo humano en una rama de
+  release, no la borres — `git log --oneline origin/main..<rama>` antes de
+  cualquier receta destructiva (por eso `check-anchored-release-branch.sh`
+  ofrece ahora primero la vía no destructiva).
+- **Reconciliar el manifest compartido: valida el JSON ANTES de commitear.**
+  El resolutor automático de un conflicto falló a mitad y el commit se empujó
+  igual, dejando el manifest sin una coma —JSON inválido— en la rama del
+  release. No encadenes `resolver && commit && push`: resuelve, **parsea el
+  fichero** (`python3 -c "import json;json.load(open(...))"`), y solo entonces
+  commitea. Un manifest roto no lo caza ningún guard: lo consume
+  release-please.
+- **El proxy de Go falla en tandas.** `sum.golang.org` / `proxy.golang.org`
+  devolviendo `INTERNAL_ERROR` (o dejando la caché corrupta en `setup-go`)
+  tumbó **tres** lanes distintas en un mismo tren, en tres repos. Firma
+  reconocible: el fallo es de descarga/verificación de un módulo, no de un
+  test. Remedio: `gh run rerun <id> --failed`, **sin tocar código**. Es el
+  rojo que más induce a "arreglar" algo que está sano.
+- **Un submódulo del paraguas no inicializado hace que los scripts operen
+  sobre el repo equivocado.** En un worktree nuevo, `git submodule update
+  --init --recursive` ANTES de `bump-set.sh`: sin él, un `git -C orbit fetch`
+  cae al repo padre y los tags que ves son los del paraguas.
+- **El árbol tiene que estar limpio de verdad para `--cierre`.** Un
+  `showcase_demo.db` sin trackear —artefacto de haber corrido la demo— basta
+  para que la certificación se niegue (QM8-5). El escape `QUANTUM_ALLOW_DIRTY`
+  no existe en modo cierre, y hace bien.
+- **Un guard nuevo en un producto bloquea la certificación hasta registrarlo.**
+  Al re-pinar orbit entró `check_adr_index.sh` y la aserción anti-fósil se negó
+  a certificar: hay que añadirlo a `scripts/lib/guard-registry.sh` **y** darle
+  fixture en `tests/guard-fixtures/<nombre>/`. Cuéntalo en el PR de
+  certificación; no es ruido, es el inventario haciendo su trabajo.
