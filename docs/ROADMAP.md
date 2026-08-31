@@ -1,5 +1,11 @@
 # Quantum — Roadmap de convergencia
 
+> **HISTÓRICO (cerrado 2026-07-11).** Este documento es el acta del plan de
+> convergencia que terminó con Quantum 1.0.0: sus seis fases están cerradas y
+> sus tablas describen el punto de partida de 2026-06-22, no el estado actual.
+> Se conserva sin tocar. La dirección VIVA del paraguas está en
+> [`docs/RUMBO.md`](RUMBO.md).
+
 > Cómo seguir desarrollando Quark, Nucleus y Orbit por separado y que converjan en una suite llamada **Quantum**, sin romper la cadencia independiente de cada uno ni el uso aislado de Quark.
 >
 > Documento de planificación. Sin lenguaje de marketing (se hereda la regla anti-hype de Quark): describe lo que se hace, no lo vende.

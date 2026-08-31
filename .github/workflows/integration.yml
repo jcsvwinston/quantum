@@ -36,12 +36,15 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Los nueve módulos del go.work (el root no es módulo → patrones explícitos).
+  # Los DIEZ módulos del go.work (el root no es módulo → patrones explícitos;
+  # RT-7: la lista iba una atrás — prometía «nueve» y omitía providers/ldap —
+  # y `go build` con módulos de menos sale igualmente con EXIT=0; al tocar el
+  # go.work, tocar esta lista y el comando del README).
   # quarkbridge (QADR-0006 Caso 1) y quarkdatasource (Caso 2) son los módulos
   # opt-in que cruzan productos — dependen de Quark Y de Nucleus/Orbit — así que
   # son los patrones que más valor sacan de este plano; showcase_demo (Fase 4)
   # es la app que ejerce los TRES productos juntos con ambos puentes cableados.
-  MODULES: ./quark/... ./nucleus/... ./nucleus/examples/showcase_demo/... ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/quarkbridge/... ./orbit/quarkdatasource/... ./orbit/server/...
+  MODULES: ./quark/... ./nucleus/... ./nucleus/examples/showcase_demo/... ./nucleus/providers/ldap/... ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/quarkbridge/... ./orbit/quarkdatasource/... ./orbit/server/...
 
 jobs:
   manifest-guard:
@@ -178,11 +181,15 @@ jobs:
   # del schedule integration.yml <fecha>" con el enlace al run, vía GITHUB_TOKEN.
   # MAQ-4/(c): además de failure(), cubre cancelled() — un schedule cancelado
   # por `concurrency` perdía el aviso.
+  # RT-8: `needs` debe listar TODOS los jobs del workflow — failure() solo mira
+  # la cadena de dependencias, así que un job fuera de la lista (le pasó a
+  # showcase-smoke) enrojecía el lunes sin abrir issue. Al añadir un job aquí,
+  # añadirlo también a esta lista.
   notify-schedule-failure:
     name: aviso activo del schedule rojo/cancelado (issue)
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [manifest-guard, go-install-tag, build, orbit-lockstep]
+    needs: [manifest-guard, go-install-tag, build, showcase-smoke, orbit-lockstep]
     if: (failure() || cancelled()) && github.event_name == 'schedule'
     permissions:
       contents: read

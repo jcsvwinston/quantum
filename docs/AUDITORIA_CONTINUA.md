@@ -30,7 +30,11 @@ Los guards de producto corren **al pin** — el submódulo tal y como lo fija
 significa que el set que el manifiesto certifica no pasa sus propios guards,
 que es exactamente lo que reportaría un auditor.
 
-Registro actual (25 guards):
+Registro actual (26 guards — la cifra canónica NO es esta prosa, es el
+registro: `source scripts/lib/guard-registry.sh && guard_names | wc -l`. Esta
+tabla es descriptiva y ya fue una por detrás del registro real una vez
+(DI-14/RT-10: decía «25» y omitía `orbit-versioned-markers`); al registrar un
+guard, añadir aquí su fila en el mismo PR):
 
 | Guard | Repo | Comando | Qué caza |
 |---|---|---|---|
@@ -59,6 +63,7 @@ Registro actual (25 guards):
 | orbit-docs-version-claims | orbit | `bash scripts/ci/check_docs_version_claims.sh` | Marcadores `x-release-please-version` desalineados con la versión publicada. |
 | orbit-internal-pins | orbit | `bash scripts/ci/check_internal_pins.sh` | Pins entre módulos hermanos por detrás del último tag publicado. |
 | orbit-docs-archive | orbit | `bash scripts/ci/check_docs_archive_freshness.sh` | Archivo versionado por detrás de lo publicado. Orbit versiona desde v1.6.7; antes servía siempre su doc actual. |
+| orbit-versioned-markers | orbit | `bash scripts/ci/check_versioned_docs_markers.sh` | Un snapshot versionado que anuncia una versión ajena — mismo guard que en nucleus/quark, y por el mismo defecto real: los snapshots 1.7.0 y 1.8.0 de orbit anunciaban «current release v1.6.7» y «v1.7.4» en producción. Entra al set con orbit v1.8.11 (arco de deuda QCD). |
 
 Notas operativas:
 
@@ -213,7 +218,10 @@ manual en:
 
 ## 6. Régimen de auditoría continua (desde la 9ª)
 
-La 8ª pasada (REAUDITORIA8, dictamen del §5) fue **la última pasada manual
+La 8ª pasada
+([REAUDITORIA8](auditoria/registro/REAUDITORIA8_QUANTUM.md), dictamen del §5 —
+copia en el repo, con los CIERREs de ronda, en
+[`auditoria/registro/`](auditoria/registro/)) fue **la última pasada manual
 completa**: desde la 9ª, la certificación descansa en la lane semanal verde +
 CI por-repo verde + los disparadores de mini-pasada de abajo. **Decisor:
 Carlos** — qué disparador ha saltado, cuánta superficie cubre la mini-pasada

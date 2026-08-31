@@ -201,9 +201,14 @@ git clone --recurse-submodules https://github.com/jcsvwinston/quantum.git
 cd quantum
 
 # Compila el trío fijado. El root del workspace no es un módulo Go, así que se
-# pasan patrones explícitos por producto (Orbit es multi-módulo: agent/proto/server
-# son módulos aparte y no los cubre ./orbit/...):
-go build ./quark/... ./nucleus/... ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/server/...
+# pasa un patrón explícito por cada módulo del go.work — los diez: un módulo
+# anidado (showcase_demo, providers/ldap, quarkbridge…) es un módulo aparte y
+# NO lo cubre el patrón de su padre (./nucleus/... compila 1 de los 3 módulos
+# de nucleus y sale igualmente con EXIT=0):
+go build ./quark/... \
+  ./nucleus/... ./nucleus/examples/showcase_demo/... ./nucleus/providers/ldap/... \
+  ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/quarkbridge/... \
+  ./orbit/quarkdatasource/... ./orbit/server/...
 ```
 
 El `go.work` es una conveniencia de desarrollo: **no se publica** como dependencia
@@ -245,7 +250,8 @@ También puede materializar un fichero: `scripts/quantum-env.sh .env > both.env`
 
 ## Documentación
 
-- [`docs/ROADMAP.md`](docs/ROADMAP.md) — plan de convergencia por fases.
+- [`docs/RUMBO.md`](docs/RUMBO.md) — el roadmap **vivo**: estado real y frentes abiertos.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md) — plan de convergencia por fases (histórico, cerrado 2026-07-11).
 - [`docs/adr/`](docs/adr/) — decisiones de arquitectura de la suite (QADR).
 - Sitio de docs unificado: **vivo** en
   [jcsvwinston.github.io/quantum](https://jcsvwinston.github.io/quantum/) —
