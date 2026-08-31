@@ -69,7 +69,10 @@ el anterior.
    referencia externo se re-pina en cada corte de set mediante
    `workflow_dispatch` alimentado por `scripts/print-requires.sh`, y sus gates
    corren contra el set nuevo. Con la cadencia de D1 es sostenible; archivarlo
-   queda descartado (RT-5).
+   queda descartado (RT-5). *Mecanizado*: la fase `cierre` del tren llama a
+   [`scripts/train/dispatch-app-bump.sh`](../scripts/train/dispatch-app-bump.sh),
+   que anuncia el set certificado a quantum-app; allí un workflow reescribe el
+   pin, corre sus gates y abre un PR (nunca empuja a main).
 
 ## Deuda viva de la auditoría (no bloquea, no se olvida)
 
