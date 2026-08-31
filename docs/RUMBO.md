@@ -42,17 +42,41 @@ el anterior.
    `align_set.sh`; sus lecciones están en el runbook de esa carpeta. **El
    consumidor externo (quantum-app) se re-pina solo en cada corte** (D6): el
    anuncio abre su PR, que sigue necesitando revisión humana.
-1. **Adelgazado del grafo (D3) — EN MARCHA.** Primer tramo hecho y fusionado
-   (nucleus#407, ADR-030): S3, GCS, Azure y AWS Secrets Manager salen a
-   módulos hermanos. **Medido: 75,6 → 42,0 MB · 346 → 176 módulos**, con una
-   lane que asserta que el core no vuelve a enlazar un SDK de nube.
-   Dos premisas del plan cayeron al medir: `asynq` ya no estaba en el grafo, y
-   los 57 paquetes de AWS entraban por el gestor de secretos, no por storage.
-   **Lo que falta para < 30 MB / < 150, medido y sin decidir:** el exportador
-   OTLP arrastra gRPC+protobuf (**106 paquetes**) por `pkg/observe`, y los
-   drivers de BD de `pkg/db` suman **42**. Ninguno estaba en el alcance.
-   Aparte y sí aprobados: los **drivers de quark** por registro — frente
-   distinto, reducen una app quark standalone, no el hola-mundo de nucleus.
+1. **Adelgazado del grafo (D3) — OBJETIVOS CUMPLIDOS, falta certificar.**
+   Tres tramos, todos medidos y fusionados salvo el de quark, en CI.
+
+   | | Binario | Paquetes | Módulos |
+   | --- | --- | --- | --- |
+   | nucleus, antes | 75,6 MB | 1008 | 346 |
+   | nucleus, ahora | **19 MB** | **349** | **87** |
+   | quark, antes | 24 MB | 304 | 171 |
+   | quark, ahora | **6 MB** | **159** | **129** |
+
+   El objetivo era < 30 MB y < 150 módulos: cumplido con margen. Salen a
+   módulos propios los cuatro backends de nube (ADR-030), los cinco drivers de
+   BD y los dos exportadores de telemetría (ADR-031), y en quark los cinco
+   drivers más el listener de LISTEN/NOTIFY (ADR-0023). Desaparecen los build
+   tags `mssql`/`oracle`.
+
+   **La configuración no cambia.** Lo único nuevo es un import, y su ausencia
+   se dice al arrancar con la línea exacta; `nucleus add <nombre>` hace el
+   `go get` y lo escribe. Los proyectos de `nucleus new` ya salen con el suyo.
+
+   **Lo que la medición corrigió**, que es la parte reutilizable: `asynq` ya no
+   estaba en el grafo; los 57 paquetes de AWS entraban por el gestor de
+   secretos y no por storage; gRPC lo mete el exportador **HTTP** de OTLP (su
+   config interna lo importa igual); y protobuf lo mete **Prometheus**, no
+   OTLP — sacar sólo OTLP habría dejado 37 paquetes dentro.
+
+   **Deuda viva del arco**, para no perderla:
+   - **Prometheus es un cambio de comportamiento**: lo activaba `metrics_path`,
+     que tiene valor por defecto, así que quien scrapea el `/metrics` por
+     defecto lo pierde hasta añadir el módulo. Avisa al arrancar y falla duro
+     si la clave estaba escrita a mano, pero el compilador no lo ve.
+   - **Alinear orbit y certificar el set**: nada de esto es visible hasta que
+     el paraguas re-pina (QADR-0003).
+   - `mattn/go-sqlite3` deja de clasificarse en el árbol de quark; quien lo use
+     registra su clasificador con tres líneas (está en ADR-0023).
 2. **API keys y luego accounts (D4).** `pkg/auth/apikeys`: emisión con
    hash+prefijo mostrable, scopes proyectados como sujeto/roles Casbin,
    middleware Bearer/X-API-Key, CLI (`apikey create/revoke/list`) y rate limit
