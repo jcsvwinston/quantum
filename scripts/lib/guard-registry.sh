@@ -141,6 +141,11 @@ GUARDS=(
   # producción. orbit-docs-version-claims sólo mira website/docs (el árbol
   # actual), no el archivo. Entra al set con orbit v1.8.11 (arco de deuda QCD).
   "orbit-versioned-markers|orbit|bash scripts/ci/check_versioned_docs_markers.sh"
+  # El índice de ADRs de orbit cubre lo que el directorio contiene: un acta que
+  # no aparece en él es una decisión que nadie encontrará. Gemelo del guard de
+  # nucleus, portado cuando orbit ganó actas retroactivas de las decisiones ya
+  # ejecutadas. Entra al set con orbit v1.8.14.
+  "orbit-adr-index|orbit|bash scripts/ci/check_adr_index.sh"
 )
 
 # ---------------------------------------------------------------------------
