@@ -47,7 +47,45 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-08-29, QUANTUM 1.22.0 certificado — Arcos E y F publicados)
+## 3. Estado al cierre (2026-08-31, auditoría integral EJECUTADA sobre 1.24.0 — set nuevo SIN cortar a propósito)
+
+### Sesión 2026-08-30/31 — Auditoría integral de producto/DX + implementación (18+1 PRs fusionados)
+
+- **BASE**: Quantum **1.24.0** certificado (quark v1.7.1 · nucleus v1.21.0 +
+  ldap v0.2.3 · orbit v1.8.13 y sus 5 módulos). Los sets 1.23.0/1.24.0 se
+  cortaron en las sesiones del 2026-08-30 (arco de anomalías QCD + deuda);
+  detalle en el CHANGELOG y en `docs/auditoria/registro/`.
+- **AUDITORÍA** (12 auditores + 52 verificaciones adversariales, todo con
+  ejecución real): 147 hallazgos, 3 P0, 51 graves sostenidos. Informe
+  completo en el artefacto «Auditoría integral Quantum» (sesión de Claude) y
+  rumbo vivo en `docs/RUMBO.md`. Diagnóstico: ingeniería sólida; roto el
+  EMBUDO de entrada (quickstart publicado con bloques vacíos, `generate
+  module` panicando con plurales, Data Studio sobre quark con celdas «—»),
+  sin historia de suite, y el tren de releases comiéndose el producto
+  (24 sets en 7 semanas, ~2h/set).
+- **IMPLEMENTADO Y FUSIONADO** (CI verde, squash): quark #306/#307/#309 ·
+  nucleus #396/#397/#398/#399/#400 · orbit #349/#350/#351/#353/#354/#358/#359 ·
+  quantum #119/#120/#121. Los 3 P0 cerrados; además: NewWithDB (pool
+  compartido nucleus↔quark), leader-election del scheduler asynq, requeue de
+  outbox, i18n runtime real, pkg/cache, instancia `/start` del sitio con
+  quickstart de suite e instalación del set generada de versions.yaml,
+  capturas reales de Orbit, scripts/train/ + align_set.sh (RT-1/RT-2), y dos
+  bugs nuevos cazados con ojos post-fix (counts cruzados por sort sobre
+  punteros; live feed que no pintaba `http.request`/`db.query` — orbit #359).
+- **SET NUEVO SIN CORTAR, A PROPÓSITO**: los release PRs del bot (quark
+  1.8.0, nucleus 1.22.0, orbit root+módulos) quedaron ABIERTOS a la espera
+  de la decisión D1 de Carlos (cadencia). El pin del paraguas sigue en
+  1.24.0 y la excepción auto-expirante del guard de jerga
+  (`check_served_jargon.sh`, token ADR-010 del ejemplo pinado) muere sola en
+  el próximo re-pin de nucleus.
+- **DECISIONES PENDIENTES DE CARLOS (D1–D6, en el §8 del informe)**: D1
+  cadencia de sets (rec: certificar a cadencia fija, no por arco) · D2 rumbo
+  del fleet Data Studio (borrador en orbit `docs/adrs/ADR-002`, Draft) · D3
+  arco de adelgazado del grafo (79MB/347 módulos el hello-world; rec:
+  SIGUIENTE arco) · D4 API keys con scopes y módulo accounts · D5 bendecir
+  quark como capa de datos + `generate module --data quark` · D6 quantum-app
+  (revivir automatizado vs archivar). Con D1 decidida, el próximo tren usa
+  por primera vez `scripts/train/` y `orbit/scripts/release/align_set.sh`.
 
 ### Sesión 2026-08-29 (c) — QUANTUM 1.22.0 CERTIFICADO (Arcos E y F publicados)
 
