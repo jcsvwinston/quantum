@@ -60,8 +60,24 @@ REQUIRES=$(bash scripts/print-requires.sh) || die "print-requires.sh falló — 
 echo "== anuncio del set certificado Quantum $VER a $REPO =="
 printf '%s\n' "$REQUIRES" | sed 's/^/  /'
 echo
-echo "  → gh api repos/$REPO/dispatches -f event_type=quantum-set-certified \\"
-echo "        -f 'client_payload[set]=$VER' -f 'client_payload[requires]=<bloque de arriba>'"
+# El cuerpo se construye AQUÍ, no con la notación de corchetes de `gh -f`:
+# así el JSON exacto que se manda es visible en --dry-run y verificable, en
+# vez de depender de cómo serialice una versión concreta de gh un valor
+# multilínea. json_str escapa lo único que puede aparecer (barras, comillas,
+# tabuladores y saltos): el bloque require lleva tabuladores por construcción.
+# El tabulador va como carácter LITERAL en el patrón: `\t` dentro de un
+# script sed no es portable (el sed de macOS no lo interpreta y los
+# tabuladores del bloque require se colaban crudos, dejando el JSON inválido).
+TAB=$(printf '\t')
+json_str() {
+  printf '%s' "$1" \
+    | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e "s/$TAB/\\\\t/g" \
+    | awk 'NR > 1 { printf "%s", "\\n" } { printf "%s", $0 }'
+}
+BODY="{\"event_type\":\"quantum-set-certified\",\"client_payload\":{\"set\":\"$(json_str "$VER")\",\"requires\":\"$(json_str "$REQUIRES")\"}}"
+
+echo "  → gh api repos/$REPO/dispatches --method POST --input - <<<"
+printf '      %s\n' "$BODY"
 
 if [ "$DRY" -eq 1 ]; then
   echo
@@ -70,10 +86,7 @@ if [ "$DRY" -eq 1 ]; then
 fi
 
 # ---- 2. el dispatch --------------------------------------------------------
-gh api "repos/$REPO/dispatches" \
-  -f event_type=quantum-set-certified \
-  -f "client_payload[set]=$VER" \
-  -f "client_payload[requires]=$REQUIRES" \
+printf '%s' "$BODY" | gh api "repos/$REPO/dispatches" --method POST --input - \
   || die "el dispatch a $REPO falló. Relánzalo cuando esté resuelto:
     bash scripts/train/dispatch-app-bump.sh
   o dispara el bump a mano desde la pestaña Actions de $REPO
