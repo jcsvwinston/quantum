@@ -47,7 +47,58 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-08-31, QUANTUM 1.25.0 CERTIFICADO — la auditoría integral, publicada)
+## 3. Estado al cierre (2026-08-31, arco D3 en marcha sobre el set 1.25.0)
+
+### Sesión 2026-08-31 (c) — D3, primer tramo: los backends de nube salen del framework
+
+- **Sobre el set 1.25.0 certificado** (sin tocar el manifiesto: esto va al
+  set siguiente). Trabajo en `main` de nucleus, **sin release todavía**.
+- **La medición corrigió el plan ANTES de ejecutarlo**, y es lo más útil que
+  deja esta sesión. Un hola-mundo (`app.New` y nada más) enlazaba **1008
+  paquetes / 346 módulos / 75,6 MB**, y de ahí **42,6 MB eran cuatro SDK de
+  nube**. Pero: **`asynq` YA NO estaba en el grafo** (el plan decía extraerlo:
+  no había nada), y el mayor bloque —**57 paquetes de AWS**— entraba por
+  `pkg/auth/secrets`, **no por storage**. Ejecutar el plan tal como estaba
+  redactado habría dejado fuera ese bloque entero.
+- **Alcance decidido por Carlos**: storage + secretos + drivers de quark, con
+  **ruptura en minor y error guiado** (sin ventana de deprecación).
+- **HECHO Y FUSIONADO (nucleus#407, ADR-030)**: `providers/storage-s3`,
+  `providers/storage-gcs`, `providers/storage-azure` y `providers/secrets-aws`
+  como módulos hermanos (forma de ADR-024). `pkg/auth/secrets` **no tenía
+  registro** —la cadena nombraba el resolver AWS en su struct—, así que gana
+  `RegisterResolver` por esquema y construcción perezosa.
+  **Resultado medido: 75,6 → 42,0 MB · 346 → 176 módulos · 1008 → 576
+  paquetes**, y una lane nueva ASSERTA que ningún SDK de nube es alcanzable
+  desde `pkg/app` (si vuelve, el CI lo nombra).
+- **Lo que afloró al separar** (mismo patrón tres veces): había **helpers
+  compartidos escondidos dentro de un proveedor** — la higiene de claves vivía
+  en `s3.go` aunque la usaban local, GCS, Azure y el barredor; `escapeURLPath`
+  vivía en GCS y la usaba Azure. Suben al contrato (`pkg/storage/provider`).
+  Y **dos tests transversales** que verificaban los tres backends a la vez se
+  parten por proveedor: la propiedad es cierta de cada uno por separado.
+- **Tres guards mordieron y ninguno era un bug del cambio**: el freeze de API
+  (superficie que se mueve: +4/−15, rebaselinado), el índice de ADRs (el
+  ADR-030 sin listar) y la cobertura de docs (el front-matter seguía
+  declarando `NewS3Store`). El cuarto fue en CI: al mover el test live de S3,
+  el filtro `-run` dejó de seleccionar nada y **`assert_run_selects` (MAQ-5) lo
+  cazó** — sin él, la suite live de S3 habría pasado EN VERDE sin ejecutarse.
+
+**LO QUE FALTA DE D3, medido y NO decidido** (el objetivo es < 30 MB y < 150
+módulos; hoy 42,0 MB / 176):
+
+1. **El exportador OTLP arrastra gRPC + protobuf: 106 paquetes**, por
+   `pkg/observe`. Es el mayor bloque restante y **no estaba en el alcance**.
+2. **Los drivers de BD de `pkg/db`: 42 paquetes** (modernc/sqlite, pgx, mysql).
+3. **Los drivers de quark** (sí aprobados) son un frente DISTINTO: reducen el
+   binario de una app quark standalone, **no** este — un hola-mundo de nucleus
+   no importa quark. No confundirlos.
+
+**Cabos cerrados en la sesión `auto` que siguió**: la issue quantum#125 (lane
+del schedule en rojo) era **fallo transitorio del tren** —corrió a las 14:17
+UTC con el manifiesto en 1.24.0 y los tags ya moviéndose—; cerrada con las dos
+corridas siguientes en verde. Y el re-pin del showcase de nucleus.
+
+### Sesión 2026-08-31 (b) — decisiones D1–D6 tomadas y set 1.25.0 cortado con el tren nuevo
 
 ### Sesión 2026-08-31 (b) — decisiones D1–D6 tomadas y set 1.25.0 cortado con el tren nuevo
 
