@@ -71,22 +71,29 @@ export default function Home(): ReactNode {
     },
   ];
 
+  // Pitch de VALOR (9ª ronda): la portada responde «por qué usar Quantum»,
+  // no cómo está organizado el repo. Cinco frases: qué obtienes, qué hace
+  // cada pilar, qué promete el set certificado, la honestidad standalone,
+  // y el siguiente paso concreto (el quickstart de 15 minutos).
   return (
     <Layout
       title="Quantum"
-      description="Nucleus (web framework), Quark (ORM) and Orbit (admin) for Go: developed separately, coordinated as a suite.">
+      description="A Go web framework, a typed data layer and an in-process admin panel — shipped as certified sets of versions tested together.">
       <header className={styles.hero}>
         <div className={styles.heroInner}>
           <ThemedImage className={styles.mark} alt="Quantum"
             sources={{light: markLight, dark: markDark}} />
           <h1 className={styles.title}>Q<span className={styles.em}>u</span>antum</h1>
           <p className={styles.tagline}>
-            A web framework, an ORM and an admin panel for Go: developed
-            separately, coordinated as a suite.
+            The pieces most Go applications end up needing — web framework,
+            data layer, admin panel — versioned to work together.
           </p>
           <p className={styles.sub}>
-            Each product's documentation lives in its own repository; this site
-            <em> assembles</em> it under one roof.
+            Nucleus hosts your application on the standard library; Quark
+            types your SQL across six engines; Orbit mounts an admin panel
+            inside the same process. Each certified set is a trio of versions
+            tested together, so upgrading the suite is one known-good step —
+            not three separate bets.
           </p>
           <div className={styles.chips}>
             <span className={`${styles.chip} ${styles.chipSuite}`}>suite <b>{suite.quantum}</b></span>
@@ -95,12 +102,34 @@ export default function Home(): ReactNode {
             <span className={styles.chip}>orbit <b>{suite.orbit}</b></span>
           </div>
           <div className={styles.actions}>
-            <Link className="button button--primary button--lg" to="/nucleus/">Nucleus&nbsp;→</Link>
-            <Link className="button button--secondary button--lg" to="/quark/intro/">Quark&nbsp;→</Link>
-            <Link className="button button--secondary button--lg" to="/orbit/">Orbit&nbsp;→</Link>
+            <Link className="button button--primary button--lg" to="/start/quickstart/">
+              Quickstart — the suite in ~15 min&nbsp;→
+            </Link>
+            <Link className="button button--secondary button--lg" to="/start/">What is Quantum?</Link>
+            <Link className="button button--secondary button--lg" to="/start/install/">Install</Link>
           </div>
         </div>
       </header>
+
+      <section className={styles.orient}>
+        <h2 className={styles.orientTitle}>Where do I start?</h2>
+        <ul className={styles.orientList}>
+          <li>
+            <b>Only a data layer</b> — <Link to="/quark/intro/">Quark</Link> works
+            standalone in any Go app; ignore the rest of the suite.
+          </li>
+          <li>
+            <b>A web application</b> — start with{' '}
+            <Link to="/nucleus/">Nucleus</Link>; add Quark or Orbit later, or
+            never. Orbit always requires Nucleus.
+          </li>
+          <li>
+            <b>The whole suite</b> — the{' '}
+            <Link to="/start/quickstart/">quickstart</Link> wires all three
+            pillars in one small app, with real output at every step.
+          </li>
+        </ul>
+      </section>
 
       <main className={styles.pillars}>
         {pillars.map((p) => {
