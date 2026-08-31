@@ -69,6 +69,33 @@
   flex-wrap: wrap;
 }
 
+/* ---- Bloque de orientación («Where do I start?») ---- */
+.orient {
+  max-width: 960px;
+  margin: 2.4rem auto 0;
+  padding: 0 1.5rem;
+}
+.orientTitle {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  margin: 0 0 0.7rem;
+}
+.orientList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.orientList li {
+  font-size: 0.92rem;
+  color: var(--ifm-color-emphasis-800);
+  line-height: 1.55;
+  padding-left: 1rem;
+  border-left: 2px solid var(--qtm-signal);
+}
+
 /* ---- Tres pilares ---- */
 .pillars {
   max-width: 960px;

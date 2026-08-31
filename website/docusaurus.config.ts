@@ -7,14 +7,37 @@ import * as fs from 'node:fs';
 // El número Quantum y los tags reales de cada producto se muestran en la navbar
 // (doble selector): versión de la suite arriba + versión real de cada módulo.
 const suiteYaml = fs.readFileSync('../versions.yaml', 'utf8');
-const modulesBlock = suiteYaml.match(/^modules:\s*([\s\S]*?)\n\w/m)?.[1] ?? suiteYaml;
-const pick = (name: string): string =>
-  (modulesBlock.match(new RegExp(`${name}:\\s*"?([^"#\\n]+)`))?.[1] ?? '').trim();
+const block = (key: string): string =>
+  suiteYaml.match(new RegExp(`^${key}:\\s*([\\s\\S]*?)\\n\\w`, 'm'))?.[1] ?? suiteYaml;
+const modulesBlock = block('modules');
+const pick = (name: string, from: string = modulesBlock): string =>
+  (from.match(new RegExp(`${name}:\\s*"?([^"#\\n]+)`))?.[1] ?? '').trim();
+
+// Bloque `require` con los NUEVE módulos del set certificado (los tres
+// pilares + nucleus_modules + orbit_modules), generado desde versions.yaml en
+// cada build — el espejo web de scripts/print-requires.sh. Lo consume la
+// página de instalación de la instancia `start`
+// (src/components/CertifiedSet.tsx): ninguna versión se transcribe a mano.
+const nucleusModulesBlock = block('nucleus_modules');
+const orbitModulesBlock = block('orbit_modules');
+const requireBlock = [
+  'require (',
+  `\tgithub.com/jcsvwinston/quark ${pick('quark')}`,
+  `\tgithub.com/jcsvwinston/nucleus ${pick('nucleus')}`,
+  `\tgithub.com/jcsvwinston/nucleus/providers/ldap ${pick('ldap', nucleusModulesBlock)}`,
+  `\tgithub.com/jcsvwinston/orbit ${pick('orbit')}`,
+  ...['proto', 'agent', 'server', 'quarkbridge', 'quarkdatasource'].map(
+    (m) => `\tgithub.com/jcsvwinston/orbit/${m} ${pick(m, orbitModulesBlock)}`,
+  ),
+  ')',
+].join('\n');
+
 const suite = {
   quantum: (suiteYaml.match(/^quantum:\s*"?([^"#\n]+)/m)?.[1] ?? '').trim(),
   nucleus: pick('nucleus'),
   quark: pick('quark'),
   orbit: pick('orbit'),
+  requireBlock,
 };
 
 // Reescribe, durante el ENSAMBLAJE, los enlaces absolutos `/docs/*` que la
@@ -93,7 +116,7 @@ const config: Config = {
       {
         hashed: true,
         language: ['en'],
-        docsRouteBasePath: ['nucleus', 'quark', 'orbit'],
+        docsRouteBasePath: ['start', 'nucleus', 'quark', 'orbit'],
         indexBlog: false,
         indexPages: false,
         highlightSearchTermsOnTargetPage: true,
@@ -244,6 +267,26 @@ const config: Config = {
         },
       },
     ],
+    [
+      // Instancia `start` — la puerta de entrada de la SUITE (9ª ronda). A
+      // diferencia de las tres instancias de producto, su fuente NO es un
+      // submódulo: vive en website/docs/ del propio paraguas, porque cuenta lo
+      // que ningún producto puede contar solo (qué es Quantum, el quickstart
+      // integrador, la elección de capa de datos, el set certificado y su
+      // instalación). Sin versionado: la puerta de entrada siempre habla del
+      // set vigente.
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'start',
+        path: 'docs',
+        routeBasePath: 'start',
+        sidebarPath: './sidebarsStart.ts',
+        // editUrl string: aquí sí funciona la concatenación por defecto — el
+        // path es relativo al sitio (docs/…), a diferencia de las instancias
+        // de producto (../<producto>/…), que necesitan la forma función.
+        editUrl: 'https://github.com/jcsvwinston/quantum/edit/main/website/',
+      },
+    ],
   ],
 
   themeConfig: {
@@ -257,6 +300,17 @@ const config: Config = {
         srcDark: 'img/quantum-mark-dark.svg',
       },
       items: [
+        {
+          // «Start» PRIMERO: la puerta de entrada de la suite (instancia
+          // `start`). Antes de esto el navbar solo ofrecía topología (tres
+          // productos, tres versiones) y ninguna respuesta a «¿por dónde
+          // empiezo?».
+          type: 'docSidebar',
+          sidebarId: 'startSidebar',
+          docsPluginId: 'start',
+          label: 'Start',
+          position: 'left',
+        },
         {
           // Selector "Quantum": el número de la suite arriba (de versions.yaml) y,
           // como items, los tres pilares con su tag real (switcher + versión).
@@ -321,6 +375,7 @@ const config: Config = {
         {
           title: 'Products',
           items: [
+            {label: 'Start here', to: '/start/'},
             {label: 'Nucleus', to: '/nucleus/'},
             {label: 'Quark', to: '/quark/intro/'},
             {label: 'Orbit', to: '/orbit/'},
