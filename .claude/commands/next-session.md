@@ -47,9 +47,55 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-08-31, auditoría integral EJECUTADA sobre 1.24.0 — set nuevo SIN cortar a propósito)
+## 3. Estado al cierre (2026-08-31, QUANTUM 1.25.0 CERTIFICADO — la auditoría integral, publicada)
 
-### Sesión 2026-08-30/31 — Auditoría integral de producto/DX + implementación (18+1 PRs fusionados)
+### Sesión 2026-08-31 (b) — decisiones D1–D6 tomadas y set 1.25.0 cortado con el tren nuevo
+
+- **SET CERTIFICADO**: quark **v1.8.0** · nucleus **v1.22.0** (+
+  `providers/ldap v0.2.4`) · orbit **v1.8.14** (proto v0.4.2, agent v0.6.9,
+  server v0.10.9, quarkbridge v0.4.9, quarkdatasource v0.2.18).
+  `suite-integral --cierre` **28/28 EXIT=0** con el tag capturando HEAD, tag
+  `v1.25.0` y release de GitHub publicada. `declared_lags` vacío.
+- **Las seis decisiones D1–D6 quedaron TOMADAS** (Carlos aceptó las
+  recomendaciones). D1 tiene ADR propio — **QADR-0008: el set se certifica por
+  CADENCIA SEMANAL, no por arco**; las otras cinco están traducidas a orden de
+  trabajo en `docs/RUMBO.md`. **El arco siguiente es D3, el adelgazado del
+  grafo** (hello-world de nucleus: 79 MB / 347 módulos → objetivo < 30 MB /
+  < 150; providers cloud y asynq a módulos propios con el patrón de
+  providers/ldap, drivers de quark por registro).
+- **Lo que publica el set**: los 3 P0 de la auditoría integral (quickstart de
+  nucleus con los bloques de código VACÍOS en las 13 versiones del sitio;
+  `generate module` con nombre plural paniqueando al arrancar; Data Studio
+  sobre quark con «—» en todas las celdas), la puerta de entrada de suite
+  (`/start`, 5 páginas) y las primeras capturas del panel. **Verificado en el
+  sitio construido al pin**: 0 bloques vacíos (eran 56 en 28 páginas), /start
+  publicada, capturas servidas y las páginas nuevas de nucleus navegables.
+- **D6 estrenado**: el tren anuncia el set a quantum-app
+  (`scripts/train/dispatch-app-bump.sh`, fase de cierre) y su workflow abre el
+  PR del bump — el consumidor de referencia externo pasa de 15 sets por detrás
+  a seguir cada corte. **Ese PR NO se fusiona solo: revísalo.**
+- **El tren estrenó `scripts/train/` y `orbit/scripts/release/align_set.sh`** y
+  funcionaron: `merge-bot-pr.sh` paró en seco ante cada rojo en vez de fusionar
+  a ciegas, y la alineación de los cinco pines de orbit (root incluido) cupo en
+  UN commit — el tren anterior gastó 4 PRs y un tag de root de más.
+  **Las lecciones nuevas están en `scripts/train/README.md`** («Lo que aprendió
+  el tren de 1.25.0»); las tres que más costaron: fusionar un release de módulo
+  REGENERA la rama del root y borra lo escrito a mano en ella (las deudas de
+  doc del root van DESPUÉS de cerrar la cascada); al reconciliar el manifest
+  compartido hay que VALIDAR el JSON antes de commitear; y el proxy de Go
+  falla en tandas (`INTERNAL_ERROR`) — se relanza, no se toca código.
+- **Guard nuevo en el registro: `orbit-adr-index`** (28 en total, con fixture).
+  Entró al re-pinar orbit y la aserción anti-fósil se negó a certificar hasta
+  inventariarlo.
+- **Deuda viva anotada** (en `docs/RUMBO.md`): PR-ORB-02 (el audit log del
+  panel sigue siendo un ring en memoria), AO-4 (tests del panel en postura
+  sin-auth), los 95 P2/P3 de la auditoría, y en quark la sección Status del
+  README acumula párrafos de versiones viejas (v1.3.x) — se propuso recortarla
+  al CHANGELOG, sin ejecutar.
+
+### Sesión 2026-08-30/31 (a) — Auditoría integral de producto/DX + implementación (20 PRs fusionados)
+
+#### Detalle de la auditoría y su implementación
 
 - **BASE**: Quantum **1.24.0** certificado (quark v1.7.1 · nucleus v1.21.0 +
   ldap v0.2.3 · orbit v1.8.13 y sus 5 módulos). Los sets 1.23.0/1.24.0 se
