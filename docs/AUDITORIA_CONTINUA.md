@@ -30,7 +30,7 @@ Los guards de producto corren **al pin** — el submódulo tal y como lo fija
 significa que el set que el manifiesto certifica no pasa sus propios guards,
 que es exactamente lo que reportaría un auditor.
 
-Registro actual (26 guards — la cifra canónica NO es esta prosa, es el
+Registro actual (27 guards — la cifra canónica NO es esta prosa, es el
 registro: `source scripts/lib/guard-registry.sh && guard_names | wc -l`. Esta
 tabla es descriptiva y ya fue una por detrás del registro real una vez
 (DI-14/RT-10: decía «25» y omitía `orbit-versioned-markers`); al registrar un
@@ -43,6 +43,7 @@ guard, añadir aquí su fila en el mismo PR):
 | umbrella-sidebar-sync | paraguas | `bash scripts/check_sidebar_sync.sh` | Sidebars espejadas (nucleus/quark) desincronizadas del sidebar del submódulo pinado; parser sin ids = FAIL, no verde-vacío (QM8-3). |
 | umbrella-suite-tag | paraguas | `bash scripts/check_suite_tag.sh` | Tag de suite que no respalda lo que afirma. **Autoconsistencia (asserts 2-4):** `v<quantum>` inexistente sin estar mid-tren, versions.yaml del tag declarando otra versión, o gitlinks del tag ≠ workspace_pins del tag (QM8-6). **Captura (assert 5, MAQ-1/B.1):** gitlinks del tag ≠ gitlinks/workspace_pins de HEAD — un tag rancio pero autoconsistente (cortado antes del re-pin) que los asserts 2-4 no cazan. El assert 5 solo se exige al certificar (`--cierre`/`QUANTUM_CERTIFYING=1`) o con tag==HEAD; la lane semanal tolera HEAD>tag entre arcos. En certificación, además, el mid-tren sin tag es NO-PASA (MAQ-2/B.2). |
 | umbrella-built-links | paraguas | `bash scripts/check_built_links.sh website/build` | Enlaces del sitio **construido** que no resuelven: los `href` a nuestros repos se comprueban contra el checkout local (sin red, sin 429) y los internos contra el HTML generado. Docusaurus no mira los externos — así vivieron meses los «Edit this page» rotos de las tres instancias. |
+| umbrella-built-codeblocks | paraguas | `bash scripts/check_built_codeblocks.sh website/build` | Bloques de código VACÍOS en el HTML **servido**: una fence ```` ```lang file=… ```` sin resolver (remark-code-import descableado en el ensamblaje) se publica como `<code></code>` y el build sale verde — así salió el quickstart de nucleus con sus 3 bloques vacíos en todas las versiones (SD-01). |
 | umbrella-exit0-regressions | paraguas | `bash scripts/check_exit0_regressions.sh` | Los repros «exit 0 sin efecto» del informe DX (§4.A): comandos que fracasaban con éxito aparente, ejercidos contra el árbol al pin. |
 | nucleus-version-claims | nucleus | `bash scripts/ci/check_version_claims.sh` | Marcadores `x-release-please-version` desalineados, directivas Go del scaffold, estados README↔inventario. |
 | nucleus-product-voice | nucleus | `bash scripts/ci/check_docs_product_voice.sh` | Vocabulario interno en `website/docs/**`. |

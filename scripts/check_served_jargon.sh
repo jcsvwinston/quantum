@@ -39,6 +39,19 @@ REGEX='ADR-[0-9]+|\bP[0-3]\b|SPEC\.md|CLAUDE\.md|V1_GATE|TASKS\.md|PROFILING\.md
 # snapshot anterior a esa limpieza.
 EXCLUDES=()
 
+# Transición AUTO-EXPIRANTE (auditoría 2026-08-30, quantum#119 + nucleus#397):
+# el pin v1.21.0 de nucleus trae «ADR-010» en comentarios de examples/mvc_api,
+# y remark-code-import (quantum#119) ahora sirve ese código dentro de las
+# páginas de getting-started. nucleus#397 reescribe los comentarios en prosa
+# en main, pero el paraguas ensambla desde el submódulo PINADO. La excepción
+# solo aplica mientras modules.nucleus siga en v1.21.0: al re-pinar, muere
+# sola — sin lista que recordar vaciar.
+NUCLEUS_PIN=$(sed -n 's/^  nucleus:[[:space:]]*"\(v[0-9.]*\)".*/\1/p' versions.yaml | head -1)
+TRANSITIONAL_TOKEN=''
+if [[ "$NUCLEUS_PIN" == "v1.21.0" ]]; then
+  TRANSITIONAL_TOKEN='ADR-010'
+fi
+
 # ${arr[@]+...} para que la lista VACÍA (el estado final tras el re-pin) no
 # tropiece con set -u en bash 3.2 (macOS).
 find_args=("$BUILD_DIR" -name '*.html')
@@ -51,7 +64,15 @@ count=0
 scanned=0
 while IFS= read -r -d '' f; do
   scanned=$((scanned + 1))
-  if out=$(grep -noE "$REGEX" "$f" | head -3); then
+  out=$(grep -noE "$REGEX" "$f" || true)
+  # La transición de arriba: solo el token exacto, solo en las páginas de
+  # getting-started de la instancia de nucleus (el resto de la página sigue
+  # bajo el gate completo).
+  if [[ -n "$TRANSITIONAL_TOKEN" && "$f" == *"/nucleus/"*"getting-started/"* ]]; then
+    out=$(grep -v ":${TRANSITIONAL_TOKEN}\$" <<<"$out" || true)
+  fi
+  out=$(head -3 <<<"$out")
+  if [[ -n "$out" ]]; then
     if [[ $status -eq 0 ]]; then
       echo "Vocabulario interno en el HTML servido:" >&2
       echo >&2

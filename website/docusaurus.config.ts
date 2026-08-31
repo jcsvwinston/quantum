@@ -2,6 +2,12 @@ import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 import {themes as prismThemes} from 'prism-react-renderer';
 import * as fs from 'node:fs';
+import * as path from 'node:path';
+// remark-code-import es ESM-only; se consume vía require en la evaluación del
+// config — el mismo shim que usa el sitio standalone de nucleus
+// (nucleus/website/docusaurus.config.ts).
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const codeImport = require('remark-code-import').default;
 
 // Lee el trío declarado en ../versions.yaml (sin dependencia de YAML: parse simple).
 // El número Quantum y los tags reales de cada producto se muestran en la navbar
@@ -162,6 +168,28 @@ const config: Config = {
           versionDocsDirPath.startsWith('..')
             ? `https://github.com/jcsvwinston/nucleus/edit/main/website/docs/${docPath}`
             : `https://github.com/jcsvwinston/nucleus/edit/main/website/${versionDocsDirPath}/${docPath}`,
+        // remark-code-import: las fences ```go file=<rootDir>/…``` de los docs
+        // de nucleus (quickstart, project-structure) las resuelve este plugin
+        // en build time; su sitio standalone lo cablea en su preset
+        // (nucleus/website/docusaurus.config.ts) y sin este espejo el
+        // ensamblaje publicaba los bloques de código VACÍOS — Docusaurus emite
+        // <code></code> sin avisar y el build sale verde (SD-01, 9ª ronda; lo
+        // vigila scripts/check_built_codeblocks.sh sobre el HTML emitido).
+        // rootDir = el SUBMÓDULO ../nucleus, que es lo que este sitio publica.
+        //
+        // Tradeoff aceptado: los snapshots versionados también importan el
+        // ejemplo ACTUAL del submódulo pinado (la fence del snapshot referencia
+        // <rootDir>, no una copia congelada) — el mismo criterio que ya rige
+        // para los enlaces /docs/* de quark (ver remarkQuarkDocsBase arriba),
+        // y el mismo comportamiento que tienen esos snapshots en el sitio
+        // standalone de nucleus, cuyo rootDir es igualmente su árbol actual.
+        remarkPlugins: [
+          [codeImport, {
+            rootDir: path.resolve(__dirname, '../nucleus'),
+            removeRedundantIndentations: true,
+            allowImportingFromOutside: true,
+          }],
+        ],
         // La raíz servida es SIEMPRE la doc actual, etiquetada con el tag real
         // del manifiesto. Sin esto, Docusaurus sirve por defecto el último
         // snapshot versionado — así es como el sitio publicado llegó a enseñar
