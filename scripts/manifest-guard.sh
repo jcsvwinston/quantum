@@ -135,35 +135,60 @@ done
 # ride INSIDE the root's release rather than trailing it — the cascade orbit
 # learned to collapse into one round.
 nucleus_pin=$(yaml_value workspace_pins nucleus)
-for mod in providers/ldap; do
-  key=${mod##*/}
-  latest=$(git -C nucleus tag -l "$mod/v*" | grep -E "^$mod/v[0-9]+\.[0-9]+\.[0-9]+$" | sort -V | tail -1)
-  if [[ -z "$latest" ]]; then
-    echo "FAIL: nucleus/$mod — no published tag found (did the checkout fetch tags?)" >&2
-    status=1
-    continue
-  fi
-  mod_ok=1
-  if ! git -C nucleus merge-base --is-ancestor "$latest" "$nucleus_pin" 2>/dev/null; then
-    echo "FAIL: nucleus/$mod — latest tag $latest is not an ancestor of the pinned root $nucleus_pin (a module tag cut after the root tag cannot be certified: cut them together)" >&2
-    status=1; mod_ok=0
-  fi
-  if [[ $mod_ok -eq 1 && -n $(git -C nucleus diff "$latest".."$nucleus_pin" -- "$mod/" 2>/dev/null) ]]; then
-    echo "FAIL: nucleus/$mod — the pinned root carries $mod/ changes not covered by $latest (unreleased module code in the certified set)" >&2
-    status=1; mod_ok=0
-  fi
-  declared=$(yaml_value nucleus_modules "$key")
-  if [[ -z "$declared" ]]; then
-    echo "FAIL: versions.yaml nucleus_modules has no entry for $key" >&2
-    status=1; mod_ok=0
-  elif [[ "$mod/$declared" != "$latest" ]]; then
-    echo "FAIL: versions.yaml nucleus_modules.$key = $declared but the latest published tag is $latest" >&2
-    status=1; mod_ok=0
-  fi
-  if [[ $mod_ok -eq 1 ]]; then
-    echo "OK: nucleus/$mod $latest — ancestor of the root pin, module tree identical, declared in nucleus_modules"
-  fi
-done
+quark_pin=$(yaml_value workspace_pins quark)
+
+# The module list is DISCOVERED from the tree, not written here. A hardcoded
+# list is the same failure that let eleven modules reach `main` without a
+# release-please entry: they existed, and nothing that enumerates modules
+# knew it. Anything with its own go.mod under the repo (examples aside) is a
+# module the set has to account for.
+discover_modules() {
+  local repo=$1
+  (cd "$repo" && find . -name go.mod -not -path './examples/*' -not -path './website/*' \
+      -not -path './benchmarks/*' -not -path './bugbash/*' -not -path './.git/*' \
+    | sed 's|/go.mod$||; s|^\./||' | grep -v '^\.$' | sort)
+}
+
+# check_sibling_modules verifies §3b for one repo: each module's latest tag is
+# an ANCESTOR of the pinned root, the pinned root carries no module code the
+# tag does not cover, and versions.yaml declares the version. The key in the
+# manifest is the module's last path segment.
+check_sibling_modules() {
+  local repo=$1 pin=$2 section=$3
+  local mod key latest mod_ok declared
+  for mod in $(discover_modules "$repo"); do
+    key=${mod##*/}
+    latest=$(git -C "$repo" tag -l "$mod/v*" | grep -E "^$mod/v[0-9]+\.[0-9]+\.[0-9]+$" | sort -V | tail -1)
+    if [[ -z "$latest" ]]; then
+      echo "FAIL: $repo/$mod — no published tag found (a module in the tree with no tag is a module nobody can `go get`; did the checkout fetch tags?)" >&2
+      status=1
+      continue
+    fi
+    mod_ok=1
+    if ! git -C "$repo" merge-base --is-ancestor "$latest" "$pin" 2>/dev/null; then
+      echo "FAIL: $repo/$mod — latest tag $latest is not an ancestor of the pinned root $pin (a module tag cut after the root tag cannot be certified: cut them together)" >&2
+      status=1; mod_ok=0
+    fi
+    if [[ $mod_ok -eq 1 && -n $(git -C "$repo" diff "$latest".."$pin" -- "$mod/" 2>/dev/null) ]]; then
+      echo "FAIL: $repo/$mod — the pinned root carries $mod/ changes not covered by $latest (unreleased module code in the certified set)" >&2
+      status=1; mod_ok=0
+    fi
+    declared=$(yaml_value "$section" "$key")
+    if [[ -z "$declared" ]]; then
+      echo "FAIL: versions.yaml $section has no entry for $key" >&2
+      status=1; mod_ok=0
+    elif [[ "$mod/$declared" != "$latest" ]]; then
+      echo "FAIL: versions.yaml $section.$key = $declared but the latest published tag is $latest" >&2
+      status=1; mod_ok=0
+    fi
+    if [[ $mod_ok -eq 1 ]]; then
+      echo "OK: $repo/$mod $latest — ancestor of the root pin, module tree identical, declared in $section"
+    fi
+  done
+}
+
+check_sibling_modules nucleus "$nucleus_pin" nucleus_modules
+check_sibling_modules quark "$quark_pin" quark_modules
 
 # 5 (checked before 4 for output grouping with the orbit sections). Cross-repo
 # disclosure (QM6-1): every DIRECT require of jcsvwinston/{quark,nucleus} in

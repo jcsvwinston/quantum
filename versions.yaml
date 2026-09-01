@@ -31,6 +31,17 @@ modules:
 nucleus_modules:
   ldap: "v0.2.4"
 
+# Módulos del repo quark que se publican aparte. Quark pasa a multi-módulo en
+# v1.9.0: cada driver de base de datos vive en su propio módulo para que la
+# biblioteca no cargue los tipos de error de cinco motores. Verificados por
+# manifest-guard §3b igual que los de nucleus y orbit.
+quark_modules:
+  mssql:    "v0.1.0"
+  mysql:    "v0.1.0"
+  oracle:   "v0.1.0"
+  postgres: "v0.1.0"
+  sqlite:   "v0.1.0"
+
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
