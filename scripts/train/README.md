@@ -133,6 +133,75 @@ Tras fusionar el PR de re-pin (quantum usa MERGE COMMIT):
   vieja sin componente + rama nueva): cerrar el de la rama vieja y borrar la
   rama.
 
+### El tag de un módulo Go lleva BARRA, no guion
+
+`tag-separator` decide si el tag sale `drivers/mysql/v0.1.0` o
+`drivers/mysql-v0.1.0`. Con guion **Go no lo resuelve**:
+
+    go: github.com/jcsvwinston/quark/drivers/mysql@v0.1.0:
+        invalid version: unknown revision drivers/mysql/v0.1.0
+
+Un tag así no es una versión, es un nombre que nadie puede pedir — y es
+justo lo que el error guiado promete que funcione.
+
+Mordió en el tren de D3 porque quark tenía `tag-separator: "-"` en la RAÍZ.
+Ahí da igual (el tag del root no lleva componente, es `v1.9.0`), pero los
+módulos nuevos lo heredaron y se publicaron dos tags inservibles. La
+comprobación es una línea y va DESPUÉS de cortar, no antes:
+
+```bash
+GOPROXY=https://proxy.golang.org go list -m <módulo>@<versión>
+```
+
+Si sale `404` o `unknown revision`, el tag está mal formado: se retira (con
+`gh release delete --cleanup-tag`), se pone `tag-separator: "/"` **por
+paquete** —no en la raíz, para no tocar el formato del tag del root— y se
+vuelve a cortar.
+
+### Un módulo nuevo replaya el historial entero
+
+Registrarlo no basta. Sin tag previo, release-please recorre TODO el
+historial del repo para ese componente: propone un número sacado de commits
+ajenos (v1.9.2 para módulos que no existían entonces) y les escribe un
+CHANGELOG con cambios de otros — un arreglo de `pkg/storage` listado como
+cambio de `drivers/sqlite`. Eso queda **congelado dentro del tag**.
+
+`release-as` fija el número; `bootstrap-sha` y `last-release-sha` NO
+acotaron el changelog en la práctica. Lo que sí funciona: **un solo PR de
+release** (ver abajo) y editar los CHANGELOG en su rama antes de fusionar.
+
+### Con muchos módulos, un SOLO PR de release
+
+`separate-pull-requests` abre uno por módulo, y todos escriben el mismo
+`.release-please-manifest.json`: fusionar uno deja al resto en conflicto, y
+en un repo cuyo `main` exige un gate requerido **ninguno se puede fusionar**
+porque los release PR no disparan CI. Con doce módulos eso es un bucle que
+no avanza.
+
+Con `separate-pull-requests: false`: el manifiesto se escribe una vez, hay
+UNA corrida de CI, y **todos los tags salen del mismo commit** — con lo que
+la regla de ancestría de `manifest-guard §3b` se cumple por construcción en
+vez de por verificación manual. Es donde el tren de quark tropezó con una
+rama rancia en este mismo ciclo.
+
+### Al enlazar un driver en un test, importa el MÓDULO
+
+Desde que los drivers viajan en módulos propios, un test que abre una base
+de datos necesita enlazar uno. Importar el paquete del driver a secas
+(`_ "modernc.org/sqlite"`) **compila y pasa**, pero no registra el
+clasificador de errores: `IsUniqueViolation` y el reintento de deadlocks no
+fallan sin él — contestan `false`. Un test que dependa de eso pasa en verde
+midiendo otra cosa.
+
+Importar el módulo (`_ ".../drivers/sqlite"`) registra las dos mitades, y es
+además lo que escribe una aplicación real. La excepción es el repo que
+PUBLICA el módulo: ahí el requisito sería circular, y se usa el paquete
+interno de predicados compartidos.
+
+Corolario que costó una ronda: una suite que sólo corre con motor real
+(las lanes de matriz, Data Studio contra PostgreSQL) **no se ve en local**,
+porque se salta sin DSN. Al tocar drivers, mirar qué lanes necesitan uno.
+
 ### Un módulo nuevo no sale publicado por existir
 
 Crear un módulo hermano y fusionarlo **no** le da tag. Hay que registrarlo en
