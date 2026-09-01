@@ -133,6 +133,37 @@ Tras fusionar el PR de re-pin (quantum usa MERGE COMMIT):
   vieja sin componente + rama nueva): cerrar el de la rama vieja y borrar la
   rama.
 
+### Un módulo nuevo no sale publicado por existir
+
+Crear un módulo hermano y fusionarlo **no** le da tag. Hay que registrarlo en
+`release-please-config.json` **y** en `.release-please-manifest.json`, y si no
+está, release-please lo ignora en silencio: el árbol tiene el módulo, el
+release PR no lo menciona, y nadie se entera hasta que alguien hace `go get`.
+
+Mordió al arrancar el tren de D3, con **diez módulos en nucleus y sólo dos
+registrados**: los cuatro backends de nube de ADR-030 llevaban un tramo entero
+fusionados sin haber salido nunca. En quark, cinco de seis.
+
+Lo que lo vuelve caro no es el tag que falta, es la promesa que rompe: el error
+guiado dice literalmente
+
+    go get github.com/jcsvwinston/nucleus/drivers/postgres
+
+y sin tag esa línea **falla**. La regla que sale:
+
+> Un mensaje de error que nombra un `go get` es un contrato. Antes de cortar el
+> set, comprobar que **cada módulo del árbol está en el manifiesto**.
+
+La comprobación cabe en una línea, por repo:
+
+```bash
+diff <(find . -name go.mod -not -path './examples/*' | sed 's|/go.mod||;s|^\./||' | sort) \
+     <(python3 -c "import json;print('\n'.join(sorted(json.load(open('.release-please-manifest.json')))))" | sed 's|^\.$|.|')
+```
+
+Los módulos nuevos entran al manifiesto con `0.0.0`, para que el primer corte
+les dé `v0.1.0`.
+
 ### El `!` de un commit decide el número del set entero
 
 Un commit `feat(algo)!:` hace que release-please proponga un **major**, y en
