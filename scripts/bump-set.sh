@@ -51,6 +51,34 @@ print('v'+m['proto'],'v'+m['agent'],'v'+m['server'],'v'+m['quarkbridge'],'v'+m['
 # que el de la raíz (manifest-guard §3b: un tag de módulo cortado después del
 # de la raíz no es certificable), así que se lee del manifiesto al pin y no
 # del último tag publicado.
+# Los bloques de módulos hermanos se REGENERAN enteros, no se parchean línea a
+# línea: un módulo nuevo tiene que aparecer solo. Escribir aquí una lista fija
+# es el fallo que dejó once módulos en el árbol sin entrada en release-please
+# —existían, y nada de lo que enumera módulos lo sabía—.
+regen_module_block() {
+  local repo=$1 section=$2
+  python3 - "$repo" "$section" <<'PYEOF'
+import json, re, sys, subprocess
+repo, section = sys.argv[1], sys.argv[2]
+man = json.load(open(f'{repo}/.release-please-manifest.json'))
+mods = {k: v for k, v in man.items() if k != '.'}
+if not mods:
+    sys.exit(0)
+# Las versiones se leen del manifiesto AL PIN, no del último tag publicado:
+# el tag del módulo debe salir del MISMO commit que el de la raíz
+# (manifest-guard §3b), y el manifiesto del pin es lo que lo afirma.
+width = max(len(k.split('/')[-1]) for k in mods) + 1
+lines = [f'  {k.split("/")[-1] + ":":<{width}} "v{v}"' for k, v in sorted(mods.items())]
+s = open('versions.yaml').read()
+pat = re.compile(rf'^{section}:\n(?:  \S+:.*\n)+', re.M)
+if not pat.search(s):
+    raise SystemExit(f"bump-set: no encontré el bloque {section}: en versions.yaml")
+s = pat.sub(section + ':\n' + '\n'.join(lines) + '\n', s, count=1)
+open('versions.yaml', 'w').write(s)
+print(f"  {section}: {len(lines)} módulos")
+PYEOF
+}
+
 N_LDAP=$(python3 -c "
 import json
 m=json.load(open('nucleus/.release-please-manifest.json'))
@@ -74,7 +102,6 @@ sub(r'^(  agent:           )"v[^"]+"', rf'\1"{e["O_AGENT"]}"')
 sub(r'^(  server:          )"v[^"]+"', rf'\1"{e["O_SERVER"]}"')
 sub(r'^(  quarkbridge:     )"v[^"]+"', rf'\1"{e["O_QB"]}"')
 sub(r'^(  quarkdatasource: )"v[^"]+"', rf'\1"{e["O_QDS"]}"')
-sub(r'^(  ldap: )"v[^"]+"', rf'\1"{e["N_LDAP"]}"')
 sub(r'^  quark:   "[0-9a-f]+"( +)#.*$', rf'  quark:   "{e["QS"]}"\1# = {e["QT"]} exacto')
 sub(r'^  nucleus: "[0-9a-f]+"( +)#.*$',
     rf'  nucleus: "{e["NS"]}"\1# = {e["NT"]} exacto (y = providers/ldap/{e["N_LDAP"]}: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)')
