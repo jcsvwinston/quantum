@@ -124,6 +124,11 @@ open(p,'w').write(s)
 print('versions.yaml y README reescritos')
 PY
 
+# Los bloques de modulos hermanos, DESPUES de los pines: se leen del
+# manifiesto al pin, asi que el submodulo tiene que estar ya en el tag.
+regen_module_block nucleus nucleus_modules
+regen_module_block quark quark_modules
+
 echo
 echo "Hecho. Te queda la parte HUMANA de la certificación:"
 echo "  1. quantum: sube la versión de suite (QADR-0002) + released + status"
