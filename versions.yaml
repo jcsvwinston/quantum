@@ -16,9 +16,9 @@ status: certified           # Auditoría integral de producto/DX ejecutada: los 
 # topológicamente forzado, tolerado por el guard extendido, ceñido al único
 # borde root↔quarkdatasource por MAQ-3.
 modules:
-  quark:   "v1.9.0"
-  nucleus: "v1.23.0"
-  orbit:   "v1.8.15"
+  quark:   "v1.8.0"
+  nucleus: "v1.22.0"
+  orbit:   "v1.8.14"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -29,18 +29,7 @@ modules:
 # DESPUÉS del de la raíz no es certificable. Los bumps de módulo van dentro
 # de la release de la raíz, no detrás.
 nucleus_modules:
-  mssql:         "v0.1.0"
-  mysql:         "v0.1.0"
-  oracle:        "v0.1.0"
-  postgres:      "v0.1.0"
-  sqlite:        "v0.1.0"
-  otlp:          "v0.1.0"
-  prometheus:    "v0.1.0"
-  ldap:          "v0.2.4"
-  secrets-aws:   "v0.1.0"
-  storage-azure: "v0.1.0"
-  storage-gcs:   "v0.1.0"
-  storage-s3:    "v0.1.0"
+  ldap: "v0.2.4"
 
 # Módulos del repo quark que se publican aparte. Quark pasa a multi-módulo en
 # v1.9.0: cada driver de base de datos vive en su propio módulo para que la
@@ -57,17 +46,17 @@ quark_modules:
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.2"
-  agent:           "v0.6.10"
-  server:          "v0.10.10"
-  quarkbridge:     "v0.4.10"
-  quarkdatasource: "v0.2.19"
+  agent:           "v0.6.9"
+  server:          "v0.10.9"
+  quarkbridge:     "v0.4.9"
+  quarkdatasource: "v0.2.18"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
-  quark:   "4fc7ffa8"                                # = v1.9.0 exacto
-  nucleus: "253ec05c"                                # = v1.23.0 exacto (y = providers/ldap/v0.2.4: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)
-  orbit:   "254e2695"                                # = v1.8.15 exacto (contiene server/v0.10.10, agent/v0.6.10, proto/v0.4.2, quarkbridge/v0.4.10, quarkdatasource/v0.2.19 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
+  quark:   "51f30bc1"                                # = v1.8.0 exacto
+  nucleus: "c9c4f30e"                                # = v1.22.0 exacto (y = providers/ldap/v0.2.4: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)
+  orbit:   "ab1ef878"                                # = v1.8.14 exacto (contiene server/v0.10.9, agent/v0.6.9, proto/v0.4.2, quarkbridge/v0.4.9, quarkdatasource/v0.2.18 como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
