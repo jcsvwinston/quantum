@@ -8,12 +8,14 @@
 #   1. trae tags en los submódulos quark/nucleus/orbit,
 #   2. mueve cada submódulo al último tag semver publicado (o al que se pase:
 #      bump-set.sh [quark_tag] [nucleus_tag] [orbit_tag]),
-#   3. reescribe en versions.yaml: modules (3), orbit_modules (5) y
-#      nucleus_modules (1) —todos leídos del .release-please-manifest.json del
-#      repo correspondiente AL PIN, no de tags sueltos— y workspace_pins (3,
-#      SHAs cortos con el comentario de ancestría regenerado),
-#   4. actualiza las versiones de las tablas del README (pilares + módulos de
-#      integración).
+#   3. reescribe en versions.yaml: modules (3) y los bloques de módulos
+#      hermanos (quark_modules, nucleus_modules, orbit_modules — REGENERADOS
+#      enteros desde el .release-please-manifest.json del repo AL PIN, no de
+#      tags sueltos) y workspace_pins (3 SHAs cortos, con el comentario de
+#      ancestría regenerado desde el manifiesto completo: TODOS los módulos
+#      hermanos que el tag de la raíz contiene, no solo uno),
+#   4. actualiza las versiones de las tablas del README (pilares + los cinco
+#      módulos hermanos de orbit).
 #
 # NO toca: quantum (versión de suite), released, status, notes, CHANGELOG.
 # Certificar sigue siendo una decisión humana: sube la versión de suite según
@@ -41,20 +43,39 @@ NS=$(git -C nucleus rev-parse --short=8 HEAD)
 OS=$(git -C orbit rev-parse --short=8 HEAD)
 
 # Versiones de los módulos de orbit, leídas del manifest AL PIN (no de tags
-# sueltos): es lo que el tag del root realmente contiene.
+# sueltos): es lo que el tag del root realmente contiene. Se usan para las
+# filas de la tabla de orbit del README.
 read -r O_PROTO O_AGENT O_SERVER O_QB O_QDS <<<"$(python3 -c "
 import json
 m=json.load(open('orbit/.release-please-manifest.json'))
 print('v'+m['proto'],'v'+m['agent'],'v'+m['server'],'v'+m['quarkbridge'],'v'+m['quarkdatasource'])")"
 
-# Idem para el módulo hermano de nucleus. Su tag DEBE salir del mismo commit
-# que el de la raíz (manifest-guard §3b: un tag de módulo cortado después del
-# de la raíz no es certificable), así que se lee del manifiesto al pin y no
-# del último tag publicado.
+# Comentario de ancestría del pin de un repo: TODOS los módulos hermanos del
+# manifiesto al pin, con la versión que ese manifiesto declara. Hasta la
+# auditoría 2026-09-03 (QM-8) el comentario de nucleus nombraba solo
+# providers/ldap con doce módulos en el tag, y el de quark ninguno con cinco.
+# El tag de cada módulo DEBE salir del mismo commit que el de la raíz
+# (manifest-guard §3b: un tag de módulo cortado después del de la raíz no es
+# certificable), y eso es exactamente lo que este comentario afirma.
+pin_comment() {
+  local repo=$1 tag=$2
+  python3 - "$repo" "$tag" <<'PYEOF'
+import json, sys
+repo, tag = sys.argv[1], sys.argv[2]
+man = json.load(open(f'{repo}/.release-please-manifest.json'))
+mods = [f'{k}/v{v}' for k, v in sorted(man.items()) if k != '.']
+if not mods:
+    print(f'= {tag} exacto')
+else:
+    print(f'= {tag} exacto (contiene {", ".join(mods)} como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)')
+PYEOF
+}
+
 # Los bloques de módulos hermanos se REGENERAN enteros, no se parchean línea a
 # línea: un módulo nuevo tiene que aparecer solo. Escribir aquí una lista fija
 # es el fallo que dejó once módulos en el árbol sin entrada en release-please
-# —existían, y nada de lo que enumera módulos lo sabía—.
+# —existían, y nada de lo que enumera módulos lo sabía—. Las versiones se
+# leen del manifiesto AL PIN, no del último tag publicado (manifest-guard §3b).
 regen_module_block() {
   local repo=$1 section=$2
   python3 - "$repo" "$section" <<'PYEOF'
@@ -79,12 +100,11 @@ print(f"  {section}: {len(lines)} módulos")
 PYEOF
 }
 
-N_LDAP=$(python3 -c "
-import json
-m=json.load(open('nucleus/.release-please-manifest.json'))
-print('v'+m['providers/ldap'])")
+Q_COMMENT=$(pin_comment quark "$QT")
+N_COMMENT=$(pin_comment nucleus "$NT")
+O_COMMENT=$(pin_comment orbit "$OT")
 
-export QT NT OT QS NS OS O_PROTO O_AGENT O_SERVER O_QB O_QDS N_LDAP
+export QT NT OT QS NS OS O_PROTO O_AGENT O_SERVER O_QB O_QDS Q_COMMENT N_COMMENT O_COMMENT
 python3 - <<'PY'
 import os, re
 e=os.environ
@@ -102,11 +122,9 @@ sub(r'^(  agent:           )"v[^"]+"', rf'\1"{e["O_AGENT"]}"')
 sub(r'^(  server:          )"v[^"]+"', rf'\1"{e["O_SERVER"]}"')
 sub(r'^(  quarkbridge:     )"v[^"]+"', rf'\1"{e["O_QB"]}"')
 sub(r'^(  quarkdatasource: )"v[^"]+"', rf'\1"{e["O_QDS"]}"')
-sub(r'^  quark:   "[0-9a-f]+"( +)#.*$', rf'  quark:   "{e["QS"]}"\1# = {e["QT"]} exacto')
-sub(r'^  nucleus: "[0-9a-f]+"( +)#.*$',
-    rf'  nucleus: "{e["NS"]}"\1# = {e["NT"]} exacto (y = providers/ldap/{e["N_LDAP"]}: los dos tags se cortaron en el MISMO commit, que es lo que permite certificar el módulo — ver manifest-guard §3b)')
-sub(r'^  orbit:   "[0-9a-f]+"( +)#.*$',
-    rf'  orbit:   "{e["OS"]}"\1# = {e["OT"]} exacto (contiene server/{e["O_SERVER"]}, agent/{e["O_AGENT"]}, proto/{e["O_PROTO"]}, quarkbridge/{e["O_QB"]}, quarkdatasource/{e["O_QDS"]} como ancestros — verificado por el manifest-guard §3/§3b en cada corrida de CI)')
+sub(r'^  quark:   "[0-9a-f]+"( +)#.*$', rf'  quark:   "{e["QS"]}"\1# {e["Q_COMMENT"]}')
+sub(r'^  nucleus: "[0-9a-f]+"( +)#.*$', rf'  nucleus: "{e["NS"]}"\1# {e["N_COMMENT"]}')
+sub(r'^  orbit:   "[0-9a-f]+"( +)#.*$', rf'  orbit:   "{e["OS"]}"\1# {e["O_COMMENT"]}')
 open(p,'w').write(s)
 
 p='README.md'; s=open(p).read()
@@ -118,8 +136,12 @@ def rsub(pat, rep):
 rsub(r'`v[\d.]+` \| \[`nucleus/`\]\(nucleus\)', f'`{e["NT"]}` | [`nucleus/`](nucleus)')
 rsub(r'`v[\d.]+` \| \[`quark/`\]\(quark\)', f'`{e["QT"]}` | [`quark/`](quark)')
 rsub(r'`v[\d.]+` \| \[`orbit/`\]\(orbit\)', f'`{e["OT"]}` | [`orbit/`](orbit)')
-rsub(r'(el feed vivo de Orbit \| )`v[\d.]+`', rf'\1`{e["O_QB"]}`')
-rsub(r'(el Data Studio de Orbit \| )`v[\d.]+`', rf'\1`{e["O_QDS"]}`')
+# La tabla única de módulos de orbit (QM-15): una fila por hermano, con su
+# versión — las mismas filas que manifest-guard §4b contrasta.
+for mod, ver in (('proto', e["O_PROTO"]), ('agent', e["O_AGENT"]), ('server', e["O_SERVER"]),
+                 ('quarkbridge', e["O_QB"]), ('quarkdatasource', e["O_QDS"])):
+    rsub(rf'(\[`orbit/{mod}`\]\(orbit/{mod}\) \| [^|]+\| )`v[\d.]+`', rf'\1`{ver}`')
+rsub(r'(\[`orbit/`\]\(orbit\) \(raíz\) \| [^|]+\| )`v[\d.]+`', rf'\1`{e["OT"]}`')
 open(p,'w').write(s)
 print('versions.yaml y README reescritos')
 PY

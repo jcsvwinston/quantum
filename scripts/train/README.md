@@ -17,7 +17,7 @@ queda fuera del escaneo anti-fósil a propósito (solo cubre `scripts/`,
 | `train.sh` | Driver por fases: `preflight → quark → nucleus → orbit → paraguas → cierre`. Imprime SIEMPRE qué va a hacer antes de hacerlo, para EN SECO al primer rojo, y donde hace falta juicio humano se detiene con la instrucción exacta (EXIT=2). `--dry-run` para ensayar; `--desde <fase>` para retomar. |
 | `merge-bot-pr.sh <repo> <pr>` | Fusiona UN release PR del bot: push humano de commit vacío (dispara el CI que el token del bot no puede), espera de checks con `gh pr checks --watch --fail-fast`, `update-branch` si queda BEHIND, merge con el método del repo, y espera del tag con receta de recuperación si release-please se atasca. |
 | `check-anchored-release-branch.sh <repo> [pr]` | Detecta la rama de release del ROOT anclada al main viejo: `git merge-base --is-ancestor` de cada último tag de módulo contra el head del PR. Si falla, imprime la receta cerrar + borrar rama + re-dispatch. Se ejecuta JUSTO ANTES de fusionar el root. |
-| `dispatch-app-bump.sh` | Anuncia el set YA certificado al consumidor externo `quantum-app` (`repository_dispatch` con el número de suite y la salida de `print-requires.sh`). Allí un workflow reescribe el pin, corre sus gates y abre un PR. Exige `status: certified` y que el tag de suite exista; no fusiona ni escribe nada en el otro repo. |
+| `dispatch-app-bump.sh` | Anuncia el set YA certificado al consumidor externo `quantum-app` (`repository_dispatch` con el número de suite y la salida de `print-requires.sh`), **espera el run** que provoca y **exige que termine en PR** (QM-2). Allí un workflow reescribe el pin, corre sus gates y abre el PR. Exige `status: certified` y que el tag de suite exista; no fusiona ni escribe nada en el otro repo. |
 
 ## El tren, paso a paso
 
@@ -50,18 +50,27 @@ esperar el tag.
 
 ### 2. nucleus
 
-Multi-módulo desde v1.15.0: el release PR de `providers/ldap` (si lo hay) se
-fusiona **antes** que el del root — manifest-guard §3b exige que el tag del
-módulo sea ancestro del pin raíz, y un tag de módulo cortado DESPUÉS del de la
-raíz no es certificable. Tras fusionar ldap, el PR del root puede quedar
-**anclado al main viejo**: `check-anchored-release-branch.sh nucleus` antes de
-fusionarlo (pasó en #391→#395).
+Multi-módulo desde v1.15.0 y con **doce hermanos** desde D3 (cinco drivers,
+dos exportadores, cinco providers). Con `separate-pull-requests: false` el bot
+abre UN PR («chore: release main») que corta el root y todos los módulos del
+mismo commit, y el driver lo trata como root. Si alguna vez vuelven los PRs
+por módulo, el driver los clasifica por título de forma **genérica** —
+cualquier `chore(main): release <ruta> X.Y.Z` es un módulo, sin lista escrita
+(QM-8) — y los ordena hojas → dependientes leyendo los `require` entre
+hermanos del `go.mod` de cada uno, root el último: manifest-guard §3b exige
+que el tag del módulo sea ancestro del pin raíz, y un tag de módulo cortado
+DESPUÉS del de la raíz no es certificable. Tras fusionar un módulo, el PR del
+root puede quedar **anclado al main viejo**: `check-anchored-release-branch.sh
+nucleus` antes de fusionarlo (pasó en #391→#395).
 
 ### 3. orbit
 
-Seis módulos con `separate-pull-requests` y manifest compartido. Orden:
-hojas → dependientes → **ROOT EL ÚLTIMO** (`proto` → `agent` → bump del pin de
-agent en server → `server` → `quarkbridge`/`quarkdatasource` → root). Trampas:
+Seis módulos con manifest compartido; desde D3 con
+`separate-pull-requests: false` (un solo PR «chore: release main», que el
+driver trata como root). Si vuelven los PRs por módulo, el orden lo calcula
+el driver desde los `require` entre hermanos: hojas → dependientes → **ROOT EL
+ÚLTIMO** (`proto` → `agent` → bump del pin de agent en server → `server` →
+`quarkbridge`/`quarkdatasource` → root). Trampas:
 
 - **Cascada DIRTY**: cada merge puede dejar los demás release PRs en conflicto
   por el `.release-please-manifest.json` compartido. A veces release-please
@@ -98,13 +107,43 @@ Tras fusionar el PR de re-pin (quantum usa MERGE COMMIT):
 4. `dispatch-app-bump.sh` — el consumidor EXTERNO de referencia se entera del
    set (D6/RT-5). Va aquí y no antes: `quantum-app` sigue al set **certificado**,
    nunca al mid-tren, y el script se niega si `versions.yaml` no dice
-   `status: certified` o si el tag `vX.Y.Z` no existe todavía. Si el dispatch
+   `status: certified` o si el tag `vX.Y.Z` no existe todavía. El script
+   **espera el run** de `set-bump.yml` y **exige el PR** `chore/set-X.Y.Z`
+   (ver «El anuncio a quantum-app exige un permiso del repo», abajo). Si
    falla no se pierde nada: el set ya está certificado y la pieza se relanza
    sola (`bash scripts/train/dispatch-app-bump.sh`) o se dispara a mano desde
    la pestaña Actions de quantum-app.
 5. El CIERRE de ronda se escribe con la plantilla de `AUDITORIA_CONTINUA.md`
    §6 (conteos COPIADOS de las tablas de las lanes) y se actualiza
    `docs/RUMBO.md`.
+
+### El anuncio a quantum-app exige un permiso del repo (REQUISITO)
+
+El workflow `set-bump.yml` de quantum-app abre el PR con el `GITHUB_TOKEN` de
+Actions, y GitHub se lo prohíbe por defecto: el dispatch de 1.26.0 se aceptó
+(HTTP 204), el run murió con **«GitHub Actions is not permitted to create or
+approve pull requests»**, la rama `chore/set-1.26.0` quedó sin PR y el tren
+dio el cierre por bueno porque el anuncio era fire-and-forget (QM-2).
+
+Requisito, una sola vez, **lo activa Carlos** en `jcsvwinston/quantum-app`:
+
+> Settings → Actions → General → Workflow permissions →
+> ☑ **Allow GitHub Actions to create and approve pull requests**
+
+(o, alternativamente, el secreto `QUANTUM_APP_PR_TOKEN` con un PAT: entonces
+el PR además dispara su propio CI — ver la trampa del PR sin checks, abajo).
+Se comprueba sin abrir el navegador:
+
+```bash
+gh api repos/jcsvwinston/quantum-app/actions/permissions/workflow
+# {"default_workflow_permissions":"read","can_approve_pull_request_reviews":true}  ← lo que hace falta
+```
+
+Desde QM-2 `dispatch-app-bump.sh` no confía en el 204: localiza el run creado
+tras el dispatch, lo espera (`gh run watch`) y decide por el PR — PR abierto
+es OK (en borrador si los gates salieron rojos: deuda de quantum-app); run
+verde sin PR es bump idempotente; run rojo sin PR es FAIL con la receta del
+permiso. `--sin-esperar` recupera el comportamiento antiguo para ensayos.
 
 ## Trampas transversales (por qué el driver hace lo que hace)
 
