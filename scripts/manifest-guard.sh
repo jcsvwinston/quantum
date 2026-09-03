@@ -277,20 +277,23 @@ for gomod in $(find nucleus quark orbit -name go.mod -not -path '*/examples/*' -
   fi
 done
 
-# 4b. The README's integration-modules table (DX-17) repeats quarkbridge and
-# quarkdatasource versions — hardcoded and unguarded, they drifted within one
-# train of being added. Each must equal the declared orbit_modules version.
-for mod in quarkbridge quarkdatasource; do
+# 4b. The README's orbit module table repeats the five sibling versions —
+# hardcoded, they drifted within one train of being added (DX-17, when only
+# the two bridges carried a version). Since the 2026-09-03 audit (QM-15) the
+# README has ONE table for orbit's five siblings, every row with its version,
+# and each must equal the declared orbit_modules version. bump-set.sh rewrites
+# the same rows.
+for mod in proto agent server quarkbridge quarkdatasource; do
   readme_v=$(grep "orbit/$mod\`" README.md | grep -o 'v[0-9][0-9.]*[0-9]' | head -1 || true)
   declared=$(yaml_value orbit_modules "$mod")
   if [[ -z "$readme_v" ]]; then
-    echo "FAIL: README.md — integration table row for $mod not found or carries no version" >&2
+    echo "FAIL: README.md — orbit module table row for $mod not found or carries no version" >&2
     status=1
   elif [[ "$readme_v" != "$declared" ]]; then
-    echo "FAIL: README.md integration table says $mod $readme_v but versions.yaml declares $declared" >&2
+    echo "FAIL: README.md orbit module table says $mod $readme_v but versions.yaml declares $declared" >&2
     status=1
   else
-    echo "OK: README integration table — $mod $readme_v matches orbit_modules"
+    echo "OK: README orbit module table — $mod $readme_v matches orbit_modules"
   fi
 done
 

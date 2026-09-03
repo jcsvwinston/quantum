@@ -30,21 +30,25 @@ Los guards de producto corren **al pin** — el submódulo tal y como lo fija
 significa que el set que el manifiesto certifica no pasa sus propios guards,
 que es exactamente lo que reportaría un auditor.
 
-Registro actual (27 guards — la cifra canónica NO es esta prosa, es el
+Registro actual (31 guards — la cifra canónica NO es esta prosa, es el
 registro: `source scripts/lib/guard-registry.sh && guard_names | wc -l`. Esta
-tabla es descriptiva y ya fue una por detrás del registro real una vez
-(DI-14/RT-10: decía «25» y omitía `orbit-versioned-markers`); al registrar un
-guard, añadir aquí su fila en el mismo PR):
+tabla es descriptiva y ya fue por detrás del registro real dos veces
+(DI-14/RT-10: decía «25» y omitía `orbit-versioned-markers`; QM-11: decía
+«27» y omitía `orbit-adr-index`); al registrar un guard, añadir aquí su fila
+en el mismo PR, y comprobar la cifra con el comando de arriba):
 
 | Guard | Repo | Comando | Qué caza |
 |---|---|---|---|
-| umbrella-manifest-guard | paraguas | `bash scripts/manifest-guard.sh` | Manifiesto afirmando lo que git no respalda: pin ↔ tag ↔ gitlink (§1–§2), tags de módulo de orbit contra el root pinado (§3), tabla del README (§4), lags cross-repo no declarados (§5). |
+| umbrella-manifest-guard | paraguas | `bash scripts/manifest-guard.sh` | Manifiesto afirmando lo que git no respalda: pin ↔ tag ↔ gitlink (§1–§2), tags de los módulos hermanos de los tres repos —DESCUBIERTOS del árbol— contra el root pinado (§3/§3b), tablas del README (§4/§4b), lags cross-repo no declarados (§5). |
 | umbrella-served-jargon | paraguas | `bash scripts/check_served_jargon.sh website/build` | Jerga interna (ADR-nnn, P0…, IDs de hallazgo QK/NU/OR/QMn-n) en el HTML **servido**, tras el build. |
 | umbrella-sidebar-sync | paraguas | `bash scripts/check_sidebar_sync.sh` | Sidebars espejadas (nucleus/quark) desincronizadas del sidebar del submódulo pinado; parser sin ids = FAIL, no verde-vacío (QM8-3). |
 | umbrella-suite-tag | paraguas | `bash scripts/check_suite_tag.sh` | Tag de suite que no respalda lo que afirma. **Autoconsistencia (asserts 2-4):** `v<quantum>` inexistente sin estar mid-tren, versions.yaml del tag declarando otra versión, o gitlinks del tag ≠ workspace_pins del tag (QM8-6). **Captura (assert 5, MAQ-1/B.1):** gitlinks del tag ≠ gitlinks/workspace_pins de HEAD — un tag rancio pero autoconsistente (cortado antes del re-pin) que los asserts 2-4 no cazan. El assert 5 solo se exige al certificar (`--cierre`/`QUANTUM_CERTIFYING=1`) o con tag==HEAD; la lane semanal tolera HEAD>tag entre arcos. En certificación, además, el mid-tren sin tag es NO-PASA (MAQ-2/B.2). |
 | umbrella-built-links | paraguas | `bash scripts/check_built_links.sh website/build` | Enlaces del sitio **construido** que no resuelven: los `href` a nuestros repos se comprueban contra el checkout local (sin red, sin 429) y los internos contra el HTML generado. Docusaurus no mira los externos — así vivieron meses los «Edit this page» rotos de las tres instancias. |
 | umbrella-built-codeblocks | paraguas | `bash scripts/check_built_codeblocks.sh website/build` | Bloques de código VACÍOS en el HTML **servido**: una fence ```` ```lang file=… ```` sin resolver (remark-code-import descableado en el ensamblaje) se publica como `<code></code>` y el build sale verde — así salió el quickstart de nucleus con sus 3 bloques vacíos en todas las versiones (SD-01). |
 | umbrella-exit0-regressions | paraguas | `bash scripts/check_exit0_regressions.sh` | Los repros «exit 0 sin efecto» del informe DX (§4.A): comandos que fracasaban con éxito aparente, ejercidos contra el árbol al pin. |
+| umbrella-rumbo-estado | paraguas | `bash scripts/check_rumbo_estado.sh` | La cabecera «Estado real» de `docs/RUMBO.md` nombra el set que `versions.yaml` certifica (versión de suite y los tres pilares). En 1.26.0 se quedó un set atrás mientras su propio §1 decía 1.26.0 (QM-6). |
+| umbrella-gowork-covers-manifest | paraguas | `bash scripts/check_gowork_covers_manifest.sh` | El `go.work` cubre TODO módulo publicable: raíz de cada repo, todo `go.mod` del árbol (salvo `examples/`, `benchmarks/`, `bugbash/`) y toda clave de `*_modules` del manifiesto. Iba diez módulos por detrás del set y `go build` con módulos de menos sale con EXIT=0 (QM-7). |
+| umbrella-retired-claims | paraguas | `bash scripts/check_retired_claims.sh website/build` | Afirmaciones RETIRADAS («-tags mssql», «build tags», «single Go module», «Nine modules») en el HTML **servido** como vigente — hermano de served-jargon (C8). Snapshots versionados y release notes fuera del gate con porqué; excepción auto-expirante ligada al pin de nucleus ≤ v1.23.0 (mismo mecanismo que el token ADR-010 de served-jargon). |
 | nucleus-version-claims | nucleus | `bash scripts/ci/check_version_claims.sh` | Marcadores `x-release-please-version` desalineados, directivas Go del scaffold, estados README↔inventario. |
 | nucleus-product-voice | nucleus | `bash scripts/ci/check_docs_product_voice.sh` | Vocabulario interno en `website/docs/**`. |
 | nucleus-contract-freeze | nucleus | `bash scripts/ci/check_contract_freeze.sh` | Removals en los contratos congelados (CLI, config, símbolos estables) + firewall de tipos. |
@@ -65,6 +69,7 @@ guard, añadir aquí su fila en el mismo PR):
 | orbit-internal-pins | orbit | `bash scripts/ci/check_internal_pins.sh` | Pins entre módulos hermanos por detrás del último tag publicado. |
 | orbit-docs-archive | orbit | `bash scripts/ci/check_docs_archive_freshness.sh` | Archivo versionado por detrás de lo publicado. Orbit versiona desde v1.6.7; antes servía siempre su doc actual. |
 | orbit-versioned-markers | orbit | `bash scripts/ci/check_versioned_docs_markers.sh` | Un snapshot versionado que anuncia una versión ajena — mismo guard que en nucleus/quark, y por el mismo defecto real: los snapshots 1.7.0 y 1.8.0 de orbit anunciaban «current release v1.6.7» y «v1.7.4» en producción. Entra al set con orbit v1.8.11 (arco de deuda QCD). |
+| orbit-adr-index | orbit | `bash scripts/ci/check_adr_index.sh` | ADRs del directorio ausentes del índice, y enlaces del índice que no resuelven — gemelo del guard de nucleus, portado cuando orbit ganó actas retroactivas. Entra al set con orbit v1.8.14. |
 
 Notas operativas:
 
@@ -107,9 +112,10 @@ Notas operativas:
     posiblemente drifteado y eso es legítimo, así que fuera de esos casos NO se
     fuerza (romper ahí pondría roja la lane semanal en un estado válido).
 - **Escapes documentados** (solo a mitad de ronda, nunca en el cierre):
-  - `QUANTUM_ALLOW_DECLARED_LAGS=1` — tolera `declared_lags` no vacío. El CI
-    lo lleva puesto **hasta el tren de la 7ª** (el tren alinea los requires y
-    vacía la lista); al re-pinar hay que quitarlo del workflow.
+  - `QUANTUM_ALLOW_DECLARED_LAGS=1` — tolera `declared_lags` no vacío. Solo
+    a mitad de ronda, y solo mientras el tren no haya alineado los requires:
+    el workflow NO lo lleva puesto (la lista está vacía desde Quantum 1.8.0)
+    y un PR de re-pin lo quita si alguien lo puso.
   - `QUANTUM_SKIP_BUILD=1` — reutiliza `website/build` existente para iterar
     en local. En CI siempre se construye.
   - `QUANTUM_ALLOW_DIRTY=1` (QM8-5) — tolera árbol sucio SOLO en local, para

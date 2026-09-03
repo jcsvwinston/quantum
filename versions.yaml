@@ -9,12 +9,14 @@ released: 2026-09-03
 status: certified           # Arco D3 publicado: drivers, exportadores y backends de nube salen a módulos opcionales. El hola-mundo de nucleus pasa de 75,6 MB a 19 y de 346 módulos a 87; la biblioteca de quark, de 24 MB a 6
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
-# `go get`). Los tres pilares en el bloque «modules», los seis módulos del
-# repo orbit en «orbit_modules» — ambos machine-readable (DX-25): manifest-guard verifica
-# las 9 contra los tags del pin, y scripts/print-requires.sh emite el bloque
-# require pegable. El pin del root de quarkdatasource lag ≤1 minor
-# topológicamente forzado, tolerado por el guard extendido, ceñido al único
-# borde root↔quarkdatasource por MAQ-3.
+# `go get`). Los tres pilares en el bloque «modules»; los módulos hermanos de
+# cada repo en «quark_modules», «nucleus_modules» y «orbit_modules» — todos
+# machine-readable (DX-25): manifest-guard verifica TODOS los bloques contra
+# los tags del pin (los hermanos los DESCUBRE del árbol), y
+# scripts/print-requires.sh emite el bloque require pegable con la ruta de
+# cada módulo resuelta del árbol. El pin del root de quarkdatasource lag ≤1
+# minor topológicamente forzado, tolerado por el guard extendido, ceñido al
+# único borde root↔quarkdatasource por MAQ-3.
 modules:
   quark:   "v1.10.0"
   nucleus: "v1.23.0"
