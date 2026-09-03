@@ -133,6 +133,39 @@ Tras fusionar el PR de re-pin (quantum usa MERGE COMMIT):
   vieja sin componente + rama nueva): cerrar el de la rama vieja y borrar la
   rama.
 
+### El orden dentro del tren: qué va ANTES del corte
+
+Tres cosas tienen que estar DENTRO del tag y las tres parecen posteriores. La
+certificación las caza, pero entonces cuestan una ronda entera por repo — en
+el tren de 1.26.0 costaron tres.
+
+**1. El snapshot de documentación y las notas de la versión.** El sitio sirve
+la doc del TAG PINADO, así que un snapshot añadido después del corte no llega
+al lector hasta la release siguiente. release-please bumpa el marcador de
+versión; la narrativa la escribe una persona. Ambos van **en la rama del
+release**, y en este orden: primero las notas, después el snapshot — al revés
+se archiva una versión anunciando otra, que es lo que rechaza
+`check_versioned_docs_markers.sh`. Mordió con quark: el snapshot de v1.9.0 se
+cortó en un PR fusionado DESPUÉS del release y hubo que gastar una minor
+entera (v1.10.0) para meterlo.
+
+**2. El pin del módulo hermano dentro del mismo repo.** `align_set.sh` corre
+ANTES del corte, así que fija el hermano al tag entonces vigente — y el corte
+publica el siguiente acto seguido. En orbit eso deja `server` pinando un
+`agent` viejo, y ahí el desfase SÍ importa: `go install
+.../admin-server@server/vX` resuelve el agent que server pina y no hay ningún
+otro consumidor que suba el suelo, así que el binario se lleva el agent viejo.
+(Distinto del suelo de un módulo hacia su PROPIA raíz, que es un aviso: allí
+MVS sube la versión porque el consumidor requiere también la raíz.)
+
+**3. Y el más sutil: arreglar SÓLO un módulo no corta el root.** Un
+`fix(server):` que toca únicamente `server/` hace que release-please proponga
+`server/vX` a secas — un tag que saldría DESPUÉS del root pinado, y §3b lo
+rechaza por definición. El módulo queda colgando por delante del set, sin
+forma de certificarlo. Se arregla con un cambio que pertenezca al paquete
+RAÍZ en el mismo tren (las notas de la versión valen, el sitio es del root) y
+un `Release-As:` en el footer, para que los dos tags salgan del mismo commit.
+
 ### El tag de un módulo Go lleva BARRA, no guion
 
 `tag-separator` decide si el tag sale `drivers/mysql/v0.1.0` o
@@ -183,6 +216,17 @@ UNA corrida de CI, y **todos los tags salen del mismo commit** — con lo que
 la regla de ancestría de `manifest-guard §3b` se cumple por construcción en
 vez de por verificación manual. Es donde el tren de quark tropezó con una
 rama rancia en este mismo ciclo.
+
+**La contrapartida, y muerde fuerte**: con un PR único, `Release-As:` se aplica
+a **TODOS los paquetes**, no sólo al root. Un footer puesto para forzar el
+corte de la raíz publicó `quarkbridge` como `1.8.17` viniendo de `0.4.10` — un
+major inventado para un módulo que sólo cambiaba un pin.
+
+Para forzar el corte del root sin efectos laterales: un commit `fix:` que
+toque un fichero del paquete RAÍZ (las notas de la versión valen: el sitio es
+del root) y **sin** footer — eso ya bumpea la raíz sola. El `Release-As` queda
+para cuando hay que fijar un NÚMERO concreto, y entonces hay que revisar el
+manifiesto del release PR antes de fusionarlo.
 
 ### Al enlazar un driver en un test, importa el MÓDULO
 
