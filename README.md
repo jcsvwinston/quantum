@@ -30,16 +30,16 @@ uno, qué rol juega en la suite y cómo encajan.
 
 | Pilar | Rol en la suite | Módulo Go | Versión | Submódulo | Uso en solitario |
 |---|---|---|---|---|---|
-| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.22.0` | [`nucleus/`](nucleus) | Sí (base de apps) |
-| **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.8.0` | [`quark/`](quark) | **Sí, en cualquier app Go** |
-| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.8.14` | [`orbit/`](orbit) | No (requiere Nucleus) |
+| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.23.0` | [`nucleus/`](nucleus) | Sí (base de apps) |
+| **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.10.0` | [`quark/`](quark) | **Sí, en cualquier app Go** |
+| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.8.17` | [`orbit/`](orbit) | No (requiere Nucleus) |
 
 Módulos de integración (repo orbit, opt-in; son los que materializan el puente quark↔orbit):
 
 | Módulo | Rol | Versión |
 |---|---|---|
-| `github.com/jcsvwinston/orbit/quarkbridge` | Publica los statements de Quark en el feed vivo de Orbit | `v0.4.9` |
-| `github.com/jcsvwinston/orbit/quarkdatasource` | Expone los modelos Quark en el Data Studio de Orbit | `v0.2.18` |
+| `github.com/jcsvwinston/orbit/quarkbridge` | Publica los statements de Quark en el feed vivo de Orbit | `v1.8.17` |
+| `github.com/jcsvwinston/orbit/quarkdatasource` | Expone los modelos Quark en el Data Studio de Orbit | `v1.8.17` |
 
 **¿Por dónde empiezo?** Solo la capa de datos → Quark. Una aplicación → Nucleus (Quark opcional dentro). Los tres juntos → el [ejemplo integrador `showcase_demo`](https://github.com/jcsvwinston/nucleus/tree/main/examples/showcase_demo) los cablea de punta a punta en ~30 minutos, `curl`s incluidos. Orbit siempre requiere Nucleus.
 
@@ -68,7 +68,7 @@ flowchart TD
 
 ---
 
-## Nucleus — framework web · submódulo [`nucleus/`](nucleus)
+## Nucleus — framework web · submódulo [`nucleus/`](nucleus) (multi-módulo)
 
 Framework web **MVC/REST** para Go, *stdlib-first*: `net/http`, `database/sql`,
 `log/slog` y `context` son el sustrato; el resto se añade detrás de adaptadores
@@ -104,7 +104,7 @@ Enlaces: [repo](https://github.com/jcsvwinston/nucleus) ·
 
 ---
 
-## Quark — ORM · submódulo [`quark/`](quark)
+## Quark — ORM · submódulo [`quark/`](quark) (multi-módulo)
 
 ORM **type-safe** para Go: usa genéricos en la superficie para acabar con los
 casts a `interface{}`, y genera SQL idiomático para **seis motores** por debajo.
@@ -134,6 +134,30 @@ Enlaces: [repo](https://github.com/jcsvwinston/quark) ·
 [godoc](https://pkg.go.dev/github.com/jcsvwinston/quark).
 
 ---
+
+## Lo que se instala aparte (desde Quantum 1.26.0)
+
+Los tres productos son **multi-módulo**: lo que una aplicación no usa no viaja
+dentro del framework. Un hola-mundo de Nucleus pasó de 75,6 MB a 19, y la
+biblioteca de Quark de 24 MB a 6.
+
+| Necesitas | Añade |
+| --- | --- |
+| PostgreSQL, MySQL, SQLite, SQL Server u Oracle en Nucleus | `nucleus/drivers/{postgres,mysql,sqlite,mssql,oracle}` |
+| Lo mismo en Quark | `quark/drivers/{postgres,mysql,sqlite,mssql,oracle}` |
+| S3 (o compatible), Google Cloud Storage, Azure Blob | `nucleus/providers/storage-{s3,gcs,azure}` |
+| AWS Secrets Manager | `nucleus/providers/secrets-aws` |
+| Un directorio LDAP | `nucleus/providers/ldap` |
+| Empujar trazas y métricas a un colector, o ser scrapeado | `nucleus/exporters/{otlp,prometheus}` |
+
+**La configuración no cambia**: lo único nuevo es un `import _` del módulo, y
+`nucleus add <nombre>` hace el `go get` y lo escribe. Si falta, el arranque
+para y el error trae las dos líneas exactas — nunca cae en silencio a otro
+backend.
+
+Los diecisiete se declaran en `versions.yaml` (`nucleus_modules`,
+`quark_modules`, `orbit_modules`) y `manifest-guard` los DESCUBRE del árbol,
+así que un módulo nuevo entra al set solo.
 
 ## Orbit — admin · submódulo [`orbit/`](orbit) (multi-módulo)
 

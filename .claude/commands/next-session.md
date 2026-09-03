@@ -47,7 +47,85 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-08-31, arco D3 en marcha sobre el set 1.25.0)
+## 3. Estado al cierre (2026-09-02, QUANTUM 1.26.0 — el arco D3 publicado)
+
+### Sesión 2026-09-01/02 — D3 completo: drivers, exportadores y backends de nube fuera del framework
+
+- **SET**: quark **v1.10.0** (+ `drivers/{postgres,mysql,sqlite,mssql,oracle}
+  v0.1.0`) · nucleus **v1.23.0** (+ once módulos en v0.1.0: cinco drivers, dos
+  exportadores, `providers/{storage-s3,storage-gcs,storage-azure,secrets-aws}`;
+  `providers/ldap` sigue en v0.2.4) · orbit **v1.8.16** (agent v0.6.10, server
+  v0.10.11, quarkbridge v0.4.10, quarkdatasource v0.2.19, proto v0.4.2).
+- **Los dos objetivos del arco, cumplidos con margen.** Hola-mundo de nucleus
+  (`pkg/app` y nada más): **75,6 → 19 MB · 1008 → 349 paquetes · 346 → 87
+  módulos**. Biblioteca de quark: **24 → 6 MB · 304 → 159 · 171 → 129**.
+  ADR-030 y ADR-031 en nucleus, ADR-0023 en quark.
+- **La configuración NO cambia.** Lo único nuevo es un import en blanco;
+  `nucleus add <nombre>` hace el `go get` y lo escribe, y desde quark v1.10.0
+  el error guiado existe en los dos productos. Mueren los build tags
+  `mssql`/`oracle`, que nada en el código mencionaba.
+- **Lo que la medición corrigió del plan** (cuatro suposiciones razonables y
+  falsas): `asynq` ya no estaba en el grafo; los 57 paquetes de AWS entraban
+  por el gestor de secretos y no por storage; gRPC lo mete el exportador
+  **HTTP** de OTLP; y protobuf lo mete **Prometheus**, no OTLP.
+- **El diseño que importa**: un módulo de driver registra el driver **y** el
+  clasificador de errores, porque un clasificador ausente **no falla —
+  contesta `false`**. El gate de seis motores de quark lo reprodujo en vivo
+  (5 motores en rojo, PostgreSQL en verde porque clasifica por el método
+  `SQLState()` sin registro), y un test de orbit contra motor real lo volvió a
+  cazar en un consumidor de terceros.
+- **ÚNICO cambio de comportamiento: Prometheus.** Lo activaba `metrics_path`,
+  que tiene default, así que quien scrapea el `/metrics` por defecto lo pierde
+  hasta añadir `exporters/prometheus`. Avisa al arrancar y sigue; si la clave
+  estaba escrita a mano, para. Es lo único que el compilador no ve.
+
+**REGLA NUEVA, decidida con Carlos y COMPROBADA EN VIVO — no reabrir:**
+
+> El `require` de un módulo hermano es un **SUELO**, no un pin. Go resuelve al
+> máximo (MVS), así que un consumidor compila el módulo contra la raíz
+> certificada diga lo que diga su `go.mod`. Verificado con un consumidor real
+> contra el proxy: suelo `v1.21.0` → resuelto `v1.23.0`, compila.
+
+Por eso `manifest-guard` **avisa** en vez de fallar, y el aviso dice los días
+que lleva sin revisarse y la versión que lo deja al día. Lo que garantiza que
+funciona con la raíz certificada es la lane por módulo con `go work init`, que
+ya existe. **DURO sigue §3b: el TAG del módulo debe ser ancestro del pin** —
+eso MVS no lo arregla. Y el pin de un hermano DENTRO del mismo repo (server →
+agent en orbit) también es duro: ahí no hay nadie que suba el suelo, así que
+`go install` se llevaría el módulo viejo.
+
+**TRAMPAS NUEVAS DEL TREN** (las cinco en `scripts/train/README.md`):
+
+1. **Un `!` de más decide el major de la suite.** `feat(x)!:` propuso `2.0.0`
+   de nucleus por un cambio de EMPAQUETADO, y QADR-0002 habría arrastrado a
+   quark y orbit. Se fuerza con `Release-As` en un commit que toque un fichero
+   real, fusionando con `--subject/--body`.
+2. **Un módulo nuevo no sale publicado por existir**: hay que registrarlo en
+   `release-please-config.json` **y** en el manifiesto. Había **diez módulos en
+   nucleus y dos registrados**; los cuatro de nube llevaban un tramo entero
+   fusionados sin salir.
+3. **El tag de un módulo Go lleva BARRA.** Con guion, `go list -m` da `unknown
+   revision`. Se publicaron dos así y hubo que retirarlos.
+4. **Con muchos módulos, UN SOLO PR de release.** `separate-pull-requests` es
+   un bucle que no avanza: manifiesto compartido → conflicto en cascada, y los
+   release PR no disparan CI. Con PR único hay una corrida y **todos los tags
+   salen del mismo commit**, así que la ancestría se cumple por construcción.
+   Aplicado ya en nucleus y en orbit.
+5. **Qué va DENTRO del tag** (tres cosas que parecen posteriores y costaron
+   tres rondas): el snapshot de docs y las notas —notas primero, snapshot
+   después—; el pin del hermano, que `align_set.sh` no puede acertar porque
+   corre antes del corte; y lo más sutil, que **arreglar sólo un módulo no
+   corta el root**, así que su tag saldría por delante del set y §3b lo
+   rechaza.
+
+**Y la regla de los tests**: al enlazar un driver en un test, importar el
+**MÓDULO** y no el paquete del driver — el paquete registra el driver, el
+módulo registra también el clasificador. Corolario: una suite que sólo corre
+con motor real **no se ve en local**, porque se salta sin DSN.
+
+**Deuda anotada**: nucleus necesita el equivalente de
+`orbit/scripts/release/align_set.sh`.
+
 
 ### Sesión 2026-08-31 (c) — D3, primer tramo: los backends de nube salen del framework
 

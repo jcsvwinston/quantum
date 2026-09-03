@@ -217,36 +217,63 @@ for mod in . proto agent server quarkbridge quarkdatasource; do
   done
 done
 
-# 5b. Nucleus's own module requires the ROOT of its own repository, and that
-# edge cannot ever be perfectly current: any release that CONTAINS the
-# module's require statement is by definition later than it. It is the same
-# topological necessity orbit documents for its root↔quarkdatasource edge,
-# and it is NOT the cross-repo staleness declared_lags exists for — treating
-# it as such would make the set permanently uncertifiable.
+# 5b. A sibling module requires the ROOT of its own repository, and that edge
+# can never be perfectly current: any release that CONTAINS the module's
+# require statement is by definition later than it.
 #
-# So: equal to the certified version, or at most one release behind it. And
-# it AVISA while the lag exists rather than printing an "ok" line
-# indistinguishable from an up-to-date pin — that is exactly how orbit's
-# equivalent edge rotted for a whole cycle before anyone noticed.
-for gomod in nucleus/providers/ldap/go.mod; do
-  ver=$(awk -v p="github.com/jcsvwinston/nucleus" '$1 == p && $NF != "indirect" {print $2}' "$gomod")
-  if [[ -z "$ver" ]]; then
-    echo "FAIL: $gomod — no direct require of the framework it extends" >&2
-    status=1
-    continue
-  fi
-  want=$(yaml_value modules nucleus)
+# It used to FAIL beyond one release behind. It no longer does, and the reason
+# is worth writing down because the old rule cost a release round to fix a
+# number nothing reads:
+#
+#   A `require` is a FLOOR, not a pin. Go picks the maximum across the build
+#   (MVS), so an application using nucleus v1.23.0 together with
+#   providers/ldap compiles ldap against v1.23.0 whatever ldap's go.mod says.
+#   Verified with a real consumer against the public proxy, not reasoned:
+#   ldap's floor read v1.21.0 and the resolved version was v1.23.0.
+#
+# What actually matters — that the module builds and passes against the
+# CERTIFIED root — is proved by each repo's per-module CI lane, which links
+# the tree under review with `go work init` precisely so the module is tested
+# against the change and not against a published artefact. Measuring the floor
+# was measuring a proxy for that.
+#
+# What stays HARD is §3b above: the module's TAG must be an ancestor of the
+# pinned root. MVS does not fix that one — a tag cut after the root's is code
+# the certified set does not contain.
+#
+# So this is an AVISO, and it carries what makes it actionable: how long the
+# floor has gone unrevised, and the version that would clear it.
+for gomod in $(find nucleus quark orbit -name go.mod -not -path '*/examples/*' -not -path '*/website/*' -not -path '*/benchmarks/*' -not -path '*/bugbash/*' 2>/dev/null | grep -vE '^(nucleus|quark|orbit)/go.mod$'); do
+  repo=${gomod%%/*}
+  case "$repo" in
+    nucleus) parent="github.com/jcsvwinston/nucleus" ;;
+    quark)   parent="github.com/jcsvwinston/quark" ;;
+    orbit)   parent="github.com/jcsvwinston/orbit" ;;
+  esac
+  ver=$(awk -v p="$parent" '$1 == p && $NF != "indirect" {print $2}' "$gomod")
+  # A module that does not require its own root is not a gap: drivers that
+  # only register a database/sql driver need nothing from the framework.
+  [[ -z "$ver" ]] && continue
+
+  want=$(yaml_value modules "$repo")
   if [[ "$ver" == "$want" ]]; then
-    echo "OK: $gomod — nucleus $ver == certified"
+    echo "OK: $gomod — $repo $ver == certified"
     continue
   fi
-  # One release behind is the forced case; anything older is real staleness.
-  prev=$(git -C nucleus tag -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | grep -B1 -x "$want" | head -1)
+
+  # How long the floor has gone unrevised, measured from the tag it names.
+  when=$(git -C "$repo" log -1 --format=%cI "$ver" 2>/dev/null || true)
+  age="antigüedad desconocida"
+  if [[ -n "$when" ]]; then
+    days=$(( ( $(date +%s) - $(date -j -f '%Y-%m-%dT%H:%M:%S%z' "${when%%+*}+0000" +%s 2>/dev/null || date -d "$when" +%s 2>/dev/null || echo 0) ) / 86400 ))
+    [[ "$days" -ge 0 ]] && age="$days día(s) sin revisar"
+  fi
+
+  prev=$(git -C "$repo" tag -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | grep -B1 -x "$want" | head -1)
   if [[ "$ver" == "$prev" ]]; then
-    echo "AVISO: $gomod — nucleus $ver, one release behind the certified $want. Topologically forced (a root release cannot precede the require it contains), NOT undisclosed staleness. It is an aviso and not an ok line so the pin cannot rot unseen."
+    echo "AVISO: $gomod — $repo $ver, una release por detrás de la certificada $want ($age). Es el borde topológico forzado: una release del root no puede preceder al require que contiene. Se deja al día subiéndolo a $want en el tren siguiente."
   else
-    echo "FAIL: $gomod — requires nucleus $ver, more than one release behind the certified $want: that is staleness, not the forced root edge" >&2
-    status=1
+    echo "AVISO: $gomod — $repo $ver, VARIAS releases por detrás de la certificada $want ($age). El require es un SUELO y MVS resuelve al máximo, así que un consumidor compila igual contra $want; lo que sí falta es haberlo revisado. Se deja al día subiéndolo a $want."
   fi
 done
 
@@ -295,4 +322,4 @@ if [[ $status -ne 0 ]]; then
   exit 1
 fi
 
-echo "manifest-guard OK: pin ↔ tag ↔ gitlink agree for quark, nucleus, orbit — and the module tags of orbit (five) and nucleus (one) back the pinned roots"
+echo "manifest-guard OK: pin ↔ tag ↔ gitlink agree for quark, nucleus, orbit — and every sibling module tag DISCOVERED in the three trees backs its pinned root"
