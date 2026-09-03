@@ -5,6 +5,8 @@ sidebar_position: 2
 description: "One small app, all three pillars: scaffold a Nucleus app, mount the Orbit admin, put the domain on Quark, browse it in Data Studio and watch the SQL arrive in the live feed."
 ---
 
+import {GoInstallCLI} from '@site/src/components/CertifiedSet';
+
 # The suite in ~15 minutes
 
 By the end of this page you'll have one small application with all three
@@ -26,11 +28,10 @@ make three separate products behave like a suite.
 
 ## 0 — Prerequisites
 
-Go 1.26 or newer, and the Nucleus CLI:
+Go 1.26 or newer, and the Nucleus CLI at the certified tag (`@latest` can
+run ahead of the set this page was verified against):
 
-```bash
-go install github.com/jcsvwinston/nucleus/cmd/nucleus@latest
-```
+<GoInstallCLI />
 
 ## 1 — Scaffold a Nucleus app (2 min)
 
@@ -41,9 +42,29 @@ go mod tidy
 go run .
 ```
 
-`nucleus new` writes a minimal skeleton: a composition-root `main.go`,
-`nucleus.yml`, an RBAC policy file, and an empty `migrations/` directory.
-No feature code — the first module will be yours. It serves on port `8080`:
+`nucleus new` writes a minimal skeleton: a composition-root `main.go`
+(which already imports the SQLite driver module,
+`_ "github.com/jcsvwinston/nucleus/drivers/sqlite"`), `nucleus.yml`, an
+RBAC policy file, and an empty `migrations/` directory. No feature code —
+the first module will be yours. The startup log looks like this:
+
+```
+level=WARN msg="metrics are not being served: the Prometheus exporter is not linked into this binary" fix="run `nucleus add prometheus`, or go get github.com/jcsvwinston/nucleus/exporters/prometheus and import it for its side effect" why="the exporter moved to its own module so applications that are never scraped stop carrying it"
+level=INFO msg="otel initialized" service=nucleus-app otlp_enabled=false prometheus_enabled=true
+level=WARN msg="jwt: no signing material configured (jwt_keys empty and jwt_secret unset); App.JWT is nil — set jwt_secret or jwt_keys[] before issuing tokens. This is safe for read-only services that consume JWTs minted by an external IdP."
+level=INFO msg="RBAC enforcer initialized" policy_path=rbac_policy.csv
+level=INFO msg="storage provider initialized" provider=local
+level=INFO msg="nucleus: server listening" addr=0.0.0.0:8080 url=http://0.0.0.0:8080
+```
+
+:::note Two warnings, both harmless here
+The Prometheus one says the scaffold's default `metrics_path` has nothing
+to serve until you link the exporter module — `nucleus add prometheus` if
+you want `/metrics`, nothing otherwise. The JWT one only matters once you
+issue tokens. Neither stops the app.
+:::
+
+It serves on port `8080`:
 
 ```bash
 curl -s localhost:8080/healthz
@@ -257,7 +278,11 @@ import (
 	"github.com/jcsvwinston/nucleus/pkg/nucleus"
 	"github.com/jcsvwinston/orbit"
 	"github.com/jcsvwinston/quark"
-	_ "modernc.org/sqlite"
+
+	// One driver module per product: each registers the SQLite driver AND
+	// the classifier that tells that product how SQLite reports errors.
+	_ "github.com/jcsvwinston/nucleus/drivers/sqlite"
+	_ "github.com/jcsvwinston/quark/drivers/sqlite"
 
 	"example.com/blog/shop"
 )
@@ -305,10 +330,24 @@ func main() {
 ```
 
 ```bash
-go get github.com/jcsvwinston/quark modernc.org/sqlite
+go get github.com/jcsvwinston/quark github.com/jcsvwinston/quark/drivers/sqlite
+nucleus add sqlite    # already imported by the scaffold; harmless if repeated
 go mod tidy
 go run .
 ```
+
+:::note Why two driver modules, and why not `modernc.org/sqlite` directly
+Both products talk to the same file, and each ships its SQLite support as
+its own module: `nucleus/drivers/sqlite` for the app database that
+`nucleus.yml` configures, `quark/drivers/sqlite` for the Quark client. A
+driver module registers two things — the `database/sql` driver and the
+classifier that turns the engine's error codes into "unique violation",
+"deadlock", "transient connection". Importing the raw driver package
+(`_ "modernc.org/sqlite"`) compiles and runs, but silently skips the second
+half: a duplicate insert then comes back as a generic error instead of a
+`409`. If a driver module is missing, startup stops and the error prints the
+`go get` and the import to add.
+:::
 
 Try the API:
 
