@@ -4,15 +4,46 @@ toolchain go1.26.6
 
 // Conveniencia de desarrollo: enlaza los tres productos de la suite para
 // trabajarlos a la vez en local (mismo patrón que Orbit ya usa entre sus
-// cuatro módulos). Este go.work NO se publica como dependencia y NO debe tener
+// módulos). Este go.work NO se publica como dependencia y NO debe tener
 // equivalente `replace` en los go.mod de los productos: en release cada módulo
 // resuelve sus dependencias por tag real. La directiva `go` de arriba es la
 // más alta entre los módulos del workspace (se actualiza con ellos; no repetir
 // aquí el número, que ya quedó fósil una vez).
+//
+// QUÉ ENTRA: todo módulo PUBLICABLE del árbol — la raíz de cada repo y cada
+// módulo hermano que versions.yaml certifica (quark_modules, nucleus_modules,
+// orbit_modules). scripts/check_gowork_covers_manifest.sh exige que esta lista
+// cubra lo que el manifiesto declara y lo que el árbol contiene; el go.work
+// iba diez módulos por detrás del set (QM-7, auditoría 2026-09-03) y ningún
+// `go build` del CI compilaba los diecisiete módulos publicados.
+//
+// QUÉ SE EXCLUYE, a propósito:
+//   - quark/benchmarks y quark/bugbash: laboratorios del repo de quark con
+//     `replace ../` y pines propios (quark v0.10.0, go 1.25.7); no se
+//     publican, no están en su manifiesto de release y sus dependencias no
+//     forman parte del set.
+//   - nucleus/examples/*: aplicaciones de ejemplo, no módulos que nadie
+//     instala. La ÚNICA excepción es showcase_demo, que sigue aquí porque la
+//     lane showcase-smoke de integration.yml la compila y arranca en modo
+//     workspace (scripts/ci/showcase_smoke.sh) contra el set pinado.
+//
+// Los patrones de build por módulo salen de esta lista:
+//   go build $(bash scripts/gowork-patterns.sh)
 use (
 	./nucleus
+	./nucleus/drivers/mssql
+	./nucleus/drivers/mysql
+	./nucleus/drivers/oracle
+	./nucleus/drivers/postgres
+	./nucleus/drivers/sqlite
 	./nucleus/examples/showcase_demo
+	./nucleus/exporters/otlp
+	./nucleus/exporters/prometheus
 	./nucleus/providers/ldap
+	./nucleus/providers/secrets-aws
+	./nucleus/providers/storage-azure
+	./nucleus/providers/storage-gcs
+	./nucleus/providers/storage-s3
 	./orbit
 	./orbit/agent
 	./orbit/proto
@@ -20,4 +51,9 @@ use (
 	./orbit/quarkdatasource
 	./orbit/server
 	./quark
+	./quark/drivers/mssql
+	./quark/drivers/mysql
+	./quark/drivers/oracle
+	./quark/drivers/postgres
+	./quark/drivers/sqlite
 )
