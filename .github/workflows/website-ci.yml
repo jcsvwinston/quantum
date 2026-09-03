@@ -70,6 +70,19 @@ jobs:
       - name: Linter de jerga sobre lo servido
         run: bash scripts/check_served_jargon.sh website/build
 
+      # C8 (auditoría 2026-09-03): afirmaciones RETIRADAS («-tags mssql»,
+      # «build tags», «single Go module», «Nine modules») en el HTML servido
+      # como vigente — el sitio sirvió siete páginas de nucleus con los build
+      # tags que el set 1.26.0 retiró. Snapshots versionados y release notes
+      # fuera del gate con porqué (cabecera del script).
+      - name: Afirmaciones retiradas sobre lo servido
+        run: bash scripts/check_retired_claims.sh website/build
+
+      # SD-01: bloques de código VACÍOS en el HTML servido (fence file=… sin
+      # resolver) — el build sale verde igual.
+      - name: Bloques de código vacíos sobre lo servido
+        run: bash scripts/check_built_codeblocks.sh website/build
+
       # Docusaurus verifica sus enlaces internos, pero no mira los `<a href>`
       # externos: los «Edit this page» de las tres instancias estuvieron rotos
       # meses con el build en verde. Aquí se resuelven contra el checkout de
