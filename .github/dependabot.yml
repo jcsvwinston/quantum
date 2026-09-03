@@ -1,0 +1,32 @@
+# Dependabot del paraguas (C6, auditoría 2026-09-03). Aquí no hay go.mod
+# propio —el root del workspace no es un módulo— así que solo hay dos
+# ecosistemas que mantener: las Actions de los workflows y el npm del sitio.
+# Los módulos Go los vigila el CI de cada producto (govulncheck) y su propio
+# Dependabot.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore(ci)"
+    labels: [dependencies]
+
+  - package-ecosystem: npm
+    directory: /website
+    schedule:
+      interval: weekly
+      day: monday
+    # Docusaurus se sube a mano y de una vez (core + preset + theme + types van
+    # en lockstep); Dependabot solo propone el resto. Sin este ignore abriría
+    # un PR por paquete y ninguno compilaría solo.
+    ignore:
+      - dependency-name: "@docusaurus/*"
+    groups:
+      website-deps:
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore(website)"
+    labels: [dependencies]
