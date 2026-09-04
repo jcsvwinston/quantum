@@ -32,14 +32,12 @@ uno, qué rol juega en la suite y cómo encajan.
 |---|---|---|---|---|---|
 | **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.23.0` | [`nucleus/`](nucleus) | Sí (base de apps) |
 | **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.10.0` | [`quark/`](quark) | **Sí, en cualquier app Go** |
-| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ `/proto`, `/agent`, `/server`) | `v1.8.17` | [`orbit/`](orbit) | No (requiere Nucleus) |
+| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ cinco módulos hermanos, [tabla en §Orbit](#orbit--admin--submódulo-orbit-multi-módulo)) | `v1.8.17` | [`orbit/`](orbit) | No (requiere Nucleus) |
 
-Módulos de integración (repo orbit, opt-in; son los que materializan el puente quark↔orbit):
-
-| Módulo | Rol | Versión |
-|---|---|---|
-| `github.com/jcsvwinston/orbit/quarkbridge` | Publica los statements de Quark en el feed vivo de Orbit | `v1.8.17` |
-| `github.com/jcsvwinston/orbit/quarkdatasource` | Expone los modelos Quark en el Data Studio de Orbit | `v1.8.17` |
+Los tres son **multi-módulo**: además de la raíz, cada repo publica módulos
+hermanos (drivers, exportadores, providers, puentes) que se instalan aparte
+— [§Lo que se instala aparte](#lo-que-se-instala-aparte-desde-quantum-1260)
+y, para orbit, la tabla de [§Orbit](#orbit--admin--submódulo-orbit-multi-módulo).
 
 **¿Por dónde empiezo?** Solo la capa de datos → Quark. Una aplicación → Nucleus (Quark opcional dentro). Los tres juntos → el [ejemplo integrador `showcase_demo`](https://github.com/jcsvwinston/nucleus/tree/main/examples/showcase_demo) los cablea de punta a punta en ~30 minutos, `curl`s incluidos. Orbit siempre requiere Nucleus.
 
@@ -62,7 +60,7 @@ flowchart TD
     Q0["<b>Quantum</b> · repo paraguas<br/>versions.yaml · go.work<br/><i>coordina, no contiene</i>"]
     Q0 -. fija el trío .-> NU["<b>Nucleus</b><br/>framework web MVC/REST<br/>(el host)"]
     Q0 -. fija el trío .-> QU["<b>Quark</b><br/>ORM · 6 motores SQL<br/>(usable en solitario)"]
-    Q0 -. fija el trío .-> OR["<b>Orbit</b><br/>admin in-process<br/>(root · proto · agent · server)"]
+    Q0 -. fija el trío .-> OR["<b>Orbit</b><br/>admin in-process<br/>(raíz + proto · agent · server · quarkbridge · quarkdatasource)"]
     OR ==>|Mount in-process| NU
 ```
 
@@ -73,8 +71,10 @@ flowchart TD
 Framework web **MVC/REST** para Go, *stdlib-first*: `net/http`, `database/sql`,
 `log/slog` y `context` son el sustrato; el resto se añade detrás de adaptadores
 propios del framework para poder sustituirse sin romper el código de la app. Se
-distribuye como un único módulo Go con un único binario CLI (`nucleus`) y un
-panel de administración React embebido.
+distribuye como un módulo **core** más **doce módulos opcionales** —drivers de
+base de datos, exportadores de telemetría, backends de nube y LDAP— que una
+aplicación enlaza solo si los usa (`nucleus add <nombre>` hace el `go get` y
+escribe el import), y un único binario CLI (`nucleus`).
 
 - **Runtime stdlib-first** — sin Gin/Chi/Echo, sin GORM/Bun/Ent, sin zap/zerolog
   ([ADR-001](nucleus/docs/adrs/ADR-001-stdlib-first.md)).
@@ -88,7 +88,9 @@ panel de administración React embebido.
   `pkg/tasks`, `pkg/storage`, `pkg/signals`, `pkg/observe`… clasificados
   `stable`/`transitional`/`experimental` y congelados por tests de contrato.
 - **Multi-base de datos** — SQLite, PostgreSQL y MySQL son los carriles
-  requeridos; MSSQL y Oracle son exploratorios tras build tags.
+  requeridos; SQL Server y Oracle, exploratorios. Cada motor es un módulo
+  aparte (`nucleus/drivers/<motor>`): sin build tags, y sin driver en el
+  binario el arranque para con el `go get` y el import que faltan.
 - **Multi-tenant y multi-site** — resolución de tenant por subdominio o cabecera,
   aislamiento de BD por tenant, prefijado de storage, rate limiting por tenant.
 - **Profundidad operativa** — outbox transaccional con dispatcher por leasing,
@@ -177,15 +179,19 @@ Orbit lee lo que necesita del `Runtime` de la app en marcha y sirve su SPA React
   **overview/health**.
 
 Es **multi-módulo** (de ahí las entradas extra en el `go.work`): la mayoría de
-apps solo necesitan el módulo raíz; los otros tres habilitan observabilidad de
-flota (*cluster*):
+apps solo necesitan el módulo raíz. Tres hermanos habilitan observabilidad de
+flota (*cluster*) y dos son los puentes opt-in que materializan quark↔orbit.
+Las versiones son las del set certificado (`orbit_modules` en
+`versions.yaml`; `manifest-guard` §4b las contrasta):
 
-| Módulo | Rol |
-|---|---|
-| [`orbit/`](orbit) (raíz) | Panel de admin in-process montado en la app Nucleus. |
-| [`orbit/proto`](orbit/proto) | Contrato Connect-RPC + stubs generados (Go y TypeScript). |
-| [`orbit/agent`](orbit/agent) | Agente in-process que embebe en cada proceso del framework y envía eventos a un servidor de admin por un stream bidi. |
-| [`orbit/server`](orbit/server) | Binario de servidor de admin independiente que recibe esos eventos y sirve la UI. |
+| Módulo | Rol | Versión |
+|---|---|---|
+| [`orbit/`](orbit) (raíz) | Panel de admin in-process montado en la app Nucleus. | `v1.8.17` |
+| [`orbit/proto`](orbit/proto) | Contrato Connect-RPC + stubs generados (Go y TypeScript). | `v0.4.2` |
+| [`orbit/agent`](orbit/agent) | Agente in-process que embebe en cada proceso del framework y envía eventos a un servidor de admin por un stream bidi. | `v0.6.10` |
+| [`orbit/server`](orbit/server) | Binario de servidor de admin independiente que recibe esos eventos y sirve la UI. | `v0.10.11` |
+| [`orbit/quarkbridge`](orbit/quarkbridge) | Publica los statements de Quark en el feed vivo de Orbit | `v1.8.17` |
+| [`orbit/quarkdatasource`](orbit/quarkdatasource) | Expone los modelos Quark en el Data Studio de Orbit | `v1.8.17` |
 
 **Rol en la suite:** es el **admin** que monta sobre Nucleus; **depende de
 Nucleus**. Se extrajo del core del framework
@@ -224,16 +230,20 @@ El número Quantum nunca sustituye al `vX.Y.Z` real de cada módulo. Detalle en
 git clone --recurse-submodules https://github.com/jcsvwinston/quantum.git
 cd quantum
 
-# Compila el trío fijado. El root del workspace no es un módulo Go, así que se
-# pasa un patrón explícito por cada módulo del go.work — los diez: un módulo
-# anidado (showcase_demo, providers/ldap, quarkbridge…) es un módulo aparte y
-# NO lo cubre el patrón de su padre (./nucleus/... compila 1 de los 3 módulos
-# de nucleus y sale igualmente con EXIT=0):
-go build ./quark/... \
-  ./nucleus/... ./nucleus/examples/showcase_demo/... ./nucleus/providers/ldap/... \
-  ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/quarkbridge/... \
-  ./orbit/quarkdatasource/... ./orbit/server/...
+# Compila el set fijado. El root del workspace no es un módulo Go, así que se
+# pasa un patrón explícito por cada módulo del go.work — un módulo anidado
+# (drivers/sqlite, providers/ldap, quarkbridge…) es un módulo aparte y NO lo
+# cubre el patrón de su padre (./nucleus/... compila 1 de los 14 módulos de
+# nucleus y sale igualmente con EXIT=0). Los patrones salen del propio go.work:
+go build $(bash scripts/gowork-patterns.sh)
 ```
+
+El `go.work` enlaza **todo módulo publicable** del árbol (la raíz de cada repo
+y los módulos hermanos que `versions.yaml` certifica); lo exige
+`scripts/check_gowork_covers_manifest.sh`. Quedan fuera, con su porqué en el
+propio fichero, los laboratorios de quark (`benchmarks/`, `bugbash/`) y las
+aplicaciones de ejemplo — salvo `showcase_demo`, que la lane de integración
+arranca en modo workspace.
 
 El `go.work` es una conveniencia de desarrollo: **no se publica** como dependencia
 y no tiene equivalente `replace` en los `go.mod` de los productos. En release,

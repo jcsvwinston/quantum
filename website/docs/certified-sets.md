@@ -13,31 +13,55 @@ someone regularly picks a trio of versions, tests them together, and
 publishes the result. That is what a **certified set** is, and it is the
 entire job of the umbrella repo.
 
-## The manifest, in twenty lines
+## The manifest, in forty lines
 
 The source of truth is one file,
 [`versions.yaml`](https://github.com/jcsvwinston/quantum/blob/main/versions.yaml)
 in the `quantum` repo. Reduced to its skeleton:
 
 ```yaml
-quantum: "1.24.0"        # the SUITE's version — the manifest's, not any module's
-released: 2026-08-30
+quantum: "1.26.0"        # the SUITE's version — the manifest's, not any module's
+released: 2026-09-03
 status: certified
 
-modules:                  # the real versions people install with `go get`
-  quark:   "v1.7.1"
-  nucleus: "v1.21.0"
-  orbit:   "v1.8.13"
+modules:                  # the three pillars — what `go get` installs
+  quark:   "v1.10.0"
+  nucleus: "v1.23.0"
+  orbit:   "v1.8.17"
 
-nucleus_modules:          # separately-published modules of each repo
-  ldap: "v0.2.3"
-orbit_modules:
-  proto: "v0.4.2"
-  agent: "v0.6.8"
-  server: "v0.10.8"
-  quarkbridge: "v0.4.8"
-  quarkdatasource: "v0.2.17"
+quark_modules:            # one driver module per engine
+  mssql:    "v0.1.0"
+  mysql:    "v0.1.0"
+  oracle:   "v0.1.0"
+  postgres: "v0.1.0"
+  sqlite:   "v0.1.0"
+
+nucleus_modules:          # drivers, exporters and providers, each its own module
+  mssql:         "v0.1.0"
+  mysql:         "v0.1.0"
+  oracle:        "v0.1.0"
+  postgres:      "v0.1.0"
+  sqlite:        "v0.1.0"
+  otlp:          "v0.1.0"
+  prometheus:    "v0.1.0"
+  ldap:          "v0.2.4"
+  secrets-aws:   "v0.1.0"
+  storage-azure: "v0.1.0"
+  storage-gcs:   "v0.1.0"
+  storage-s3:    "v0.1.0"
+
+orbit_modules:            # the fleet trio and the two Quark bridges
+  proto:           "v0.4.2"
+  agent:           "v0.6.10"
+  server:          "v0.10.11"
+  quarkbridge:     "v1.8.17"
+  quarkdatasource: "v1.8.17"
 ```
+
+A key in a `*_modules` block is the module's last path segment: `sqlite`
+under `nucleus_modules` is `github.com/jcsvwinston/nucleus/drivers/sqlite`,
+`otlp` is `…/exporters/otlp`, `storage-s3` is `…/providers/storage-s3`. The
+[install page](install.md) resolves every key to its full path for you.
 
 (The versions above are a frozen illustration; the live set is
 Quantum <SuiteVersion of="quantum" /> — always current on the
@@ -51,10 +75,10 @@ packages, it publishes a manifest of versions known to work as a whole.
 
 ## Two version numbers, two meanings
 
-- **`quark v1.7.1`** is a real module version — what `go get` installs,
+- **`quark v1.10.0`** is a real module version — what `go get` installs,
   with ordinary SemVer guarantees from that product.
-- **`Quantum 1.24.0`** is the manifest's version. It names a *combination*.
-  No Go module is ever `quantum@1.24.0`, and the suite number never
+- **`Quantum 1.26.0`** is the manifest's version. It names a *combination*.
+  No Go module is ever `quantum@1.26.0`, and the suite number never
   substitutes for a module's own tag.
 
 Between sets, each product keeps releasing on its own cadence — a Quark

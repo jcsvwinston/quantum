@@ -22,8 +22,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 2. **Audita el estado real** con bash:
    - `git submodule status` — ¿siguen los submódulos en el trío de `versions.yaml`?
    - `git -C quark describe --tags`, idem `nucleus`, `orbit` — ¿coinciden con `workspace_pins`?
-   - `go build ./quark/... ./nucleus/... ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/server/...`
-     (el root del workspace no es un módulo; patrones explícitos).
+   - `go build $(bash scripts/gowork-patterns.sh)` (el root del workspace no es un
+     módulo; los patrones explícitos salen del go.work, que cubre los 26 módulos).
    - `gh pr list` y `gh issue list` en los cinco repos (quantum, quark, nucleus,
      orbit, quantum-app) — qué quedó abierto.
    - `scripts/suite-integral.sh` si vas a certificar o sospechas deriva; la lane

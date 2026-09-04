@@ -35,16 +35,16 @@ concurrency:
   group: integration-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  # Los DIEZ módulos del go.work (el root no es módulo → patrones explícitos;
-  # RT-7: la lista iba una atrás — prometía «nueve» y omitía providers/ldap —
-  # y `go build` con módulos de menos sale igualmente con EXIT=0; al tocar el
-  # go.work, tocar esta lista y el comando del README).
-  # quarkbridge (QADR-0006 Caso 1) y quarkdatasource (Caso 2) son los módulos
-  # opt-in que cruzan productos — dependen de Quark Y de Nucleus/Orbit — así que
-  # son los patrones que más valor sacan de este plano; showcase_demo (Fase 4)
-  # es la app que ejerce los TRES productos juntos con ambos puentes cableados.
-  MODULES: ./quark/... ./nucleus/... ./nucleus/examples/showcase_demo/... ./nucleus/providers/ldap/... ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/quarkbridge/... ./orbit/quarkdatasource/... ./orbit/server/...
+# Los patrones de build salen del go.work (scripts/gowork-patterns.sh), no de
+# una lista escrita aquí: el root no es módulo → patrones explícitos, y la
+# lista a mano fue una atrás dos veces (RT-7: prometía «nueve» y omitía
+# providers/ldap; QM-7: diez con el set en veinticinco) — `go build` con
+# módulos de menos sale igualmente con EXIT=0. Que el go.work cubra todo
+# módulo publicable lo exige scripts/check_gowork_covers_manifest.sh.
+# quarkbridge (QADR-0006 Caso 1) y quarkdatasource (Caso 2) son los módulos
+# opt-in que cruzan productos — dependen de Quark Y de Nucleus/Orbit — así que
+# son los patrones que más valor sacan de este plano; showcase_demo (Fase 4)
+# es la app que ejerce los TRES productos juntos con ambos puentes cableados.
 
 jobs:
   manifest-guard:
@@ -66,6 +66,9 @@ jobs:
         # commit al que apunta el tag de la versión que declara `modules`.
         run: bash scripts/manifest-guard.sh
 
+      - name: El go.work cubre todo módulo publicable (QM-7)
+        run: bash scripts/check_gowork_covers_manifest.sh
+
   # El manifiesto afirma que los binarios se instalan por tag; hasta la 5ª
   # ronda ningún job lo ejecutaba, y el comando literal de versions.yaml llevaba
   # semanas siendo inválido (QM5-5). Este job hace lo que un usuario haría:
@@ -73,7 +76,7 @@ jobs:
   # versión derivada del último tag de server del submódulo pinado (la misma
   # fuente que verifica manifest-guard §3).
   go-install-tag:
-    name: go install admin-server@tag (caché virgen)
+    name: go install admin-server@tag + nucleus@tag (caché virgen)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -98,6 +101,19 @@ jobs:
           go install "github.com/jcsvwinston/orbit/server/cmd/admin-server@${version}"
           "$GOBIN/admin-server" --version
 
+      # QM-17: la página de instalación y el quickstart dicen `go install
+      # …/cmd/nucleus@<tag certificado>`; hasta aquí el job solo probaba
+      # admin-server. El tag sale de `modules.nucleus` de versions.yaml — la
+      # misma fuente que la página (generada en build) y manifest-guard §2.
+      - name: Instala el CLI de nucleus al tag certificado
+        run: |
+          version=$(sed -n 's/^  nucleus:[[:space:]]*"\(v[0-9.]*\)".*/\1/p' versions.yaml | head -1)
+          [ -n "$version" ] || { echo "no pude leer modules.nucleus de versions.yaml" >&2; exit 1; }
+          echo "instalando github.com/jcsvwinston/nucleus/cmd/nucleus@${version}"
+          export GOMODCACHE="$(mktemp -d)" GOWORK=off GOBIN="$(mktemp -d)"
+          go install "github.com/jcsvwinston/nucleus/cmd/nucleus@${version}"
+          "$GOBIN/nucleus" --version
+
   build:
     name: build + vet del set fijado
     runs-on: ubuntu-latest
@@ -117,11 +133,14 @@ jobs:
       - name: Trío fijado (traza de los pins frente a versions.yaml)
         run: git submodule status
 
-      - name: Build del trío junto
-        run: go build $MODULES
+      - name: Patrones de build (del go.work)
+        run: bash scripts/gowork-patterns.sh
 
-      - name: Vet del trío junto
-        run: go vet $MODULES
+      - name: Build del set junto (todos los módulos del go.work)
+        run: go build $(bash scripts/gowork-patterns.sh)
+
+      - name: Vet del set junto
+        run: go vet $(bash scripts/gowork-patterns.sh)
 
   # DX-27: hasta esta lane, showcase_demo solo se COMPILABA. Este job ejecuta
   # lo que el ejemplo promete (QADR-0006): arranca la app, crea un artículo por

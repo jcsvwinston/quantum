@@ -65,6 +65,21 @@ GUARDS=(
   # 1.12.0 — con pines anteriores (quark < v1.5.0, nucleus < v1.8.0) sale rojo
   # porque los tags no llevan los fixes: información de certificación, no ruido.
   "umbrella-exit0-regressions|.|bash scripts/check_exit0_regressions.sh"
+  # La cabecera «Estado real» de docs/RUMBO.md nombra el set que versions.yaml
+  # certifica (versión de suite y los tres pilares). En 1.26.0 se quedó un set
+  # atrás mientras su propio §1 decía 1.26.0 (QM-6, auditoría 2026-09-03).
+  "umbrella-rumbo-estado|.|bash scripts/check_rumbo_estado.sh"
+  # El go.work cubre TODO módulo publicable: raíz de cada repo, todo go.mod del
+  # árbol (salvo examples/benchmarks/bugbash) y toda clave de *_modules del
+  # manifiesto. Iba diez módulos por detrás del set y `go build` con módulos de
+  # menos sale con EXIT=0 (QM-7, auditoría 2026-09-03).
+  "umbrella-gowork-covers-manifest|.|bash scripts/check_gowork_covers_manifest.sh"
+  # Afirmaciones RETIRADAS («-tags mssql», «build tags», «single Go module»,
+  # «Nine modules») en el HTML servido como vigente — hermano de served-jargon
+  # (C8, auditoría 2026-09-03). Snapshots versionados y release notes fuera del
+  # gate con porqué; excepción auto-expirante ligada al pin de nucleus ≤ v1.23.0.
+  # Requiere website/build construido — suite-integral construye el sitio antes.
+  "umbrella-retired-claims|.|bash scripts/check_retired_claims.sh website/build"
 
   # --- nucleus (al pin) -----------------------------------------------------
   # Marcadores x-release-please-version + directivas Go del scaffold + coherencia
@@ -193,9 +208,14 @@ GUARD_SCAN_EXCLUDE=(
   "scripts/guard-of-guards.sh"
   # Utillaje de CONSUMO del manifiesto (DX-25): imprime el bloque require
   # pegable desde versions.yaml. No certifica nada — genera texto para el
-  # usuario; su corrección la cubre la verificación de las 9 versiones que
-  # manifest-guard hace sobre el mismo fichero.
+  # usuario; su corrección la cubre la verificación que manifest-guard hace
+  # de todos los bloques del mismo fichero, más sus dos self-checks (cada
+  # ruta emitida tiene go.mod en el submódulo; una línea por versión).
   "scripts/print-requires.sh"
+  # Utillaje de LECTURA del go.work: imprime los patrones `./modulo/...` para
+  # `go build`/`go vet` desde la raíz. Emite texto, no tiene veredicto; lo que
+  # sí certifica la cobertura del go.work es check_gowork_covers_manifest.sh.
+  "scripts/gowork-patterns.sh"
   # Utillaje de ESCRITURA del manifiesto (capa 1 de automatización de docs):
   # mueve los submódulos al tag y reescribe las 8 versiones, los pins y las
   # tablas del README. No certifica nada — PROPONE el re-pin; quien lo juzga

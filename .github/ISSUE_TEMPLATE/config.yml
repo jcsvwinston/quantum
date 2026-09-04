@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Vulnerabilidad de seguridad
+    url: https://github.com/jcsvwinston/quantum/blob/main/SECURITY.md
+    about: NO abras un issue. Usa el advisory privado del producto afectado (o de este repo) según SECURITY.md.
+  - name: Defecto en Nucleus (framework web)
+    url: https://github.com/jcsvwinston/nucleus/issues/new/choose
+    about: El código vive en su repo; aquí solo va lo que es del set o del tren.
+  - name: Defecto en Quark (ORM)
+    url: https://github.com/jcsvwinston/quark/issues/new/choose
+    about: El código vive en su repo; aquí solo va lo que es del set o del tren.
+  - name: Defecto en Orbit (panel de administración)
+    url: https://github.com/jcsvwinston/orbit/issues/new/choose
+    about: El código vive en su repo; aquí solo va lo que es del set o del tren.

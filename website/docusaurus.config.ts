@@ -19,22 +19,66 @@ const modulesBlock = block('modules');
 const pick = (name: string, from: string = modulesBlock): string =>
   (from.match(new RegExp(`${name}:\\s*"?([^"#\\n]+)`))?.[1] ?? '').trim();
 
-// Bloque `require` con los NUEVE módulos del set certificado (los tres
-// pilares + nucleus_modules + orbit_modules), generado desde versions.yaml en
-// cada build — el espejo web de scripts/print-requires.sh. Lo consume la
-// página de instalación de la instancia `start`
-// (src/components/CertifiedSet.tsx): ninguna versión se transcribe a mano.
-const nucleusModulesBlock = block('nucleus_modules');
-const orbitModulesBlock = block('orbit_modules');
+// Bloque `require` con TODOS los módulos del set certificado — los cuatro
+// bloques del manifiesto (modules + quark_modules + nucleus_modules +
+// orbit_modules), generado desde versions.yaml en cada build: el espejo web
+// de scripts/print-requires.sh. Lo consume la página de instalación de la
+// instancia `start` (src/components/CertifiedSet.tsx): ninguna versión ni
+// ninguna ruta se transcribe a mano.
+//
+// La RUTA de un módulo hermano no se deduce de su clave: el manifiesto lo
+// nombra por el último segmento (`sqlite`, `otlp`, `storage-s3`) y en el repo
+// vive en `drivers/`, `exporters/` o `providers/`. Se descubre del árbol del
+// submódulo (todo go.mod salvo examples/, website/, benchmarks/ y bugbash/ —
+// el mismo filtro que scripts/lib/manifest-modules.sh y manifest-guard §3b).
+// Hasta la auditoría 2026-09-03 (QM-3) este bloque llevaba nueve módulos
+// escritos a mano con el set en veinticinco.
+// OJO: block() consume con `\s*` la sangría de la PRIMERA línea del bloque, así
+// que la primera clave llega sin sus dos espacios — de ahí `[ \t]*` y no `  `
+// (con la sangría fija, mssql y proto —las primeras de su bloque— se caían).
+const keysOf = (blk: string): string[] =>
+  [...blk.matchAll(/^[ \t]*([a-zA-Z0-9_-]+):\s*"[^"]+"/gm)].map((m) => m[1]);
+const SKIP_DIRS = new Set(['examples', 'website', 'benchmarks', 'bugbash', '.git', 'node_modules']);
+const discoverModules = (repo: string): Map<string, string> => {
+  const root = path.resolve('..', repo);
+  const found = new Map<string, string>();
+  const walk = (dir: string): void => {
+    for (const ent of fs.readdirSync(dir, {withFileTypes: true})) {
+      if (ent.isDirectory()) {
+        if (SKIP_DIRS.has(ent.name)) continue;
+        walk(path.join(dir, ent.name));
+      } else if (ent.name === 'go.mod' && dir !== root) {
+        const rel = path.relative(root, dir).split(path.sep).join('/');
+        const key = rel.split('/').pop()!;
+        if (found.has(key)) {
+          throw new Error(`versions.yaml: la clave '${key}' casa con dos módulos en ${repo}: ${found.get(key)} y ${rel}`);
+        }
+        found.set(key, rel);
+      }
+    }
+  };
+  walk(root);
+  return found;
+};
+const siblingLines = (repo: string): string[] => {
+  const blk = block(`${repo}_modules`);
+  const tree = discoverModules(repo);
+  return keysOf(blk).map((key) => {
+    const rel = tree.get(key);
+    if (!rel) {
+      throw new Error(`versions.yaml ${repo}_modules.${key} no corresponde a ningún go.mod en ../${repo} (¿submódulo sin inicializar?)`);
+    }
+    return `\tgithub.com/jcsvwinston/${repo}/${rel} ${pick(key, blk)}`;
+  });
+};
 const requireBlock = [
   'require (',
   `\tgithub.com/jcsvwinston/quark ${pick('quark')}`,
+  ...siblingLines('quark'),
   `\tgithub.com/jcsvwinston/nucleus ${pick('nucleus')}`,
-  `\tgithub.com/jcsvwinston/nucleus/providers/ldap ${pick('ldap', nucleusModulesBlock)}`,
+  ...siblingLines('nucleus'),
   `\tgithub.com/jcsvwinston/orbit ${pick('orbit')}`,
-  ...['proto', 'agent', 'server', 'quarkbridge', 'quarkdatasource'].map(
-    (m) => `\tgithub.com/jcsvwinston/orbit/${m} ${pick(m, orbitModulesBlock)}`,
-  ),
+  ...siblingLines('orbit'),
   ')',
 ].join('\n');
 

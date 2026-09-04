@@ -120,31 +120,75 @@ fase_repo() {
   say "  Release PRs abiertos:"
   printf '%s\n' "$listing" | sed 's/^/    #/'
 
-  # Orden: módulos primero (hoja → dependientes), ROOT EL ÚLTIMO — su tag debe
+  # Clasificación por título — GENÉRICA, sin lista de módulos (QM-8: la lista
+  # fija conocía seis módulos y el tren de D3 trajo diecisiete; un «release
+  # drivers/postgres 0.1.0» quedaba sin clasificar y el driver moría):
+  #   «chore(main): release 1.10.0»                                → root
+  #   «chore(main): release github.com/jcsvwinston/orbit 1.8.13»  → root
+  #     (el componente del ROOT multi-módulo es la ruta completa del módulo)
+  #   «chore(main): release drivers/postgres 0.1.0»               → módulo
+  #   «chore(main): release github.com/jcsvwinston/nucleus/providers/ldap 0.2.4» → módulo
+  #   «chore: release main»                                        → PR ÚNICO
+  #     (separate-pull-requests: false — nucleus y orbit desde D3): todos los
+  #     módulos y el root salen del mismo commit; se trata como root.
+  # Orden: módulos primero, hojas → dependientes según los `require` entre
+  # hermanos del go.mod de cada uno (leído del submódulo al pin; un módulo
+  # nuevo sin go.mod local cuenta como hoja), ROOT EL ÚLTIMO — su tag debe
   # contener los tags de módulo como ancestros (manifest-guard §3/§3b).
-  local ordered=""
-  local pat
-  for pat in 'proto ' 'agent ' 'server ' 'quarkbridge ' 'quarkdatasource ' 'providers/ldap ' ''; do
-    local line
-    while IFS= read -r line; do
-      [ -n "$line" ] || continue
-      local n=${line%%	*} t=${line#*	}
-      if [ -n "$pat" ]; then
-        # componente corto («release agent 0.6.8») o con ruta de módulo
-        # («release github.com/jcsvwinston/orbit/agent 0.6.8»)
-        case "$t" in
-          *": release $pat"*|*"/$pat"*) ordered="$ordered $n:$repo:mod" ;;
-        esac
-      else
-        # root: título sin subdirectorio de módulo
-        if printf '%s\n' "$t" | grep -qE "^chore\([^)]*\): release (github\.com/jcsvwinston/$repo )?[0-9]+\.[0-9]+\.[0-9]+$"; then
-          ordered="$ordered $n:$repo:root"
-        fi
-      fi
-    done <<EOF
+  local mods="" roots="" line
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    local n=${line%%	*} t=${line#*	} comp ver
+    if printf '%s\n' "$t" | grep -qE '^chore(\([^)]*\))?: release main$'; then
+      roots="$roots $n:"
+      continue
+    fi
+    comp=$(printf '%s\n' "$t" | sed -nE 's/^chore(\([^)]*\))?: release ([^ ]+ )?([0-9]+\.[0-9]+\.[0-9]+)$/\2/p' | sed 's/ $//')
+    ver=$(printf '%s\n' "$t" | sed -nE 's/^chore(\([^)]*\))?: release ([^ ]+ )?([0-9]+\.[0-9]+\.[0-9]+)$/\3/p')
+    [ -n "$ver" ] || continue   # no es un título de release-please: sin clasificar
+    case "$comp" in
+      "github.com/jcsvwinston/$repo") comp="" ;;
+      "github.com/jcsvwinston/$repo"/*) comp="${comp#github.com/jcsvwinston/$repo/}" ;;
+    esac
+    if [ -z "$comp" ]; then roots="$roots $n:"; else mods="$mods $n:$comp"; fi
+  done <<EOF
 $listing
 EOF
+
+  # Topológico simple (bash 3.2, sin arrays asociativos): en cada pasada entra
+  # todo módulo cuyas dependencias hermanas (las que también tienen PR abierto)
+  # ya están colocadas. Una pasada sin avance = ciclo → en seco.
+  local ordered="" pending="$mods" item n comp deps dep ok progressed
+  while [ -n "$(printf '%s' "$pending" | tr -d ' ')" ]; do
+    progressed=0
+    local rest=""
+    for item in $pending; do
+      n=${item%%:*}; comp=${item#*:}
+      deps=""
+      if [ -f "$repo/$comp/go.mod" ]; then
+        deps=$(awk -v p="github.com/jcsvwinston/$repo/" 'index($1, p) == 1 && $NF != "indirect" { sub(p, "", $1); print $1 }' "$repo/$comp/go.mod")
+      fi
+      ok=1
+      for dep in $deps; do
+        # Solo bloquea una dependencia que TAMBIÉN se está cortando ahora.
+        case " $pending " in *":$dep "*) ok=0 ;; esac
+      done
+      if [ "$ok" -eq 1 ]; then
+        ordered="$ordered $n:$repo:mod:$comp"
+        progressed=1
+      else
+        rest="$rest $item"
+      fi
+    done
+    pending="$rest"
+    [ "$progressed" -eq 1 ] || die "ciclo de dependencias entre los módulos con release PR en $repo:$pending"
   done
+  for item in $roots; do
+    ordered="$ordered ${item%%:*}:$repo:root"
+  done
+  if [ -n "$(printf '%s' "$roots" | tr -d ' ')" ] && [ "$(printf '%s\n' $roots | grep -c .)" -gt 1 ]; then
+    die "más de un release PR de ROOT abierto en $repo ($roots) — cierra el zombi antes de seguir"
+  fi
 
   # Un PR listado que el clasificador no reconoce NO se salta en silencio:
   # el driver para y lo deja en manos humanas (regla 2: en seco, no «a ver
@@ -157,9 +201,14 @@ EOF
     die "hay release PRs con título que no reconozco en $repo — fusiónalos a mano (merge-bot-pr.sh $repo <n>) o corrige el clasificador"
   fi
 
-  local item
+  if [ -n "$ordered" ]; then
+    say "  Orden de fusión (hojas → dependientes → root):"
+    for item in $ordered; do say "    #$(printf '%s' "$item" | awk -F: '{printf "%s %s%s", $1, $3, ($4 != "" ? " " $4 : "")}')"; done
+  fi
+
   for item in $ordered; do
-    local n=${item%%:*} kind=${item##*:}
+    local n=${item%%:*} kind
+    kind=$(printf '%s' "$item" | cut -d: -f3)
     if [ "$kind" = "root" ]; then
       say "PASO: el siguiente es el ROOT — verificar que su rama no quedó anclada al main viejo"
       run $CHECK_ANCHORED "$repo" "$n" \
@@ -239,8 +288,13 @@ fase_cierre() {
   say "  bloque require de print-requires.sh; allí un workflow reescribe el pin,"
   say "  corre SUS gates y abre un PR (no fusiona). Va DESPUÉS de certificar: el"
   say "  consumidor externo sigue al set certificado, nunca al mid-tren."
+  # dispatch-app-bump.sh ESPERA el run de quantum-app y exige que termine en
+  # PR (QM-2: el dispatch de 1.26.0 se aceptó, el run falló con «GitHub Actions
+  # is not permitted to create or approve pull requests» y nadie lo vio). El
+  # ajuste «Allow GitHub Actions to create and approve pull requests» de
+  # quantum-app es un REQUISITO del tren — scripts/train/README.md.
   run bash scripts/train/dispatch-app-bump.sh $DRYFLAG \
-    || die "el anuncio a quantum-app falló. El set SIGUE certificado (esto es el paso de después); relanza solo esta pieza:
+    || die "el anuncio a quantum-app NO terminó en PR (ver arriba: run rojo, permiso del repo o dispatch sin run). El set SIGUE certificado (esto es el paso de después); arregla la causa y relanza solo esta pieza:
     bash scripts/train/dispatch-app-bump.sh"
   say ""
   say "OK: set v$ver certificado. Queda lo humano: CIERRE de ronda con la plantilla"

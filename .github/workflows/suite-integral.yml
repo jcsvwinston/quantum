@@ -20,6 +20,12 @@ on:
       - 'quark'
       - 'orbit'
       - 'website/**'
+      # Lo que los guards del paraguas contrastan con el manifiesto: el go.work
+      # (gowork-covers-manifest), el RUMBO (rumbo-estado) y el README
+      # (manifest-guard §4/§4b).
+      - 'go.work'
+      - 'docs/RUMBO.md'
+      - 'README.md'
       - '.github/workflows/suite-integral.yml'
   workflow_dispatch:
   schedule:

@@ -26,8 +26,10 @@ export function SuiteVersion({of}: {of: keyof Omit<Suite, 'requireBlock'>}): Rea
   return <code>{useSuite()[of]}</code>;
 }
 
-// El bloque `require` con los nueve módulos del set certificado, generado
-// desde versions.yaml (modules + nucleus_modules + orbit_modules).
+// El bloque `require` con TODOS los módulos del set certificado, generado
+// desde los cuatro bloques de versions.yaml (modules + quark_modules +
+// nucleus_modules + orbit_modules) con la ruta de cada módulo descubierta
+// del árbol del submódulo (ver docusaurus.config.ts).
 export function CertifiedRequire(): ReactNode {
   return <CodeBlock language="go">{useSuite().requireBlock}</CodeBlock>;
 }
@@ -38,6 +40,18 @@ export function GoGetPillar({pillar}: {pillar: 'quark' | 'nucleus' | 'orbit'}): 
   return (
     <CodeBlock language="bash">
       {`go get github.com/jcsvwinston/${pillar}@${suite[pillar]}`}
+    </CodeBlock>
+  );
+}
+
+// `go install` del CLI de Nucleus AL TAG certificado. `@latest` puede ir por
+// delante del set (QM-17): el CLI que escribe el scaffold debe ser el de la
+// versión que el set certifica, no la última que el proxy conozca.
+export function GoInstallCLI(): ReactNode {
+  const suite = useSuite();
+  return (
+    <CodeBlock language="bash">
+      {`go install github.com/jcsvwinston/nucleus/cmd/nucleus@${suite.nucleus}`}
     </CodeBlock>
   );
 }
