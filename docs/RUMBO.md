@@ -11,17 +11,25 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-09-03)
+## Estado real (2026-09-04)
 
-- **Set certificado: Quantum 1.26.0** (2026-09-03) — quark v1.10.0
-  (drivers/{postgres,mysql,sqlite,mssql,oracle} v0.1.0) · nucleus v1.23.0
-  (doce módulos hermanos: cinco drivers y dos exportadores en v0.1.0,
-  providers/ldap v0.2.4, providers/{secrets-aws,storage-s3,storage-gcs,storage-azure}
-  v0.1.0) · orbit v1.8.17 (proto v0.4.2, agent v0.6.10, server v0.10.11,
-  quarkbridge v1.8.17, quarkdatasource v1.8.17). La fuente de verdad es
-  [`versions.yaml`](../versions.yaml), siempre — y desde esta cabecera lo
-  exige `scripts/check_rumbo_estado.sh` (guard `umbrella-rumbo-estado`).
-- **Certificación mecánica:** 31 guards en el registro, lane semanal + modo
+- **Set certificado: Quantum 1.26.1** (2026-09-04) — quark v1.10.1
+  (drivers/{postgres,mysql,sqlite,mssql,oracle} v0.1.1) · nucleus v1.23.1
+  (doce módulos hermanos: cinco drivers, dos exportadores y cuatro providers
+  en v0.1.1, providers/ldap v0.2.5) · orbit v1.8.20 (proto v0.4.3, agent
+  v0.6.12, server v0.10.14, quarkbridge v1.8.18, quarkdatasource v1.8.18).
+  La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
+  desde esta cabecera lo vigila `check_rumbo_estado.sh`.
+- **Auditoría de madurez 2026-09-03 sobre 1.26.0: ejecutada, corregida y
+  PUBLICADA en 1.26.1.** Cuatro auditores midieron cada pilar contra el
+  mercado (147 defectos, 4 P0, todos en la primera hora del evaluador). Los
+  cinco PRs de corrección (quark#338, nucleus#455, orbit#380, orbit#379,
+  quantum#136) están fusionados. Informe:
+  <https://claude.ai/code/artifact/2ffd4e81-ae29-413c-ba01-555cef7ecedd>.
+  Plan de trabajo a 5/5 (doce arcos, cada uno con gate mecánico):
+  <https://claude.ai/code/artifact/cbd9d082-7404-4989-bd79-7408f9dbaf38>.
+  El orden de los frentes de abajo se subordina a ese plan desde este set.
+- **Certificación mecánica:** 32 guards en el registro, lane semanal + modo
   `--cierre` ([`AUDITORIA_CONTINUA.md`](AUDITORIA_CONTINUA.md)). La 8ª pasada
   fue la última auditoría manual completa; rige el régimen del §6.
 - **Auditoría integral 2026-08-30 sobre 1.24.0: ejecutada y PUBLICADA.** 147

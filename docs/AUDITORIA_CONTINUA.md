@@ -30,7 +30,7 @@ Los guards de producto corren **al pin** — el submódulo tal y como lo fija
 significa que el set que el manifiesto certifica no pasa sus propios guards,
 que es exactamente lo que reportaría un auditor.
 
-Registro actual (31 guards — la cifra canónica NO es esta prosa, es el
+Registro actual (32 guards — la cifra canónica NO es esta prosa, es el
 registro: `source scripts/lib/guard-registry.sh && guard_names | wc -l`. Esta
 tabla es descriptiva y ya fue por detrás del registro real dos veces
 (DI-14/RT-10: decía «25» y omitía `orbit-versioned-markers`; QM-11: decía
@@ -57,6 +57,7 @@ en el mismo PR, y comprobar la cifra con el comando de arriba):
 | nucleus-docs-drift | nucleus | `bash scripts/ci/check_internal_docs_drift.sh` | Documentación **interna** (`docs/**`) citando ficheros ausentes: enlaces relativos y rutas entre comillas invertidas que no resuelven en el árbol. Los registros históricos (`adrs/`, `audits/`, `iterations/`…) quedan fuera — son actas, no manuales vivos. |
 | nucleus-docs-archive | nucleus | `bash scripts/ci/check_docs_archive_freshness.sh` | Archivo versionado del sitio por detrás de lo publicado: el snapshot más reciente no puede quedar bajo la MINOR publicada (un patch no exige corte). |
 | nucleus-adr-index | nucleus | `bash scripts/ci/check_adr_index.sh` | ADRs del directorio ausentes del índice, y enlaces del índice que no resuelven. El índice se quedó en ADR-022 con veintinueve records: diecisiete decisiones sólo alcanzables listando la carpeta. |
+| nucleus-retired-claims | nucleus | `bash scripts/ci/check_retired_claims.sh` | Afirmaciones retiradas en la documentación VIVA de nucleus (README, SPEC, docs/ salvo actas, website/docs salvo snapshots): build tags, «single Go module», `MountOpenAPI`, sendgrid built-in. Hermano en la FUENTE del `umbrella-retired-claims`, que mira el HTML servido. |
 | nucleus-versioned-markers | nucleus | `bash scripts/ci/check_versioned_docs_markers.sh` | Un snapshot versionado que anuncia una versión ajena. El marcador lo sube release-please DESPUÉS de cortar el snapshot, así que cinco se publicaron afirmando la versión anterior — y en la página que el sitio sirve en la RAÍZ, porque el archivo más reciente es el que se sirve por defecto. Sólo se ve desde fuera: la copia es coherente consigo misma. |
 | quark-version-coherence | quark | `bash scripts/check-version-coherence.sh` | Versión publicada ausente de README/SECURITY/CLAUDE/release-notes; roadmap con versiones hardcodeadas. |
 | quark-versioned-markers | quark | `bash scripts/ci/check_versioned_docs_markers.sh` | Lo mismo que en nucleus, y por el mismo defecto real: el snapshot de 1.6.0 anunciaba «Quark is v1.5.2». |

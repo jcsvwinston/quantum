@@ -343,6 +343,33 @@ cuestan una ronda cada una si se olvidan:
 Comprobación barata antes de fusionar cualquier release PR: que el título diga
 el número que esperabas. Es la única señal que da el bot, y llega tarde.
 
+### Lo que aprendió el tren de 1.26.1 (el de la auditoría de madurez)
+
+- **El push de la fusión de un release PR puede NO disparar «Release Please».**
+  Pasó en nucleus#456: `gh pr merge --merge` por token humano, main avanzó, y
+  ni CI ni Release Please corrieron por `push` — cero runs, ni en cola.
+  Remedio: `gh workflow run 'Release Please' -R jcsvwinston/<repo> --ref
+  main` (y `CI` si se quiere el verde en main). `merge-bot-pr.sh` lo hace solo
+  a los dos minutos sin corrida por push del commit de merge.
+- **`chore: release main` es un release PR aunque no lleve número.** El
+  driver lo trataba como «no es de release-please» y daba el merge por bueno
+  sin esperar tag. Ahora lee `.release-please-manifest.json` del commit de
+  merge y espera TODOS los tags que declara (root `vX.Y.Z` y `<ruta>/vX.Y.Z`).
+- **quark tenía el mismo `release-as` pegajoso que nucleus antes de D3** y
+  `separate-pull-requests: true`: seis PRs de release proponiendo `0.1.0` para
+  módulos ya publicados en `v0.1.0`. Se arregló en la config (quark#345) y
+  release-please regeneró un PR único; los seis viejos son zombis que hay que
+  cerrar a mano (`gh pr close --delete-branch`) — no se cierran solos.
+- **Las release notes no pueden citar un ADR.** `check_docs_product_voice.sh`
+  de orbit rechaza «ADR-002» en `release-notes.md` (el lector no puede abrirlo):
+  se explica la decisión en prosa. Costó una vuelta de CI del release PR.
+- **`merge-bot-pr.sh` se lanza desde la raíz del paraguas.** Con `cd` a otro
+  repo la ruta relativa no existe y el driver muere antes de hacer nada.
+- **Los patches también llevan sección `## vX.Y.Z` en las release notes** de
+  los tres productos (`check_version_claims.sh` en nucleus,
+  `check-version-coherence.sh` en quark, `check_docs_version_claims.sh` en
+  orbit); solo el snapshot de docs es por minor.
+
 ### Lo que aprendió el tren de 1.25.0 (el primero conducido con estos scripts)
 
 - **Fusionar el release de un módulo REGENERA la rama del root, y se lleva por

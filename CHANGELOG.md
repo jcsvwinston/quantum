@@ -6,6 +6,57 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.26.0 — El arco D3 publicado: drivers, exportadores y backends de nube como módulos opcionales
+
+Quantum 1.26.0 — el set que publica el arco de adelgazado del grafo (quark
+v1.10.0 con sus cinco drivers en v0.1.0; nucleus v1.23.0 con once módulos
+hermanos en v0.1.0; orbit v1.8.17 con agent v0.6.10, server v0.10.11,
+quarkbridge v1.8.17, quarkdatasource v1.8.17 y proto v0.4.2 sin cambios).
+
+Los dos puentes saltan de la línea 0.x a 1.8.17. Un Release-As del tren se
+aplicó a todos los paquetes del repo de orbit y, cuando se detectó, el proxy
+de Go ya los servía —y es inmutable—, así que volver a 0.x habría dejado un
+`go get` público devolviendo una versión que este set no certifica. Se adopta
+el número; ni el código ni la API de los dos módulos cambian.
+
+Lo que cambia para quien instala: los drivers de base de datos, los
+backends de nube y los exportadores de telemetría dejan de venir dentro
+del framework y viajan en módulos propios, así que una aplicación enlaza
+sólo lo que usa. Medido sobre un programa que enlaza pkg/app y nada más,
+el hola-mundo de nucleus baja de 75,6 MB a 19 y de 346 módulos a 87; la
+biblioteca de quark, de 24 MB a 6 y de 171 módulos a 129. Los dos
+objetivos del arco —menos de 30 MB y menos de 150 módulos— quedan
+cumplidos con margen.
+
+La configuración no cambia ni una línea. database_url, otlp_endpoint,
+metrics_path y storage.provider significan lo mismo; lo único nuevo es un
+import en blanco, y `nucleus add <nombre>` hace el go get y lo escribe. Si
+falta, el arranque para y el error trae las dos líneas exactas —también en
+quark desde v1.10.0—. Desaparecen además los build tags mssql y oracle,
+que nada en el código mencionaba y por eso fallaban en ejecución en vez de
+al compilar.
+
+Un módulo de driver registra DOS cosas —el driver y cómo ese driver
+reporta una violación de unicidad—, y esa es la parte que no se puede
+omitir: sin el clasificador la comprobación no falla, contesta que no. El
+gate de seis motores de quark lo reprodujo en vivo antes de publicarlo, y
+un test de orbit contra motor real lo volvió a cazar en un consumidor.
+
+El único cambio de comportamiento del set es Prometheus: lo activaba
+metrics_path, que tiene valor por defecto, así que quien scrapea el
+/metrics por defecto lo pierde hasta añadir exporters/prometheus. La
+aplicación avisa al arrancar y sigue; si la clave estaba escrita a mano,
+para. Está en las notas de nucleus y en la doc pública.
+
+El manifiesto estrena quark_modules y declara los diecisiete módulos
+hermanos de los tres repos, que manifest-guard DESCUBRE del árbol en vez
+de leerlos de una lista escrita a mano — la lista fija era el mismo fallo
+que dejó once módulos publicables sin entrada en release-please. Y el
+desfase del `require` de un módulo hacia su propia raíz pasa a AVISO: es
+un suelo, no un pin, y Go resuelve al máximo, así que un consumidor
+compila contra la raíz certificada de todos modos; el aviso dice los días
+que lleva sin revisarse y la versión que lo deja al día.
+
 ## Quantum 1.25.0 — La auditoría integral de producto y DX, publicada
 
 Quantum 1.25.0 (quark v1.8.0; nucleus v1.22.0 con providers/ldap v0.2.4;

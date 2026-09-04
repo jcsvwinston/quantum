@@ -46,10 +46,20 @@ EXCLUDES=()
 # en main, pero el paraguas ensambla desde el submódulo PINADO. La excepción
 # solo aplica mientras modules.nucleus siga en v1.21.0: al re-pinar, muere
 # sola — sin lista que recordar vaciar.
+#
+# Segunda transición, misma forma (set 1.26.1, 2026-09-04): el pin v1.23.1 de
+# nucleus trae «ADR-031» en el comentario del driver de examples/mvc_api/main.go,
+# que el quickstart de TODAS las versiones del sitio incrusta. nucleus#465 lo
+# reescribe en prosa y sale en v1.23.2 (solo documentación); re-pinar a
+# v1.23.2 en este set habría exigido tres cortes más de orbit (manifest-guard
+# §5: sus módulos requieren nucleus v1.23.1). La excepción vive mientras el pin
+# sea v1.23.1 y muere sola en el siguiente re-pin, como la de ADR-010.
 NUCLEUS_PIN=$(sed -n 's/^  nucleus:[[:space:]]*"\(v[0-9.]*\)".*/\1/p' versions.yaml | head -1)
 TRANSITIONAL_TOKEN=''
 if [[ "$NUCLEUS_PIN" == "v1.21.0" ]]; then
   TRANSITIONAL_TOKEN='ADR-010'
+elif [[ "$NUCLEUS_PIN" == "v1.23.1" ]]; then
+  TRANSITIONAL_TOKEN='ADR-031'
 fi
 
 # ${arr[@]+...} para que la lista VACÍA (el estado final tras el re-pin) no
