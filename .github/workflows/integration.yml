@@ -86,7 +86,7 @@ jobs:
           submodules: recursive
 
       - name: Setup Go (versión declarada en go.work)
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.work
           cache: false # caché de módulos deliberadamente virgen
@@ -125,7 +125,7 @@ jobs:
           submodules: recursive
 
       - name: Setup Go (versión declarada en go.work)
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.work
           cache-dependency-path: '**/go.sum'
@@ -159,7 +159,7 @@ jobs:
           submodules: recursive
 
       - name: Setup Go (versión declarada en go.work)
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.work
           cache-dependency-path: '**/go.sum'
@@ -183,7 +183,7 @@ jobs:
           submodules: recursive
 
       - name: Setup Go (versión declarada en go.work)
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.work
           cache-dependency-path: '**/go.sum'
