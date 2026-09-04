@@ -29,7 +29,7 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   Plan de trabajo a 5/5 (doce arcos, cada uno con gate mecánico):
   <https://claude.ai/code/artifact/cbd9d082-7404-4989-bd79-7408f9dbaf38>.
   El orden de los frentes de abajo se subordina a ese plan desde este set.
-- **Certificación mecánica:** 31 guards en el registro, lane semanal + modo
+- **Certificación mecánica:** 32 guards en el registro, lane semanal + modo
   `--cierre` ([`AUDITORIA_CONTINUA.md`](AUDITORIA_CONTINUA.md)). La 8ª pasada
   fue la última auditoría manual completa; rige el régimen del §6.
 - **Auditoría integral 2026-08-30 sobre 1.24.0: ejecutada y PUBLICADA.** 147

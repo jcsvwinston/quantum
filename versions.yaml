@@ -115,9 +115,10 @@ workspace_pins:
   El paraguas cuenta por fin UNA sola historia sobre D3: README, RUMBO, la
   página de instalación y el bloque require, go.work e integration.yml
   descubren los 26 módulos publicables del árbol; el tren clasifica
-  cualquier release de módulo sin lista escrita; tres guards nuevos (31 en
-  total) cazan claims retirados en el HTML servido, un go.work que no cubra
-  el manifiesto y un RUMBO que no diga el set vigente. El anuncio a
+  cualquier release de módulo sin lista escrita; cuatro guards nuevos (32 en
+  total) cazan claims retirados en la fuente de nucleus y en el HTML
+  servido, un go.work que no cubra el manifiesto y un RUMBO que no diga el
+  set vigente. El anuncio a
   quantum-app deja de ser fire-and-forget: espera el run y exige el PR, y
   documenta el permiso del repo que falta para que exista.
 

@@ -108,6 +108,13 @@ GUARDS=(
   # decisiones sólo alcanzables listando la carpeta. Entra al set con nucleus
   # v1.17.0.
   "nucleus-adr-index|nucleus|bash scripts/ci/check_adr_index.sh"
+  # La documentación VIVA de nucleus (README, SPEC, docs/ salvo actas,
+  # website/docs salvo snapshots) no afirma lo retirado: build tags, «single
+  # Go module», MountOpenAPI, sendgrid built-in. Hermano del retired-claims del
+  # paraguas (que mira el HTML servido): éste caza la frase en la FUENTE, en el
+  # repo del producto, antes de que el sitio la sirva. Entra al set con
+  # nucleus v1.23.1 (auditoría de madurez 2026-09-03, NU-24/25/57/60, QM-4).
+  "nucleus-retired-claims|nucleus|bash scripts/ci/check_retired_claims.sh"
   # Cada snapshot versionado del sitio anuncia SU propia versión. El snapshot
   # congela la doc antes de que release-please suba el marcador, así que cinco
   # salieron afirmando la versión anterior — y en la página que el sitio sirve
@@ -243,6 +250,18 @@ GUARD_SCAN_EXCLUDE=(
   # que los dos anteriores — no un check estático que el paraguas repita.
   # Entró al set con nucleus v1.4.0.
   "nucleus/scripts/ci/run_showcase_smoke.sh"
+  # Arnés de EJECUCIÓN del ejemplo de referencia mvc_api (migra, arranca y
+  # hace curl a /healthz y /notes): lane requerida del CI de nucleus desde
+  # v1.23.1 (NU-55: el ejemplo canónico no arrancaba y CI sólo lo compilaba),
+  # misma familia run_* que el showcase — no un check estático que el
+  # paraguas repita.
+  "nucleus/scripts/ci/run_mvc_api_smoke.sh"
+  # Comprueba que cada módulo hermano compila SOLO (GOWORK=off go mod tidy
+  # sin diff + build + vet) — lane requerida del CI de nucleus desde v1.23.1
+  # (NU-1). Exige red (proxy de Go) y re-tidy de doce módulos: es la lane
+  # standalone del producto, la misma que el paraguas ya cubre por su lado
+  # con `go install …@tag` en caché virgen — no un guard estático del set.
+  "nucleus/scripts/ci/check_modules_standalone.sh"
   # Helper PARAMETRIZADO del CI de nucleus (MAQ-5/NU7-4): aserta vía
   # `go test -list` que cada rama de un filtro `-run` sigue seleccionando su
   # test (caza el false-green de un -run que ya no casa nada tras renombrar).
