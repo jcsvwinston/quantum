@@ -53,7 +53,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout (con submódulos — son el trío fijado)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
           # Tags de los submódulos: el guard compara cada pin con el commit del
@@ -81,7 +81,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout (con submódulos — el tag sale del submódulo pinado)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -120,7 +120,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout (con submódulos — son el trío fijado)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -154,7 +154,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout (con submódulos — son el trío fijado)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -178,7 +178,7 @@ jobs:
       ORBIT_MODULES: ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/quarkbridge/... ./orbit/quarkdatasource/... ./orbit/server/...
     steps:
       - name: Checkout (con submódulos — son el trío fijado)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -215,7 +215,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout (solo el script de aviso, sin submódulos)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Abre o actualiza el issue del fallo
         id: notify
