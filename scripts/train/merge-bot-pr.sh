@@ -128,28 +128,56 @@ esac
 if [ -n "$ver" ]; then
   if [ -n "$comp" ]; then expected_tag="$comp/v$ver"; else expected_tag="v$ver"; fi
 fi
-if [ -n "$expected_tag" ] && [ "$DRY" -eq 0 ]; then
-  say "PASO: esperar el tag $expected_tag (hasta 5 min; el token del bot puede atascarse)"
-  found=0
-  for _ in 1 2 3 4 5 6 7 8 9 10; do
-    if git ls-remote --tags "https://github.com/$REPO.git" "refs/tags/$expected_tag" | grep -q .; then
-      found=1; break
+# «chore: release main» (separate-pull-requests: false — nucleus, orbit y
+# quark desde el tren de 1.26.1): el PR corta el root Y todos los módulos del
+# mismo commit, así que los tags esperados se LEEN del manifest de la rama
+# fusionada — root → vX.Y.Z, módulo → <ruta>/vX.Y.Z — en vez de deducirse
+# del título. En el tren de 1.26.1 el driver lo trataba como «no es de
+# release-please» y daba el merge por bueno sin esperar ningún tag.
+expected_tags=""
+if [ -z "$expected_tag" ] && printf '%s\n' "$title" | grep -qE '^chore(\([^)]*\))?: release main$'; then
+  merge_sha=$(gh pr view "$PR" -R "$REPO" --json mergeCommit --jq .mergeCommit.oid 2>/dev/null || true)
+  manifest=$(gh api "repos/$REPO/contents/.release-please-manifest.json?ref=${merge_sha:-main}" --jq .content 2>/dev/null | base64 -d 2>/dev/null || true)
+  expected_tags=$(printf '%s' "$manifest" | python3 -c '
+import json,sys
+m=json.load(sys.stdin)
+print(" ".join(("v"+v) if k=="." else (k+"/v"+v) for k,v in sorted(m.items())))' 2>/dev/null || true)
+fi
+if [ -n "$expected_tag" ]; then expected_tags="$expected_tag"; fi
+if [ -n "$expected_tags" ] && [ "$DRY" -eq 0 ]; then
+  say "PASO: esperar los tags ($(printf '%s\n' $expected_tags | wc -l | tr -d ' ')): $expected_tags"
+  say "  (hasta 5 min; el token del bot puede atascarse, y un push de merge puede NO"
+  say "   disparar «Release Please» — a los 2 min sin corrida por push se dispara a mano)"
+  found=0; dispatched=0
+  for i in 1 2 3 4 5 6 7 8 9 10; do
+    missing=""
+    for t in $expected_tags; do
+      git ls-remote --tags "https://github.com/$REPO.git" "refs/tags/$t" | grep -q . || missing="$missing $t"
+    done
+    if [ -z "$missing" ]; then found=1; break; fi
+    if [ "$i" -ge 4 ] && [ "$dispatched" -eq 0 ]; then
+      if ! gh run list -R "$REPO" --event push --limit 5 --json workflowName,headSha \
+           --jq ".[] | select(.workflowName == \"Release Please\") | select(.headSha == \"${merge_sha:-x}\") | .headSha" 2>/dev/null | grep -q .; then
+        say "  AVISO: el push del merge no disparó «Release Please» (pasó con nucleus#456 y quark#346 en el tren de 1.26.1) — lo disparo a mano"
+        run gh workflow run 'Release Please' -R "$REPO" --ref main || true
+        dispatched=1
+      fi
     fi
     sleep 30
   done
   if [ "$found" -eq 1 ]; then
-    say "OK: tag $expected_tag cortado."
+    say "OK: tags cortados: $expected_tags"
   else
-    say "AVISO: el tag $expected_tag NO ha aparecido en 5 min. Receta de recuperación"
+    say "AVISO: faltan tags tras 5 min:$missing. Receta de recuperación"
     say "  (el auto-bloqueo «untagged, merged release PRs outstanding» de release-please):"
-    say "  1. verificar que el .release-please-manifest.json del commit de merge declara $ver"
-    say "  2. git tag -a $expected_tag <sha-del-merge> && git push origin $expected_tag"
-    say "  3. gh release create $expected_tag (con las notas del CHANGELOG)"
+    say "  1. verificar que el .release-please-manifest.json del commit de merge declara las versiones"
+    say "  2. git tag -a <tag> <sha-del-merge> && git push origin <tag>, por cada tag que falte"
+    say "  3. gh release create <tag> (con las notas del CHANGELOG)"
     say "  4. re-etiquetar el PR: quitar 'autorelease: pending', poner 'autorelease: tagged'"
     say "     (sin el relabel, el SIGUIENTE corte vuelve a abortar)"
     exit 1
   fi
-elif [ -z "$expected_tag" ]; then
+elif [ -z "$expected_tags" ]; then
   say "AVISO: el título no parece de release-please — no se espera ningún tag."
 fi
 
