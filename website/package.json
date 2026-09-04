@@ -20,16 +20,16 @@
     "@mermaid-js/layout-elk": "^0.1.9",
     "clsx": "^2.1.0",
     "prism-react-renderer": "^2.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "remark-code-import": "^1.2.0"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.10.1",
     "@docusaurus/tsconfig": "3.10.1",
     "@docusaurus/types": "3.10.1",
-    "@easyops-cn/docusaurus-search-local": "^0.55.2",
-    "typescript": "~5.6.2"
+    "@easyops-cn/docusaurus-search-local": "^0.55.3",
+    "typescript": "~5.9.3"
   },
   "engines": {
     "node": ">=18.0"
