@@ -24,6 +24,13 @@ updates:
     # un PR por paquete y ninguno compilaría solo.
     ignore:
       - dependency-name: "@docusaurus/*"
+      # Peer opcional de @docusaurus/theme-mermaid (^0.1.9): sube con
+      # Docusaurus, no solo. Un bump a 0.2 rompió `npm ci` (ERESOLVE, #139).
+      - dependency-name: "@mermaid-js/layout-elk"
+      # TypeScript major: Docusaurus 3.10 y sus tipos declaran <6; el 7 que
+      # agrupó #139 no resuelve. Se sube a mano con Docusaurus.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
     groups:
       website-deps:
         patterns: ["*"]
