@@ -6,7 +6,7 @@
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
 quantum: "1.26.1"           # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-09-04
-status: certified           # La auditoría de madurez 2026-09-03 aplicada: 4 P0 cerrados (Quark rechazaba lib/pq y mattn; Orbit no aplicaba TLS al fleet; el ejemplo canónico de Nucleus no arrancaba; docs con build tags), módulos hermanos que compilan solos en los tres repos, y una sola historia sobre D3
+status: certified           # La auditoría de madurez 2026-09-03 aplicada: 4 P0 cerrados (Quark rechazaba lib/pq y mattn; Orbit no aplicaba TLS al fleet; el ejemplo canónico de Nucleus no arrancaba; docs con build tags), módulos hermanos que compilan solos en los tres repos, y una sola historia sobre D3. Orbit en v1.8.20 tras dos cortes de convergencia de pines internos
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules»; los módulos hermanos de
@@ -20,7 +20,7 @@ status: certified           # La auditoría de madurez 2026-09-03 aplicada: 4 P0
 modules:
   quark:   "v1.10.1"
   nucleus: "v1.23.1"
-  orbit:   "v1.8.18"
+  orbit:   "v1.8.20"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -59,8 +59,8 @@ quark_modules:
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.3"
-  agent:           "v0.6.11"
-  server:          "v0.10.12"
+  agent:           "v0.6.12"
+  server:          "v0.10.14"
   quarkbridge:     "v1.8.18"
   quarkdatasource: "v1.8.18"
 
@@ -69,7 +69,7 @@ orbit_modules:
 workspace_pins:
   quark:   "6d7d661e"                                # = v1.10.1 exacto (contiene drivers/mssql/v0.1.1, drivers/mysql/v0.1.1, drivers/oracle/v0.1.1, drivers/postgres/v0.1.1, drivers/sqlite/v0.1.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
   nucleus: "d9d51a80"                                # = v1.23.1 exacto (contiene drivers/mssql/v0.1.1, drivers/mysql/v0.1.1, drivers/oracle/v0.1.1, drivers/postgres/v0.1.1, drivers/sqlite/v0.1.1, exporters/otlp/v0.1.1, exporters/prometheus/v0.1.1, providers/ldap/v0.2.5, providers/secrets-aws/v0.1.1, providers/storage-azure/v0.1.1, providers/storage-gcs/v0.1.1, providers/storage-s3/v0.1.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  orbit:   "2e00a592"                                # = v1.8.18 exacto (contiene agent/v0.6.11, proto/v0.4.3, quarkbridge/v1.8.18, quarkdatasource/v1.8.18, server/v0.10.12 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  orbit:   "40cc1520"                                # = v1.8.20 exacto (contiene agent/v0.6.12, proto/v0.4.3, quarkbridge/v1.8.18, quarkdatasource/v1.8.18, server/v0.10.14 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -82,8 +82,8 @@ workspace_pins:
 # lane suite-intenotes: >
   Quantum 1.26.1 — el set que aplica la auditoría de madurez del
   2026-09-03 (quark v1.10.1 con drivers en v0.1.1; nucleus v1.23.1 con los
-  doce módulos hermanos en v0.1.1 y providers/ldap v0.2.5; orbit v1.8.18
-  con proto v0.4.3, agent v0.6.11, server v0.10.12, quarkbridge v1.8.18 y
+  doce módulos hermanos en v0.1.1 y providers/ldap v0.2.5; orbit v1.8.20
+  con proto v0.4.3, agent v0.6.12, server v0.10.14, quarkbridge v1.8.18 y
   quarkdatasource v1.8.18). Patch en los tres pilares; la suite sube patch.
 
   La auditoría midió cada pilar contra los frameworks con los que un equipo
@@ -128,5 +128,10 @@ workspace_pins:
   pegajoso y PRs por módulo, como nucleus antes de D3, y pasa a un solo
   release PR; el driver no reconocía «chore: release main» y daba el merge
   por bueno sin esperar tag, ahora lee los tags del manifest; y el guard de
-  voz de producto rechaza citar un ADR en las release notes. Los informes
-  completos y el plan a 5/5 están enlazados en docs/RUMBO.md.
+  voz de producto rechaza citar un ADR en las release notes. Y la trampa
+  estructural de orbit volvió a cobrar: agent y server se cortan del mismo
+  commit que proto y agent, así que nacen pinando el tag ANTERIOR; el
+  guard de pines internos lo rechaza al pin y hacen falta dos cortes de
+  convergencia (v1.8.19 agent→proto, v1.8.20 server→agent). Tres raíces de
+  orbit por un set, como en 1.26.0: el arco A3 del plan lo elimina de raíz.
+  Los informes completos y el plan a 5/5 están enlazados en docs/RUMBO.md.
