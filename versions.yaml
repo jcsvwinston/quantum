@@ -19,7 +19,7 @@ status: certified           # La auditoría de madurez 2026-09-03 aplicada: 4 P0
 # único borde root↔quarkdatasource por MAQ-3.
 modules:
   quark:   "v1.10.1"
-  nucleus: "v1.23.2"
+  nucleus: "v1.23.1"
   orbit:   "v1.8.20"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
@@ -68,7 +68,7 @@ orbit_modules:
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "6d7d661e"                                # = v1.10.1 exacto (contiene drivers/mssql/v0.1.1, drivers/mysql/v0.1.1, drivers/oracle/v0.1.1, drivers/postgres/v0.1.1, drivers/sqlite/v0.1.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  nucleus: "69af0f18"                                # = v1.23.2 exacto (contiene drivers/mssql/v0.1.1, drivers/mysql/v0.1.1, drivers/oracle/v0.1.1, drivers/postgres/v0.1.1, drivers/sqlite/v0.1.1, exporters/otlp/v0.1.1, exporters/prometheus/v0.1.1, providers/ldap/v0.2.5, providers/secrets-aws/v0.1.1, providers/storage-azure/v0.1.1, providers/storage-gcs/v0.1.1, providers/storage-s3/v0.1.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  nucleus: "d9d51a80"                                # = v1.23.1 exacto (contiene drivers/mssql/v0.1.1, drivers/mysql/v0.1.1, drivers/oracle/v0.1.1, drivers/postgres/v0.1.1, drivers/sqlite/v0.1.1, exporters/otlp/v0.1.1, exporters/prometheus/v0.1.1, providers/ldap/v0.2.5, providers/secrets-aws/v0.1.1, providers/storage-azure/v0.1.1, providers/storage-gcs/v0.1.1, providers/storage-s3/v0.1.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
   orbit:   "40cc1520"                                # = v1.8.20 exacto (contiene agent/v0.6.12, proto/v0.4.3, quarkbridge/v1.8.18, quarkdatasource/v1.8.18, server/v0.10.14 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
@@ -81,7 +81,7 @@ workspace_pins:
 # módulos de orbit están alineados con el set certificado — el estado que la
 # lane suite-intenotes: >
   Quantum 1.26.1 — el set que aplica la auditoría de madurez del
-  2026-09-03 (quark v1.10.1 con drivers en v0.1.1; nucleus v1.23.2 con los
+  2026-09-03 (quark v1.10.1 con drivers en v0.1.1; nucleus v1.23.1 con los
   doce módulos hermanos en v0.1.1 y providers/ldap v0.2.5; orbit v1.8.20
   con proto v0.4.3, agent v0.6.12, server v0.10.14, quarkbridge v1.8.18 y
   quarkdatasource v1.8.18). Patch en los tres pilares; la suite sube patch.
@@ -134,9 +134,14 @@ workspace_pins:
   guard de pines internos lo rechaza al pin y hacen falta dos cortes de
   convergencia (v1.8.19 agent→proto, v1.8.20 server→agent). Tres raíces de
   orbit por un set, como en 1.26.0: el arco A3 del plan lo elimina de raíz.
-  Y nucleus necesitó un patch más (v1.23.2): un comentario del ejemplo de
-  referencia citaba un ADR y el sitio lo incrusta en el quickstart de todas
-  las versiones, así que el guard de jerga servida se negó a certificar;
-  release-please además se auto-bloqueó al cortarlo («untagged, merged
-  release PRs outstanding») y el tag salió por la receta manual del runbook.
+  Y una excepción declarada, auto-expirante: un comentario del ejemplo de
+  referencia de nucleus cita un ADR y el sitio lo incrusta en el quickstart
+  de todas las versiones, así que el guard de jerga servida se negó a
+  certificar v1.23.1. La fuente está corregida y publicada como nucleus
+  v1.23.2 (solo documentación; release-please se auto-bloqueó al cortarlo y
+  el tag salió por la receta manual del runbook), pero re-pinar a v1.23.2
+  habría obligado a tres cortes más de orbit, cuyos módulos requieren
+  v1.23.1. El set certifica v1.23.1 con la excepción ligada a ese pin —la
+  misma forma que la de ADR-010 en 1.25.0— y v1.23.2 entra en el siguiente
+  set semanal, momento en que la excepción muere sola.
   Los informes completos y el plan a 5/5 están enlazados en docs/RUMBO.md.

@@ -30,7 +30,7 @@ uno, qué rol juega en la suite y cómo encajan.
 
 | Pilar | Rol en la suite | Módulo Go | Versión | Submódulo | Uso en solitario |
 |---|---|---|---|---|---|
-| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.23.2` | [`nucleus/`](nucleus) | Sí (base de apps) |
+| **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.23.1` | [`nucleus/`](nucleus) | Sí (base de apps) |
 | **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.10.1` | [`quark/`](quark) | **Sí, en cualquier app Go** |
 | **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ cinco módulos hermanos, [tabla en §Orbit](#orbit--admin--submódulo-orbit-multi-módulo)) | `v1.8.20` | [`orbit/`](orbit) | No (requiere Nucleus) |
 
