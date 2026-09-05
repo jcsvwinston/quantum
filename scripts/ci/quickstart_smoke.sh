@@ -47,11 +47,16 @@
 #      plantilla emite un test con nucleustest) y el guard
 #      check_quickstart_cost.sh sobre la página — un job, las dos cifras.
 #
-# SALVAGUARDA hasta el re-pin: si el nucleus pinado no conoce `--with`
-# (`nucleus new --help` no lo lista), la lane sale 0 con ::notice — así se
-# fusiona ANTES del tren y se enciende sola al re-pinar nucleus. El guard
-# umbrella-quickstart-cost usa el mismo criterio (pin ≤ v1.24.0, medido y no
-# exigido) para que los dos gates del arco se enciendan con el mismo pin.
+# SALVAGUARDA hasta el re-pin: si el nucleus pinado no conoce `--with`, la
+# lane sale 0 con ::notice — así se fusiona ANTES del tren y se enciende sola
+# al re-pinar nucleus. El criterio es UNO y compartido con el guard
+# umbrella-quickstart-cost: qs_nucleus_knows_with (scripts/lib/
+# quickstart-fences.sh) lee de la FUENTE pinada si `nucleus new` registra el
+# flag; la lane, que además compila el CLI, exige que `nucleus new --help`
+# diga lo mismo — si la fuente y el binario discrepan, muere aquí (el
+# predicado se quedó ciego o el flag cambió de forma) en vez de dejar al guard
+# midiendo en silencio. Los dos gates se encienden con el mismo pin porque
+# leen la misma capacidad, no un número de versión.
 #
 # MODO ENSAYO (no es el gate): QUICKSTART_SMOKE_PROJECT=<dir> salta el CLI y
 # el scaffold y ejecuta el resto del arnés (pasos 2-7) sobre una copia del
@@ -122,10 +127,19 @@ REHEARSAL="${QUICKSTART_SMOKE_PROJECT:-}"
 if [[ -z "$REHEARSAL" ]]; then
   echo "== 1. build del CLI de nucleus desde el submódulo pinado (workspace)"
   go build -o "$TMP/nucleus" ./nucleus/cmd/nucleus || fail "nucleus/cmd/nucleus no compila al pin"
-  if ! "$TMP/nucleus" new --help 2>&1 | grep -qE -- '(^|[[:space:]])-+with([[:space:]=]|$)'; then
-    pin=$(git -C nucleus log -1 --format='%h' 2>/dev/null || echo '?')
-    echo "::notice title=quickstart-smoke inactiva::el nucleus pinado ($pin) no conoce \`nucleus new --with\`; la lane sale 0 y se enciende sola al re-pinar nucleus con el starter de suite (arco A2)."
-    summary "quickstart-smoke: INACTIVA — el nucleus pinado ($pin) no conoce \`nucleus new --with\`; se enciende al re-pinar."
+  pin=$(git -C nucleus log -1 --format='%h' 2>/dev/null || echo '?')
+  # El predicado compartido con el guard (fuente) y el binario tienen que
+  # coincidir: es lo que garantiza que guard y lane se encienden a la vez.
+  qs_nucleus_knows_with nucleus; source_knows=$?
+  [[ $source_knows -ne 2 ]] || fail "nucleus/internal/cli/new.go no existe — ¿checkout sin submódulos? sin la fuente pinada no hay predicado de encendido"
+  binary_knows=1
+  "$TMP/nucleus" new --help 2>&1 | grep -qE -- '(^|[[:space:]])-+with([[:space:]=]|$)' && binary_knows=0
+  if [[ $source_knows -ne $binary_knows ]]; then
+    fail "el predicado de encendido y el CLI discrepan al pin $pin: qs_nucleus_knows_with (fuente, new.go) dice $([[ $source_knows -eq 0 ]] && echo SÍ || echo NO) y \`nucleus new --help\` dice $([[ $binary_knows -eq 0 ]] && echo SÍ || echo NO) — el guard umbrella-quickstart-cost se enciende con la fuente; ajustar el regex de qs_nucleus_knows_with (scripts/lib/quickstart-fences.sh) a cómo registra nucleus el flag"
+  fi
+  if [[ $binary_knows -ne 0 ]]; then
+    echo "::notice title=quickstart-smoke inactiva::el nucleus pinado ($pin) no conoce \`nucleus new --with\` (fuente y binario coinciden); la lane sale 0 y el guard umbrella-quickstart-cost mide sin exigir, por el mismo criterio; los dos se encienden solos al re-pinar nucleus con el starter de suite (arco A2)."
+    summary "quickstart-smoke: INACTIVA — el nucleus pinado ($pin) no conoce \`nucleus new --with\`; se enciende al re-pinar (mismo criterio que el guard de coste)."
     exit 0
   fi
 fi

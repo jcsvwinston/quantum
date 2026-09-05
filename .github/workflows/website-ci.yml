@@ -68,8 +68,9 @@ jobs:
       # declarados (`concepts:` en el front matter). Se cuenta sobre la FUENTE
       # antes del build, con el parser que la lane quickstart-smoke usa para
       # ejecutar los curl de la misma página. Mientras el nucleus pinado no
-      # traiga `nucleus new --with` (≤ v1.24.0) el guard mide e informa; al
-      # re-pinar, exige (cabecera del script).
+      # registre `nucleus new --with` (leído de su new.go, el mismo predicado
+      # que enciende la lane) el guard mide e informa; en cuanto el pin lo
+      # traiga, exige (cabecera del script). Necesita el submódulo.
       - name: Coste del quickstart (comandos y conceptos)
         run: bash scripts/check_quickstart_cost.sh website/docs/quickstart.md
 
