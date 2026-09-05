@@ -30,7 +30,7 @@ Los guards de producto corren **al pin** — el submódulo tal y como lo fija
 significa que el set que el manifiesto certifica no pasa sus propios guards,
 que es exactamente lo que reportaría un auditor.
 
-Registro actual (32 guards — la cifra canónica NO es esta prosa, es el
+Registro actual (37 guards — la cifra canónica NO es esta prosa, es el
 registro: `source scripts/lib/guard-registry.sh && guard_names | wc -l`. Esta
 tabla es descriptiva y ya fue por detrás del registro real dos veces
 (DI-14/RT-10: decía «25» y omitía `orbit-versioned-markers`; QM-11: decía
@@ -71,6 +71,11 @@ en el mismo PR, y comprobar la cifra con el comando de arriba):
 | orbit-docs-archive | orbit | `bash scripts/ci/check_docs_archive_freshness.sh` | Archivo versionado por detrás de lo publicado. Orbit versiona desde v1.6.7; antes servía siempre su doc actual. |
 | orbit-versioned-markers | orbit | `bash scripts/ci/check_versioned_docs_markers.sh` | Un snapshot versionado que anuncia una versión ajena — mismo guard que en nucleus/quark, y por el mismo defecto real: los snapshots 1.7.0 y 1.8.0 de orbit anunciaban «current release v1.6.7» y «v1.7.4» en producción. Entra al set con orbit v1.8.11 (arco de deuda QCD). |
 | orbit-adr-index | orbit | `bash scripts/ci/check_adr_index.sh` | ADRs del directorio ausentes del índice, y enlaces del índice que no resuelven — gemelo del guard de nucleus, portado cuando orbit ganó actas retroactivas. Entra al set con orbit v1.8.14. |
+| umbrella-audit-backlog | paraguas | bash scripts/check_audit_backlog.sh | Cada hallazgo de los informes de madurez tiene fila en registro.csv; ninguno abierto sin arco; ningún arco cerrado con filas abiertas |
+| umbrella-handoff-size | paraguas | bash scripts/check_handoff_size.sh | El handoff del paraguas no supera 70 KB ni dos sesiones en el §3, y abre con «Estado vigente» |
+| nucleus-pr-title-english | nucleus | bash scripts/ci/check_pr_title_english.sh | El título de un PR (= línea del changelog) está en inglés (QM-18) |
+| quark-pr-title-english | quark | bash scripts/ci/check_pr_title_english.sh | Ídem en quark |
+| orbit-pr-title-english | orbit | bash scripts/ci/check_pr_title_english.sh | Ídem en orbit |
 
 Notas operativas:
 

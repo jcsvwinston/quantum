@@ -93,6 +93,7 @@ imprime_deudas() {
       say "  DEUDAS DE DOC de un minor de quark (check-version-coherence las exige):"
       say "    - sección ## vX.Y.0 en las release notes del sitio + docs/RELEASE_NOTES_vX.Y.0.md"
       say "    - menciones de la versión en README/SECURITY/CLAUDE.md (CLAUDE.md NO está en extra-files)"
+      say "    (el tren corre gen_release_notes_skeleton.sh en la rama del release: quark-doc-debt.sh; solo para si queda prosa)"
       ;;
     nucleus)
       say "  DEUDAS DE DOC de un minor de nucleus (check_version_claims + check_docs_archive_freshness):"
@@ -156,6 +157,49 @@ Opened by the release train: the sibling module floors are raised as the first c
   say "OK: suelos de $repo subidos ($repo#$n)."
 }
 
+# alinea_pines_orbit — gemela de sube_suelos para los pines CRUZADOS de orbit:
+# rama desde main en ../orbit, align-orbit-pins.sh (que llama al align_set.sh
+# de orbit con los últimos tags de ../quark y ../nucleus), PR, merge-group y
+# espera de «Release Please». Deja el checkout en main al día.
+alinea_pines_orbit() {
+  local dir="../orbit" br="chore/align-set-$(date +%Y%m%d-%H%M)"
+  if [ ! -e "$dir/.git" ]; then say "  sin checkout hermano en $dir"; return 1; fi
+  if [ "$DRY" -eq 1 ]; then say "  → (dry-run) rama $br en $dir · align-orbit-pins.sh · PR · merge-group · espera de Release Please"; return 0; fi
+  if [ -n "$(git -C "$dir" status --porcelain)" ]; then say "  el checkout $dir está sucio: guarda o descarta antes"; return 1; fi
+  run git -C "$dir" checkout -q main || return 1
+  run git -C "$dir" pull -q --ff-only || return 1
+  run git -C "$dir" checkout -q -b "$br" || return 1
+  run bash scripts/train/align-orbit-pins.sh || return 1
+  run git -C "$dir" push -q -u origin "$br" || return 1
+  local title url n
+  title=$(git -C "$dir" log -1 --format=%s)
+  url=$(gh pr create -R jcsvwinston/orbit --head "$br" --title "$title" --body "Opened by the release train: orbit's cross-repo pins move to the Quark and Nucleus tags cut in this train, so the root and the modules are cut requiring the certified versions (manifest-guard §5 fails otherwise).
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)") || return 1
+  n=${url##*/}
+  say "  → PR orbit#$n abierto: $url"
+  run bash scripts/train/merge-group.sh orbit --squash "$n" || return 1
+  gh pr view "$n" -R jcsvwinston/orbit --json state --jq .state | grep -q MERGED || { say "  orbit#$n no quedó fusionado"; return 1; }
+  local sha i rp
+  sha=$(gh pr view "$n" -R jcsvwinston/orbit --json mergeCommit --jq .mergeCommit.oid)
+  say "  → esperar la corrida de «Release Please» de ${sha:0:8} (regenera el release PR con los pines)"
+  for i in 1 2 3 4 5 6 7 8; do
+    rp=$(gh run list -R jcsvwinston/orbit --limit 20 --json workflowName,headSha,status \
+      --jq ".[] | select(.workflowName == \"Release Please\") | select(.headSha == \"$sha\") | .status" 2>/dev/null | head -1 || true)
+    [ "$rp" = "completed" ] && break
+    if [ -z "$rp" ] && [ "$i" -eq 4 ]; then
+      say "  AVISO: el push no disparó «Release Please» — lo disparo a mano"
+      run gh workflow run 'Release Please' -R jcsvwinston/orbit --ref main || true
+    fi
+    sleep 30
+  done
+  [ "$rp" = "completed" ] || say "  AVISO: «Release Please» no terminó en 4 min; el release PR puede no llevar aún los pines"
+  run git -C "$dir" checkout -q main
+  run git -C "$dir" pull -q --ff-only
+  git -C "$dir" branch -q -D "$br" 2>/dev/null || true
+  say "OK: pines cruzados de orbit alineados (orbit#$n)."
+}
+
 # fase_repo <repo> — fusiona los release PRs del bot en orden módulos→root.
 fase_repo() {
   local repo=$1
@@ -172,6 +216,42 @@ fase_repo() {
       sube_suelos "$repo" || die "no pude subir los suelos de $repo (ver arriba); súbelos a mano: bash scripts/train/align-module-floors.sh $repo"
     fi
     if [ "$SOLO_SUELOS" -eq 1 ]; then say "OK: --solo-suelos — fase $repo termina aquí (release PRs sin tocar)."; return 0; fi
+  fi
+
+  if [ "$repo" = "quark" ]; then
+    # RT-9 mecanizado (2026-09-05): el esqueleto de notas + menciones se
+    # escribe EN la rama del release PR; el tren solo para si queda prosa.
+    say "PASO: deuda de doc de quark en la rama del release (quark-doc-debt.sh)"
+    local rc=0
+    if [ "$DRY" -eq 1 ]; then
+      bash scripts/train/quark-doc-debt.sh --dry-run || rc=$?
+      case "$rc" in
+        0) say "  → (dry-run) nada que pagar" ;;
+        2) say "  → (dry-run) el tren PARARÁ aquí para redactar la prosa (marcadores TODO, ver arriba)" ;;
+        *) say "  → (dry-run) quark-doc-debt.sh falló (EXIT=$rc, ver arriba)" ;;
+      esac
+    else
+      run bash scripts/train/quark-doc-debt.sh || rc=$?
+      case "$rc" in
+        0) ;;
+        2) manual "Redacta la prosa en los ficheros listados arriba (marcadores TODO): el esqueleto YA está empujado a release-please--branches--main. Empuja la prosa a esa rama y relanza: bash scripts/train/train.sh --desde quark" ;;
+        *) die "la deuda de doc de quark no quedó pagada (ver arriba)" ;;
+      esac
+    fi
+  fi
+  if [ "$repo" = "orbit" ]; then
+    # Pines CRUZADOS (2026-09-05): si quark/nucleus se cortaron en este tren,
+    # orbit cortaría requiriendo los tags viejos y manifest-guard §5 FALLA
+    # (no avisa). align_set.sh los sube en un commit antes de la fase.
+    say "PASO: pines cruzados de orbit hacia los tags de quark y nucleus (align_set.sh)"
+    # El check es de solo lectura (un ff-only de ../orbit main): se ejecuta
+    # también en dry-run, para que el ensayo diga la verdad.
+    say "  → bash scripts/train/align-orbit-pins.sh --check"
+    if bash scripts/train/align-orbit-pins.sh --check; then
+      say "  → pines al día"
+    else
+      alinea_pines_orbit || die "no pude alinear los pines de orbit (ver arriba); hazlo a mano: bash scripts/train/align-orbit-pins.sh"
+    fi
   fi
 
   say "  → gh pr list -R jcsvwinston/$repo --label 'autorelease: pending'"
