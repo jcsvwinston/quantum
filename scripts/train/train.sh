@@ -34,6 +34,9 @@
 #   --desde     retoma el tren en esa fase (default: preflight).
 #   --hasta     última fase a ejecutar (default: paraguas; «cierre» solo corre
 #               pedido explícitamente — exige el PR de re-pin ya fusionado).
+#   --solo-suelos  en las fases de repo, sube los suelos (QM-19) y para: no
+#               fusiona release PRs. Es el primer commit de un corte que aún
+#               no se va a cerrar (arranque de un arco).
 #
 # Deudas de doc por minor (RT-9): el driver NO las salda (son escritura), pero
 # las imprime antes de cada repo y el CI del release PR las exige — un release
@@ -45,6 +48,7 @@ cd "$(dirname "$0")/../.."
 
 PHASES="preflight quark nucleus orbit paraguas cierre"
 DRY=0
+SOLO_SUELOS=0
 FROM="preflight"
 TO="paraguas"
 while [ $# -gt 0 ]; do
@@ -52,6 +56,7 @@ while [ $# -gt 0 ]; do
     --dry-run) DRY=1 ;;
     --desde) shift; FROM="${1:-}" ;;
     --hasta) shift; TO="${1:-}" ;;
+    --solo-suelos) SOLO_SUELOS=1 ;;
     -h|--help) sed -n '2,40p' "$0"; exit 0 ;;
     *) echo "argumento desconocido: $1 (ver --help)" >&2; exit 64 ;;
   esac
@@ -166,6 +171,7 @@ fase_repo() {
     else
       sube_suelos "$repo" || die "no pude subir los suelos de $repo (ver arriba); súbelos a mano: bash scripts/train/align-module-floors.sh $repo"
     fi
+    if [ "$SOLO_SUELOS" -eq 1 ]; then say "OK: --solo-suelos — fase $repo termina aquí (release PRs sin tocar)."; return 0; fi
   fi
 
   say "  → gh pr list -R jcsvwinston/$repo --label 'autorelease: pending'"

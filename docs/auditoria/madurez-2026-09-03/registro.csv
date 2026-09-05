@@ -5,15 +5,15 @@ QK-2,P1,quark,—,hecho,quark#338,quark.md,"`superapp` (raíz, 42 232 786 B, Mac
 QK-3,P1,quark,—,hecho,quark#338,quark.md,"`README.md` (Quick Start, `_ ""modernc.org/sqlite""`), `website/docs/guides/getting-started.mdx:308`, `website/docs/guides"
 QK-4,P1,quark,—,hecho,quark#338,quark.md,"`client.go:255-259`, `quarkdriver/driver.go:132` (`HasEngine` no se usa fuera de `drivertest`)"
 QK-5,P1,quark,—,hecho,quark#338,quark.md,"`drivers/mysql/go.mod:6`, `drivers/sqlite/go.mod:6`, `drivers/mssql/go.mod:6`, `drivers/oracle/go.mod:6` (`quark v1.8.0`"
-QK-6,P2,quark,A1,abierto,,quark.md,"`migrate/migrate.go:128-170`, `cmd/quark/commands/migrate.go`, `migrate_execute.go:56` (sólo lo documenta)"
+QK-6,P2,quark,—,hecho,quark#350,quark.md,"`migrate/migrate.go:128-170`, `cmd/quark/commands/migrate.go`, `migrate_execute.go:56` (sólo lo documenta)"
 QK-7,P2,quark,—,hecho,quark#338,quark.md,"`README.md` tabla ""Why Quark"" (fila ""Native Generics"", fila ""`stdlib` `*sql.DB`""), `docs/comparison.md` §1, `website/doc"
-QK-8,P2,quark,A1,abierto,,quark.md,"`drivers/postgres/listener.go:16-17`, `quarkdriver/listener.go` (`NewListenerFunc func(db *sql.DB, g *guard.SQLGuard)`)"
+QK-8,P2,quark,—,hecho,quark#350,quark.md,"`drivers/postgres/listener.go:16-17`, `quarkdriver/listener.go` (`NewListenerFunc func(db *sql.DB, g *guard.SQLGuard)`)"
 QK-9,P2,quark,—,hecho,quark#338,quark.md,"`codegen_registry.go:169-184`, `cmd/quark/internal/codegen/emit.go:120-131`"
 QK-10,P3,quark,—,hecho,quark#338,quark.md,"`zz_drivers_for_test.go:7`, `cmd/quark/internal/db/drivers.go:7`, `quarktenant/zz_drivers_for_test.go:6`, `quarktest/zz_"
 QK-11,P3,quark,—,hecho,quark#338,quark.md,"`README.md` § ""Project Structure"""
 QK-12,P3,quark,—,hecho,quark#338,quark.md,"`TASKS.md` (235 KB, congelado 2026-06-20 según su propio banner), `docs/ANALISIS_MADUREZ.md` (2026-05-10, sin banner), `"
 QK-13,P3,quark,—,hecho,quark#338,quark.md,"`drivers/mysql/CHANGELOG.md`, `drivers/postgres/CHANGELOG.md`"
-QK-14,P3,quark,A1,abierto,,quark.md,`go.mod:7-31` (raíz)
+QK-14,P3,quark,A3,abierto,documentado en el README de quark (qué lista go.mod vs qué enlaza un binario); sacar los drivers de la raíz exige que cmd/quark sea módulo propio — decisión en A3,quark.md,`go.mod:7-31` (raíz)
 QK-15,P3,quark,—,hecho,quark#338,quark.md,"`website/docs/guides/installation.mdx:44-48`, `website/docs/advanced/events.mdx:129-135`"
 QK-16,P2,quark,—,hecho,quark#338,quark.md,"`examples/sqlite/main.go:10`, `examples/postgres/main.go:10`, `examples/mysql/main.go:10`, `examples/mssql/main.go:11`, "
 QK-17,P2,quark,—,hecho,quark#338,quark.md,`query_crud.go:685-696` (godoc de `Update`)
@@ -23,45 +23,45 @@ QK-19,P3,quark,—,hecho,quark#338,quark.md,`quarkdriver/known.go:65`
 NU-1,P1,nucleus,—,hecho,nucleus#455,nucleus.md,"`drivers/sqlite/go.mod:5` (y mssql, mysql, oracle, exporters/*, providers/secrets-aws, storage-*) ; `drivers/postgres/go"
 NU-2,P1,nucleus,—,hecho,nucleus#455,nucleus.md,`release-please-config.json:106-195`
 NU-3,P1,nucleus,—,hecho,nucleus#455,nucleus.md,`pkg/observe/otel.go:136` ; `internal/cli/add.go:166-187` ; `pkg/app/app.go:253` ; `internal/knownproviders/knownprovide
-NU-4,P2,nucleus,A1,abierto,,nucleus.md,"`pkg/router/middleware.go:12-24` ; `pkg/router/ratelimit.go:190-212` ; `pkg/app/app.go:373,948`"
+NU-4,P2,nucleus,—,hecho,nucleus#471,nucleus.md,"`pkg/router/middleware.go:12-24` ; `pkg/router/ratelimit.go:190-212` ; `pkg/app/app.go:373,948`"
 NU-5,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`pkg/router/context.go:163-165`
-NU-6,P2,nucleus,A1,abierto,,nucleus.md,`pkg/router/httputil.go:241` ; `pkg/app/app.go:1226-1234`
+NU-6,P2,nucleus,—,hecho,nucleus#471,nucleus.md,`pkg/router/httputil.go:241` ; `pkg/app/app.go:1226-1234`
 NU-7,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`pkg/auth/session_runtime.go:150-176` ; `pkg/observability/hooks/http.go:110`
 NU-8,P2,nucleus,A12,abierto,,nucleus.md,`go.mod:22-46` ; `internal/dbclassify/link.go:17-18` ; `cmd/nucleus/drivers.go:19`
-NU-9,P2,nucleus,A1,abierto,,nucleus.md,"`pkg/auth/session.go:32,172-226`"
+NU-9,P2,nucleus,—,hecho,nucleus#472,nucleus.md,"`pkg/auth/session.go:32,172-226`"
 NU-10,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`pkg/nucleus/context.go:24-31`
-NU-11,P2,nucleus,A1,abierto,,nucleus.md,"`pkg/errors/handler.go:126,141-174`"
-NU-12,P2,nucleus,A1,abierto,,nucleus.md,"`pkg/tasks/providers/memory/memory.go:113-120,159-196` ; `scheduler.go:57`"
-NU-13,P2,nucleus,A1,abierto,,nucleus.md,`pkg/db/migrate.go:221-296`
-NU-14,P2,nucleus,A1,abierto,,nucleus.md,`internal/cli/generatemodule.go:432-433`
+NU-11,P2,nucleus,—,hecho,nucleus#472,nucleus.md,"`pkg/errors/handler.go:126,141-174`"
+NU-12,P2,nucleus,—,hecho,nucleus#472,nucleus.md,"`pkg/tasks/providers/memory/memory.go:113-120,159-196` ; `scheduler.go:57`"
+NU-13,P2,nucleus,—,hecho,nucleus#472,nucleus.md,`pkg/db/migrate.go:221-296`
+NU-14,P2,nucleus,—,hecho,nucleus#473,nucleus.md,`internal/cli/generatemodule.go:432-433`
 NU-15,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`pkg/db/migrate.go:471` ; `internal/cli/migrationmaintenance.go:136` vs `internal/cli/generate.go:464`
 NU-16,P2,nucleus,A2,abierto,,nucleus.md,`internal/cli/routes.go:92` ; `internal/cli/serve.go:20-25` ; `internal/cli/migrate.go`
 NU-17,P2,nucleus,A2,abierto,,nucleus.md,`internal/cli/openapi.go:46-75`
 NU-18,P2,nucleus,A2,abierto,,nucleus.md,`internal/cli/migrate.go:18-30` (+ 34 comandos con `flag.PrintDefaults`)
 NU-19,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`internal/cli/plugincommands_test.go:76` ; `pkg/plugins/plugins.go:19`
-NU-20,P2,nucleus,A1,abierto,,nucleus.md,`pkg/model/registry.go:63-85`
-NU-21,P2,nucleus,A1,abierto,,nucleus.md,`CHANGELOG.md:10-17` ; `docs/governance/COMPATIBILITY_SLO.md`
+NU-20,P2,nucleus,—,hecho,nucleus#472,nucleus.md,`pkg/model/registry.go:63-85`
+NU-21,P2,nucleus,—,hecho,nucleus#473,nucleus.md,`CHANGELOG.md:10-17` ; `docs/governance/COMPATIBILITY_SLO.md`
 NU-22,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`contracts/baseline/cli_primary_commands.txt` (39 líneas) ; `website/docs/cli/overview.md`
-NU-23,P2,nucleus,A1,abierto,,nucleus.md,`internal/cli/add_test.go`
+NU-23,P2,nucleus,—,hecho,nucleus#473,nucleus.md,`internal/cli/add_test.go`
 NU-24,P2,nucleus,—,hecho,nucleus#455,nucleus.md,"`README.md:67-68,297` ; `website/docs/getting-started/installation.md:12,63-68` ; `SPEC.md:328`"
 NU-25,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`README.md:24`
 NU-26,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`README.md:37` ; `internal/cli/root.go:44-84`
 NU-27,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`website/docs/getting-started/installation.md:22` ; `docs/adrs/ADR-031-drivers-and-exporters-as-modules.md:121`
-NU-28,P2,nucleus,A1,abierto,README: la afirmación se corrige al arreglar NU-4,nucleus.md,`README.md:75-78`
-NU-29,P3,nucleus,A1,abierto,,nucleus.md,`pkg/auth/jwt.go:354`
-NU-30,P3,nucleus,A1,abierto,,nucleus.md,"`pkg/router/otel.go:31,38`"
-NU-31,P3,nucleus,A1,abierto,,nucleus.md,`pkg/router/mux.go:308-316` ; `resource.go:26`
-NU-32,P3,nucleus,A1,abierto,,nucleus.md,"`pkg/router/mux.go:174,360-375`"
-NU-33,P3,nucleus,A1,abierto,,nucleus.md,`pkg/router/csrf.go:432` ; `mux.go:141`
-NU-34,P3,nucleus,A1,abierto,,nucleus.md,"`pkg/validate/validate.go:61,68`"
-NU-35,P3,nucleus,A1,abierto,,nucleus.md,`pkg/signals/signals.go:81-96`
-NU-36,P3,nucleus,A1,abierto,,nucleus.md,"`pkg/router/httputil.go:180,281-286`"
-NU-37,P3,nucleus,A1,abierto,,nucleus.md,`pkg/authz/policies.go:70` ; `pkg/auth/session_store_memcached.go:20` ; `pkg/app/config.go:337-338`
-NU-38,P3,nucleus,A1,abierto,,nucleus.md,`pkg/router/middleware.go:17-21` ; `corsmw.go:50`
-NU-39,P3,nucleus,A1,abierto,,nucleus.md,`pkg/model/meta.go:278-292`
+NU-28,P2,nucleus,—,hecho,nucleus#471,nucleus.md,`README.md:75-78`
+NU-29,P3,nucleus,—,hecho,nucleus#472,nucleus.md,`pkg/auth/jwt.go:354`
+NU-30,P3,nucleus,—,hecho,nucleus#471,nucleus.md,"`pkg/router/otel.go:31,38`"
+NU-31,P3,nucleus,—,hecho,nucleus#471,nucleus.md,`pkg/router/mux.go:308-316` ; `resource.go:26`
+NU-32,P3,nucleus,—,hecho,nucleus#471,nucleus.md,"`pkg/router/mux.go:174,360-375`"
+NU-33,P3,nucleus,—,hecho,nucleus#471,nucleus.md,`pkg/router/csrf.go:432` ; `mux.go:141`
+NU-34,P3,nucleus,—,hecho,nucleus#472,nucleus.md,"`pkg/validate/validate.go:61,68`"
+NU-35,P3,nucleus,—,hecho,nucleus#472,nucleus.md,`pkg/signals/signals.go:81-96`
+NU-36,P3,nucleus,—,hecho,nucleus#471,nucleus.md,"`pkg/router/httputil.go:180,281-286`"
+NU-37,P3,nucleus,—,hecho,nucleus#472,nucleus.md,`pkg/authz/policies.go:70` ; `pkg/auth/session_store_memcached.go:20` ; `pkg/app/config.go:337-338`
+NU-38,P3,nucleus,—,hecho,nucleus#471,nucleus.md,`pkg/router/middleware.go:17-21` ; `corsmw.go:50`
+NU-39,P3,nucleus,—,hecho,nucleus#472,nucleus.md,`pkg/model/meta.go:278-292`
 NU-40,P3,nucleus,—,hecho,nucleus#455,nucleus.md,"`contracts/security_posture_test.go:207` ; `internal/cli/common.go:42,82` ; `pkg/app/config.go:594`"
 NU-41,P3,nucleus,A10,abierto,,nucleus.md,"`pkg/nucleus/context.go:76` vs `pkg/router/context.go:398` ; `pkg/authz/enforcer.go`, `pkg/router/router.go`, `pkg/db/db"
-NU-42,P3,nucleus,A1,abierto,,nucleus.md,`pkg/auth/session_cache.go:30-37`
+NU-42,P3,nucleus,—,hecho,nucleus#472,nucleus.md,`pkg/auth/session_cache.go:30-37`
 NU-43,P3,nucleus,A5,abierto,la costura federada gana sus proveedores en A5 (OIDC/SAML),nucleus.md,`pkg/app/app.go:1708-1740` ; `providers/`
 NU-44,P3,nucleus,A10,abierto,,nucleus.md,`pkg/nucleus/nucleus.go:826-836` ; `pkg/db/migrate.go:687-692`
 NU-45,P3,nucleus,—,hecho,nucleus#455,nucleus.md,`internal/cli/generatemodule.go:368-371`
@@ -81,12 +81,12 @@ NU-58,P1,nucleus,—,hecho,nucleus#455,nucleus.md,`docs/reference/CONFIG_KEY_REG
 NU-59,P1,nucleus,—,hecho,nucleus#455,nucleus.md,"`SPEC.md:138-142,297-305,327-328,331`"
 NU-60,P1,nucleus,—,hecho,nucleus#455,nucleus.md,"`README.md:148,151` ; `website/docs/intro.md:75-77` ; `SPEC.md:194,219-223,364` ; `docs/reference/CONFIG_KEY_REGISTRY.md"
 NU-61,P1,nucleus,A1,abierto,"se cierra con el snapshot de docs del siguiente minor de nucleus (el de A1), cortado tras las correcciones",nucleus.md,`website/versioned_docs/version-1.23.0/**`
-NU-62,P2,nucleus,A1,abierto,,nucleus.md,"`website/docs/concepts/models-and-database.md:40-44,264-265` ; `website/docs/operations/deployment.md:41-42` ; `website/"
-NU-63,P2,nucleus,A1,abierto,,nucleus.md,`docs/reference/API_CONTRACT_INVENTORY.md` ; `README.md:140-163` ; `scripts/ci/check_version_claims.sh`
+NU-62,P2,nucleus,—,hecho,nucleus#455,nucleus.md,"`website/docs/concepts/models-and-database.md:40-44,264-265` ; `website/docs/operations/deployment.md:41-42` ; `website/"
+NU-63,P2,nucleus,—,hecho,nucleus#473,nucleus.md,`docs/reference/API_CONTRACT_INVENTORY.md` ; `README.md:140-163` ; `scripts/ci/check_version_claims.sh`
 NU-64,P2,nucleus,—,hecho,nucleus#455,nucleus.md,"`CLAUDE.md:51` ; `SPEC.md:130,181-183,311,387-397,417-430` ; `README.md:171-185,256,299`"
 NU-65,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`docs/guides/STORAGE_GUIDE.md:79-165` ; `docs/guides/OBSERVABILITY_BASELINE.md` ; `docs/reports/*` ; `docs/governance/RE
 NU-66,P3,nucleus,—,hecho,nucleus#455,nucleus.md,"`docs/adrs/ADR-021…:8`, `ADR-022:5,8`, `ADR-023:6,8`, `ADR-024:7`, `ADR-025:7`, `ADR-026:7`, `ADR-020:10,12`"
-NU-67,P3,nucleus,A1,abierto,,nucleus.md,`SPEC.md:234` ; `pkg/app/jwt_setup.go:46-105` ; `pkg/storage`
+NU-67,P3,nucleus,—,hecho,nucleus#473,nucleus.md,`SPEC.md:234` ; `pkg/app/jwt_setup.go:46-105` ; `pkg/storage`
 OR-1,P0,orbit,—,hecho,orbit#380,orbit.md,"`server/server.go:256,263,490`; `:421` (F1)"
 OR-2,P1,orbit,—,hecho,orbit#380,orbit.md,"`internal/datasource/nucleus/store.go:91-102`, `reflect.go:38-140`"
 OR-3,P1,orbit,—,hecho,orbit#380,orbit.md,"`internal/admin/system.go:99-165,414-452`"
@@ -112,7 +112,7 @@ OR-22,P2,orbit,—,hecho,orbit#380,orbit.md,"`store.go:123-131`, `handlers.go:52
 OR-23,P2,orbit,A1,abierto,,orbit.md,"`panel.go:672-686`, `handlers.go:515-680`, README «Filter records by the request's resolved tenant»"
 OR-24,P2,orbit,—,hecho,orbit#380,orbit.md,"`server/server.go:93,109-111` (F4)"
 OR-25,P2,orbit,—,hecho,orbit#380,orbit.md,`server/nodes/registry.go:125-129` (F5)
-OR-26,P2,orbit,A1,abierto,,orbit.md,`server/services/control_service.go:105-142` (F6)
+OR-26,P2,orbit,—,hecho,orbit#427,orbit.md,`server/services/control_service.go:105-142` (F6)
 OR-27,P2,orbit,—,hecho,orbit#379,orbit.md,"`AGGridTable.tsx:136-209,329-332` (D8, D9)"
 OR-28,P2,orbit,—,hecho,orbit#379,orbit.md,`AuditLogPage.tsx:28-31` vs `audit.go:345-349` (D10)
 OR-29,P2,orbit,—,hecho,orbit#379,orbit.md,"`NetworkInspectorPage.tsx:52-92`; `api.ts:83-100,213-221` (D11, D13)"
@@ -127,28 +127,28 @@ OR-37,P3,orbit,—,hecho,orbit#379,orbit.md,"`.gitignore:1-4`, `internal/admin/u
 OR-38,P3,orbit,—,hecho,orbit#380,orbit.md,"`docs/adrs/ADR-002-*.md:4,14`, `docs/adrs/README.md:13`, `CLAUDE.md`"
 OR-39,P3,orbit,—,hecho,orbit#380,orbit.md,"`proto/EVOLUTION.md:26-27,103,111`; `agent/buffer/buffer.go:4-9`; `server/config.go:26` (fleet docs)"
 OR-40,P3,orbit,—,hecho,orbit#380,orbit.md,`management.go:35-115`
-OR-41,P3,orbit,A1,abierto,,orbit.md,`datastudio_service.go:328-336` vs `agent/datastudio/datastudio.go:538` (F7); `agent_service.go:81` (F10); `connection.g
-OR-42,P3,orbit,A1,abierto,,orbit.md,`hardening.go:34-36`; `default_auth.go` limiter
+OR-41,P3,orbit,—,hecho,orbit#380,orbit.md,`datastudio_service.go:328-336` vs `agent/datastudio/datastudio.go:538` (F7); `agent_service.go:81` (F10); `connection.g
+OR-42,P3,orbit,—,hecho,orbit#427,orbit.md,`hardening.go:34-36`; `default_auth.go` limiter
 OR-43,P3,orbit,A1,abierto,,orbit.md,`nucleus/pkg/model/fields.go:100-125`; `handlers.go:530-538`
 OR-44,P3,orbit,A1,abierto,,orbit.md,`internal/admin/ui/dist/assets/*` (SPA)
 F1,P0,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,"`server/server.go:490` vs `:256,:263`; `:421`"
 F2,P1,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,"`agent/agent.go:238-242`, `agent/connection/connection.go:289-306`"
 F3,P1,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,"`server/cmd/admin-server/main.go:176-188`, `config.go:24`, `README:55`"
-F4,P2,orbit,A1,abierto,,orbit-fleet-informe.md,"`server/server.go:93,109-111`"
-F5,P2,orbit,A1,abierto,,orbit-fleet-informe.md,`server/nodes/registry.go:125-129`
-F6,P2,orbit,A1,abierto,,orbit-fleet-informe.md,`server/services/control_service.go:105-142`
+F4,P2,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,"`server/server.go:93,109-111`"
+F5,P2,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,`server/nodes/registry.go:125-129`
+F6,P2,orbit,—,hecho,orbit#427,orbit-fleet-informe.md,`server/services/control_service.go:105-142`
 F7,P3,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,`datastudio_service.go:328-336` vs `agent/datastudio/datastudio.go:538`
 F8,P3,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,`server/auth/auth.go:224-240`
 F9,P3,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,`server/auth/auth.go:245-268`
 F10,P3,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,`agent_service.go:81`
 F11,P3,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,`agent/connection/connection.go:320`
-F12,P3,orbit,A1,abierto,,orbit-fleet-informe.md,`routing/replay.go:119-123` vs `eventbus.go:328-340`
-F13,P3,orbit,A1,abierto,,orbit-fleet-informe.md,`agent/datastudio/datastudio.go:223-230`; `quarkdatasource/store.go:90`
-F14,P3,orbit,A1,abierto,,orbit-fleet-informe.md,"`agent/metrics/metrics.go:47-50`, `agent/agent.go:332`"
-F15,P3,orbit,A1,abierto,,orbit-fleet-informe.md,`agent/hostmetrics/hostmetrics.go:52-56`
+F12,P3,orbit,—,hecho,orbit#427,orbit-fleet-informe.md,`routing/replay.go:119-123` vs `eventbus.go:328-340`
+F13,P3,orbit,—,hecho,orbit#427,orbit-fleet-informe.md,`agent/datastudio/datastudio.go:223-230`; `quarkdatasource/store.go:90`
+F14,P3,orbit,—,hecho,orbit#427,orbit-fleet-informe.md,"`agent/metrics/metrics.go:47-50`, `agent/agent.go:332`"
+F15,P3,orbit,—,hecho,orbit#427,orbit-fleet-informe.md,`agent/hostmetrics/hostmetrics.go:52-56`
 F16,P3,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,"`agent_service.go:192`, `control_service.go:262`, `main.go:223`, `buffer.go:207`"
-F17,P3,orbit,A1,abierto,,orbit-fleet-informe.md,"`agent/stream/stream.go:424-435,456-467`, `snapshot.go:24`"
-F18,P3,orbit,A1,abierto,,orbit-fleet-informe.md,`agent/stream/stream.go:207-211` + buffer
+F17,P3,orbit,—,hecho,orbit#427,orbit-fleet-informe.md,"`agent/stream/stream.go:424-435,456-467`, `snapshot.go:24`"
+F18,P3,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,`agent/stream/stream.go:207-211` + buffer
 D1,P1,orbit,—,hecho,orbit#379,orbit-spa-informe.md,Import es un no-op con toast de éxito; nunca llama a validate/execute
 D2,P1,orbit,—,hecho,orbit#379,orbit-spa-informe.md,"""Load More"" reemplaza filas (applyTransaction + re-render con `rowData={result.items}`)"
 D3,P1,orbit,—,hecho,orbit#379,orbit-spa-informe.md,Batch size 500 → HTTP 400 (`page_size must be <= 200`)
@@ -188,5 +188,5 @@ QM-14,P2,quantum,A3,abierto,,suite.md,`nucleus/.goreleaser.yaml:29-31`; `nucleus
 QM-15,P3,quantum,—,hecho,quantum#136,suite.md,"`README.md:64,180,214-221`"
 QM-16,P3,quantum,—,hecho,quantum#136,suite.md,`website/docs/certified-sets.md:19-38`
 QM-17,P3,quantum,—,hecho,quantum#136,suite.md,"`website/docs/install.md:31`, `website/docs/quickstart.md:31`; `.github/workflows/integration.yml:75-100`"
-QM-18,P3,quantum,A1,abierto,,suite.md,"releases de `quark`, `orbit`, `nucleus` (release-please)"
-QM-19,P3,quantum,A1,abierto,"script y momento hechos (align-module-floors, primer commit de cada corte); lo estrena el primer corte de A1",suite.md,`scripts/manifest-guard.sh` (salida)
+QM-18,P3,quantum,—,hecho,nucleus#473 + quark#350 + orbit#427,suite.md,"releases de `quark`, `orbit`, `nucleus` (release-please)"
+QM-19,P3,quantum,—,hecho,nucleus#469 + quark#348 (primer corte con suelos),suite.md,`scripts/manifest-guard.sh` (salida)
