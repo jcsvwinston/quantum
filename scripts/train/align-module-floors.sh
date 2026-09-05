@@ -110,6 +110,21 @@ for item in $behind; do
   touched="$touched $mod/go.mod"
   [ -f "$DIR/$mod/go.sum" ] && touched="$touched $mod/go.sum"
 done
+# Los ejemplos que sustituyen (`replace`) los módulos del árbol por la copia
+# local ven moverse el suelo por MVS y `go build` con GOWORK=off exige que
+# su go.mod lo diga (quark#348 salió rojo por esto): tidy en cada uno.
+while IFS= read -r ex; do
+  [ -n "$ex" ] || continue
+  exdir=$(dirname "$ex")
+  grep -qE "^replace .*=> \.\./" "$ex" || grep -qE "^\s+github.com/$OWNER/$REPO[/ ]" "$ex" || continue
+  before=$(cat "$ex" "$exdir/go.sum" 2>/dev/null | shasum)
+  (cd "$exdir" && GOWORK=off go mod tidy) || { echo "tidy falló en $exdir" >&2; exit 1; }
+  after=$(cat "$ex" "$exdir/go.sum" 2>/dev/null | shasum)
+  if [ "$before" != "$after" ]; then
+    rel=${exdir#$DIR/}; echo "  → $rel: go mod tidy (sigue el suelo por replace)"
+    touched="$touched $rel/go.mod"; [ -f "$exdir/go.sum" ] && touched="$touched $rel/go.sum"
+  fi
+done < <(find "$DIR/examples" -mindepth 2 -maxdepth 2 -name go.mod 2>/dev/null | sort)
 if [ "$COMMIT" -eq 0 ]; then echo "cambios en el árbol sin commit (--no-commit):$touched"; exit 0; fi
 mods=$(printf '%s\n' $behind | sed 's/:.*//' | tr '\n' ' ' | sed 's/ $//')
 git -C "$DIR" add $touched
