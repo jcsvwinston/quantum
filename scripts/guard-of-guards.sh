@@ -44,6 +44,7 @@ fi
 echo
 
 echo "-- cobertura: cada guard registrado tiene fixture, y viceversa"
+registered_names=$(guard_names)
 cov_ok=1
 for name in $(guard_names); do
   if [[ ! -f "$FIXTURES_DIR/$name/fixture.sh" ]]; then
@@ -54,7 +55,10 @@ done
 for d in "$FIXTURES_DIR"/*/; do
   [[ -d "$d" ]] || continue
   fx_name=$(basename "$d")
-  if ! guard_names | grep -qx "$fx_name"; then
+  # `grep -q` cierra la tubería al primer match y el printf de guard_names
+  # muere con «Broken pipe»; bajo pipefail eso convierte un guard registrado
+  # en «huérfana» al azar (quantum#151 en CI). Se compara sobre una copia.
+  if ! grep -qxF -- "$fx_name" <<<"$registered_names"; then
     echo "FAIL: fixture huérfana '$fx_name' — no hay guard registrado con ese nombre (¿guard retirado sin retirar su fixture?)" >&2
     cov_ok=0
   fi
