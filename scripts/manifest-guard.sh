@@ -22,6 +22,21 @@ cd "$(dirname "$0")/.."
 manifest=versions.yaml
 status=0
 
+# --- §0. Las claves de primer nivel existen ---------------------------------
+# El manifiesto de Quantum 1.26.1 salió sin `declared_lags` (y sin el final
+# del comentario que la precede): un recorte calculado con un offset rancio
+# al redactar las notes se comió esa línea. Nadie lo cazó porque yaml_value
+# lee con awk y una clave AUSENTE se lee como vacía — que es exactamente el
+# valor que certifica. Aquí se exige la presencia literal, en columna 0, de
+# cada clave que el resto del guard y el tren dan por sentada.
+for key in quantum released status modules nucleus_modules quark_modules orbit_modules workspace_pins declared_lags notes; do
+  if ! grep -qE "^${key}:" versions.yaml; then
+    echo "FAIL: versions.yaml no tiene la clave de primer nivel '${key}:' en columna 0 — el manifiesto está incompleto (1.26.1 perdió declared_lags por un recorte a offset rancio; el guard la lee como vacía y certifica igual)" >&2
+    status=1
+  fi
+done
+if [[ $status -eq 0 ]]; then echo "OK: §0 las diez claves de primer nivel del manifiesto existen"; fi
+
 # yaml_value SECTION KEY — reads a `KEY: "value"` line from under a top-level
 # `SECTION:` block. No yq dependency: the manifest is a flat, hand-maintained
 # file and awk over its two known sections is enough (and portable to the CI
