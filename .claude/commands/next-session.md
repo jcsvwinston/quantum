@@ -99,9 +99,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   - **QM-19**: `scripts/train/align-module-floors.sh <nucleus|quark>` sube los
     suelos módulo→raíz (hoy 12 de 12 en nucleus a v1.23.0 y 5 de 5 en quark a
     v1.10.0: los 18 AVISOs de §5b). El driver imprime `--check` antes de cada
-    repo sin bloquear. **DECISIÓN PENDIENTE de Carlos: cuándo corre** — es un
-    `fix(deps)` que corta un patch por módulo tocado, así que va al principio
-    de un corte que sale igual, nunca como corte propio.
+    repo. **DECIDIDO (Carlos, 2026-09-05): al principio de cada corte**, como
+    primer commit; el driver lo hace solo en la fase de cada repo (rama, PR,
+    fusión, espera de Release Please). Es un `fix(deps)` que corta un patch
+    por módulo tocado.
   - orbit#425 (Dependabot, dependencia de desarrollo del UI) fusionado. Cero
     PRs abiertos en los cuatro repos; **quantum-app#13** (bump al set 1.27.0,
     E2E verde) espera la fusión de Carlos.
@@ -3038,11 +3039,10 @@ ir en paralelo. Nada de esto bloquea la Fase 2/3 en curso.
   → A3 cadena de suministro → A4 Quark como capa de datos → … → A12. La
   semana 1 (tren) está cerrada; A1 arranca con el gate «cero P1/P2 abiertos
   de los cuatro informes de madurez».
-- **Pendiente de Carlos**: fusionar quantum-app#13; decidir cuándo corre
-  `align-module-floors.sh` en el tren (corta un patch por módulo: al
-  principio de un corte que sale igual); y abrir con él los puntos de A1 que
-  cambian comportamiento (NU-4 rate limit tras identidad, NU-14 política de
-  `generate module`, OR-14 IDs string).
+- **Pendiente de Carlos**: fusionar quantum-app#13. Decidido el 2026-09-05:
+  los suelos se suben al principio de cada corte (`sube_suelos` en
+  `train.sh`) y A1 arranca entero, incluidos los puntos que cambian
+  comportamiento (NU-4, NU-14, OR-14) con los diseños del plan.
 - **Lo que deja a deber el arreglo del auto-bloqueo**: la prueba en vivo. El
   próximo release PR de raíz sola en cualquiera de los tres repos debe
   etiquetar sin receta; si vuelve a fallar, el diagnóstico está en la

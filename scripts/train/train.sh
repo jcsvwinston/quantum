@@ -102,21 +102,69 @@ imprime_deudas() {
   say "  Saldarlas EN la rama del release PR: ahorra 2 vueltas de CI por repo (RT-9)."
 }
 
+# sube_suelos <repo> — el primer commit de cada corte (decisión 2026-09-05):
+# rama desde main en el checkout hermano (../<repo>), align-module-floors.sh
+# (commit fix(deps)), PR, fusión en serie (merge-group.sh) y espera de la
+# corrida de «Release Please» del commit de merge, que regenera el release PR
+# con los módulos dentro. Deja el checkout en main al día.
+sube_suelos() {
+  local repo=$1 dir="../$repo" br="fix/module-floors-$(date +%Y%m%d-%H%M)"
+  if [ ! -e "$dir/.git" ]; then say "  sin checkout hermano en $dir"; return 1; fi
+  if [ "$DRY" -eq 1 ]; then
+    say "  → (dry-run) rama $br en $dir · align-module-floors.sh $repo · PR · merge-group · espera de Release Please"
+    return 0
+  fi
+  if [ -n "$(git -C "$dir" status --porcelain)" ]; then say "  el checkout $dir está sucio: guarda o descarta antes"; return 1; fi
+  run git -C "$dir" checkout -q main || return 1
+  run git -C "$dir" pull -q --ff-only || return 1
+  run git -C "$dir" checkout -q -b "$br" || return 1
+  run bash scripts/train/align-module-floors.sh "$repo" --checkout "$dir" || return 1
+  run git -C "$dir" push -q -u origin "$br" || return 1
+  local title body url n
+  title=$(git -C "$dir" log -1 --format=%s)
+  body=$(git -C "$dir" log -1 --format=%b | sed '/^Co-Authored-By/d')
+  url=$(gh pr create -R "jcsvwinston/$repo" --head "$br" --title "$title" --body "$body
+Opened by the release train: the sibling module floors are raised as the first commit of every cut (QM-19), so the modules cut together with the root.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)") || return 1
+  n=${url##*/}
+  say "  → PR $repo#$n abierto: $url"
+  run bash scripts/train/merge-group.sh "$repo" --squash "$n" || return 1
+  gh pr view "$n" -R "jcsvwinston/$repo" --json state --jq .state | grep -q MERGED || { say "  $repo#$n no quedó fusionado"; return 1; }
+  local sha i rp
+  sha=$(gh pr view "$n" -R "jcsvwinston/$repo" --json mergeCommit --jq .mergeCommit.oid)
+  say "  → esperar la corrida de «Release Please» de ${sha:0:8} (regenera el release PR con los módulos)"
+  for i in 1 2 3 4 5 6 7 8; do
+    rp=$(gh run list -R "jcsvwinston/$repo" --limit 20 --json workflowName,headSha,status \
+      --jq ".[] | select(.workflowName == \"Release Please\") | select(.headSha == \"$sha\") | .status" 2>/dev/null | head -1 || true)
+    [ "$rp" = "completed" ] && break
+    if [ -z "$rp" ] && [ "$i" -eq 4 ]; then
+      say "  AVISO: el push no disparó «Release Please» — lo disparo a mano"
+      run gh workflow run 'Release Please' -R "jcsvwinston/$repo" --ref main || true
+    fi
+    sleep 30
+  done
+  [ "$rp" = "completed" ] || say "  AVISO: «Release Please» no terminó en 4 min; el release PR puede no llevar aún los módulos"
+  run git -C "$dir" checkout -q main
+  run git -C "$dir" pull -q --ff-only
+  git -C "$dir" branch -q -D "$br" 2>/dev/null || true
+  say "OK: suelos de $repo subidos ($repo#$n)."
+}
+
 # fase_repo <repo> — fusiona los release PRs del bot en orden módulos→root.
 fase_repo() {
   local repo=$1
   banner "$repo"
   imprime_deudas "$repo"
   if [ "$repo" != "orbit" ]; then
-    # QM-19: los suelos módulo→raíz. Informativo: manifest-guard §5b avisa,
-    # no falla, y subirlos es un fix(deps) que corta un patch por módulo —
-    # va en la rama del trabajo real del corte, no en un corte propio.
-    say "PASO: suelos de los módulos hermanos hacia la raíz (QM-19; informativo)"
+    # QM-19: los suelos módulo→raíz se suben AL PRINCIPIO de cada corte
+    # (decisión de Carlos, 2026-09-05): el fix(deps) entra en el mismo
+    # release PR que el trabajo real y los módulos salen con la raíz.
+    say "PASO: suelos de los módulos hermanos hacia la raíz (QM-19: primer commit de cada corte)"
     if run bash scripts/train/align-module-floors.sh "$repo" --check; then
       say "  → suelos al día"
     else
-      say "  AVISO: suelos por detrás del set certificado. Para subirlos EN este corte:"
-      say "    bash scripts/train/align-module-floors.sh $repo   # fix(deps) en la rama del trabajo, antes del release PR"
+      sube_suelos "$repo" || die "no pude subir los suelos de $repo (ver arriba); súbelos a mano: bash scripts/train/align-module-floors.sh $repo"
     fi
   fi
 

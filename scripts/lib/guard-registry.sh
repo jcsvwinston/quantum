@@ -39,6 +39,10 @@ GUARDS=(
   # --- paraguas -------------------------------------------------------------
   # pin ↔ tag ↔ gitlink + tags de módulo de orbit + disclosure de lags (§1-§5).
   "umbrella-manifest-guard|.|bash scripts/manifest-guard.sh"
+  # Contabilidad de los hallazgos de la auditoría de madurez 2026-09-03: cada
+  # id de los informes tiene fila, cada fila abierta tiene arco, y un arco
+  # declarado cerrado no deja hallazgos abiertos (gate de A1 del plan 5/5).
+  "umbrella-audit-backlog|.|bash scripts/check_audit_backlog.sh"
   # Jerga interna en el HTML SERVIDO (QM5-1 + IDs de hallazgo, 7ª ronda).
   # Requiere website/build construido — suite-integral construye el sitio antes.
   "umbrella-served-jargon|.|bash scripts/check_served_jargon.sh website/build"

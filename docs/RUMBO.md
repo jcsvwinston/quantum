@@ -77,10 +77,10 @@ el anterior.
      `/metrics` por defecto lo pierde hasta añadir el módulo. Avisa al
      arrancar y sigue; si la clave estaba escrita a mano, para.
    - **nucleus y quark tienen ya escritor para los suelos de sus módulos**
-     (`scripts/train/align-module-floors.sh`, QM-19, tren de 1.27.0). Lo que
-     queda por decidir es cuándo corre en cada corte: es un `fix(deps)` que
-     corta un patch por módulo, así que va al principio de un corte que sale
-     igual, no en uno propio. Orbit sigue con `align_set.sh`.
+     (`scripts/train/align-module-floors.sh`, QM-19, tren de 1.27.0), y corre
+     al principio de cada corte como primer commit (decisión 2026-09-05): es
+     un `fix(deps)` que corta un patch por módulo, así que va en un corte que
+     sale igual, no en uno propio. Orbit sigue con `align_set.sh`.
    - `mattn/go-sqlite3` deja de clasificarse en el árbol de quark; quien lo use
      registra su clasificador con tres líneas (ADR-0023).
 
