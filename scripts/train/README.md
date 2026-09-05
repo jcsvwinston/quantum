@@ -18,6 +18,9 @@ queda fuera del escaneo anti-fósil a propósito (solo cubre `scripts/`,
 | `merge-bot-pr.sh <repo> <pr>` | Fusiona UN release PR del bot: push humano de commit vacío (dispara el CI que el token del bot no puede), espera de checks con `gh pr checks --watch --fail-fast`, `update-branch` si queda BEHIND, merge con el método del repo, y espera del tag con receta de recuperación si release-please se atasca. |
 | `check-anchored-release-branch.sh <repo> [pr]` | Detecta la rama de release del ROOT anclada al main viejo: `git merge-base --is-ancestor` de cada último tag de módulo contra el head del PR. Si falla, imprime la receta cerrar + borrar rama + re-dispatch. Se ejecuta JUSTO ANTES de fusionar el root. |
 | `dispatch-app-bump.sh` | Anuncia el set YA certificado al consumidor externo `quantum-app` (`repository_dispatch` con el número de suite y la salida de `print-requires.sh`), **espera el run** que provoca y **exige que termine en PR** (QM-2). Allí un workflow reescribe el pin, corre sus gates y abre el PR. Exige `status: certified` y que el tag de suite exista; no fusiona ni escribe nada en el otro repo. |
+| `merge-group.sh <repo> <--squash\|--merge> <pr>...` | Fusiona PRs humanos o de Dependabot en serie: `update-branch` si BEHIND (nucleus exige ramas al día), espera de checks, merge; para en rojo. No es para release PRs (para eso, `merge-bot-pr.sh`). |
+| `orbit-converge.sh <root> <tags> <rama>` | Un corte de convergencia de pines internos de orbit (ADR-006): `align_set.sh` con el manifiesto del paraguas, notas del root en el mismo commit `fix(deps)`, PR, fusión, release PR y tags. Tras ADR-006 solo hace falta cuando cambia `proto`. |
+| `untag-recipe.sh <repo-dir> <pr>` | La receta del auto-bloqueo de release-please, mecanizada: por cada tag del manifest del commit de merge que falte, tag anotado + release de GitHub con la sección del CHANGELOG + relabel `autorelease: tagged`. |
 
 ## El tren, paso a paso
 
@@ -342,6 +345,31 @@ cuestan una ronda cada una si se olvidan:
 
 Comprobación barata antes de fusionar cualquier release PR: que el título diga
 el número que esperabas. Es la única señal que da el bot, y llega tarde.
+
+### Lo que aprendió el tren de 1.26.2 (dos días de cortes de orbit)
+
+- **Módulo con cambios sin tag = raíz no certificable.** Los `chore(deps)` de
+  Dependabot en `proto`/`agent`/`server`/`quarkdatasource` no cortan tag y
+  `manifest-guard` §3b rechaza la raíz que los contiene. Liberarlos exige un
+  commit `fix(deps)` que toque el módulo (con las notas del root en el mismo
+  commit) y, si el módulo es `proto`, la cascada. Desde ADR-006 Dependabot
+  usa `fix(deps)` en los módulos publicados e ignora `proto`.
+- **La cascada de pines internos** (`proto` → `agent` → `server`) costó dos
+  cortes por tren. ADR-006 quita la arista `server` → `agent` (los tests que
+  arrancan un agente viven en `orbit/internal/fleettest`, módulo de solo
+  test); la que queda (`agent`/`server` → `proto`) la converge
+  `orbit-converge.sh` sin manos.
+- **`go.work` del paraguas y módulos nuevos del pin.** Un módulo que aparece
+  en un submódulo (p. ej. `orbit/internal/fleettest`) solo puede entrar en el
+  `go.work` cuando el PIN lo contiene: antes, `go` no puede cargarlo. Regla:
+  el `use` nuevo va en el PR de re-pin, no antes; `check_gowork_covers_manifest`
+  lo reclama en ese momento.
+- **El manifiesto también se rompe a mano.** `versions.yaml` de 1.26.1 perdió
+  `declared_lags` por un recorte con offset rancio al redactar las notas.
+  `manifest-guard` §0 exige ahora las diez claves de primer nivel; y las
+  notas se escriben DESPUÉS de cualquier sustitución sobre el fichero.
+- **`merge-bot-pr.sh` se lanza desde la raíz del paraguas**: con `cd` a un
+  producto muere en silencio (ruta relativa).
 
 ### Lo que aprendió el tren de 1.26.1 (el de la auditoría de madurez)
 
