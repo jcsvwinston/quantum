@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.26.1"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-09-04
-status: certified           # La auditoría de madurez 2026-09-03 aplicada: 4 P0 cerrados (Quark rechazaba lib/pq y mattn; Orbit no aplicaba TLS al fleet; el ejemplo canónico de Nucleus no arrancaba; docs con build tags), módulos hermanos que compilan solos en los tres repos, y una sola historia sobre D3. Orbit en v1.8.20 tras dos cortes de convergencia de pines internos
+quantum: "1.26.2"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-09-05
+status: certified           # Corte fuera de cadencia (QADR-0008; razón: el consumidor de referencia quantum-app quedaba en rojo contra 1.26.1 por una regresión de orbit v1.8.18, corregida en orbit). Solo mueve orbit y restaura la clave declared_lags que 1.26.1 perdió
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules»; los módulos hermanos de
@@ -20,7 +20,7 @@ status: certified           # La auditoría de madurez 2026-09-03 aplicada: 4 P0
 modules:
   quark:   "v1.10.1"
   nucleus: "v1.23.1"
-  orbit:   "v1.8.20"
+  orbit:   "v1.8.21"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -69,7 +69,7 @@ orbit_modules:
 workspace_pins:
   quark:   "6d7d661e"                                # = v1.10.1 exacto (contiene drivers/mssql/v0.1.1, drivers/mysql/v0.1.1, drivers/oracle/v0.1.1, drivers/postgres/v0.1.1, drivers/sqlite/v0.1.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
   nucleus: "d9d51a80"                                # = v1.23.1 exacto (contiene drivers/mssql/v0.1.1, drivers/mysql/v0.1.1, drivers/oracle/v0.1.1, drivers/postgres/v0.1.1, drivers/sqlite/v0.1.1, exporters/otlp/v0.1.1, exporters/prometheus/v0.1.1, providers/ldap/v0.2.5, providers/secrets-aws/v0.1.1, providers/storage-azure/v0.1.1, providers/storage-gcs/v0.1.1, providers/storage-s3/v0.1.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  orbit:   "40cc1520"                                # = v1.8.20 exacto (contiene agent/v0.6.12, proto/v0.4.3, quarkbridge/v1.8.18, quarkdatasource/v1.8.18, server/v0.10.14 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  orbit:   "97122584"                                # = v1.8.21 exacto (contiene agent/v0.6.12, proto/v0.4.3, quarkbridge/v1.8.18, quarkdatasource/v1.8.18, server/v0.10.14 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -79,69 +79,40 @@ workspace_pins:
 # minor debería alinearse, no declararse indefinidamente.
 # VACÍO desde Quantum 1.8.0 (7ª ronda): todos los requires cross-repo de los
 # módulos de orbit están alineados con el set certificado — el estado que la
-# lane suite-intenotes: >
-  Quantum 1.26.1 — el set que aplica la auditoría de madurez del
-  2026-09-03 (quark v1.10.1 con drivers en v0.1.1; nucleus v1.23.1 con los
-  doce módulos hermanos en v0.1.1 y providers/ldap v0.2.5; orbit v1.8.20
-  con proto v0.4.3, agent v0.6.12, server v0.10.14, quarkbridge v1.8.18 y
-  quarkdatasource v1.8.18). Patch en los tres pilares; la suite sube patch.
+# lane suite-integral exige para certificar (sin QUANTUM_ALLOW_DECLARED_LAGS).
+declared_lags: {}
 
-  La auditoría midió cada pilar contra los frameworks con los que un equipo
-  compararía —GORM y ent; Gin, Buffalo, Encore, Django y Rails; Django
-  Admin, Filament y Directus— y encontró 147 defectos con fichero y línea.
-  Cuatro eran P0 y ninguno estaba en el runtime profundo: los cuatro
-  esperaban al evaluador en su primera hora. Quark rechazaba desde v1.10.0
-  los drivers registrados bajo alias (lib/pq, mattn/go-sqlite3): la
-  comprobación solo buscaba el alias, así que pedía importar un módulo que
-  ya estaba enlazado. Orbit nunca aplicaba el tls.Config a los listeners
-  del fleet: los flags de certificado se aceptaban y se ignoraban, y
-  configurarlos contaba como autenticación, así que un listener «con TLS»
-  arrancaba en claro, sin token y en todas las interfaces; el mTLS que la
-  doc anunciaba en ocho sitios no existía. El ejemplo canónico de Nucleus
-  no importaba el módulo del driver y salía con exit 1. Y la documentación
-  de entrada de Nucleus seguía diciendo «SQLite incluido» y «-tags mssql».
+notes: >
+  Quantum 1.26.2 — corte fuera de cadencia, con la razón escrita que pide
+  QADR-0008: el consumidor de referencia quantum-app quedaba en rojo contra
+  1.26.1. Solo se mueve orbit; quark v1.10.1 y nucleus v1.23.1 con todos
+  sus módulos siguen donde estaban.
 
-  Lo que cambia para quien instala: los módulos de driver publicados
-  compilan solos (los de Quark requerían un core sin quarkdriver; los de
-  Nucleus, uno sin pkg/db/driver), `nucleus add otlp|prometheus` existe y
-  es lo que el arranque recomienda, el 500 genérico ya no filtra
-  err.Error() salvo en desarrollo, Data Studio valida con las etiquetas del
-  modelo y responde 422 por campo, el snapshot del sistema enmascara
-  cualquier variable con URL, DSN o credencial, y la SPA del panel hace lo
-  que dice: importa de verdad, «Load more» acumula, el JSON se edita como
-  JSON y una política deny se ve como deny. Orbit gana --agent-client-ca y
-  el agente habla https.
+  Lo que corrige orbit: la corrección OR-32 de la auditoría hizo que el
+  adaptador de Quark rechace los alias de base de datos que no sirve, en
+  vez de contestar en silencio desde la base equivocada. El listado de
+  modelos del panel pregunta por cada modelo en TODOS los alias de la app
+  para decir dónde vive cada uno, y convertía ese rechazo en un 500 para el
+  listado entero. quantum-app —que sirve «default» con modelos Quark y
+  «audit» con un módulo propio— lo cazó el mismo día. Ahora un alias no
+  servido cuenta como ausencia del modelo en ese alias, igual que una tabla
+  que no existe; un error en el alias propio del modelo sigue fallando.
 
-  El paraguas cuenta por fin UNA sola historia sobre D3: README, RUMBO, la
-  página de instalación y el bloque require, go.work e integration.yml
-  descubren los 26 módulos publicables del árbol; el tren clasifica
-  cualquier release de módulo sin lista escrita; cuatro guards nuevos (32 en
-  total) cazan claims retirados en la fuente de nucleus y en el HTML
-  servido, un go.work que no cubra el manifiesto y un RUMBO que no diga el
-  set vigente. El anuncio a
-  quantum-app deja de ser fire-and-forget: espera el run y exige el PR, y
-  documenta el permiso del repo que falta para que exista.
+  Lo que este corte confiesa del anterior: el manifiesto de 1.26.1 perdió
+  la clave declared_lags y el final del comentario que la precede, por un
+  recorte calculado con un offset rancio al redactar las notas. Ningún
+  guard lo cazó: manifest-guard lee las claves con awk y una clave ausente
+  se lee como vacía, que es justo el valor que certifica. Desde este set
+  manifest-guard exige que las diez claves de primer nivel existan.
 
-  Trampas del tren de este set, ya en el runbook: el push de la fusión de
-  un release PR NO disparó «Release Please» en nucleus (hubo que lanzarlo a
-  mano; el driver ahora lo detecta y lo dispara); quark tenía release-as
-  pegajoso y PRs por módulo, como nucleus antes de D3, y pasa a un solo
-  release PR; el driver no reconocía «chore: release main» y daba el merge
-  por bueno sin esperar tag, ahora lee los tags del manifest; y el guard de
-  voz de producto rechaza citar un ADR en las release notes. Y la trampa
-  estructural de orbit volvió a cobrar: agent y server se cortan del mismo
-  commit que proto y agent, así que nacen pinando el tag ANTERIOR; el
-  guard de pines internos lo rechaza al pin y hacen falta dos cortes de
-  convergencia (v1.8.19 agent→proto, v1.8.20 server→agent). Tres raíces de
-  orbit por un set, como en 1.26.0: el arco A3 del plan lo elimina de raíz.
-  Y una excepción declarada, auto-expirante: un comentario del ejemplo de
-  referencia de nucleus cita un ADR y el sitio lo incrusta en el quickstart
-  de todas las versiones, así que el guard de jerga servida se negó a
-  certificar v1.23.1. La fuente está corregida y publicada como nucleus
-  v1.23.2 (solo documentación; release-please se auto-bloqueó al cortarlo y
-  el tag salió por la receta manual del runbook), pero re-pinar a v1.23.2
-  habría obligado a tres cortes más de orbit, cuyos módulos requieren
-  v1.23.1. El set certifica v1.23.1 con la excepción ligada a ese pin —la
-  misma forma que la de ADR-010 en 1.25.0— y v1.23.2 entra en el siguiente
-  set semanal, momento en que la excepción muere sola.
-  Los informes completos y el plan a 5/5 están enlazados en docs/RUMBO.md.
+  Del tren: release-please se auto-bloqueó al etiquetar por segunda vez en
+  el día («untagged, merged release PRs outstanding», ya con la acción v5),
+  las dos veces con un release PR único que llevaba paquetes sin cambios;
+  el tag salió por la receta manual del runbook. Y manifest-guard rechazó
+  la raíz de orbit v1.8.21 porque proto, agent y server llevaban bumps de
+  Dependabot (commits chore, que release-please no libera) sin tag que los
+  cubriera: liberarlos costó los tres cortes de la cascada de pines
+  internos. Las dos cosas tienen arco en el plan.
+
+  Sigue vigente la transición auto-expirante del guard de jerga servida
+  ligada al pin nucleus v1.23.1.

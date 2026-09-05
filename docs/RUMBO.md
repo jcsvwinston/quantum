@@ -11,13 +11,15 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-09-04)
+## Estado real (2026-09-05)
 
-- **Set certificado: Quantum 1.26.1** (2026-09-04) — quark v1.10.1
+- **Set certificado: Quantum 1.26.2** (2026-09-05) — quark v1.10.1
   (drivers/{postgres,mysql,sqlite,mssql,oracle} v0.1.1) · nucleus v1.23.1
   (doce módulos hermanos: cinco drivers, dos exportadores y cuatro providers
-  en v0.1.1, providers/ldap v0.2.5) · orbit v1.8.20 (proto v0.4.3, agent
+  en v0.1.1, providers/ldap v0.2.5) · orbit v1.8.21 (proto v0.4.3, agent
   v0.6.12, server v0.10.14, quarkbridge v1.8.18, quarkdatasource v1.8.18).
+  1.26.2 es un corte fuera de cadencia: solo mueve orbit, para que el
+  consumidor de referencia deje de estar en rojo.
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`.
 - **Auditoría de madurez 2026-09-03 sobre 1.26.0: ejecutada, corregida y

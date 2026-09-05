@@ -6,6 +6,74 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.26.1 — La auditoría de madurez aplicada
+
+Quantum 1.26.1 — el set que aplica la auditoría de madurez del
+2026-09-03 (quark v1.10.1 con drivers en v0.1.1; nucleus v1.23.1 con los
+doce módulos hermanos en v0.1.1 y providers/ldap v0.2.5; orbit v1.8.20
+con proto v0.4.3, agent v0.6.12, server v0.10.14, quarkbridge v1.8.18 y
+quarkdatasource v1.8.18). Patch en los tres pilares; la suite sube patch.
+
+La auditoría midió cada pilar contra los frameworks con los que un equipo
+compararía —GORM y ent; Gin, Buffalo, Encore, Django y Rails; Django
+Admin, Filament y Directus— y encontró 147 defectos con fichero y línea.
+Cuatro eran P0 y ninguno estaba en el runtime profundo: los cuatro
+esperaban al evaluador en su primera hora. Quark rechazaba desde v1.10.0
+los drivers registrados bajo alias (lib/pq, mattn/go-sqlite3): la
+comprobación solo buscaba el alias, así que pedía importar un módulo que
+ya estaba enlazado. Orbit nunca aplicaba el tls.Config a los listeners
+del fleet: los flags de certificado se aceptaban y se ignoraban, y
+configurarlos contaba como autenticación, así que un listener «con TLS»
+arrancaba en claro, sin token y en todas las interfaces; el mTLS que la
+doc anunciaba en ocho sitios no existía. El ejemplo canónico de Nucleus
+no importaba el módulo del driver y salía con exit 1. Y la documentación
+de entrada de Nucleus seguía diciendo «SQLite incluido» y «-tags mssql».
+
+Lo que cambia para quien instala: los módulos de driver publicados
+compilan solos (los de Quark requerían un core sin quarkdriver; los de
+Nucleus, uno sin pkg/db/driver), `nucleus add otlp|prometheus` existe y
+es lo que el arranque recomienda, el 500 genérico ya no filtra
+err.Error() salvo en desarrollo, Data Studio valida con las etiquetas del
+modelo y responde 422 por campo, el snapshot del sistema enmascara
+cualquier variable con URL, DSN o credencial, y la SPA del panel hace lo
+que dice: importa de verdad, «Load more» acumula, el JSON se edita como
+JSON y una política deny se ve como deny. Orbit gana --agent-client-ca y
+el agente habla https.
+
+El paraguas cuenta por fin UNA sola historia sobre D3: README, RUMBO, la
+página de instalación y el bloque require, go.work e integration.yml
+descubren los 26 módulos publicables del árbol; el tren clasifica
+cualquier release de módulo sin lista escrita; cuatro guards nuevos (32 en
+total) cazan claims retirados en la fuente de nucleus y en el HTML
+servido, un go.work que no cubra el manifiesto y un RUMBO que no diga el
+set vigente. El anuncio a
+quantum-app deja de ser fire-and-forget: espera el run y exige el PR, y
+documenta el permiso del repo que falta para que exista.
+
+Trampas del tren de este set, ya en el runbook: el push de la fusión de
+un release PR NO disparó «Release Please» en nucleus (hubo que lanzarlo a
+mano; el driver ahora lo detecta y lo dispara); quark tenía release-as
+pegajoso y PRs por módulo, como nucleus antes de D3, y pasa a un solo
+release PR; el driver no reconocía «chore: release main» y daba el merge
+por bueno sin esperar tag, ahora lee los tags del manifest; y el guard de
+voz de producto rechaza citar un ADR en las release notes. Y la trampa
+estructural de orbit volvió a cobrar: agent y server se cortan del mismo
+commit que proto y agent, así que nacen pinando el tag ANTERIOR; el
+guard de pines internos lo rechaza al pin y hacen falta dos cortes de
+convergencia (v1.8.19 agent→proto, v1.8.20 server→agent). Tres raíces de
+orbit por un set, como en 1.26.0: el arco A3 del plan lo elimina de raíz.
+Y una excepción declarada, auto-expirante: un comentario del ejemplo de
+referencia de nucleus cita un ADR y el sitio lo incrusta en el quickstart
+de todas las versiones, así que el guard de jerga servida se negó a
+certificar v1.23.1. La fuente está corregida y publicada como nucleus
+v1.23.2 (solo documentación; release-please se auto-bloqueó al cortarlo y
+el tag salió por la receta manual del runbook), pero re-pinar a v1.23.2
+habría obligado a tres cortes más de orbit, cuyos módulos requieren
+v1.23.1. El set certifica v1.23.1 con la excepción ligada a ese pin —la
+misma forma que la de ADR-010 en 1.25.0— y v1.23.2 entra en el siguiente
+set semanal, momento en que la excepción muere sola.
+Los informes completos y el plan a 5/5 están enlazados en docs/RUMBO.md.
+
 ## Quantum 1.26.0 — El arco D3 publicado: drivers, exportadores y backends de nube como módulos opcionales
 
 Quantum 1.26.0 — el set que publica el arco de adelgazado del grafo (quark
