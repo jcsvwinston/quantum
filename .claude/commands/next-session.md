@@ -118,15 +118,25 @@ de publicar; y quantum-app bumpea desde `main` SIN los imports de módulos,
 así que cada set exige el cherry-pick de los imports hasta que Carlos
 fusione un PR del bump.
 
-**PRÓXIMO FOCO**: **A1**, la deuda de auditoría (semanas 2–4 del plan), en el
-orden del artefacto: nucleus NU-4, NU-14, NU-13, NU-6, NU-9, NU-12, NU-29,
-NU-30; quark QK-6, QK-8, QK-14; orbit OR-14, OR-16, OR-23, OR-26 y F12–F18;
-suite QM-18. Gate de A1: lane semanal con cero P1/P2 abiertos de los cuatro
-informes y guard `audit-backlog-empty` registrado. Antes de arrancar:
-confirmar con Carlos la cadencia de `align-module-floors` y que fusione
-quantum-app#13. Los puntos de A1 que cambian comportamiento (rate limit,
-política de `generate module`, IDs de orbit) se abren con él delante, no en
-una sesión `auto`.
+- **A1 en marcha (misma tarde, «Adelante con A1, los suelos al principio de
+  cada corte»)**: suelos estrenados (nucleus#469, quark#348); registro
+  machine-readable de los 190 hallazgos en
+  `docs/auditoria/madurez-2026-09-03/registro.csv` con el guard
+  `umbrella-audit-backlog` (33) como gate de A1; nucleus A1 FUSIONADO en
+  tres PRs (#471 router, #472 auth/tasks/datos, #473 CLI/docs con ADR-032
+  «packaging move» vs `!` y commits en inglés con lint del título); quark#350
+  (migrador con lock por defecto y UpTx, contrato público del listener,
+  QK-14 → A3) y orbit#427 (plano fleet: cap por operador, matcher, LIKE,
+  reconexiones, CPU, semáforo, CSP) en fusión. **QUEDA de A1**: NU-61 (el
+  snapshot del minor de nucleus, se cierra al cortar) y el panel in-process
+  de orbit — OR-14 IDs string, OR-16 audit completo, OR-23 tenant en todas
+  las operaciones, OR-35, OR-43, OR-44 — y después el corte del set con el
+  tren (nucleus y quark salen minor).
+
+**PRÓXIMO FOCO**: terminar A1 con el panel de orbit (OR-14, OR-16, OR-23,
+OR-35, OR-43, OR-44), cortar el set con `train.sh` (el snapshot 1.24.0 de
+nucleus cierra NU-61), declarar `A1` en `arcos_cerrados` del registro (el
+guard exige cero P1/P2 abiertos) y seguir con A2 (starter de suite).
 
 ### Sesión 2026-09-01/02 — D3 completo: drivers, exportadores y backends de nube fuera del framework
 
