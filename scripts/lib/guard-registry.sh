@@ -112,7 +112,7 @@ GUARDS=(
   # decisiones sólo alcanzables listando la carpeta. Entra al set con nucleus
   # v1.17.0.
   "nucleus-adr-index|nucleus|bash scripts/ci/check_adr_index.sh"
-  "nucleus-pr-title-english|nucleus|bash scripts/ci/check_pr_title_english.sh \"${PR_TITLE:-}\""
+  "nucleus-pr-title-english|nucleus|bash scripts/ci/check_pr_title_english.sh \"\${PR_TITLE:-chore(ci): probe title for the umbrella guard lane}\""
   # La documentación VIVA de nucleus (README, SPEC, docs/ salvo actas,
   # website/docs salvo snapshots) no afirma lo retirado: build tags, «single
   # Go module», MountOpenAPI, sendgrid built-in. Hermano del retired-claims del
@@ -145,7 +145,7 @@ GUARDS=(
   # El archivo versionado del sitio cubre la minor publicada. Entra al set con
   # quark v1.6.0.
   "quark-docs-archive|quark|bash scripts/ci/check_docs_archive_freshness.sh"
-  "quark-pr-title-english|quark|bash scripts/ci/check_pr_title_english.sh \"${PR_TITLE:-}\""
+  "quark-pr-title-english|quark|bash scripts/ci/check_pr_title_english.sh \"\${PR_TITLE:-chore(ci): probe title for the umbrella guard lane}\""
 
   # --- orbit (al pin) -------------------------------------------------------
   # Vocabulario interno (incluye la regla de IDs de hallazgo) fuera de website/docs.
@@ -174,7 +174,7 @@ GUARDS=(
   # nucleus, portado cuando orbit ganó actas retroactivas de las decisiones ya
   # ejecutadas. Entra al set con orbit v1.8.14.
   "orbit-adr-index|orbit|bash scripts/ci/check_adr_index.sh"
-  "orbit-pr-title-english|orbit|bash scripts/ci/check_pr_title_english.sh \"${PR_TITLE:-}\""
+  "orbit-pr-title-english|orbit|bash scripts/ci/check_pr_title_english.sh \"\${PR_TITLE:-chore(ci): probe title for the umbrella guard lane}\""
 )
 
 # ---------------------------------------------------------------------------
