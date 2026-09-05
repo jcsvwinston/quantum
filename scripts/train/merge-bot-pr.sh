@@ -12,10 +12,15 @@
 #      BEHIND: aquí se hace `gh pr update-branch` y otra vuelta de checks.
 #   3. release-please puede AUTO-BLOQUEARSE tras fusionar («There are
 #      untagged, merged release PRs outstanding») y dejar el PR merged con
-#      `autorelease: pending` SIN tag: tras el merge se espera el tag y, si no
-#      llega, se imprime la receta de recuperación.
+#      `autorelease: pending` SIN tag. La causa (tren de 1.27.0): un release
+#      PR de UNA sola release —la raíz— se trata como «standalone» y su
+#      componente de rama (ninguno) no casa con el package-name de la raíz,
+#      así que ninguna estrategia lo etiqueta (ver untag-recipe.sh). Tras el
+#      merge se espera el tag; si la corrida de «Release Please» del commit
+#      de merge termina sin cortarlo, se aplica untag-recipe.sh SOLA
+#      (--sin-receta la deja en instrucción impresa).
 #
-# Uso: merge-bot-pr.sh <repo> <numero-pr> [--dry-run] [--sin-commit-vacio]
+# Uso: merge-bot-pr.sh <repo> <numero-pr> [--dry-run] [--sin-commit-vacio] [--sin-receta]
 #   <repo>  owner/nombre, o nombre corto (se asume jcsvwinston/<nombre>).
 #
 # Imprime SIEMPRE lo que va a hacer antes de hacerlo, y para en seco al
@@ -26,6 +31,7 @@ set -euo pipefail
 OWNER_DEFAULT="jcsvwinston"
 DRY=0
 EMPTY_COMMIT=1
+RECIPE=1
 REPO=""
 PR=""
 
@@ -33,13 +39,14 @@ for a in "$@"; do
   case "$a" in
     --dry-run) DRY=1 ;;
     --sin-commit-vacio) EMPTY_COMMIT=0 ;;
+    --sin-receta) RECIPE=0 ;;
     -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
     *) if [ -z "$REPO" ]; then REPO="$a"; elif [ -z "$PR" ]; then PR="$a"; else
          echo "argumento de más: $a" >&2; exit 64; fi ;;
   esac
 done
 if [ -z "$REPO" ] || [ -z "$PR" ]; then
-  echo "uso: merge-bot-pr.sh <repo> <numero-pr> [--dry-run] [--sin-commit-vacio]" >&2
+  echo "uso: merge-bot-pr.sh <repo> <numero-pr> [--dry-run] [--sin-commit-vacio] [--sin-receta]" >&2
   exit 64
 fi
 case "$REPO" in */*) : ;; *) REPO="$OWNER_DEFAULT/$REPO" ;; esac
@@ -111,6 +118,8 @@ allow_merge=$(gh api "repos/$REPO" --jq .allow_merge_commit)
 if [ "$allow_merge" = "true" ]; then method="--merge"; else method="--squash"; fi
 say "PASO: fusionar ($method según la configuración del repo)"
 run gh pr merge "$PR" -R "$REPO" "$method" || die "gh pr merge falló en $REPO#$PR"
+merge_sha=$(gh pr view "$PR" -R "$REPO" --json mergeCommit --jq .mergeCommit.oid 2>/dev/null || true)
+[ "$merge_sha" != "null" ] || merge_sha=""
 
 # --- 6. Esperar el tag (release-please puede auto-bloquearse) ---------------
 # El tag esperado sale del título del release PR:
@@ -136,7 +145,6 @@ fi
 # release-please» y daba el merge por bueno sin esperar ningún tag.
 expected_tags=""
 if [ -z "$expected_tag" ] && printf '%s\n' "$title" | grep -qE '^chore(\([^)]*\))?: release main$'; then
-  merge_sha=$(gh pr view "$PR" -R "$REPO" --json mergeCommit --jq .mergeCommit.oid 2>/dev/null || true)
   manifest=$(gh api "repos/$REPO/contents/.release-please-manifest.json?ref=${merge_sha:-main}" --jq .content 2>/dev/null | base64 -d 2>/dev/null || true)
   expected_tags=$(printf '%s' "$manifest" | python3 -c '
 import json,sys
@@ -146,30 +154,56 @@ fi
 if [ -n "$expected_tag" ]; then expected_tags="$expected_tag"; fi
 if [ -n "$expected_tags" ] && [ "$DRY" -eq 0 ]; then
   say "PASO: esperar los tags ($(printf '%s\n' $expected_tags | wc -l | tr -d ' ')): $expected_tags"
-  say "  (hasta 5 min; el token del bot puede atascarse, y un push de merge puede NO"
-  say "   disparar «Release Please» — a los 2 min sin corrida por push se dispara a mano)"
-  found=0; dispatched=0
+  say "  (hasta 5 min; un push de merge puede NO disparar «Release Please» — a los 2 min sin"
+  say "   corrida se dispara a mano; y si la corrida termina SIN etiquetar se aplica la receta"
+  say "   del auto-bloqueo sola: untag-recipe.sh)"
+  found=0; dispatched=0; diag=""; rp_done=0; rp_run=""
   for i in 1 2 3 4 5 6 7 8 9 10; do
     missing=""
     for t in $expected_tags; do
       git ls-remote --tags "https://github.com/$REPO.git" "refs/tags/$t" | grep -q . || missing="$missing $t"
     done
     if [ -z "$missing" ]; then found=1; break; fi
-    if [ "$i" -ge 4 ] && [ "$dispatched" -eq 0 ]; then
-      if ! gh run list -R "$REPO" --event push --limit 5 --json workflowName,headSha \
-           --jq ".[] | select(.workflowName == \"Release Please\") | select(.headSha == \"${merge_sha:-x}\") | .headSha" 2>/dev/null | grep -q .; then
-        say "  AVISO: el push del merge no disparó «Release Please» (pasó con nucleus#456 y quark#346 en el tren de 1.26.1) — lo disparo a mano"
-        run gh workflow run 'Release Please' -R "$REPO" --ref main || true
-        dispatched=1
+    # La corrida de «Release Please» del commit de merge (por push o dispatch).
+    rp_run=$(gh run list -R "$REPO" --limit 20 --json databaseId,workflowName,headSha,status       --jq ".[] | select(.workflowName == \"Release Please\") | select(.headSha == \"${merge_sha:-x}\") | \"\(.databaseId):\(.status)\"" 2>/dev/null | head -1 || true)
+    if [ -z "$rp_run" ] && [ "$i" -ge 4 ] && [ "$dispatched" -eq 0 ]; then
+      say "  AVISO: el push del merge no disparó «Release Please» (pasó con nucleus#456 y quark#346 en el tren de 1.26.1) — lo disparo a mano"
+      run gh workflow run 'Release Please' -R "$REPO" --ref main || true
+      dispatched=1
+    elif [ -n "$rp_run" ] && [ "${rp_run#*:}" = "completed" ]; then
+      rp_done=1
+      # Terminó sin cortar los tags: mirar el log antes de esperar más. La
+      # causa conocida (tren de 1.27.0): release PR de UNA sola release, la
+      # de la raíz, cuyo componente de rama no casa con el package-name.
+      if gh run view "${rp_run%%:*}" -R "$REPO" --log 2>/dev/null | grep -q "does not match configured component"; then
+        diag="PR component: undefined does not match configured component"
+        break
       fi
     fi
     sleep 30
   done
+  if [ "$found" -eq 0 ] && [ "$rp_done" -eq 1 ] && [ "$RECIPE" -eq 1 ]; then
+    if [ -n "$diag" ]; then
+      say "  DIAGNÓSTICO: «Release Please» descartó el PR («$diag»): release PR de UNA sola"
+      say "  release (la raíz); release-please 17.x compara el componente de la rama del merge plugin"
+      say "  (ninguno) con el package-name de la raíz. La causa se quita en la config del repo (sin"
+      say "  package-name en la raíz — orbit#426, nucleus#467, quark#347); mientras, la receta:"
+    else
+      say "  «Release Please» terminó para ${merge_sha:0:8} y faltan tags:$missing. Aplico la receta del auto-bloqueo:"
+    fi
+    run bash scripts/train/untag-recipe.sh "${REPO#*/}" "$PR" || die "untag-recipe falló en $REPO#$PR — aplica la receta a mano (ver scripts/train/untag-recipe.sh)"
+    missing=""
+    for t in $expected_tags; do
+      git ls-remote --tags "https://github.com/$REPO.git" "refs/tags/$t" | grep -q . || missing="$missing $t"
+    done
+    [ -z "$missing" ] && found=1
+  fi
   if [ "$found" -eq 1 ]; then
     say "OK: tags cortados: $expected_tags"
   else
-    say "AVISO: faltan tags tras 5 min:$missing. Receta de recuperación"
+    say "AVISO: faltan tags:$missing. Receta de recuperación"
     say "  (el auto-bloqueo «untagged, merged release PRs outstanding» de release-please):"
+    say "  bash scripts/train/untag-recipe.sh ${REPO#*/} $PR     # o a mano:"
     say "  1. verificar que el .release-please-manifest.json del commit de merge declara las versiones"
     say "  2. git tag -a <tag> <sha-del-merge> && git push origin <tag>, por cada tag que falte"
     say "  3. gh release create <tag> (con las notas del CHANGELOG)"

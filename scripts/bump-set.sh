@@ -17,10 +17,20 @@
 #   4. actualiza las versiones de las tablas del README (pilares + los cinco
 #      módulos hermanos de orbit).
 #
-# NO toca: quantum (versión de suite), released, status, notes, CHANGELOG.
-# Certificar sigue siendo una decisión humana: sube la versión de suite según
-# QADR-0002, redacta notes, mueve las notes anteriores al CHANGELOG (DX-25) y
-# corre scripts/suite-integral.sh. manifest-guard sigue siendo el juez.
+#   5. (scripts/lib/set-notes.py) calcula la versión de SUITE por QADR-0002
+#      desde el salto real de los pilares, escribe released y el comentario
+#      de status, mueve las notes anteriores a CHANGELOG.md (DX-25) y deja un
+#      ESQUELETO de notes con los movimientos del set y marcadores REDACTAR,
+#      que manifest-guard §0 rechaza hasta que alguien los redacte. Hasta
+#      1.27.0 esto se hacía a mano, y en 1.26.1 un recorte a offset rancio se
+#      llevó la clave declared_lags. `--set X.Y.Z` fuerza el número (corte
+#      deliberado); `--sin-notas` deja los pasos 1-4 solos.
+#
+# Certificar sigue siendo una decisión humana: redactar las notes (sustituir
+# cada REDACTAR) y correr scripts/suite-integral.sh. manifest-guard sigue
+# siendo el juez.
+#
+# Uso: bump-set.sh [quark_tag] [nucleus_tag] [orbit_tag] [--set X.Y.Z] [--sin-notas]
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
@@ -28,9 +38,27 @@ latest_tag() { git -C "$1" tag --list 'v*' --sort=-v:refname | head -1; }
 
 for m in quark nucleus orbit; do git -C "$m" fetch --tags --quiet origin; done
 
+SET_OVERRIDE=""; NOTES=1; POS=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --set) shift; SET_OVERRIDE="${1:-}" ;;
+    --set=*) SET_OVERRIDE="${1#--set=}" ;;
+    --sin-notas) NOTES=0 ;;
+    -h|--help) sed -n '2,36p' "$0"; exit 0 ;;
+    -*) echo "bump-set: flag desconocido: $1" >&2; exit 64 ;;
+    *) POS="$POS $1" ;;
+  esac
+  shift
+done
+set -- $POS
 QT="${1:-$(latest_tag quark)}"
 NT="${2:-$(latest_tag nucleus)}"
 OT="${3:-$(latest_tag orbit)}"
+
+# El estado ANTES del re-pin, para que set-notes.py calcule el salto de suite
+# y mueva las notes vigentes al CHANGELOG (se captura antes de tocar nada).
+OLD_STATE=$(mktemp); trap 'rm -f "$OLD_STATE"' EXIT
+python3 scripts/lib/set-notes.py --capture > "$OLD_STATE"
 
 for pair in "quark:$QT" "nucleus:$NT" "orbit:$OT"; do
   m="${pair%%:*}"; t="${pair#*:}"
@@ -152,7 +180,24 @@ regen_module_block nucleus nucleus_modules
 regen_module_block quark quark_modules
 
 echo
-echo "Hecho. Te queda la parte HUMANA de la certificación:"
-echo "  1. quantum: sube la versión de suite (QADR-0002) + released + status"
-echo "  2. mueve las notes del set anterior a CHANGELOG.md y redacta las nuevas (DX-25)"
-echo "  3. bash scripts/manifest-guard.sh && bash scripts/suite-integral.sh"
+if [ "$NOTES" -eq 1 ]; then
+  # Versión de suite, released, status, notes anteriores al CHANGELOG y el
+  # esqueleto de las nuevas — DESPUÉS de todo lo demás, sobre el fichero ya
+  # re-pinado (set-notes.py recalcula el corte de las notes en ese momento).
+  if [ -n "$SET_OVERRIDE" ]; then
+    python3 scripts/lib/set-notes.py --old "$OLD_STATE" --set "$SET_OVERRIDE"
+  else
+    python3 scripts/lib/set-notes.py --old "$OLD_STATE"
+  fi
+  echo
+  echo "Hecho. Queda lo HUMANO de la certificación:"
+  echo "  1. redacta las notes de versions.yaml: sustituye cada REDACTAR (manifest-guard §0 lo"
+  echo "     rechaza) y revisa el título de la entrada nueva de CHANGELOG.md"
+  echo "  2. QUANTUM_ALLOW_NOTES_SKELETON=1 bash scripts/manifest-guard.sh  (mientras redactas)"
+  echo "  3. bash scripts/manifest-guard.sh && bash scripts/suite-integral.sh"
+else
+  echo "Hecho (--sin-notas). Te queda la parte HUMANA de la certificación:"
+  echo "  1. quantum: sube la versión de suite (QADR-0002) + released + status"
+  echo "  2. mueve las notes del set anterior a CHANGELOG.md y redacta las nuevas (DX-25)"
+  echo "  3. bash scripts/manifest-guard.sh && bash scripts/suite-integral.sh"
+fi

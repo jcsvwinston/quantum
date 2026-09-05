@@ -47,7 +47,85 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-02, QUANTUM 1.26.0 — el arco D3 publicado)
+## 3. Estado al cierre (2026-09-05, QUANTUM 1.27.0 — la semana 1 del plan 5/5 cerrada)
+
+### Sesión 2026-09-03/05 — auditoría de madurez, sets 1.26.1 → 1.27.0, ADR-006 de orbit y la semana 1 del plan 5/5
+
+- **SET VIGENTE: QUANTUM 1.27.0** (2026-09-05, quantum#148, tag `v1.27.0`,
+  `--cierre` 32/32, release GH publicada): quark **v1.10.1** (+5 drivers
+  v0.1.1) · nucleus **v1.23.2** (+12 módulos v0.1.1, ldap v0.2.5) · orbit
+  **v1.9.0** (server v0.11.0, proto v0.4.4, agent v0.6.14, puentes v1.8.19).
+  `declared_lags: {}`. Antes, en la misma serie: **1.26.1** (2026-09-04: los
+  cinco PRs de la auditoría fusionados —quark#338, nucleus#455, orbit#380 y
+  #379, quantum#136—; orbit v1.8.20, nucleus v1.23.1) y **1.26.2** (corte
+  fuera de cadencia: quantum-app en rojo contra 1.26.1 por OR-32; orbit
+  v1.8.25, nucleus v1.23.2; `declared_lags` restaurada y `manifest-guard` §0).
+- **Auditoría de madurez frente al mercado (2026-09-03)**: 147 defectos, 4 P0
+  (QK-1 drivers rechazados por alias; OR-1 el `tls.Config` del server nunca se
+  aplicaba; NU-55/56 ejemplo y docs de drivers). Informe en artefacto y copia
+  en `~/Documents/Claude/Projects/Quantum/auditoria/madurez-2026-09-03/`.
+  Veredicto: plataforma sólida; producto de aplicación a medias (sin starter
+  de suite, sin OIDC ni API keys, admin sin validación ni usuarios,
+  ecosistema cero).
+- **Plan a 5 de 5 en doce arcos (A1–A12)**, artefacto
+  https://claude.ai/code/artifact/cbd9d082-7404-4989-bd79-7408f9dbaf38, con el
+  mapa «del hoy al 5» (35 dimensiones, media 2,8, ninguna en 5). Orden:
+  semana 1 tren → A1 deuda de auditoría (semanas 2–4) → A2 starter de suite →
+  A3 cadena de suministro → A4 Quark como capa de datos de Nucleus → …
+- **ADR-006 de orbit** (2026-09-05, orbit#423 y #424 → v1.9.0): `server` deja
+  de requerir `agent` (los tests que arrancan un agente viven en
+  `orbit/internal/fleettest`, módulo de solo test; `internal/*` queda fuera
+  del descubrimiento del paraguas); `proto` es hoja deliberada; Dependabot
+  usa `fix(deps)` en los módulos publicados. De ocho cortes de raíz de orbit
+  en dos días, cinco no publicaban producto: eso es lo que cierra.
+- **Sesión `auto` del 2026-09-05 (tarde) — la semana 1 del plan, cerrada:**
+  - **La causa del auto-bloqueo de release-please, encontrada y quitada.** El
+    log de orbit#399 y nucleus#466 dice «PR component: undefined does not
+    match configured component». Un release PR con UNA sola release —la de
+    la raíz— se trata como standalone y su componente de rama (ninguno, con
+    el merge plugin) se compara con el `package-name` de la raíz. Arreglo:
+    sin `package-name` en la raíz de `release-please-config.json` —
+    orbit#426, nucleus#467 y quark#347 FUSIONADOS (chore, sin release). La
+    prueba en vivo es el próximo corte de raíz sola; mientras,
+    `merge-bot-pr.sh` lee el log de la corrida del commit de merge y aplica
+    `untag-recipe.sh` solo (que ya no hace checkout: etiqueta por SHA).
+  - **`bump-set.sh` escribe la parte humana que se rompía a mano**
+    (`scripts/lib/set-notes.py`): versión de suite por QADR-0002 desde el
+    salto real de los pilares, `released`, `status`, las notes anteriores al
+    CHANGELOG y un esqueleto de notes con marcadores `REDACTAR`;
+    `manifest-guard` §0 rechaza el marcador (`QUANTUM_ALLOW_NOTES_SKELETON=1`
+    solo en local; el driver lo pone). Idempotente: con esqueleto presente
+    solo acepta `--set` para cambiar el número.
+  - **QM-19**: `scripts/train/align-module-floors.sh <nucleus|quark>` sube los
+    suelos módulo→raíz (hoy 12 de 12 en nucleus a v1.23.0 y 5 de 5 en quark a
+    v1.10.0: los 18 AVISOs de §5b). El driver imprime `--check` antes de cada
+    repo sin bloquear. **DECISIÓN PENDIENTE de Carlos: cuándo corre** — es un
+    `fix(deps)` que corta un patch por módulo tocado, así que va al principio
+    de un corte que sale igual, nunca como corte propio.
+  - orbit#425 (Dependabot, dependencia de desarrollo del UI) fusionado. Cero
+    PRs abiertos en los cuatro repos; **quantum-app#13** (bump al set 1.27.0,
+    E2E verde) espera la fusión de Carlos.
+
+**TRAMPAS NUEVAS** (todas en `scripts/train/README.md`, secciones «tren de
+1.27.0», «1.26.2» y «1.26.1»): un módulo con cambios sin tag deja la raíz no
+certificable (por eso Dependabot va con `fix(deps)`); el push de un merge
+puede no disparar «Release Please» (el driver lo dispara a los dos minutos);
+los patches también llevan sección `## vX.Y.Z` en las release notes; la doc
+de producto no puede citar ADRs; `merge-bot-pr.sh` se lanza desde la raíz del
+paraguas; un artefacto republicado por otra sesión exige leerlo entero antes
+de publicar; y quantum-app bumpea desde `main` SIN los imports de módulos,
+así que cada set exige el cherry-pick de los imports hasta que Carlos
+fusione un PR del bump.
+
+**PRÓXIMO FOCO**: **A1**, la deuda de auditoría (semanas 2–4 del plan), en el
+orden del artefacto: nucleus NU-4, NU-14, NU-13, NU-6, NU-9, NU-12, NU-29,
+NU-30; quark QK-6, QK-8, QK-14; orbit OR-14, OR-16, OR-23, OR-26 y F12–F18;
+suite QM-18. Gate de A1: lane semanal con cero P1/P2 abiertos de los cuatro
+informes y guard `audit-backlog-empty` registrado. Antes de arrancar:
+confirmar con Carlos la cadencia de `align-module-floors` y que fusione
+quantum-app#13. Los puntos de A1 que cambian comportamiento (rate limit,
+política de `generate module`, IDs de orbit) se abren con él delante, no en
+una sesión `auto`.
 
 ### Sesión 2026-09-01/02 — D3 completo: drivers, exportadores y backends de nube fuera del framework
 
@@ -2944,10 +3022,10 @@ ir en paralelo. Nada de esto bloquea la Fase 2/3 en curso.
 
 ## 5. Pendientes técnicos anotados (revísalos cuando apliquen)
 
-> Puesto al día el 2026-08-27. Lo que esta sección listaba antes (integración
+> Puesto al día el 2026-09-05. Lo que esta sección listaba antes (integración
 > Quark↔Orbit de QADR-0005/0006, pin de nucleus en `8714882c`, `status:
-> pre-fusion`, retirada de los Pages standalone de los productos) está **todo
-> hecho y publicado**: los tres pilares llevan desde Quantum 1.0.0 (2026-07-11)
+> pre-fusion`, retirada de los Pages standalone de los productos, y el plan de
+> extensibilidad A–H, cerrado en Quantum 1.22.0) está **todo hecho y publicado**: los tres pilares llevan desde Quantum 1.0.0 (2026-07-11)
 > en major 1 con los pines EN TAG, `quarkbridge`/`quarkdatasource` van en el
 > set (v0.4.0 / v0.2.14) y `jcsvwinston.github.io/{quark,nucleus,orbit}` ya
 > sirven el redirector al sitio unificado. El histórico de cómo se llegó ahí
@@ -2955,22 +3033,28 @@ ir en paralelo. Nada de esto bloquea la Fase 2/3 en curso.
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **Plan de extensibilidad, arcos E–H** — **D (LDAP) CERRADO** en nucleus
-  v1.15.0 + providers/ldap v0.1.0. El siguiente es **E** (SAML/OIDC), que
-  estrena la costura sobre dependencias que sí son pesadas (32 módulos, 18
-  paquetes linkados — medido). Luego **F** (bus de eventos más allá del CRUD
-  de modelos), **G** (kit de conformidad + scaffold de proveedor) y **H**
-  (congelar contratos de plugin + baseline). ADRs de referencia: nucleus
-  `docs/adrs/ADR-023-provider-registries.md` (enmendado) y
-  `ADR-024-ldap-provider-module.md`. Frontera de autorización que NO se
-  relaja: entrada del 2026-08-27 en el §3.
+- **El plan a 5 de 5** (artefacto en el §3, sesión 2026-09-03/05) manda el
+  orden desde Quantum 1.27.0: **A1** deuda de auditoría → A2 starter de suite
+  → A3 cadena de suministro → A4 Quark como capa de datos → … → A12. La
+  semana 1 (tren) está cerrada; A1 arranca con el gate «cero P1/P2 abiertos
+  de los cuatro informes de madurez».
+- **Pendiente de Carlos**: fusionar quantum-app#13; decidir cuándo corre
+  `align-module-floors.sh` en el tren (corta un patch por módulo: al
+  principio de un corte que sale igual); y abrir con él los puntos de A1 que
+  cambian comportamiento (NU-4 rate limit tras identidad, NU-14 política de
+  `generate module`, OR-14 IDs string).
+- **Lo que deja a deber el arreglo del auto-bloqueo**: la prueba en vivo. El
+  próximo release PR de raíz sola en cualquiera de los tres repos debe
+  etiquetar sin receta; si vuelve a fallar, el diagnóstico está en la
+  cabecera de `scripts/train/untag-recipe.sh` y el driver aplica la receta.
 - **Backlog DX abierto** (del diagnóstico de los arcos DX y DX-2): `quark
   migrate diff`, clasificación de errores exportada de quark
   (`IsUniqueViolation` — hoy degrada a `lib/pq`), ayuda del CLI de nucleus,
   `doctor` unificado, `profile: dev` visible, snapshots de quark congelados,
   índice de ADRs, y la **capa 3 de automatización de docs**: la que REDACTA la
   narrativa, no solo la que mueve versiones (capas 1 y 2 hechas —
-  `scripts/bump-set.sh`, `cut_docs_snapshot.sh` + guard de frescura).
+  `scripts/bump-set.sh` con `set-notes.py`, `cut_docs_snapshot.sh` + guard de
+  frescura; el esqueleto de notes con `REDACTAR` es estructura, no redacción).
 - **Roadmap enterprise de nucleus**: Tracks **F** (cloud — Secrets Manager/KMS/
   Lambda, Pub/Sub, Service Bus) y **G** (tooling — doctor unificado, wizard,
   asistentes de migración) siguen abiertos. El **Track E** (seguridad) se cerró
@@ -3009,10 +3093,13 @@ ir en paralelo. Nada de esto bloquea la Fase 2/3 en curso.
   disparadores. **Ya no hay rondas completas de auditoría**; el trabajo entra
   por arcos. Runbook: [`docs/AUDITORIA_CONTINUA.md`](../../docs/AUDITORIA_CONTINUA.md).
 - `suite-integral.yml` corre los **lunes 06:00 UTC** e `integration.yml` a las
-  **06:30**; una lane roja abre issue automático. Hoy hay **22 guards**
+  **06:30**; una lane roja abre issue automático. Hoy hay **32 guards**
   registrados y `guard-of-guards` prueba con fixture que cada uno muerde.
-- Escribir el set: `scripts/bump-set.sh` (submódulos al tag, las 9 versiones,
-  pins y tablas del README); el juicio lo pone `manifest-guard.sh` después. La
+- Escribir el set: `scripts/bump-set.sh` (submódulos al tag, los bloques de
+  módulos, pins y tablas del README, y desde 1.27.0 la versión de suite por
+  QADR-0002, las notes anteriores al CHANGELOG y el esqueleto de las nuevas
+  con `REDACTAR`, que `manifest-guard` §0 rechaza hasta redactarlo); el juicio
+  lo pone `manifest-guard.sh` después. La
   corrida `suite-integral.sh --cierre` va **TRAS** el tag de suite (QM7-3), y el
   pre-check exige árbol limpio (`QUANTUM_ALLOW_DIRTY=1` solo para iterar en
   local).

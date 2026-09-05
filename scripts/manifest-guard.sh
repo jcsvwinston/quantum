@@ -35,7 +35,21 @@ for key in quantum released status modules nucleus_modules quark_modules orbit_m
     status=1
   fi
 done
-if [[ $status -eq 0 ]]; then echo "OK: §0 las diez claves de primer nivel del manifiesto existen"; fi
+# El esqueleto de notes que escribe bump-set (scripts/lib/set-notes.py) lleva
+# marcadores REDACTAR: un manifiesto con uno es un set a medio redactar y no
+# certifica. En local, mientras se redacta, QUANTUM_ALLOW_NOTES_SKELETON=1
+# lo rebaja a AVISO (el driver del tren lo pone); en CI nunca.
+skeleton=0
+if grep -q 'REDACTAR' versions.yaml; then
+  if [[ "${QUANTUM_ALLOW_NOTES_SKELETON:-0}" == "1" ]]; then
+    skeleton=1
+    echo "AVISO: versions.yaml lleva el marcador REDACTAR del esqueleto de bump-set (tolerado por QUANTUM_ALLOW_NOTES_SKELETON=1; el CI lo rechaza)"
+  else
+    echo "FAIL: versions.yaml lleva el marcador REDACTAR: las notes son el esqueleto que escribió bump-set y nadie las redactó todavía (sustituye cada REDACTAR; en local, QUANTUM_ALLOW_NOTES_SKELETON=1 mientras tanto)" >&2
+    status=1
+  fi
+fi
+if [[ $status -eq 0 && $skeleton -eq 0 ]]; then echo "OK: §0 las diez claves de primer nivel del manifiesto existen y las notes no llevan marcador REDACTAR"; fi
 
 # yaml_value SECTION KEY — reads a `KEY: "value"` line from under a top-level
 # `SECTION:` block. No yq dependency: the manifest is a flat, hand-maintained
