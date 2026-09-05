@@ -49,7 +49,7 @@ RBAC policy file, and an empty `migrations/` directory. No feature code —
 the first module will be yours. The startup log looks like this:
 
 ```
-level=WARN msg="metrics are not being served: the Prometheus exporter is not linked into this binary" fix="run `nucleus add prometheus`, or go get github.com/jcsvwinston/nucleus/exporters/prometheus and import it for its side effect" why="the exporter moved to its own module so applications that are never scraped stop carrying it"
+level=INFO msg="metrics are not being served: the Prometheus exporter is not linked into this binary" fix="run `nucleus add prometheus`, or go get github.com/jcsvwinston/nucleus/exporters/prometheus and import it for its side effect" why="the exporter moved to its own module so applications that are never scraped stop carrying it"
 level=INFO msg="otel initialized" service=nucleus-app otlp_enabled=false prometheus_enabled=true
 level=WARN msg="jwt: no signing material configured (jwt_keys empty and jwt_secret unset); App.JWT is nil — set jwt_secret or jwt_keys[] before issuing tokens. This is safe for read-only services that consume JWTs minted by an external IdP."
 level=INFO msg="RBAC enforcer initialized" policy_path=rbac_policy.csv
@@ -74,11 +74,11 @@ curl -s localhost:8080/healthz
 {"status":"healthy","checked_at":"2026-08-31T04:13:13Z","checks":[{"name":"db:default","status":"healthy"},{"name":"storage","status":"healthy"}]}
 ```
 
-:::note Any other route answers 403, and that's intentional
-The scaffold ships with a **default-deny** authorizer: a route that no
-policy grants is forbidden, even before it exists. You'll see how this
-quickstart deals with that in step 3 — and what to do instead in a real
-app.
+:::note Any route the policy does not grant answers 403, and that's intentional
+Nucleus is default-deny: a path nobody granted answers `403` before routing,
+whether or not a handler exists. Only paths the policy grants but no module
+registers reach the mux and answer `404` (in this scaffold, `/notes` until you
+generate that module). The line below shows the scaffold's own policy file.
 :::
 
 ## 2 — Mount the Orbit admin (3 min)
