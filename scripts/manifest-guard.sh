@@ -156,11 +156,14 @@ quark_pin=$(yaml_value workspace_pins quark)
 # list is the same failure that let eleven modules reach `main` without a
 # release-please entry: they existed, and nothing that enumerates modules
 # knew it. Anything with its own go.mod under the repo (examples aside) is a
-# module the set has to account for.
+# module the set has to account for. `internal/*` queda fuera a propósito: un
+# módulo bajo `internal/` no es importable desde fuera del repo por la regla
+# de Go, así que no es publicable por construcción (orbit ADR-006 puso ahí
+# los tests que arrancan un agente real para que server no requiera agent).
 discover_modules() {
   local repo=$1
   (cd "$repo" && find . -name go.mod -not -path './examples/*' -not -path './website/*' \
-      -not -path './benchmarks/*' -not -path './bugbash/*' -not -path './.git/*' \
+      -not -path './benchmarks/*' -not -path './bugbash/*' -not -path './internal/*' -not -path './.git/*' \
     | sed 's|/go.mod$||; s|^\./||' | grep -v '^\.$' | sort)
 }
 
@@ -258,7 +261,7 @@ done
 #
 # So this is an AVISO, and it carries what makes it actionable: how long the
 # floor has gone unrevised, and the version that would clear it.
-for gomod in $(find nucleus quark orbit -name go.mod -not -path '*/examples/*' -not -path '*/website/*' -not -path '*/benchmarks/*' -not -path '*/bugbash/*' 2>/dev/null | grep -vE '^(nucleus|quark|orbit)/go.mod$'); do
+for gomod in $(find nucleus quark orbit -name go.mod -not -path '*/examples/*' -not -path '*/website/*' -not -path '*/benchmarks/*' -not -path '*/bugbash/*' -not -path '*/internal/*' 2>/dev/null | grep -vE '^(nucleus|quark|orbit)/go.mod$'); do
   repo=${gomod%%/*}
   case "$repo" in
     nucleus) parent="github.com/jcsvwinston/nucleus" ;;
