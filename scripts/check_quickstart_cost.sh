@@ -43,14 +43,19 @@
 #   EXIT 2 — la página no existe o no declara `concepts:` (verde-vacío vetado,
 #            QM8-4: una página sin manifiesto no se puede contar).
 #
-# Transición AUTO-EXPIRANTE ligada al pin de nucleus (mismo mecanismo que
-# check_retired_claims.sh): la página no puede bajar a 5 comandos hasta que
-# `nucleus new --with …` exista, y eso llega con el tag de nucleus posterior a
-# TRANSITIONAL_MAX. Mientras `modules.nucleus` de versions.yaml sea ≤ ese pin,
-# el guard MIDE e informa (AVISO, EXIT 0) — la cifra ya queda en cada corrida;
-# al re-pinar, la excepción muere sola y el techo se exige (la lane
-# quickstart-smoke se enciende con el mismo pin, por el mismo criterio). Para
-# exigirlo antes en local (quien reescriba la página): QUICKSTART_COST_ENFORCE=1.
+# Transición AUTO-EXPIRANTE ligada a la CAPACIDAD del nucleus pinado: la
+# página no puede bajar a 5 comandos hasta que `nucleus new --with …` exista.
+# El encendido se lee del submódulo pinado con el MISMO predicado que la lane
+# quickstart-smoke (qs_nucleus_knows_with, en scripts/lib/quickstart-fences.sh:
+# ¿nucleus/internal/cli/new.go registra el flag "with"?). Mientras no lo
+# registre, el guard MIDE e informa (AVISO, EXIT 0) — la cifra ya queda en
+# cada corrida; en cuanto el pin lo traiga, la excepción muere sola y el techo
+# se exige. No es un pin fijo a propósito: un patch de nucleus sin `--with`
+# (hotfix, o un minor cortado antes del PR del starter) no debe poner en rojo
+# website-ci y suite-integral sobre la página de hoy mientras la lane sigue
+# inactiva. Sin el submódulo (new.go ausente) es EXIT 2: no se puede decidir
+# el encendido sobre nada. Para exigirlo antes en local (quien reescriba la
+# página): QUICKSTART_COST_ENFORCE=1.
 #
 # Uso: bash scripts/check_quickstart_cost.sh website/docs/quickstart.md
 set -uo pipefail
@@ -69,16 +74,24 @@ if [[ ! -f "$PAGE" ]]; then
   exit 2
 fi
 
-# --- transición ligada al pin (ver cabecera) --------------------------------
-# El último pin de nucleus cuyo `nucleus new` NO conoce `--with`: v1.24.0
-# (verificado con `nucleus new --help` al pin, Quantum 1.28.0). Subirlo es una
-# decisión con porqué (el tag que trae --with se retrasó), no una limpieza.
-TRANSITIONAL_MAX='v1.24.0'
-NUCLEUS_PIN=$(sed -n 's/^  nucleus:[[:space:]]*"\(v[0-9.]*\)".*/\1/p' versions.yaml 2>/dev/null | head -1)
+# --- transición ligada a la capacidad del pin (ver cabecera) ---------------
+# El mismo predicado que enciende la lane quickstart-smoke, leído de la fuente
+# del submódulo pinado; la lane comprueba además que el binario diga lo mismo.
+NUCLEUS_DIR="${QUICKSTART_NUCLEUS_DIR:-nucleus}"
 enforce=1
-if [[ "${QUICKSTART_COST_ENFORCE:-0}" != "1" && -n "$NUCLEUS_PIN" \
-      && "$(printf '%s\n' "$NUCLEUS_PIN" "$TRANSITIONAL_MAX" | sort -V | tail -1)" == "$TRANSITIONAL_MAX" ]]; then
-  enforce=0
+knows_with=0
+if [[ "${QUICKSTART_COST_ENFORCE:-0}" == "1" ]]; then
+  knows_with=0 # exigido a mano: la capacidad no decide
+else
+  qs_nucleus_knows_with "$NUCLEUS_DIR"; knows_with=$?
+  case $knows_with in
+    0) enforce=1 ;;
+    1) enforce=0 ;;
+    *)
+      echo "check_quickstart_cost: $NUCLEUS_DIR/internal/cli/new.go no existe — sin el submódulo nucleus pinado no se puede decidir si el techo se exige (¿checkout sin submódulos?); QUICKSTART_COST_ENFORCE=1 para exigirlo sin mirar el pin" >&2
+      exit 2
+      ;;
+  esac
 fi
 
 # --- comandos ---------------------------------------------------------------
@@ -194,9 +207,9 @@ if [[ $status -eq 0 ]]; then
 fi
 
 if [[ $enforce -eq 0 ]]; then
-  echo "AVISO: el techo no se exige todavía — modules.nucleus=$NUCLEUS_PIN ≤ $TRANSITIONAL_MAX (el pin aún no trae \`nucleus new --with\`); al re-pinar por encima, lo que sigue es FAIL:" >&2
+  echo "AVISO: el techo no se exige todavía — el nucleus pinado ($NUCLEUS_DIR/internal/cli/new.go) no registra \`nucleus new --with\`, el mismo motivo por el que la lane quickstart-smoke está inactiva; en cuanto el pin lo traiga, lo que sigue es FAIL:" >&2
   printf '%s' "$problems" | sed 's/^FAIL /  /' >&2
-  echo "check_quickstart_cost: OK (transición ligada al pin — medido, no exigido)"
+  echo "check_quickstart_cost: OK (transición ligada a la capacidad del pin — medido, no exigido)"
   exit 0
 fi
 

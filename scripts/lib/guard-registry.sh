@@ -90,9 +90,11 @@ GUARDS=(
   # sobre la FUENTE markdown con el mismo parser que ejecuta la lane
   # quickstart-smoke (scripts/lib/quickstart-fences.sh). Gate del arco A2: la
   # página era «~15 minutes» con 22 líneas de shell y nadie la medía.
-  # Transición auto-expirante ligada al pin de nucleus ≤ v1.24.0 (el pin sin
-  # `nucleus new --with`): mide e informa; al re-pinar, exige. Mismo mecanismo
-  # que retired-claims; mismo criterio de encendido que la lane.
+  # Transición auto-expirante ligada a la CAPACIDAD del nucleus pinado (¿su
+  # new.go registra `--with`?), leída con el mismo predicado que enciende la
+  # lane (qs_nucleus_knows_with): mientras no, mide e informa; en cuanto el
+  # pin lo traiga, exige. No un número de versión: un patch sin --with no
+  # debe encender uno de los dos gates y el otro no.
   "umbrella-quickstart-cost|.|bash scripts/check_quickstart_cost.sh website/docs/quickstart.md"
 
   # --- nucleus (al pin) -----------------------------------------------------
