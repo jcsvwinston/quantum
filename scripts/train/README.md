@@ -334,30 +334,16 @@ les dé `v0.1.0`.
 
 ### El `!` de un commit decide el número del set entero
 
-Un commit `feat(algo)!:` hace que release-please proponga un **major**, y en
-esta suite un major **no es una decisión local**: QADR-0002 mantiene los majors
-de los tres pilares en lockstep, así que un `!` de más en nucleus arrastra a
-quark y a orbit a la 2.0.
-
-Mordió en el arco D3 (nucleus#407 → #408 proponiendo `2.0.0` por un cambio de
-empaquetado). La regla que sale:
-
-> El `!` es para rupturas de lo que el framework **hace**, no de dónde se
-> compila algo. Si el compilador nombra lo que falta y la receta cabe en el
-> error, es una minor.
-
-Y si ya está fusionado, no se arregla reescribiendo el commit: se **fuerza el
-número** con un `Release-As:` en el footer de otro PR. Dos condiciones que
-cuestan una ronda cada una si se olvidan:
-
-- el `Release-As` tiene que ir en un commit que **toque un fichero real del
-  módulo** — en un `chore` suelto se ignora;
-- al fusionar hay que **controlar el mensaje del squash** (`--subject` /
-  `--body`): si el footer queda anidado dentro de un bullet, release-please no
-  lo lee.
-
-Comprobación barata antes de fusionar cualquier release PR: que el título diga
-el número que esperabas. Es la única señal que da el bot, y llega tarde.
+Un `feat(x)!:` o un pie `BREAKING CHANGE:` en cualquier pilar propone un
+MAJOR de ese pilar, y QADR-0002 (lockstep) lo arrastra a la suite entera. No
+hay excepción y NO se corrige después con `Release-As` (ADR-032 de nucleus):
+la decisión de que algo es incompatible se toma ANTES del merge, con el
+título del squash. Un movimiento de EMPAQUETADO con error guiado (código que
+se muda a un módulo y avisa con el `go get` exacto) es una MINOR con la
+frase «packaging move with guided error» en el cuerpo, sin `!`. Si un `!`
+se cuela por error, el remedio es revertir el commit antes del corte, no
+maquillar el número. `Release-As` queda solo para el caso legítimo de
+«arreglar sólo un módulo no corta el root» (más arriba).
 
 ### Lo que aprendió el tren de 1.28.0 (A1: quark, nucleus y orbit cortados el mismo día)
 
@@ -386,7 +372,7 @@ el número que esperabas. Es la única señal que da el bot, y llega tarde.
   `check_docs_version_claims.sh` exige la sección `## vX.Y.Z`. Una release
   de alineación (sin cambio de producto) también la necesita: tres líneas
   que lo digan, en la rama del release.
-- **Los historiales pesan.** El handoff del paraguas llegó a 203 KB y 40
+- **Los historiales pesan.** El handoff del paraguas llegó a 203 KB y 58
   sesiones y el arranque lo cargaba truncado; el CLAUDE.md de quark llevaba
   una línea de 16 KB. Régimen desde hoy: §3 = estado vigente + dos sesiones
   (guard `umbrella-handoff-size`, archivo en `docs/handoff/`); quark guarda

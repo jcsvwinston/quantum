@@ -33,7 +33,12 @@ if ! git merge-base --is-ancestor origin/main HEAD; then
   git merge --no-edit origin/main >/dev/null || { echo "el merge de main en la rama conflictúa: resuélvelo a mano" >&2; exit 1; }
 fi
 bash scripts/release/gen_release_notes_skeleton.sh || exit 1
-todos=$(grep -l "TODO" "docs/RELEASE_NOTES_v${ver%.*}.0.md" website/docs/reference/release-notes.mdx 2>/dev/null || true)
+# El esqueleto escribe docs/RELEASE_NOTES_v<versión>.md (y el guard exige el
+# de la minor); se miran los dos, y en el sitio sólo la sección de ESTA versión.
+todos=$(grep -l "TODO" "docs/RELEASE_NOTES_v${ver}.md" "docs/RELEASE_NOTES_v${ver%.*}.0.md" 2>/dev/null | sort -u || true)
+if sed -n "/^## v${ver//./\\.}/,/^## v/p" website/docs/reference/release-notes.mdx | grep -q "TODO"; then
+  todos="$todos website/docs/reference/release-notes.mdx"
+fi
 if [ -n "$(git status --porcelain)" ]; then
   git add -A
   git -c user.name="${GIT_AUTHOR_NAME:-$(git -C "$dir" config user.name)}" commit -q -m "docs(release): notes skeleton and version mentions for v$ver

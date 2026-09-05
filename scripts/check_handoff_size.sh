@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # check_handoff_size.sh — el handoff del paraguas (.claude/commands/next-session.md)
-# se carga ENTERO al arrancar cada sesión. El 2026-09-05 pesaba 203 KB y 40
+# se carga ENTERO al arrancar cada sesión. El 2026-09-05 pesaba 203 KB y 58
 # sesiones en su §3, y el cargador lo truncaba: el arranque leía un estado a
 # medias sin saberlo. Este guard fija el régimen que lo evita: el §3 lleva el
 # estado vigente y como mucho DOS sesiones; el resto se archiva en

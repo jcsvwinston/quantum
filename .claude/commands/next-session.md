@@ -71,8 +71,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
     orbit → `align_set.sh` de orbit tras cortar quark/nucleus (el tren lo
     hace desde 1.28.0). Los suelos módulo→raíz suben como PRIMER commit de
     cada corte (`sube_suelos` en `train.sh`).
-  - Voz de producto en inglés (QADR-0007): commits, títulos de PR (guard en
-    los tres repos), código y docs. El paraguas y los CLAUDE.md, en español.
+  - Voz de producto en inglés — código, docs, commits y títulos de PR (guards
+    `nucleus/quark/orbit-pr-title-english`): decisión QM-18 (nucleus#473,
+    quark#350, orbit#427). OJO: QADR-0007 solo cubre la superficie publicada y
+    deja commits/PRs en español; falta el QADR que lo enmiende (§5). El
+    paraguas y los CLAUDE.md siguen en español.
   - Todo PR de docs de release, guards o baselines entra ANTES del tag.
   - Las deudas de doc por minor (RT-9) se pagan EN la rama del release PR;
     el tren corre el esqueleto de quark solo (`quark-doc-debt.sh`).
@@ -251,11 +254,17 @@ guard exige cero P1/P2 abiertos) y seguir con A2 (starter de suite).
   suite** (SIGUIENTE) → A3 cadena de suministro (hereda QK-14) → A4 Quark
   como capa de datos → … → A12. El registro de hallazgos y su guard
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
-- **Pendiente de Carlos**: fusionar quantum-app#13 y el PR de bump que
-  dispara el cierre de 1.28.0. Deuda del tren anotada arriba: `align_set.sh`
-  de orbit dentro de `train.sh` antes de la fase orbit; y el paso 2 de QK-8
-  (quark#352) + la mitad nucleus de OR-43 (nucleus#476) salen con la
-  siguiente release de cada pilar.
+- **Pendiente de Carlos**: fusionar quantum-app#14 (bump a 1.28.0; sus gates
+  ya pasan con los imports de módulos y los doce paquetes clasificados) y
+  cerrar quantum-app#13. El paso 2 de QK-8 (quark#352) y la mitad nucleus de
+  OR-43 (nucleus#476) salen con la siguiente release de cada pilar. La
+  deuda del tren de 1.28.0 (`align_set.sh` de orbit antes de su fase) quedó
+  pagada el mismo día: `alinea_pines_orbit` en `train.sh`.
+- **QADR pendiente**: QM-18 puso commits y títulos de PR de los productos en
+  inglés, pero QADR-0007 sigue diciendo que el español es el idioma de
+  commits y PRs. Toca QADR-0009 (o enmienda fechada de QADR-0007): producto
+  en inglés (código, docs, commits, títulos), paraguas y CLAUDE.md en
+  español. Decisión de coordinación: la firma Carlos.
 - **Lo que deja a deber el arreglo del auto-bloqueo**: la prueba en vivo. El
   próximo release PR de raíz sola en cualquiera de los tres repos debe
   etiquetar sin receta; si vuelve a fallar, el diagnóstico está en la
@@ -306,7 +315,7 @@ guard exige cero P1/P2 abiertos) y seguir con A2 (starter de suite).
   disparadores. **Ya no hay rondas completas de auditoría**; el trabajo entra
   por arcos. Runbook: [`docs/AUDITORIA_CONTINUA.md`](../../docs/AUDITORIA_CONTINUA.md).
 - `suite-integral.yml` corre los **lunes 06:00 UTC** e `integration.yml` a las
-  **06:30**; una lane roja abre issue automático. Hoy hay **32 guards**
+  **06:30**; una lane roja abre issue automático. Hoy hay **37 guards**
   registrados y `guard-of-guards` prueba con fixture que cada uno muerde.
 - Escribir el set: `scripts/bump-set.sh` (submódulos al tag, los bloques de
   módulos, pins y tablas del README, y desde 1.27.0 la versión de suite por
@@ -324,7 +333,11 @@ guard exige cero P1/P2 abiertos) y seguir con A2 (starter de suite).
 
 Actualiza el §3 de este archivo (estado al cierre) con lo que avanzaste y el
 próximo foco, para no romper el contexto a la siguiente sesión — entrada nueva
-ARRIBA, no al final. Si un pendiente del §5 se cierra o nace uno nuevo, tócalo
+ARRIBA, no al final. El §3 lleva el bloque «Estado vigente» (actualízalo) y
+como mucho DOS sesiones: al añadir la nueva arriba, mueve la más vieja, tal
+cual, al final de `docs/handoff/sesiones-…md` (o abre un archivo nuevo por
+rango de fechas) — `bash scripts/check_handoff_size.sh` lo exige y la lane
+lo corre. Si un pendiente del §5 se cierra o nace uno nuevo, tócalo
 allí en el mismo cambio: un §5 rancio contradice al §3 y desorienta más que la
 ausencia de nota.
 

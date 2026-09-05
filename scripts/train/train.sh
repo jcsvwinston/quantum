@@ -222,8 +222,21 @@ fase_repo() {
     # RT-9 mecanizado (2026-09-05): el esqueleto de notas + menciones se
     # escribe EN la rama del release PR; el tren solo para si queda prosa.
     say "PASO: deuda de doc de quark en la rama del release (quark-doc-debt.sh)"
-    if [ "$DRY" -eq 1 ]; then say "  → (dry-run) quark-doc-debt.sh"; else
-      run bash scripts/train/quark-doc-debt.sh || die "la deuda de doc de quark no quedó pagada (ver arriba)"
+    local rc=0
+    if [ "$DRY" -eq 1 ]; then
+      bash scripts/train/quark-doc-debt.sh --dry-run || rc=$?
+      case "$rc" in
+        0) say "  → (dry-run) nada que pagar" ;;
+        2) say "  → (dry-run) el tren PARARÁ aquí para redactar la prosa (marcadores TODO, ver arriba)" ;;
+        *) say "  → (dry-run) quark-doc-debt.sh falló (EXIT=$rc, ver arriba)" ;;
+      esac
+    else
+      run bash scripts/train/quark-doc-debt.sh || rc=$?
+      case "$rc" in
+        0) ;;
+        2) manual "Redacta la prosa en los ficheros listados arriba (marcadores TODO): el esqueleto YA está empujado a release-please--branches--main. Empuja la prosa a esa rama y relanza: bash scripts/train/train.sh --desde quark" ;;
+        *) die "la deuda de doc de quark no quedó pagada (ver arriba)" ;;
+      esac
     fi
   fi
   if [ "$repo" = "orbit" ]; then
@@ -231,7 +244,10 @@ fase_repo() {
     # orbit cortaría requiriendo los tags viejos y manifest-guard §5 FALLA
     # (no avisa). align_set.sh los sube en un commit antes de la fase.
     say "PASO: pines cruzados de orbit hacia los tags de quark y nucleus (align_set.sh)"
-    if run bash scripts/train/align-orbit-pins.sh --check; then
+    # El check es de solo lectura (un ff-only de ../orbit main): se ejecuta
+    # también en dry-run, para que el ensayo diga la verdad.
+    say "  → bash scripts/train/align-orbit-pins.sh --check"
+    if bash scripts/train/align-orbit-pins.sh --check; then
       say "  → pines al día"
     else
       alinea_pines_orbit || die "no pude alinear los pines de orbit (ver arriba); hazlo a mano: bash scripts/train/align-orbit-pins.sh"

@@ -16,7 +16,12 @@ echo "== align-orbit-pins ($MODE): nucleus $nt · quark $qt =="
 cd "$Q/../orbit" || exit 1
 # El check compara contra el árbol del checkout: en main y limpio, se pone al
 # día primero (un main rancio diría que los pines van atrás cuando ya no).
-if [ "$(git branch --show-current)" = main ] && [ -z "$(git status --porcelain)" ]; then git pull -q --ff-only origin main || true; fi
+if [ "$(git branch --show-current)" = main ] && [ -z "$(git status --porcelain)" ]; then
+  git pull -q --ff-only origin main || true
+elif [ "$MODE" = check ]; then
+  echo "FAIL: ../orbit no está en main limpio (rama $(git branch --show-current)); el check compararía otro árbol — vuelve a main o guarda los cambios" >&2
+  exit 1
+fi
 if [ "$MODE" = check ]; then
   bash scripts/release/align_set.sh --nucleus "$nt" --quark "$qt" --check
 else
