@@ -47,7 +47,53 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-05, QUANTUM 1.27.0 — la semana 1 del plan 5/5 cerrada)
+## 3. Estado al cierre (2026-09-05 noche, QUANTUM 1.28.0 — A1 cerrado, en la puerta de A2)
+
+### Sesión 2026-09-05 (b) — A1 cerrado: la deuda de auditoría publicada en QUANTUM 1.28.0
+
+- **SET**: quark **v1.11.0** (+ `drivers/*` v0.1.2) · nucleus **v1.24.0**
+  (+ once módulos v0.1.2, `providers/ldap` v0.2.6) · orbit **v1.9.2**
+  (agent v0.6.16, server v0.11.2, quarkbridge v1.8.20, quarkdatasource
+  v1.8.21, proto v0.4.4): v1.9.1 publica A1 y v1.9.2 alinea los pines
+  cruzados. Certificado con `suite-integral --cierre` (ver el CHANGELOG del paraguas para el recuento de guards).
+- **A1 = la deuda de la auditoría de madurez asignada al arco** (las filas
+  cerradas pierden el arco en el CSV: se cuentan por evidencia),
+  cerrados con evidencia en `docs/auditoria/madurez-2026-09-03/registro.csv`
+  (`# arcos_cerrados: A1`; el guard `umbrella-audit-backlog` exige cero
+  abiertos en un arco cerrado). Nucleus 27 (nucleus#468–#474), quark QK-6 y
+  QK-8 (quark#350), orbit fleet 8 (orbit#427) y panel 6 (PANEL_PRS),
+  suite QM-18 (títulos de PR en inglés con guard en los tres repos) y QM-19
+  (los suelos de los hermanos suben como PRIMER commit de cada corte:
+  `align-module-floors.sh` dentro de `train.sh`).
+- **Lo que se difiere a propósito**: QK-14 (el `go.mod` raíz de quark
+  requiere los cinco drivers porque el CLI enlaza todos los motores) va a A3
+  con nota en el README: sacarlos exige mover el CLI a módulo propio. QK-8
+  paso 2 (`drivers/postgres` adoptando `ListenerFactory`) espera el tag
+  v1.11.0 y entra en el próximo tren.
+- **TRAMPA DEL TREN, esta vez prevista por RT-9 y aun así costó una vuelta**:
+  el Lint del release PR de quark (#349) falló por la deuda de doc de la
+  minor — la entrada v1.11.0 en CLAUDE.md y el puntero del README a
+  `docs/RELEASE_NOTES_v1.11.0.md` se escriben A MANO en la rama del release
+  (CLAUDE.md no está en extra-files a propósito). Y un detalle nuevo: un
+  `docs(release):` fusionado DESPUÉS de que el bot generase la rama NO la
+  regenera (los docs no cambian el changelog), así que la rama no trae las
+  notas ni el snapshot; el tag sale bien porque el squash cae sobre `main`,
+  pero para correr el guard en local sobre la rama hay que meterle `main`
+  (`git merge origin/main`) — o los errores del guard mienten.
+- **TRAMPA QUE EL TREN NO CUBRE — pines cruzados de orbit.** Si quark y
+  nucleus se cortan en el mismo tren, la fase orbit corta con los
+  `require` viejos y el manifest-guard §5 FALLA (no avisa: los pines
+  cruzados no son suelos tolerados salvo `declared_lags`). Costó un
+  segundo corte de orbit (v1.9.2). Regla: tras los tags de quark y nucleus
+  y ANTES de la fase orbit, `orbit/scripts/release/align_set.sh --nucleus
+  vX --quark vY` en rama + PR + merge. Deuda: meterlo en `train.sh`
+  (fase orbit, antes de merge-bot-pr), igual que `sube_suelos`.
+- **Lección de los workflows**: un `votes.filter(Boolean)` cuenta cero
+  revisores como cero pegas; si los verificadores mueren (límite de
+  sesión) el resultado sale «approved» vacío. Mirar `failures` y `notes`
+  antes de fusionar; `resumeFromRunId` relanza sólo los que fallaron.
+- **Siguiente arco: A2 (starter de suite)** — ver el plan 5/5 (artefacto).
+
 
 ### Sesión 2026-09-03/05 — auditoría de madurez, sets 1.26.1 → 1.27.0, ADR-006 de orbit y la semana 1 del plan 5/5
 
@@ -3045,14 +3091,15 @@ ir en paralelo. Nada de esto bloquea la Fase 2/3 en curso.
 **Trabajo con destinatario (por orden de arranque):**
 
 - **El plan a 5 de 5** (artefacto en el §3, sesión 2026-09-03/05) manda el
-  orden desde Quantum 1.27.0: **A1** deuda de auditoría → A2 starter de suite
-  → A3 cadena de suministro → A4 Quark como capa de datos → … → A12. La
-  semana 1 (tren) está cerrada; A1 arranca con el gate «cero P1/P2 abiertos
-  de los cuatro informes de madurez».
-- **Pendiente de Carlos**: fusionar quantum-app#13. Decidido el 2026-09-05:
-  los suelos se suben al principio de cada corte (`sube_suelos` en
-  `train.sh`) y A1 arranca entero, incluidos los puntos que cambian
-  comportamiento (NU-4, NU-14, OR-14) con los diseños del plan.
+  orden: ~~A1 deuda de auditoría~~ (CERRADO en 1.28.0) → **A2 starter de
+  suite** (SIGUIENTE) → A3 cadena de suministro (hereda QK-14) → A4 Quark
+  como capa de datos → … → A12. El registro de hallazgos y su guard
+  (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
+- **Pendiente de Carlos**: fusionar quantum-app#13 y el PR de bump que
+  dispara el cierre de 1.28.0. Deuda del tren anotada arriba: `align_set.sh`
+  de orbit dentro de `train.sh` antes de la fase orbit; y el paso 2 de QK-8
+  (quark#352) + la mitad nucleus de OR-43 (nucleus#476) salen con la
+  siguiente release de cada pilar.
 - **Lo que deja a deber el arreglo del auto-bloqueo**: la prueba en vivo. El
   próximo release PR de raíz sola en cualquiera de los tres repos debe
   etiquetar sin receta; si vuelve a fallar, el diagnóstico está en la
