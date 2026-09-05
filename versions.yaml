@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.26.2"           # versión de la SUITE (semver propio, != versiones de módulos)
+quantum: "1.27.0"           # versión de la SUITE (semver propio, != versiones de módulos)
 released: 2026-09-05
-status: certified           # Corte fuera de cadencia (QADR-0008; razón: el consumidor de referencia quantum-app quedaba en rojo contra 1.26.1 por una regresión de orbit v1.8.18, corregida). Mueve orbit y nucleus (solo docs); restaura la clave declared_lags que 1.26.1 perdió
+status: certified           # Minor de suite por la minor de orbit (QADR-0002): ADR-006, server deja de requerir agent y se acaba la cascada de pines internos. Corte fuera de cadencia con razón escrita (QADR-0008): publicar esa decisión antes del tren del lunes
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules»; los módulos hermanos de
@@ -20,7 +20,7 @@ status: certified           # Corte fuera de cadencia (QADR-0008; razón: el con
 modules:
   quark:   "v1.10.1"
   nucleus: "v1.23.2"
-  orbit:   "v1.8.25"
+  orbit:   "v1.9.0"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -60,7 +60,7 @@ quark_modules:
 orbit_modules:
   proto:           "v0.4.4"
   agent:           "v0.6.14"
-  server:          "v0.10.17"
+  server:          "v0.11.0"
   quarkbridge:     "v1.8.19"
   quarkdatasource: "v1.8.19"
 
@@ -69,7 +69,7 @@ orbit_modules:
 workspace_pins:
   quark:   "6d7d661e"                                # = v1.10.1 exacto (contiene drivers/mssql/v0.1.1, drivers/mysql/v0.1.1, drivers/oracle/v0.1.1, drivers/postgres/v0.1.1, drivers/sqlite/v0.1.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
   nucleus: "69af0f18"                                # = v1.23.2 exacto (contiene drivers/mssql/v0.1.1, drivers/mysql/v0.1.1, drivers/oracle/v0.1.1, drivers/postgres/v0.1.1, drivers/sqlite/v0.1.1, exporters/otlp/v0.1.1, exporters/prometheus/v0.1.1, providers/ldap/v0.2.5, providers/secrets-aws/v0.1.1, providers/storage-azure/v0.1.1, providers/storage-gcs/v0.1.1, providers/storage-s3/v0.1.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  orbit:   "03b919d8"                                # = v1.8.25 exacto (contiene agent/v0.6.14, proto/v0.4.4, quarkbridge/v1.8.19, quarkdatasource/v1.8.19, server/v0.10.17 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  orbit:   "577d90be"                                # = v1.9.0 exacto (contiene agent/v0.6.14, proto/v0.4.4, quarkbridge/v1.8.19, quarkdatasource/v1.8.19, server/v0.11.0 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -83,42 +83,35 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.26.2 — corte fuera de cadencia, con la razón escrita que pide
-  QADR-0008: el consumidor de referencia quantum-app quedaba en rojo contra
-  1.26.1. Se mueven orbit (v1.8.20 → v1.8.25) y nucleus (v1.23.1 → v1.23.2, solo
-  documentación); quark v1.10.1 y todos los módulos hermanos de los tres
-  repos siguen donde estaban.
+  Quantum 1.27.0 — la minor que publica ADR-006 de orbit. Solo se mueve
+  orbit, de v1.8.25 a v1.9.0 (server v0.10.17 → v0.11.0; proto v0.4.4,
+  agent v0.6.14 y los dos puentes v1.8.19 sin cambio); quark v1.10.1 y
+  nucleus v1.23.2 con sus módulos siguen donde estaban. Minor de suite
+  porque lo es la de orbit (QADR-0002), y corte fuera de cadencia con la
+  razón escrita que pide QADR-0008: publicar la decisión antes de que el
+  tren del lunes vuelva a pagar la cascada.
 
-  Lo que corrige orbit: la corrección OR-32 de la auditoría hizo que el
-  adaptador de Quark rechace los alias de base de datos que no sirve, en
-  vez de contestar en silencio desde la base equivocada. El listado de
-  modelos del panel pregunta por cada modelo en TODOS los alias de la app
-  para decir dónde vive cada uno, y convertía ese rechazo en un 500 para el
-  listado entero. quantum-app —que sirve «default» con modelos Quark y
-  «audit» con un módulo propio— lo cazó el mismo día. Ahora un alias no
-  servido cuenta como ausencia del modelo en ese alias, igual que una tabla
-  que no existe; un error en el alias propio del modelo sigue fallando.
+  Lo que decide ADR-006: ningún módulo hermano de orbit requiere a otro por
+  tag salvo proto, el contrato del protocolo. server importaba agent solo
+  desde cuatro tests que arrancan un agente real; esos tests viven ahora en
+  orbit/internal/fleettest, un módulo de solo test que la regla internal
+  de Go hace inimportable desde fuera del repositorio y que nunca se
+  publica. proto pasa a ser hoja deliberada (Dependabot no toca sus
+  dependencias Go; se suben con la regeneración de los stubs), y los
+  bumps de Dependabot en los módulos publicados llevan fix(deps) para que
+  su tag salga en el mismo tren.
 
-  Lo que este corte confiesa del anterior: el manifiesto de 1.26.1 perdió
-  la clave declared_lags y el final del comentario que la precede, por un
-  recorte calculado con un offset rancio al redactar las notas. Ningún
-  guard lo cazó: manifest-guard lee las claves con awk y una clave ausente
-  se lee como vacía, que es justo el valor que certifica. Desde este set
-  manifest-guard exige que las diez claves de primer nivel existan.
+  Por qué importaba: los módulos del fleet se cortan del mismo commit, así
+  que cada uno nacía requiriendo el tag anterior de su hermano y el guard
+  de pines internos —con razón: go install resuelve por el suelo del
+  go.mod— exigía un corte por nivel de la cadena. De los ocho cortes de
+  raíz de orbit del 4 y 5 de septiembre, cinco no publicaron ningún cambio
+  de producto. Coste esperado desde este set: un cambio en agent o server,
+  un corte; en proto, dos, y el segundo lo hace el driver del tren.
 
-  Del tren: release-please se auto-bloqueó al etiquetar por segunda vez en
-  el día («untagged, merged release PRs outstanding», ya con la acción v5),
-  las dos veces con un release PR único que llevaba paquetes sin cambios;
-  el tag salió por la receta manual del runbook. Y manifest-guard rechazó
-  la raíz de orbit v1.8.21 porque proto, agent y server llevaban bumps de
-  Dependabot (commits chore, que release-please no libera) sin tag que los
-  cubriera: liberarlos costó los tres cortes de la cascada de pines
-  internos (v1.8.22, v1.8.23, v1.8.24) más uno para quarkdatasource
-  (v1.8.25), y por el camino cayó un defecto
-  real: con solo handles de base de datos el panel elegía el alias por
-  defecto iterando un mapa de Go, distinto en cada arranque. Las dos cosas
-  tienen arco en el plan.
-
-  Con nucleus en v1.23.2 muere sola la transición auto-expirante del guard
-  de jerga servida que 1.26.1 llevaba ligada al pin v1.23.1: la fuente del
-  ejemplo ya no cita un ADR y el sitio lo sirve limpio sin excepción.
+  Lo que cambia para quien instala: nada en el binario admin-server; el
+  go.mod de server deja de arrastrar agent. Para el paraguas: internal/*
+  queda fuera del descubrimiento de módulos del manifest-guard y
+  orbit/internal/fleettest entra en el go.work con este re-pin (antes no
+  podía: el pin no lo contenía). El tren gana tres scripts que
+  condujeron el set anterior: orbit-converge, untag-recipe y merge-group.

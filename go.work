@@ -46,6 +46,7 @@ use (
 	./nucleus/providers/storage-s3
 	./orbit
 	./orbit/agent
+	./orbit/internal/fleettest
 	./orbit/proto
 	./orbit/quarkbridge
 	./orbit/quarkdatasource
