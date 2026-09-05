@@ -76,9 +76,11 @@ el anterior.
    - **Prometheus es el único cambio de comportamiento**: quien scrapea el
      `/metrics` por defecto lo pierde hasta añadir el módulo. Avisa al
      arrancar y sigue; si la clave estaba escrita a mano, para.
-   - **nucleus necesita su `align_set.sh`**: un escritor que suba los pines de
-     los módulos hermanos dentro de la propia release. Hoy se hace a mano y ya
-     se olvidó una vez (`providers/ldap` llegó a dos releases de desfase).
+   - **nucleus y quark tienen ya escritor para los suelos de sus módulos**
+     (`scripts/train/align-module-floors.sh`, QM-19, tren de 1.27.0). Lo que
+     queda por decidir es cuándo corre en cada corte: es un `fix(deps)` que
+     corta un patch por módulo, así que va al principio de un corte que sale
+     igual, no en uno propio. Orbit sigue con `align_set.sh`.
    - `mattn/go-sqlite3` deja de clasificarse en el árbol de quark; quien lo use
      registra su clasificador con tres líneas (ADR-0023).
 

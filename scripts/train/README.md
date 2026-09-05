@@ -15,12 +15,13 @@ queda fuera del escaneo anti-fósil a propósito (solo cubre `scripts/`,
 | Script | Qué hace |
 |---|---|
 | `train.sh` | Driver por fases: `preflight → quark → nucleus → orbit → paraguas → cierre`. Imprime SIEMPRE qué va a hacer antes de hacerlo, para EN SECO al primer rojo, y donde hace falta juicio humano se detiene con la instrucción exacta (EXIT=2). `--dry-run` para ensayar; `--desde <fase>` para retomar. |
-| `merge-bot-pr.sh <repo> <pr>` | Fusiona UN release PR del bot: push humano de commit vacío (dispara el CI que el token del bot no puede), espera de checks con `gh pr checks --watch --fail-fast`, `update-branch` si queda BEHIND, merge con el método del repo, y espera del tag con receta de recuperación si release-please se atasca. |
+| `merge-bot-pr.sh <repo> <pr>` | Fusiona UN release PR del bot: push humano de commit vacío (dispara el CI que el token del bot no puede), espera de checks con `gh pr checks --watch --fail-fast`, `update-branch` si queda BEHIND, merge con el método del repo, y espera de los tags; si «Release Please» no corre la dispara, y si corre y termina SIN etiquetar (el auto-bloqueo) aplica `untag-recipe.sh` sola (`--sin-receta` para que solo lo imprima). |
 | `check-anchored-release-branch.sh <repo> [pr]` | Detecta la rama de release del ROOT anclada al main viejo: `git merge-base --is-ancestor` de cada último tag de módulo contra el head del PR. Si falla, imprime la receta cerrar + borrar rama + re-dispatch. Se ejecuta JUSTO ANTES de fusionar el root. |
 | `dispatch-app-bump.sh` | Anuncia el set YA certificado al consumidor externo `quantum-app` (`repository_dispatch` con el número de suite y la salida de `print-requires.sh`), **espera el run** que provoca y **exige que termine en PR** (QM-2). Allí un workflow reescribe el pin, corre sus gates y abre el PR. Exige `status: certified` y que el tag de suite exista; no fusiona ni escribe nada en el otro repo. |
 | `merge-group.sh <repo> <--squash\|--merge> <pr>...` | Fusiona PRs humanos o de Dependabot en serie: `update-branch` si BEHIND (nucleus exige ramas al día), espera de checks, merge; para en rojo. No es para release PRs (para eso, `merge-bot-pr.sh`). |
 | `orbit-converge.sh <root> <tags> <rama>` | Un corte de convergencia de pines internos de orbit (ADR-006): `align_set.sh` con el manifiesto del paraguas, notas del root en el mismo commit `fix(deps)`, PR, fusión, release PR y tags. Tras ADR-006 solo hace falta cuando cambia `proto`. |
-| `untag-recipe.sh <repo-dir> <pr>` | La receta del auto-bloqueo de release-please, mecanizada: por cada tag del manifest del commit de merge que falte, tag anotado + release de GitHub con la sección del CHANGELOG + relabel `autorelease: tagged`. |
+| `untag-recipe.sh <repo\|repo-dir> <pr>` | La receta del auto-bloqueo de release-please, mecanizada: por cada tag del manifest del commit de merge que falte, tag anotado + release de GitHub con la sección del CHANGELOG + relabel `autorelease: tagged`. No hace checkout (lee con `git show <sha>:` y etiqueta por SHA): vale sobre `../<repo>`, sobre el submódulo pinado o sobre un clon temporal. `--dry-run` para ver qué cortaría. La CAUSA del auto-bloqueo está en su cabecera. |
+| `align-module-floors.sh <nucleus\|quark>` | Sube el suelo `require github.com/jcsvwinston/<repo>` de los módulos hermanos al set certificado (QM-19). `--check` lista los que van por detrás (el driver lo imprime antes de cada repo, sin bloquear); sin flag reescribe, `tidy` y commit `fix(deps)`. Corta un patch por módulo tocado: va al principio de un corte que sale igual, nunca como corte propio. Orbit sigue con su `align_set.sh`. |
 
 ## El tren, paso a paso
 
@@ -89,11 +90,18 @@ el driver desde los `require` entre hermanos: hojas → dependientes → **ROOT 
 
 ### 4. Re-pin del paraguas (`train.sh --desde paraguas`)
 
-`bump-set.sh` (mueve submódulos al tag y reescribe versions.yaml/README) +
-`manifest-guard.sh`, y después lo humano: versión de SUITE según QADR-0002,
-`notes`, CHANGELOG, quitar `QUANTUM_ALLOW_DECLARED_LAGS` del workflow si
-estaba, y el PR de re-pin — cuya lane suite-integral debe salir verde **sin
-escapes** (corre en modo normal: tolera el mid-tren sin tag). Ojo al re-pin
+`bump-set.sh` mueve los submódulos al tag, reescribe versions.yaml/README y,
+desde 1.27.0, también lo que antes era humano y se rompía a mano: la versión
+de SUITE por QADR-0002 (calculada del salto real de los pilares), `released`,
+el comentario de `status`, las notes anteriores a `CHANGELOG.md` (DX-25) y un
+esqueleto de notes con los movimientos del set y marcadores `REDACTAR`
+(`scripts/lib/set-notes.py`). `manifest-guard` §0 rechaza el marcador — el
+driver lo tolera en local con `QUANTUM_ALLOW_NOTES_SKELETON=1` mientras se
+redacta; el CI nunca. Queda lo humano de verdad: redactar las notes, revisar
+el título de la entrada del CHANGELOG, quitar `QUANTUM_ALLOW_DECLARED_LAGS`
+del workflow si estaba, y el PR de re-pin — cuya lane suite-integral debe
+salir verde **sin escapes** (corre en modo normal: tolera el mid-tren sin
+tag). Un corte deliberado con otro número: `bump-set.sh --set X.Y.Z`. Ojo al re-pin
 que trae un guard nuevo de producto: la aserción anti-fósil pone la lane roja
 hasta registrarlo (con fixture) o excluirlo con porqué.
 
@@ -158,10 +166,13 @@ permiso. `--sin-esperar` recupera el comportamiento antiguo para ensayos.
 - **Merges estrictamente seriales** donde main exige ramas al día (nucleus):
   cada merge deja al resto en BEHIND → `update-branch` + otra vuelta de
   checks. El driver lo hace; no intentes paralelizar.
-- **release-please puede auto-bloquearse** («untagged, merged release PRs
-  outstanding»): PR merged con `autorelease: pending` y sin tag. Receta en
-  `merge-bot-pr.sh` (tag manual + `gh release create` + relabel a
-  `autorelease: tagged` — sin el relabel el siguiente corte vuelve a abortar).
+- **release-please se auto-bloquea con un release PR de UNA sola release, la
+  de la raíz** («untagged, merged release PRs outstanding» es el síntoma: PR
+  merged con `autorelease: pending` y sin tag). Causa y arreglo en «Lo que
+  aprendió el tren de 1.27.0»; mientras el arreglo de config no esté en los
+  tres repos, `merge-bot-pr.sh` aplica `untag-recipe.sh` solo (tag por SHA +
+  `gh release create` + relabel a `autorelease: tagged` — sin el relabel el
+  siguiente corte vuelve a abortar).
 - **Los tags del token del bot no disparan `push:tags`**: los assets salen
   porque «Release Please» encadena `release.yml` por `workflow_dispatch`
   (arreglado en 1.24.0) — si una release sale sin binarios, mirar ahí.
@@ -345,6 +356,48 @@ cuestan una ronda cada una si se olvidan:
 
 Comprobación barata antes de fusionar cualquier release PR: que el título diga
 el número que esperabas. Es la única señal que da el bot, y llega tarde.
+
+### Lo que aprendió el tren de 1.27.0 (ADR-006 y la causa del auto-bloqueo)
+
+- **El auto-bloqueo de release-please tiene causa, y no es aleatoria.** Las
+  dos veces del 4 de septiembre (orbit#399 → v1.8.21, nucleus#466 → v1.23.2)
+  el release PR llevaba UNA sola release: la de la raíz. El log lo dice:
+  `PR component: undefined does not match configured component:
+  github.com/jcsvwinston/orbit`. En release-please 17.x
+  (`src/strategies/base.ts`, `buildRelease`) un PR con una sola release sin
+  componente se trata como «standalone» y compara el componente de la rama
+  —ninguno: con `separate-pull-requests: false` la rama es
+  `release-please--branches--main`— con `getBranchComponent()`, que cae en el
+  `package-name` de la raíz. No casan, TODAS las estrategias descartan el PR,
+  no sale ningún tag, el PR se queda `autorelease: pending` y la corrida
+  siguiente aborta. Con dos o más releases en el PR va por la otra rama del
+  código y funciona — por eso la cascada de 1.26.2 y v1.9.0 etiquetaron solas.
+  **Arreglo**: sin `package-name` en el paquete raíz de
+  `release-please-config.json` (orbit#426, nucleus#467, quark#347); la
+  estrategia `go` no lo usa para nada más y la raíz ya etiqueta sin
+  componente, así que tags, nombres de release y changelog no cambian. La
+  prueba en vivo es el siguiente corte de raíz sola. **Red mientras tanto**:
+  `merge-bot-pr.sh` lee el log de la corrida del commit de merge y, si ve esa
+  línea (o si la corrida termina sin etiquetar), aplica `untag-recipe.sh`.
+- **`bump-set.sh` escribe ahora la parte del manifiesto que se rompía a
+  mano**: versión de suite por QADR-0002 (calculada del salto real de los
+  pilares), `released`, el comentario de `status`, las notes anteriores a
+  `CHANGELOG.md` (DX-25) y un esqueleto de notes con los movimientos del set
+  y marcadores `REDACTAR`. `manifest-guard` §0 rechaza el marcador (el driver
+  lo tolera en local con `QUANTUM_ALLOW_NOTES_SKELETON=1`), así que un set no
+  certifica con el esqueleto sin redactar. Ejecutarlo dos veces no sube dos
+  veces la suite ni entierra un borrador: con esqueleto presente solo acepta
+  `--set` para cambiar el número. El recorte a offset rancio que perdió
+  `declared_lags` en 1.26.1 ya no tiene dónde ocurrir.
+- **Los suelos de los módulos hermanos (QM-19) tienen escritor**:
+  `align-module-floors.sh <nucleus|quark>`. Lo que hay que decidir es CUÁNDO
+  correrlo, no cómo: el commit es `fix(deps)` (un `chore` deja módulos con
+  cambios sin tag) y por tanto corta un patch de cada módulo tocado, así que
+  va al principio de un corte que sale de todas formas, nunca como corte
+  propio. El driver imprime `--check` antes de cada repo y no bloquea.
+- **`untag-recipe.sh` ya no hace checkout**: lee el manifest y el CHANGELOG
+  con `git show <sha>:` y etiqueta por SHA, así que vale sobre el checkout
+  hermano, sobre el submódulo pinado o sobre un clon temporal.
 
 ### Lo que aprendió el tren de 1.26.2 (dos días de cortes de orbit)
 

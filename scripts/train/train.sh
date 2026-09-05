@@ -21,9 +21,10 @@
 #                        CI, BEHIND, cascada DIRTY, rama anclada, tag que no
 #                        llega — ver merge-bot-pr.sh y
 #                        check-anchored-release-branch.sh).
-#   paraguas             re-pin mecánico (bump-set.sh) + manifest-guard, y
-#                        parada manual: versión de suite, notes, CHANGELOG,
-#                        PR de re-pin.
+#   paraguas             re-pin mecánico (bump-set.sh: submódulos, pines,
+#                        versión de suite por QADR-0002, notes anteriores al
+#                        CHANGELOG y esqueleto de las nuevas) + manifest-guard,
+#                        y parada manual: redactar las notes, PR de re-pin.
 #   cierre               tras fusionar el PR de re-pin: tag de suite EN HEAD,
 #                        suite-integral --cierre (MAQ-1/MAQ-2) y el anuncio
 #                        del set al consumidor externo quantum-app (D6/RT-5).
@@ -106,6 +107,18 @@ fase_repo() {
   local repo=$1
   banner "$repo"
   imprime_deudas "$repo"
+  if [ "$repo" != "orbit" ]; then
+    # QM-19: los suelos módulo→raíz. Informativo: manifest-guard §5b avisa,
+    # no falla, y subirlos es un fix(deps) que corta un patch por módulo —
+    # va en la rama del trabajo real del corte, no en un corte propio.
+    say "PASO: suelos de los módulos hermanos hacia la raíz (QM-19; informativo)"
+    if run bash scripts/train/align-module-floors.sh "$repo" --check; then
+      say "  → suelos al día"
+    else
+      say "  AVISO: suelos por detrás del set certificado. Para subirlos EN este corte:"
+      say "    bash scripts/train/align-module-floors.sh $repo   # fix(deps) en la rama del trabajo, antes del release PR"
+    fi
+  fi
 
   say "  → gh pr list -R jcsvwinston/$repo --label 'autorelease: pending'"
   local listing
@@ -250,13 +263,16 @@ fase_paraguas() {
   if [ ! -f nucleus/go.mod ] || [ ! -f quark/go.mod ] || [ ! -f orbit/go.mod ]; then
     die "submódulos sin inicializar (git submodule update --init --recursive)"
   fi
-  say "PASO: re-pin mecánico del set (bump-set.sh mueve submódulos y reescribe versions.yaml/README)"
+  say "PASO: re-pin mecánico del set (bump-set.sh: submódulos al tag, versions.yaml/README, versión"
+  say "      de suite por QADR-0002, notes anteriores al CHANGELOG y esqueleto de las nuevas)"
   run bash scripts/bump-set.sh || die "bump-set.sh falló"
-  say "PASO: manifest-guard sobre lo que bump-set escribió"
-  run bash scripts/manifest-guard.sh || die "manifest-guard rechaza el re-pin"
+  say "PASO: manifest-guard sobre lo que bump-set escribió (tolera el marcador REDACTAR del esqueleto; el CI no)"
+  run env QUANTUM_ALLOW_NOTES_SKELETON=1 bash scripts/manifest-guard.sh || die "manifest-guard rechaza el re-pin"
   manual \
-    "1. Sube la versión de SUITE en versions.yaml (QADR-0002: minor de pilar → minor de suite)," \
-    "   actualiza released/status, redacta notes y mueve las notes anteriores al CHANGELOG (DX-25)." \
+    "1. Redacta las notes de versions.yaml: bump-set dejó versión de suite, released, status y los" \
+    "   movimientos del set; sustituye cada REDACTAR (manifest-guard §0 lo rechaza) y revisa el título" \
+    "   que puso a la entrada anterior en CHANGELOG.md (DX-25). Si el número de suite no es el que" \
+    "   toca (corte deliberado): bash scripts/bump-set.sh --set X.Y.Z (solo cambia el número)." \
     "2. Si el workflow llevaba QUANTUM_ALLOW_DECLARED_LAGS, quítalo: el PR de re-pin sale verde SIN escapes." \
     "3. Abre el PR de re-pin; su lane suite-integral corre en modo normal (tolera el mid-tren sin tag)." \
     "4. Fusiona el PR (quantum usa MERGE COMMIT; puedes usar merge-bot-pr.sh quantum <n> si es del bot)." \
