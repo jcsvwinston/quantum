@@ -4,14 +4,18 @@
 #
 # Sube el SUELO que los módulos hermanos de un repo declaran de su propia raíz
 # (`require github.com/jcsvwinston/<repo> vX.Y.Z` en drivers/*, providers/*,
-# exporters/*) a la versión certificada del set (modules.<repo> de
-# versions.yaml) o a la que se pase con --target. Es la mitad que faltaba de
-# QM-19 (auditoría 2026-09-03): orbit tiene align_set.sh para sus pines
-# cross-repo e internos; nucleus y quark no tenían escritor para este borde y
-# los suelos se quedaban varias releases atrás (manifest-guard §5b lo avisa en
-# cada corrida: ruido que tapa señal).
+# exporters/*) al ÚLTIMO TAG DE RAÍZ PUBLICADO (o al que se pase con
+# --target). Es la mitad que faltaba de QM-19 (auditoría 2026-09-03): orbit
+# tiene align_set.sh para sus pines cross-repo e internos; nucleus y quark no
+# tenían escritor para este borde y los suelos se quedaban varias releases
+# atrás (manifest-guard §5b lo avisa en cada corrida: ruido que tapa señal).
 #
-# Lo que hay que saber antes de usarlo, porque decide CUÁNDO se ejecuta:
+# CUÁNDO corre — decidido por Carlos el 2026-09-05: **al principio de cada
+# corte**, como primer commit. train.sh lo hace solo en la fase de cada repo
+# (rama desde main, este script, PR, fusión, espera de «Release Please»), de
+# modo que el fix(deps) entra en el mismo release PR que el trabajo real.
+#
+# Lo que hay que saber, porque explica esa decisión:
 #   - El suelo es informativo: MVS resuelve al máximo y un consumidor compila
 #     contra la raíz certificada diga lo que diga el go.mod del módulo.
 #     manifest-guard §5b AVISA, no falla. Alinear es higiene, no corrección.
@@ -22,13 +26,12 @@
 #     cambios sin tag y manifest-guard §3b rechazaría la raíz siguiente
 #     (lección de 1.26.2). Y `fix` significa que release-please corta un
 #     patch de CADA módulo tocado (y de la raíz) en el corte siguiente. Por
-#     eso se ejecuta AL PRINCIPIO de un corte que va a salir de todas formas
-#     —en la rama del trabajo real o justo antes del release PR—, nunca como
+#     eso va AL PRINCIPIO de un corte que sale de todas formas, nunca como
 #     corte propio: doce tags para mover doce suelos no es un release.
 #
 # Modos:
 #   --check     no toca nada; lista los suelos por detrás y sale 1 si hay
-#               alguno (lo que el driver imprime antes de cada repo).
+#               alguno (lo que decide, en el driver, si toca subirlos).
 #   --dry-run   imprime los `go mod edit` que haría, sale 0.
 #   (default)   reescribe los require, `GOWORK=off go mod tidy` por módulo
 #               (necesita red: el target tiene que estar publicado) y commit.
@@ -61,11 +64,17 @@ case "$REPO" in
   *) echo "uso: align-module-floors.sh <nucleus|quark> [--check|--dry-run] [--no-commit] [--target vX.Y.Z] [--checkout <dir>]" >&2; exit 64 ;;
 esac
 ROOT_MOD="github.com/$OWNER/$REPO"
-[ -n "$TARGET" ] || TARGET=$(sed -nE "s/^  $REPO:[[:space:]]+\"(v[^\"]+)\".*/\1/p" "$Q/versions.yaml" | head -1)
-[ -n "$TARGET" ] || { echo "no pude leer modules.$REPO de versions.yaml" >&2; exit 1; }
 [ -n "$DIR" ] || DIR="$Q/../$REPO"
 DIR=$(cd "$DIR" 2>/dev/null && pwd) || { echo "checkout de $REPO no encontrado: $DIR (usa --checkout)" >&2; exit 1; }
 [ -f "$DIR/go.mod" ] || { echo "$DIR no parece el repo $REPO (sin go.mod)" >&2; exit 1; }
+# El objetivo es el último tag de raíz PUBLICADO (los tags de módulo llevan
+# ruta delante y no casan con 'v[0-9]*'), no el certificado: entre dos sets
+# la raíz puede haber cortado un patch que el manifiesto aún no recoge.
+if [ -z "$TARGET" ]; then
+  git -C "$DIR" fetch -q --tags origin 2>/dev/null || true
+  TARGET=$(git -C "$DIR" tag -l 'v[0-9]*' | sort -V | tail -1)
+fi
+[ -n "$TARGET" ] || { echo "sin tags de raíz en $DIR (usa --target)" >&2; exit 1; }
 
 # Mismo descubrimiento que manifest-guard: módulos publicables del árbol, sin
 # ejemplos, sitio, benchmarks, bugbash ni internal/*.

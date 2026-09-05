@@ -21,7 +21,7 @@ queda fuera del escaneo anti-fósil a propósito (solo cubre `scripts/`,
 | `merge-group.sh <repo> <--squash\|--merge> <pr>...` | Fusiona PRs humanos o de Dependabot en serie: `update-branch` si BEHIND (nucleus exige ramas al día), espera de checks, merge; para en rojo. No es para release PRs (para eso, `merge-bot-pr.sh`). |
 | `orbit-converge.sh <root> <tags> <rama>` | Un corte de convergencia de pines internos de orbit (ADR-006): `align_set.sh` con el manifiesto del paraguas, notas del root en el mismo commit `fix(deps)`, PR, fusión, release PR y tags. Tras ADR-006 solo hace falta cuando cambia `proto`. |
 | `untag-recipe.sh <repo\|repo-dir> <pr>` | La receta del auto-bloqueo de release-please, mecanizada: por cada tag del manifest del commit de merge que falte, tag anotado + release de GitHub con la sección del CHANGELOG + relabel `autorelease: tagged`. No hace checkout (lee con `git show <sha>:` y etiqueta por SHA): vale sobre `../<repo>`, sobre el submódulo pinado o sobre un clon temporal. `--dry-run` para ver qué cortaría. La CAUSA del auto-bloqueo está en su cabecera. |
-| `align-module-floors.sh <nucleus\|quark>` | Sube el suelo `require github.com/jcsvwinston/<repo>` de los módulos hermanos al set certificado (QM-19). `--check` lista los que van por detrás (el driver lo imprime antes de cada repo, sin bloquear); sin flag reescribe, `tidy` y commit `fix(deps)`. Corta un patch por módulo tocado: va al principio de un corte que sale igual, nunca como corte propio. Orbit sigue con su `align_set.sh`. |
+| `align-module-floors.sh <nucleus\|quark>` | Sube el suelo `require github.com/jcsvwinston/<repo>` de los módulos hermanos al último tag de raíz publicado (QM-19). `--check` lista los que van por detrás; sin flag reescribe, `tidy` y commit `fix(deps)`. **Corre al principio de cada corte** (decisión 2026-09-05): el driver lo hace solo en la fase de cada repo (rama, PR, fusión, espera de Release Please), así que el `fix(deps)` entra en el mismo release PR que el trabajo. Orbit sigue con su `align_set.sh`. |
 
 ## El tren, paso a paso
 
@@ -389,12 +389,14 @@ el número que esperabas. Es la única señal que da el bot, y llega tarde.
   veces la suite ni entierra un borrador: con esqueleto presente solo acepta
   `--set` para cambiar el número. El recorte a offset rancio que perdió
   `declared_lags` en 1.26.1 ya no tiene dónde ocurrir.
-- **Los suelos de los módulos hermanos (QM-19) tienen escritor**:
-  `align-module-floors.sh <nucleus|quark>`. Lo que hay que decidir es CUÁNDO
-  correrlo, no cómo: el commit es `fix(deps)` (un `chore` deja módulos con
-  cambios sin tag) y por tanto corta un patch de cada módulo tocado, así que
-  va al principio de un corte que sale de todas formas, nunca como corte
-  propio. El driver imprime `--check` antes de cada repo y no bloquea.
+- **Los suelos de los módulos hermanos (QM-19) tienen escritor y momento**:
+  `align-module-floors.sh <nucleus|quark>`, y corre **al principio de cada
+  corte** (decisión de Carlos, 2026-09-05). El commit es `fix(deps)` (un
+  `chore` deja módulos con cambios sin tag) y corta un patch de cada módulo
+  tocado, así que va como primer commit de un corte que sale de todas
+  formas, nunca como corte propio. El driver lo hace solo en la fase de cada
+  repo: rama desde main, PR, fusión y espera de la corrida de «Release
+  Please» que regenera el release PR con los módulos dentro.
 - **`untag-recipe.sh` ya no hace checkout**: lee el manifest y el CHANGELOG
   con `git show <sha>:` y etiqueta por SHA, así que vale sobre el checkout
   hermano, sobre el submódulo pinado o sobre un clon temporal.
