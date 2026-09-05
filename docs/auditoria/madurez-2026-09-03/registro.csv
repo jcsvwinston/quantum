@@ -1,4 +1,4 @@
-# arcos_cerrados:
+# arcos_cerrados: A1
 id,sev,repo,arco,estado,evidencia,informe,donde
 QK-1,P0,quark,—,hecho,quark#338,quark.md,"`quarkdriver/known.go:88-98` (`IsRegistered`), usado en `client.go:255-259`"
 QK-2,P1,quark,—,hecho,quark#338,quark.md,"`superapp` (raíz, 42 232 786 B, Mach-O arm64), `.gitignore:5-9`"
@@ -80,7 +80,7 @@ NU-57,P1,nucleus,—,hecho,nucleus#455,nucleus.md,"`website/docs/concepts/routin
 NU-58,P1,nucleus,—,hecho,nucleus#455,nucleus.md,`docs/reference/CONFIG_KEY_REGISTRY.md:264` ; `website/docs/reference/configuration.md:212` ; `website/docs/operations/d
 NU-59,P1,nucleus,—,hecho,nucleus#455,nucleus.md,"`SPEC.md:138-142,297-305,327-328,331`"
 NU-60,P1,nucleus,—,hecho,nucleus#455,nucleus.md,"`README.md:148,151` ; `website/docs/intro.md:75-77` ; `SPEC.md:194,219-223,364` ; `docs/reference/CONFIG_KEY_REGISTRY.md"
-NU-61,P1,nucleus,A1,abierto,"se cierra con el snapshot de docs del siguiente minor de nucleus (el de A1), cortado tras las correcciones",nucleus.md,`website/versioned_docs/version-1.23.0/**`
+NU-61,P1,nucleus,—,hecho,nucleus v1.24.0 (tag 2026-09-05) con el snapshot version-1.24.0 cortado tras las correcciones (nucleus#474),nucleus.md,`website/versioned_docs/version-1.24.0/**`
 NU-62,P2,nucleus,—,hecho,nucleus#455,nucleus.md,"`website/docs/concepts/models-and-database.md:40-44,264-265` ; `website/docs/operations/deployment.md:41-42` ; `website/"
 NU-63,P2,nucleus,—,hecho,nucleus#473,nucleus.md,`docs/reference/API_CONTRACT_INVENTORY.md` ; `README.md:140-163` ; `scripts/ci/check_version_claims.sh`
 NU-64,P2,nucleus,—,hecho,nucleus#455,nucleus.md,"`CLAUDE.md:51` ; `SPEC.md:130,181-183,311,387-397,417-430` ; `README.md:171-185,256,299`"
@@ -100,16 +100,16 @@ OR-10,P1,orbit,—,hecho,orbit#379,orbit.md,`AGGridTable.tsx:154-158` vs `:506` 
 OR-11,P1,orbit,—,hecho,orbit#379,orbit.md,`AGGridTable.tsx:559` vs `handlers.go:478-480` (D3)
 OR-12,P1,orbit,—,hecho,orbit#379,orbit.md,"`RecordForm.tsx:55,163`, `AGGridTable.tsx:94-95` (D4)"
 OR-13,P1,orbit,—,hecho,orbit#379,orbit.md,`services/api.ts:251-262` vs `rbac.go:150-161` (D5)
-OR-14,P2,orbit,A1,abierto,,orbit.md,"`handlers.go:475`, `actions.go:94-140`, `fixtures.go:460-491`, `quarkdatasource/store.go:258-283`, `AGGridTable.tsx:46,2"
+OR-14,P2,orbit,—,hecho,orbit#430 (ids string de punta a punta: bulk/export/fixtures/SPA; quarkdatasource estrecha por TextUnmarshaler),orbit.md,"`internal/admin/handlers.go` (`decodeRecordIDs`), `actions.go`, `fixtures.go`, `quarkdatasource/store.go` (`parseID`), `ui/src/lib/recordIds.ts`"
 OR-15,P2,orbit,—,hecho,orbit#380,orbit.md,"`live.go:500-524,751-776`"
-OR-16,P2,orbit,A1,abierto,,orbit.md,"`audit.go:170-191`, `rbac.go`, `management_migrations.go:37`, `p2_features.go:113`, `audit.go:388`"
+OR-16,P2,orbit,—,hecho,orbit#429 (cada ruta mutante escribe su entrada con antes/después; login/login.failed/login.locked; muere el middleware por ruta),orbit.md,"`internal/admin/audit.go` (`recordAuditEntry`, `auditLogin`), `handlers.go`, `rbac.go`, `flags.go`, `management_migrations.go`, `p2_features.go`, `fixtures.go`, `live.go`"
 OR-17,P2,orbit,—,hecho,orbit#380,orbit.md,`actions.go:16-92`
 OR-18,P2,orbit,—,hecho,orbit#380,orbit.md,`management.go:233-258`
 OR-19,P2,orbit,—,hecho,orbit#380,orbit.md,"`handlers.go:411-414`, `orbit.go:239`"
 OR-20,P2,orbit,—,hecho,orbit#379,orbit.md,`internal/admin/ui/package-lock.json` (D17)
 OR-21,P2,orbit,—,hecho,orbit#380,orbit.md,`management.go:335-370`
 OR-22,P2,orbit,—,hecho,orbit#380,orbit.md,"`store.go:123-131`, `handlers.go:523,634,668`"
-OR-23,P2,orbit,A1,abierto,,orbit.md,"`panel.go:672-686`, `handlers.go:515-680`, README «Filter records by the request's resolved tenant»"
+OR-23,P2,orbit,—,hecho,orbit#430 (`PanelConfig.TenantResolver` + `tenantScope` en list/get/update/delete/bulk/export; `?tenant=all` ya no lo apaga),orbit.md,"`internal/admin/tenant.go`, `panel.go`, `handlers.go`, `orbit.go` (resolver cableado a `app.TenantFromContext`)"
 OR-24,P2,orbit,—,hecho,orbit#380,orbit.md,"`server/server.go:93,109-111` (F4)"
 OR-25,P2,orbit,—,hecho,orbit#380,orbit.md,`server/nodes/registry.go:125-129` (F5)
 OR-26,P2,orbit,—,hecho,orbit#427,orbit.md,`server/services/control_service.go:105-142` (F6)
@@ -121,7 +121,7 @@ OR-31,P2,orbit,—,hecho,orbit#379,orbit.md,"`toaster.tsx:15-26`, `use-toast.ts:
 OR-32,P2,orbit,—,hecho,orbit#380,orbit.md,"`quarkbridge/quarkbridge.go:156`; `quarkdatasource/store.go:130,211,520-522` (fleet)"
 OR-33,P3,orbit,—,hecho,orbit#380,orbit.md,`panel.go:442-447`
 OR-34,P3,orbit,—,hecho,orbit#380,orbit.md,"`rbac.go:17-124`; `server/auth/auth.go:224-268` (F8, F9)"
-OR-35,P3,orbit,A1,abierto,,orbit.md,"`default_auth.go:311-345`, `audit.go:72-134`"
+OR-35,P3,orbit,—,hecho,orbit#429 (el lookup del admin por request es UNA consulta acotada por PK en cada motor; sin caché a propósito: los admins se escriben fuera del proceso y una TTL retrasaría la revocación),orbit.md,"`internal/admin/default_auth.go` (`findUser`), `audit.go` (`auditStore`)"
 OR-36,P3,orbit,—,hecho,orbit#380,orbit.md,"`go.mod` raíz, `go.work.sum`, `.github/workflows/ci.yml`"
 OR-37,P3,orbit,—,hecho,orbit#379,orbit.md,"`.gitignore:1-4`, `internal/admin/ui/README.md:1-160`, `internal/admin/ui/package.json` (D22)"
 OR-38,P3,orbit,—,hecho,orbit#380,orbit.md,"`docs/adrs/ADR-002-*.md:4,14`, `docs/adrs/README.md:13`, `CLAUDE.md`"
@@ -129,8 +129,8 @@ OR-39,P3,orbit,—,hecho,orbit#380,orbit.md,"`proto/EVOLUTION.md:26-27,103,111`;
 OR-40,P3,orbit,—,hecho,orbit#380,orbit.md,`management.go:35-115`
 OR-41,P3,orbit,—,hecho,orbit#380,orbit.md,`datastudio_service.go:328-336` vs `agent/datastudio/datastudio.go:538` (F7); `agent_service.go:81` (F10); `connection.g
 OR-42,P3,orbit,—,hecho,orbit#427,orbit.md,`hardening.go:34-36`; `default_auth.go` limiter
-OR-43,P3,orbit,A1,abierto,,orbit.md,`nucleus/pkg/model/fields.go:100-125`; `handlers.go:530-538`
-OR-44,P3,orbit,A1,abierto,,orbit.md,`internal/admin/ui/dist/assets/*` (SPA)
+OR-43,P3,orbit,—,hecho,orbit#430 (400 nombrando el modelo y cómo activar la búsqueda; SPA con la caja deshabilitada) + nucleus#476 (`CRUD.FindAll` responde 400 sin campos buscables; entra en la siguiente release de nucleus),orbit.md,"`internal/admin/handlers.go`, `nucleus/pkg/model/crud.go` (`FindAll`)"
+OR-44,P3,orbit,—,hecho,"orbit#431 (rutas perezosas por feature + variante de tema AG Grid sin usar fuera del bundle: JS inicial ~1,7 MB→~310 kB, CSS 252→29 kB; (c) y (d) ya cerrados por orbit#379)",orbit.md,"`internal/admin/ui/src/routes.ts`, `App.tsx`, `vite.config.ts`, `tools/postcss-strip-unused-grid-themes.ts`, `internal/admin/ui_embed_test.go`"
 F1,P0,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,"`server/server.go:490` vs `:256,:263`; `:421`"
 F2,P1,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,"`agent/agent.go:238-242`, `agent/connection/connection.go:289-306`"
 F3,P1,orbit,—,hecho,orbit#380,orbit-fleet-informe.md,"`server/cmd/admin-server/main.go:176-188`, `config.go:24`, `README:55`"

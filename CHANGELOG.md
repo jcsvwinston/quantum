@@ -6,6 +6,41 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.27.0 — La minor que publica ADR-006 de orbit
+
+Quantum 1.27.0 — la minor que publica ADR-006 de orbit. Solo se mueve
+orbit, de v1.8.25 a v1.9.0 (server v0.10.17 → v0.11.0; proto v0.4.4,
+agent v0.6.14 y los dos puentes v1.8.19 sin cambio); quark v1.10.1 y
+nucleus v1.23.2 con sus módulos siguen donde estaban. Minor de suite
+porque lo es la de orbit (QADR-0002), y corte fuera de cadencia con la
+razón escrita que pide QADR-0008: publicar la decisión antes de que el
+tren del lunes vuelva a pagar la cascada.
+
+Lo que decide ADR-006: ningún módulo hermano de orbit requiere a otro por
+tag salvo proto, el contrato del protocolo. server importaba agent solo
+desde cuatro tests que arrancan un agente real; esos tests viven ahora en
+orbit/internal/fleettest, un módulo de solo test que la regla internal
+de Go hace inimportable desde fuera del repositorio y que nunca se
+publica. proto pasa a ser hoja deliberada (Dependabot no toca sus
+dependencias Go; se suben con la regeneración de los stubs), y los
+bumps de Dependabot en los módulos publicados llevan fix(deps) para que
+su tag salga en el mismo tren.
+
+Por qué importaba: los módulos del fleet se cortan del mismo commit, así
+que cada uno nacía requiriendo el tag anterior de su hermano y el guard
+de pines internos —con razón: go install resuelve por el suelo del
+go.mod— exigía un corte por nivel de la cadena. De los ocho cortes de
+raíz de orbit del 4 y 5 de septiembre, cinco no publicaron ningún cambio
+de producto. Coste esperado desde este set: un cambio en agent o server,
+un corte; en proto, dos, y el segundo lo hace el driver del tren.
+
+Lo que cambia para quien instala: nada en el binario admin-server; el
+go.mod de server deja de arrastrar agent. Para el paraguas: internal/*
+queda fuera del descubrimiento de módulos del manifest-guard y
+orbit/internal/fleettest entra en el go.work con este re-pin (antes no
+podía: el pin no lo contenía). El tren gana tres scripts que
+condujeron el set anterior: orbit-converge, untag-recipe y merge-group.
+
 ## Quantum 1.26.2 — Corte fuera de cadencia: el consumidor de referencia vuelve a verde
 
 Quantum 1.26.2 — corte fuera de cadencia, con la razón escrita que pide
