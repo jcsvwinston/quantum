@@ -114,6 +114,20 @@ jobs:
           go install "github.com/jcsvwinston/nucleus/cmd/nucleus@${version}"
           "$GOBIN/nucleus" --version
 
+      # Arco A2: la cifra FRÍA del quickstart. El presupuesto de 60 s del job
+      # quickstart-smoke se define sobre la caché de módulos restaurada; aquí,
+      # con caché virgen (cache: false), el mismo script sólo INFORMA
+      # (QUICKSTART_BUDGET_SECONDS=0) para que el coste real de un usuario sin
+      # caché quede a la vista cada lunes sin gatear con él (continue-on-error:
+      # el veredicto funcional lo da quickstart-smoke, no este job). Mientras
+      # el nucleus pinado no conozca `--with`, el script sale 0 con ::notice.
+      - name: Coste frío del quickstart (sólo informa)
+        continue-on-error: true
+        env:
+          QUICKSTART_BUDGET_SECONDS: "0"
+          QUICKSTART_CACHE_LABEL: virgen
+        run: bash scripts/ci/quickstart_smoke.sh
+
   build:
     name: build + vet del set fijado
     runs-on: ubuntu-latest
@@ -167,6 +181,45 @@ jobs:
       - name: Arranca, crea, y verifica feed en vivo + Data Studio
         run: bash scripts/ci/showcase_smoke.sh
 
+  # Arco A2 (starter de suite y primer endpoint en 5 minutos): el quickstart
+  # de la suite, EJECUTADO contra el set pinado. Compila el CLI de nucleus del
+  # submódulo, hace `nucleus new --template suite --with orbit,quark,
+  # quarkbridge,quarkdatasource`, compila el proyecto con los hermanos del
+  # go.work (sin red), lo arranca y ejecuta los curl EXTRAÍDOS de
+  # website/docs/quickstart.md; exige 0 WARN al arrancar, /nope → 404, feed
+  # en vivo con el INSERT y Data Studio con los modelos, y un presupuesto de
+  # 60 s (scaffold + build + arranque + curls) sobre la caché de módulos
+  # RESTAURADA — sin ella no es alcanzable (cabecera del script). Salvaguarda:
+  # mientras el nucleus pinado no conozca `--with`, la lane sale 0 con
+  # ::notice y se enciende sola al re-pinar.
+  quickstart-smoke:
+    name: quickstart de la suite al set pinado (nucleus new --with, 60 s)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout (con submódulos — son el trío fijado)
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Setup Go (versión declarada en go.work, caché de módulos restaurada)
+        id: go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.work
+          cache-dependency-path: '**/go.sum'
+
+      # El presupuesto se define sobre la caché restaurada: que conste en el
+      # log si esta corrida la tuvo (un miss explica un total alto sin
+      # que sea deriva del scaffold).
+      - name: Caché de módulos de esta corrida
+        run: echo "cache-hit=${{ steps.go.outputs.cache-hit }}"
+
+      - name: nucleus new --with al set pinado, arranque y los curl del quickstart
+        env:
+          QUICKSTART_CACHE_LABEL: ${{ steps.go.outputs.cache-hit == 'true' && 'restaurada' || 'sin restaurar (miss)' }}
+        run: bash scripts/ci/quickstart_smoke.sh
+
   orbit-lockstep:
     name: tests de orbit contra el nucleus fijado (lockstep, A-7)
     runs-on: ubuntu-latest
@@ -208,7 +261,7 @@ jobs:
     name: aviso activo del schedule rojo/cancelado (issue)
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [manifest-guard, go-install-tag, build, showcase-smoke, orbit-lockstep]
+    needs: [manifest-guard, go-install-tag, build, showcase-smoke, quickstart-smoke, orbit-lockstep]
     if: (failure() || cancelled()) && github.event_name == 'schedule'
     permissions:
       contents: read
