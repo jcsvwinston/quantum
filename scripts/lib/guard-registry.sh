@@ -73,6 +73,7 @@ GUARDS=(
   # certifica (versión de suite y los tres pilares). En 1.26.0 se quedó un set
   # atrás mientras su propio §1 decía 1.26.0 (QM-6, auditoría 2026-09-03).
   "umbrella-rumbo-estado|.|bash scripts/check_rumbo_estado.sh"
+  "umbrella-handoff-size|.|bash scripts/check_handoff_size.sh"
   # El go.work cubre TODO módulo publicable: raíz de cada repo, todo go.mod del
   # árbol (salvo examples/benchmarks/bugbash) y toda clave de *_modules del
   # manifiesto. Iba diez módulos por detrás del set y `go build` con módulos de

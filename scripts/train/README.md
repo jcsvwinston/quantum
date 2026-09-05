@@ -22,6 +22,8 @@ queda fuera del escaneo anti-fósil a propósito (solo cubre `scripts/`,
 | `orbit-converge.sh <root> <tags> <rama>` | Un corte de convergencia de pines internos de orbit (ADR-006): `align_set.sh` con el manifiesto del paraguas, notas del root en el mismo commit `fix(deps)`, PR, fusión, release PR y tags. Tras ADR-006 solo hace falta cuando cambia `proto`. |
 | `untag-recipe.sh <repo\|repo-dir> <pr>` | La receta del auto-bloqueo de release-please, mecanizada: por cada tag del manifest del commit de merge que falte, tag anotado + release de GitHub con la sección del CHANGELOG + relabel `autorelease: tagged`. No hace checkout (lee con `git show <sha>:` y etiqueta por SHA): vale sobre `../<repo>`, sobre el submódulo pinado o sobre un clon temporal. `--dry-run` para ver qué cortaría. La CAUSA del auto-bloqueo está en su cabecera. |
 | `align-module-floors.sh <nucleus\|quark>` | Sube el suelo `require github.com/jcsvwinston/<repo>` de los módulos hermanos al último tag de raíz publicado (QM-19). `--check` lista los que van por detrás; sin flag reescribe, `tidy` y commit `fix(deps)`. **Corre al principio de cada corte** (decisión 2026-09-05): el driver lo hace solo en la fase de cada repo (rama, PR, fusión, espera de Release Please), así que el `fix(deps)` entra en el mismo release PR que el trabajo. Orbit sigue con su `align_set.sh`. |
+| `align-orbit-pins.sh [--check]` | Los pines CRUZADOS de orbit (nucleus y quark en sus seis go.mod, más los hermanos) hacia los ÚLTIMOS tags de `../quark` y `../nucleus`, llamando al `align_set.sh` de orbit. `--check` solo verifica (pone `main` al día antes). El driver lo corre al principio de la fase orbit (`alinea_pines_orbit`: rama, PR, fusión, espera de Release Please) — sin esto, cortar quark/nucleus y orbit el mismo día deja el manifest-guard §5 en FAIL (1.28.0 costó un corte de más). |
+| `quark-doc-debt.sh [--dry-run]` | La deuda de doc de una release de quark (RT-9), pagada EN la rama del bot: worktree de `release-please--branches--main`, merge de `main` si la rama no lo trae, `gen_release_notes_skeleton.sh` de quark (sección del sitio, `RELEASE_NOTES`, línea marcada de CLAUDE.md, puntero del README) y push. Para (EXIT=2) sólo si el esqueleto dejó `TODO`: la prosa no se delega. El driver lo corre en la fase quark antes de `merge-bot-pr.sh`. |
 
 ## El tren, paso a paso
 
@@ -356,6 +358,39 @@ cuestan una ronda cada una si se olvidan:
 
 Comprobación barata antes de fusionar cualquier release PR: que el título diga
 el número que esperabas. Es la única señal que da el bot, y llega tarde.
+
+### Lo que aprendió el tren de 1.28.0 (A1: quark, nucleus y orbit cortados el mismo día)
+
+- **Los pines CRUZADOS de orbit no son suelos tolerados.** Si quark y nucleus
+  se cortan en el mismo tren, la fase orbit corta con los `require` viejos y
+  el manifest-guard §5 FALLA («undisclosed staleness»): sólo `declared_lags`
+  lo excusa, y eso es deuda declarada, no alineación. Costó un segundo corte
+  de orbit (v1.9.2, sin cambio de producto). Desde este tren la fase orbit
+  corre `align-orbit-pins.sh --check` (los últimos tags de ../quark y
+  ../nucleus contra los seis go.mod) y, si va atrás, `alinea_pines_orbit`:
+  rama + `align_set.sh` de orbit + PR + merge-group + espera de Release
+  Please — gemela de `sube_suelos`. El propio `align_set.sh` escribía el
+  commit en español y el guard de títulos lo rechazaba: ya en inglés.
+- **La deuda de doc de quark (RT-9) se paga sola.** `quark-doc-debt.sh` abre
+  un worktree de la rama del bot, le mete `main` si no lo trae, corre
+  `gen_release_notes_skeleton.sh` (sección del sitio, `RELEASE_NOTES`, línea
+  marcada de CLAUDE.md y, desde 1.28.0, el puntero del README a las notas de
+  la minor) y empuja. Sólo para si el esqueleto dejó `TODO`: la prosa no se
+  delega. Dos causas de la vuelta perdida: la entrada de CLAUDE.md y el
+  puntero del README eran manuales, y un `docs(release):` fusionado DESPUÉS
+  de que el bot generase la rama NO la regenera (los docs no cambian el
+  changelog), así que la rama no traía las notas de main y el guard local
+  mentía hasta meterle `main`.
+- **Un `docs(release):` que sube la marca de versión de orbit sin sección**:
+  el release PR bumpa la línea «current release is vX.Y.Z» de las notas y
+  `check_docs_version_claims.sh` exige la sección `## vX.Y.Z`. Una release
+  de alineación (sin cambio de producto) también la necesita: tres líneas
+  que lo digan, en la rama del release.
+- **Los historiales pesan.** El handoff del paraguas llegó a 203 KB y 40
+  sesiones y el arranque lo cargaba truncado; el CLAUDE.md de quark llevaba
+  una línea de 16 KB. Régimen desde hoy: §3 = estado vigente + dos sesiones
+  (guard `umbrella-handoff-size`, archivo en `docs/handoff/`); quark guarda
+  tres entradas en CLAUDE.md y el resto en `.claude/HISTORIAL.md`.
 
 ### Lo que aprendió el tren de 1.27.0 (ADR-006 y la causa del auto-bloqueo)
 
