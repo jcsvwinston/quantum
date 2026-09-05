@@ -21,6 +21,10 @@ on:
       - 'quark'
       - 'orbit'
       - '.github/workflows/website-ci.yml'
+      # El guard de coste del quickstart y su parser corren aquí sobre la
+      # fuente: un cambio en ellos tiene que verse en esta lane.
+      - 'scripts/check_quickstart_cost.sh'
+      - 'scripts/lib/quickstart-fences.sh'
   workflow_dispatch:
 
 permissions:
@@ -59,6 +63,15 @@ jobs:
       # nueva del producto no se sirva invisible en la navegación del paraguas.
       - name: Sincronía de sidebars espejadas
         run: bash scripts/check_sidebar_sync.sh
+
+      # Arco A2: el quickstart de la suite cabe en 5 comandos y 5 conceptos
+      # declarados (`concepts:` en el front matter). Se cuenta sobre la FUENTE
+      # antes del build, con el parser que la lane quickstart-smoke usa para
+      # ejecutar los curl de la misma página. Mientras el nucleus pinado no
+      # traiga `nucleus new --with` (≤ v1.24.0) el guard mide e informa; al
+      # re-pinar, exige (cabecera del script).
+      - name: Coste del quickstart (comandos y conceptos)
+        run: bash scripts/check_quickstart_cost.sh website/docs/quickstart.md
 
       - name: Build
         working-directory: website
