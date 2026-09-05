@@ -13,14 +13,13 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
 ## Estado real (2026-09-05)
 
-- **Set certificado: Quantum 1.26.2** (2026-09-05) — quark v1.10.1
+- **Set certificado: Quantum 1.27.0** (2026-09-05) — quark v1.10.1
   (drivers/{postgres,mysql,sqlite,mssql,oracle} v0.1.1) · nucleus v1.23.2
   (doce módulos hermanos: cinco drivers, dos exportadores y cuatro providers
-  en v0.1.1, providers/ldap v0.2.5) · orbit v1.8.25 (proto v0.4.4, agent
-  v0.6.14, server v0.10.17, quarkbridge v1.8.19, quarkdatasource v1.8.19).
-  1.26.2 es un corte fuera de cadencia: mueve orbit (y nucleus a un patch
-  de solo documentación) para que el consumidor de referencia deje de
-  estar en rojo.
+  en v0.1.1, providers/ldap v0.2.5) · orbit v1.9.0 (proto v0.4.4, agent
+  v0.6.14, server v0.11.0, quarkbridge v1.8.19, quarkdatasource v1.8.19).
+  1.27.0 publica ADR-006 de orbit (server deja de requerir agent: se acaba
+  la cascada de pines internos); minor de suite por la minor de orbit.
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`.
 - **Auditoría de madurez 2026-09-03 sobre 1.26.0: ejecutada, corregida y

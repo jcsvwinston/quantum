@@ -6,6 +6,48 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.26.2 — Corte fuera de cadencia: el consumidor de referencia vuelve a verde
+
+Quantum 1.26.2 — corte fuera de cadencia, con la razón escrita que pide
+QADR-0008: el consumidor de referencia quantum-app quedaba en rojo contra
+1.26.1. Se mueven orbit (v1.8.20 → v1.8.25) y nucleus (v1.23.1 → v1.23.2, solo
+documentación); quark v1.10.1 y todos los módulos hermanos de los tres
+repos siguen donde estaban.
+
+Lo que corrige orbit: la corrección OR-32 de la auditoría hizo que el
+adaptador de Quark rechace los alias de base de datos que no sirve, en
+vez de contestar en silencio desde la base equivocada. El listado de
+modelos del panel pregunta por cada modelo en TODOS los alias de la app
+para decir dónde vive cada uno, y convertía ese rechazo en un 500 para el
+listado entero. quantum-app —que sirve «default» con modelos Quark y
+«audit» con un módulo propio— lo cazó el mismo día. Ahora un alias no
+servido cuenta como ausencia del modelo en ese alias, igual que una tabla
+que no existe; un error en el alias propio del modelo sigue fallando.
+
+Lo que este corte confiesa del anterior: el manifiesto de 1.26.1 perdió
+la clave declared_lags y el final del comentario que la precede, por un
+recorte calculado con un offset rancio al redactar las notas. Ningún
+guard lo cazó: manifest-guard lee las claves con awk y una clave ausente
+se lee como vacía, que es justo el valor que certifica. Desde este set
+manifest-guard exige que las diez claves de primer nivel existan.
+
+Del tren: release-please se auto-bloqueó al etiquetar por segunda vez en
+el día («untagged, merged release PRs outstanding», ya con la acción v5),
+las dos veces con un release PR único que llevaba paquetes sin cambios;
+el tag salió por la receta manual del runbook. Y manifest-guard rechazó
+la raíz de orbit v1.8.21 porque proto, agent y server llevaban bumps de
+Dependabot (commits chore, que release-please no libera) sin tag que los
+cubriera: liberarlos costó los tres cortes de la cascada de pines
+internos (v1.8.22, v1.8.23, v1.8.24) más uno para quarkdatasource
+(v1.8.25), y por el camino cayó un defecto
+real: con solo handles de base de datos el panel elegía el alias por
+defecto iterando un mapa de Go, distinto en cada arranque. Las dos cosas
+tienen arco en el plan.
+
+Con nucleus en v1.23.2 muere sola la transición auto-expirante del guard
+de jerga servida que 1.26.1 llevaba ligada al pin v1.23.1: la fuente del
+ejemplo ya no cita un ADR y el sitio lo sirve limpio sin excepción.
+
 ## Quantum 1.26.1 — La auditoría de madurez aplicada
 
 Quantum 1.26.1 — el set que aplica la auditoría de madurez del
