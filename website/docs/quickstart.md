@@ -59,7 +59,7 @@ and leaves `go.mod` tidy: the project builds as written. `--db postgres`
 cd blog && go run .
 ```
 
-The log ends like this. Every line is `INFO` — a clean scaffold boots with
+The last lines look like this. Every line is `INFO` — a clean scaffold boots with
 zero warnings:
 
 ```
@@ -108,7 +108,7 @@ request; **Data Studio** browses and edits `Author` and `Article`.
 
 ## 4 — Read what was generated
 
-Nine files. The three below are the whole wiring; `nucleus.yml` and
+Ten files (eleven with `go.sum`). The three below are the whole wiring; `nucleus.yml` and
 `rbac_policy.csv` are the framework's own configuration, and
 `shop/module_test.go` boots the module in-process (`go test ./...`). The
 listings are the committed output of the same command in the Nucleus
