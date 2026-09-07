@@ -80,7 +80,7 @@ requirement — [here is how to choose](choosing-a-data-layer.md).
 |---|---|
 | Just a data layer for any Go app | [Quark's getting started](/quark/guides/getting-started/) — no framework involved |
 | A web application | [Nucleus's quickstart](/nucleus/getting-started/quickstart/) — add Quark and Orbit later if you want them |
-| To see the whole suite working | [The suite quickstart](quickstart.md) — one small app, all three pillars, about 15 minutes |
+| To see the whole suite working | [The suite quickstart](quickstart.md) — one command writes all three pillars wired; five commands in total |
 
 ## When *not* to use the suite
 
@@ -96,4 +96,4 @@ Honest boundaries save everyone time:
   a small project. The trade-off is coherence and a small surface, not
   breadth of plugins.
 
-Still here? [The quickstart](quickstart.md) takes about 15 minutes.
+Still here? [The quickstart](quickstart.md) is five commands, then a read of the files they wrote.

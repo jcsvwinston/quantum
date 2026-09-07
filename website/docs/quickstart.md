@@ -1,508 +1,183 @@
 ---
-title: "Quickstart: the suite in ~15 minutes"
+title: "Quickstart: the suite in five commands"
 sidebar_label: Quickstart
 sidebar_position: 2
-description: "One small app, all three pillars: scaffold a Nucleus app, mount the Orbit admin, put the domain on Quark, browse it in Data Studio and watch the SQL arrive in the live feed."
+description: "One command writes a Nucleus app with the domain on Quark and the Orbit admin mounted, both bridges wired; go run boots it. Then read the files it wrote."
+concepts:
+  - nucleus.New
+  - orbit.Module
+  - quark.New
+  - quarkdatasource.New
+  - quarkbridge.New
 ---
 
 import {GoInstallCLI} from '@site/src/components/CertifiedSet';
 
-# The suite in ~15 minutes
+# The suite in five commands
 
-By the end of this page you'll have one small application with all three
-pillars working together: a **Nucleus** app whose domain runs on the
-**Quark** ORM, with the **Orbit** admin mounted on top — where you can
-browse your models in Data Studio and watch every SQL statement arrive in
-the live feed as you `curl` the API.
+One command writes a small application with all three pillars wired: a
+**Nucleus** app whose domain runs on the **Quark** ORM, with the **Orbit**
+admin panel mounted on top and the two bridges between them. `go run .`
+boots it. The rest of this page reads the files the command wrote — five
+ideas, one paragraph each.
 
-It takes about fifteen minutes. Everything runs on SQLite, so there is
-nothing to install beyond Go and one CLI. Every snippet below was compiled
-and run against the [current certified set](install.md) before being
-published, and the outputs shown are real.
+Everything runs on SQLite, so there is nothing to install beyond Go and one
+CLI. The commands and outputs below are run against the
+[current certified set](install.md) by this site's CI before they are
+published.
 
-If you only want **one** pillar, this is not your page:
-[Quark alone](/quark/guides/getting-started/) or
-[Nucleus alone](/nucleus/getting-started/quickstart/) each have their own
-quickstart. This one exists to show the seams — the two small bridges that
-make three separate products behave like a suite.
+If you only want one pillar, [Quark alone](/quark/guides/getting-started/)
+and [Nucleus alone](/nucleus/getting-started/quickstart/) have their own
+pages. The same scaffold told from the framework's side, flag by flag, is
+[Start a suite app](/nucleus/getting-started/suite-app/).
 
-## 0 — Prerequisites
+## 1 — Install the CLI
 
 Go 1.26 or newer, and the Nucleus CLI at the certified tag (`@latest` can
 run ahead of the set this page was verified against):
 
 <GoInstallCLI />
 
-## 1 — Scaffold a Nucleus app (2 min)
+## 2 — Scaffold and run
 
 ```bash
-nucleus new blog
-cd blog
-go mod tidy
-go run .
+nucleus new blog --template suite --with orbit,quark,quarkbridge,quarkdatasource
 ```
 
-`nucleus new` writes a minimal skeleton: a composition-root `main.go`
-(which already imports the SQLite driver module,
-`_ "github.com/jcsvwinston/nucleus/drivers/sqlite"`), `nucleus.yml`, an
-RBAC policy file, and an empty `migrations/` directory. No feature code —
-the first module will be yours. The startup log looks like this:
+`--template suite` already implies the four `--with` modules; naming them
+says what arrives. The command fetches them from the module proxy at their
+published tags, together with the SQLite driver module of each product,
+and leaves `go.mod` tidy: the project builds as written. `--db postgres`
+(or `mysql`, `sqlserver`, `oracle`) moves both products to another engine;
+`--offline` skips the network and prints the `go get` line to run later.
+
+```bash
+cd blog && go run .
+```
+
+The log ends like this. Every line is `INFO` — a clean scaffold boots with
+zero warnings:
 
 ```
-level=INFO msg="metrics are not being served: the Prometheus exporter is not linked into this binary" fix="run `nucleus add prometheus`, or go get github.com/jcsvwinston/nucleus/exporters/prometheus and import it for its side effect" why="the exporter moved to its own module so applications that are never scraped stop carrying it"
-level=INFO msg="otel initialized" service=nucleus-app otlp_enabled=false prometheus_enabled=true
-level=WARN msg="jwt: no signing material configured (jwt_keys empty and jwt_secret unset); App.JWT is nil — set jwt_secret or jwt_keys[] before issuing tokens. This is safe for read-only services that consume JWTs minted by an external IdP."
-level=INFO msg="RBAC enforcer initialized" policy_path=rbac_policy.csv
-level=INFO msg="storage provider initialized" provider=local
+level=INFO msg="nucleus: module policies loaded into the live enforcer (in-memory only — the host policy file is never written; a host deny row overrides these)" module=shop declarations=3 rules=3
+level=INFO msg="orbit: admin panel ready" prefix=/admin
+level=INFO msg="shop: quark client bridged to the live SQL feed"
+level=INFO msg="nucleus: module route mounted" module=orbit method=* pattern=/admin/*
+level=INFO msg="nucleus: module route mounted" module=shop method=GET pattern=/api/authors
+level=INFO msg="nucleus: module route mounted" module=shop method=GET pattern=/api/articles
+level=INFO msg="nucleus: module route mounted" module=shop method=POST pattern=/api/articles
 level=INFO msg="nucleus: server listening" addr=0.0.0.0:8080 url=http://0.0.0.0:8080
 ```
 
-:::note Two warnings, both harmless here
-The Prometheus one says the scaffold's default `metrics_path` has nothing
-to serve until you link the exporter module — `nucleus add prometheus` if
-you want `/metrics`, nothing otherwise. The JWT one only matters once you
-issue tokens. Neither stops the app.
-:::
-
-It serves on port `8080`:
-
-```bash
-curl -s localhost:8080/healthz
-```
-
-```json
-{"status":"healthy","checked_at":"2026-08-31T04:13:13Z","checks":[{"name":"db:default","status":"healthy"},{"name":"storage","status":"healthy"}]}
-```
-
-:::note Any route the policy does not grant answers 403, and that's intentional
-Nucleus is default-deny: a path nobody granted answers `403` before routing,
-whether or not a handler exists. Only paths the policy grants but no module
-registers reach the mux and answer `404` (in this scaffold, `/notes` until you
-generate that module). The line below shows the scaffold's own policy file.
-:::
-
-## 2 — Mount the Orbit admin (3 min)
-
-Orbit is one dependency and one `Mount(...)` call. Edit `main.go`:
-
-```go
-package main
-
-import (
-	"log"
-
-	"github.com/jcsvwinston/nucleus/pkg/nucleus"
-	"github.com/jcsvwinston/orbit"
-)
-
-func main() {
-	if err := nucleus.New().
-		FromConfigFile("nucleus.yml").
-		Mount(orbit.Module(orbit.Config{
-			Prefix: "/admin",
-			Title:  "Blog",
-
-			// Local demo credentials — change them anywhere beyond a laptop.
-			BootstrapUsername: "admin",
-			BootstrapEmail:    "admin@example.com",
-			BootstrapPassword: "quickstart",
-		})).
-		Start(); err != nil {
-		log.Fatalf("blog: %v", err)
-	}
-}
-```
-
-```bash
-go get github.com/jcsvwinston/orbit
-go mod tidy
-go run .
-```
-
-The startup log now includes:
-
-```
-level=INFO msg="orbit: admin panel ready" prefix=/admin
-```
-
-Open **http://localhost:8080/admin** and log in (`admin` / `quickstart` —
-the bootstrap credentials above; Orbit created the user on first boot).
-The panel is already live: request feed, sessions, system metrics. Data
-Studio is still empty — there are no models yet. Let's fix that.
-
-:::note The panel is embedded, not deployed
-The React interface ships inside the Orbit Go module (`go:embed`). There
-is no asset pipeline, no separate process, no database of Orbit's own —
-it reads everything from the running app.
-:::
-
-## 3 — Put the domain on Quark (5 min)
-
-Now the data layer. Two models and three routes, in a `shop` package.
-
-**`shop/models.go`** — Quark models are plain structs with tags:
-
-```go
-// Package shop is the application's domain: two Quark models and the HTTP
-// routes that use them.
-package shop
-
-// Author is a Quark model: a plain Go struct with tags.
-type Author struct {
-	ID   int64  `db:"id" pk:"true"`
-	Name string `db:"name" quark:"not_null"`
-}
-
-// Article belongs to an Author. The rel tag lets Orbit's Data Studio surface
-// the relationship.
-type Article struct {
-	ID       int64  `db:"id" pk:"true"`
-	AuthorID int64  `db:"author_id" quark:"not_null"`
-	Title    string `db:"title" quark:"not_null"`
-	Body     string `db:"body"`
-
-	Author Author `rel:"belongs_to" join:"author_id"`
-}
-```
-
-**`shop/module.go`** — a Nucleus module that carries the Quark client and
-registers the routes. `Migrate` creates the tables and seeds one
-author/article pair so the app has data on first boot:
-
-```go
-package shop
-
-import (
-	"context"
-	"encoding/json"
-	"net/http"
-
-	"github.com/jcsvwinston/nucleus/pkg/nucleus"
-	"github.com/jcsvwinston/quark"
-)
-
-type module struct {
-	client *quark.Client
-}
-
-// Module returns the shop feature as a nucleus module.
-func Module(client *quark.Client) nucleus.ModuleSpec {
-	m := &module{client: client}
-
-	return nucleus.Module[struct{}]{
-		Name: "shop",
-
-		Routes: func(r nucleus.Router, _ struct{}) {
-			r.Get("/api/authors", m.listAuthors)
-			r.Get("/api/articles", m.listArticles)
-			r.Post("/api/articles", m.createArticle)
-		},
-	}.Build()
-}
-
-func (m *module) listAuthors(c *nucleus.Context) error {
-	authors, err := quark.For[Author](c.Request.Context(), m.client).OrderBy("name", "ASC").List()
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, map[string]any{"authors": authors, "count": len(authors)})
-}
-
-func (m *module) listArticles(c *nucleus.Context) error {
-	q := quark.For[Article](c.Request.Context(), m.client).OrderBy("id", "DESC")
-	if author := c.Query("author_id"); author != "" {
-		q = q.Where("author_id", "=", author)
-	}
-	articles, err := q.List()
-	if err != nil {
-		return err
-	}
-	return c.JSON(http.StatusOK, map[string]any{"articles": articles, "count": len(articles)})
-}
-
-func (m *module) createArticle(c *nucleus.Context) error {
-	var in struct {
-		AuthorID int64  `json:"author_id"`
-		Title    string `json:"title"`
-		Body     string `json:"body"`
-	}
-	if err := json.NewDecoder(c.Request.Body).Decode(&in); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid JSON"})
-	}
-	if in.Title == "" || in.AuthorID == 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "author_id and title are required"})
-	}
-	a := Article{AuthorID: in.AuthorID, Title: in.Title, Body: in.Body}
-	if err := quark.For[Article](c.Request.Context(), m.client).Create(&a); err != nil {
-		return err
-	}
-	return c.JSON(http.StatusCreated, a)
-}
-
-// Migrate creates the tables and seeds a first author/article pair when the
-// database is empty, so the app has data on first boot.
-func Migrate(ctx context.Context, client *quark.Client) error {
-	if err := client.RegisterModel(&Author{}, &Article{}); err != nil {
-		return err
-	}
-	if err := client.MigrateRegistered(ctx); err != nil {
-		return err
-	}
-	n, err := quark.For[Author](ctx, client).Count()
-	if err != nil {
-		return err
-	}
-	if n > 0 {
-		return nil
-	}
-	ada := Author{Name: "Ada Lovelace"}
-	if err := quark.For[Author](ctx, client).Create(&ada); err != nil {
-		return err
-	}
-	first := Article{AuthorID: ada.ID, Title: "Hello, Quantum", Body: "Nucleus, Quark and Orbit wired together."}
-	return quark.For[Article](ctx, client).Create(&first)
-}
-```
-
-**`main.go`** — build the Quark client, migrate, and mount the module.
-This is the whole file at this point:
-
-```go
-// Command blog is the entry point for your Nucleus application.
-package main
-
-import (
-	"context"
-	"log"
-
-	"github.com/jcsvwinston/nucleus/pkg/nucleus"
-	"github.com/jcsvwinston/orbit"
-	"github.com/jcsvwinston/quark"
-
-	// One driver module per product: each registers the SQLite driver AND
-	// the classifier that tells that product how SQLite reports errors.
-	_ "github.com/jcsvwinston/nucleus/drivers/sqlite"
-	_ "github.com/jcsvwinston/quark/drivers/sqlite"
-
-	"example.com/blog/shop"
-)
-
-func main() {
-	ctx := context.Background()
-
-	// Quark owns the domain schema. It shares the sqlite file with the app
-	// database that Nucleus manages (nucleus.yml: sqlite://app.db).
-	client, err := quark.New("sqlite", "app.db")
-	if err != nil {
-		log.Fatalf("blog: quark client: %v", err)
-	}
-	defer client.Close()
-
-	if err := shop.Migrate(ctx, client); err != nil {
-		log.Fatalf("blog: migrate/seed: %v", err)
-	}
-
-	app, err := nucleus.New().
-		FromConfigFile("nucleus.yml").
-		Mount(shop.Module(client)).
-		Mount(orbit.Module(orbit.Config{
-			Prefix: "/admin",
-			Title:  "Blog",
-
-			// Local demo credentials — change them anywhere beyond a laptop.
-			BootstrapUsername: "admin",
-			BootstrapEmail:    "admin@example.com",
-			BootstrapPassword: "quickstart",
-		})).
-		Build()
-	if err != nil {
-		log.Fatalf("blog: %v", err)
-	}
-
-	// The shop API is public in this demo: skip the framework's default-deny
-	// RBAC. Orbit still enforces its own session auth under /admin.
-	app.Options = append(app.Options, nucleus.WithOpenAuthz())
-
-	if err := nucleus.Run(app); err != nil {
-		log.Fatalf("blog: %v", err)
-	}
-}
-```
-
-```bash
-go get github.com/jcsvwinston/quark github.com/jcsvwinston/quark/drivers/sqlite
-nucleus add sqlite    # already imported by the scaffold; harmless if repeated
-go mod tidy
-go run .
-```
-
-:::note Why two driver modules, and why not `modernc.org/sqlite` directly
-Both products talk to the same file, and each ships its SQLite support as
-its own module: `nucleus/drivers/sqlite` for the app database that
-`nucleus.yml` configures, `quark/drivers/sqlite` for the Quark client. A
-driver module registers two things — the `database/sql` driver and the
-classifier that turns the engine's error codes into "unique violation",
-"deadlock", "transient connection". Importing the raw driver package
-(`_ "modernc.org/sqlite"`) compiles and runs, but silently skips the second
-half: a duplicate insert then comes back as a generic error instead of a
-`409`. If a driver module is missing, startup stops and the error prints the
-`go get` and the import to add.
-:::
-
-Try the API:
+## 3 — Try the API
 
 ```bash
 curl -s localhost:8080/api/articles
 ```
 
 ```json
-{"articles":[{"ID":1,"AuthorID":1,"Title":"Hello, Quantum","Body":"Nucleus, Quark and Orbit wired together.","Author":{"ID":0,"Name":""}}],"count":1}
+{"articles":[{"ID":1,"AuthorID":1,"Title":"Hello, Quantum","Body":"Nucleus + Quark + Orbit, wired together.","Author":{"ID":0,"Name":""}}],"count":1}
 ```
 
 ```bash
 curl -s -X POST localhost:8080/api/articles \
     -H 'Content-Type: application/json' \
-    -d '{"author_id":1,"title":"probe","body":"written over curl"}'
+    -d '{"author_id":1,"title":"probe","body":"live feed"}'
 ```
 
 ```json
-{"ID":2,"AuthorID":1,"Title":"probe","Body":"written over curl","Author":{"ID":0,"Name":""}}
+{"ID":2,"AuthorID":1,"Title":"probe","Body":"live feed","Author":{"ID":0,"Name":""}}
 ```
 
-:::note About `WithOpenAuthz`
-The scaffold's authorizer denies any route that no policy grants — without
-that option, these `curl`s would answer `403`. `WithOpenAuthz()` turns the
-default-deny authorizer off so a demo API is reachable without setting up
-policies; authentication still runs (a bearer token is still decoded and
-visible to handlers), and Orbit keeps its own session auth under `/admin`.
-In a real app, keep default-deny and grant your routes in the scaffold's
-`rbac_policy.csv` instead — see
-[authorization in Nucleus](/nucleus/features/auth/).
-:::
+That answered `201`. Post the same title again and it answers `409`:
+titles are unique, and the Quark driver module that recognises the engine's
+duplicate-key error is linked. A path nothing serves — `localhost:8080/nope`
+— answers `404`: routing runs before the authorizer, so a route that does
+not exist says so; a route that exists and that no policy grants answers
+`403`.
 
-:::note Two data layers, one honest choice
-Nucleus has its own SQL-first data layer (`pkg/db` + `pkg/model`) and this
-app would work fine on it — Quark is a choice, not a requirement. What the
-choice buys you (and what it costs) is a short read:
-[choosing a data layer](choosing-a-data-layer.md).
-:::
+Then open **http://localhost:8080/admin** — user `admin`, password
+`quickstart` (`ADMIN_BOOTSTRAP_PASSWORD`, read on first boot, replaces it;
+the fallback is a development credential for a laptop). The **live view**
+shows the Quark statements the two calls above ran, each correlated to its
+request; **Data Studio** browses and edits `Author` and `Article`.
 
-## 4 — Models in Data Studio, via quarkdatasource (2 min)
+## 4 — Read what was generated
 
-Orbit's Data Studio doesn't know about Quark; it speaks Orbit's datasource
-contract. `orbit/quarkdatasource` implements that contract over Quark
-models. Three additions to `main.go`:
+Nine files. The three below are the whole wiring; `nucleus.yml` and
+`rbac_policy.csv` are the framework's own configuration, and
+`shop/module_test.go` boots the module in-process (`go test ./...`). The
+listings are the committed output of the same command in the Nucleus
+repository (`examples/showcase_demo`; a test fails when template and
+example differ), so the import path and the panel title read
+`showcase_demo` where yours read `blog`.
 
-```go
-import (
-	// ...existing imports...
-	"github.com/jcsvwinston/orbit/quarkdatasource"
-)
+### `main.go` — the composition root
 
-	// After shop.Migrate(...): back Data Studio with the same Quark models.
-	ds := quarkdatasource.New(client)
-	if err := quarkdatasource.Register[shop.Author](ds); err != nil {
-		log.Fatalf("blog: register Author: %v", err)
-	}
-	if err := quarkdatasource.Register[shop.Article](ds); err != nil {
-		log.Fatalf("blog: register Article: %v", err)
-	}
+```go file=<rootDir>/examples/showcase_demo/main.go
 ```
 
-…and hand `ds` to Orbit in the config:
+**`nucleus.New()` is the application.** The builder reads `nucleus.yml`,
+mounts modules and starts the server: everything the application is made
+of enters through a `Mount(...)` call, and the chain ends in `Start()`.
+Nothing is registered globally, which is why the test in `shop/` can build
+the same chain with the shop module alone on a temporary database.
 
-```go
-		Mount(orbit.Module(orbit.Config{
-			Prefix:     "/admin",
-			Title:      "Blog",
-			DataSource: ds,
-			// ...bootstrap credentials as before...
-		})).
+**`quark.New(...)` opens the domain database.** The client takes a dialect
+and a DSN — here the same SQLite file `nucleus.yml` names, so one database
+holds the framework's tables, Orbit's admin accounts and your models.
+`shop.Migrate` registers the two models, creates their tables and seeds an
+author/article pair when the tables are empty.
+
+**`quarkdatasource.New(client)` puts the models in Data Studio.** Data
+Studio speaks Orbit's datasource contract, not Quark's; the datasource
+implements that contract over the Quark client, `quarkdatasource.Register[T]`
+names each model, and `orbit.Config.DataSource` hands it to the panel.
+
+**`orbit.Module(orbit.Config{...})` is the admin panel.** One `Mount` with a
+prefix, the datasource and the first admin account. The interface is
+embedded in the Orbit module and reads everything from the running app —
+no assets to deploy, no database of its own — and it brings its own session
+login under `/admin`, so it needs no policy row.
+
+### `shop/models.go` — two Quark models
+
+```go file=<rootDir>/examples/showcase_demo/shop/models.go
 ```
 
-```bash
-go get github.com/jcsvwinston/orbit/quarkdatasource
-go mod tidy
-go run .
+Plain structs with tags. `rel:"belongs_to"` is what lets Data Studio show
+the relationship between an article and its author.
+
+### `shop/module.go` — the module and its rules
+
+```go file=<rootDir>/examples/showcase_demo/shop/module.go#L24-L66
 ```
 
-Reload **/admin** → **Data Studio**. `Author` and `Article` are there:
-browse them, edit the seeded article, create an author — then `curl
-localhost:8080/api/authors` and see your edit come back through the public
-API. Same models, same database, two doors.
+**A module carries its own rules.** `Policies` are the rows the
+default-deny enforcer needs for `/api/…`; nothing in `rbac_policy.csv`
+mentions the API, and an operator deny there always overrides. Anonymous
+`create` is a development default so the `curl -X POST` above lands —
+scope it to a role before the app faces a network. `CSRFExempt` frees the
+JSON API from the origin check: a header-token API cannot be forged by a
+cross-site form, while the admin login form stays guarded.
 
-## 5 — SQL in the live feed, via quarkbridge (2 min)
-
-The second bridge. Orbit's live feed shows every request the app serves —
-but the SQL that Quark runs is invisible to it until you tell Quark to
-publish its statements onto the framework's observability bus. That is
-`orbit/quarkbridge`: a Quark middleware, derived once at startup.
-
-Add an `OnStart` hook to the module in `shop/module.go`:
-
-```go
-import (
-	// ...existing imports...
-	"fmt"
-
-	"github.com/jcsvwinston/orbit/quarkbridge"
-)
-
-		OnStart: func(ctx context.Context, rt nucleus.Runtime, _ struct{}) error {
-			bridged, err := m.client.WithOptions(
-				quark.WithMiddleware(quarkbridge.New(rt.Observability())),
-			)
-			if err != nil {
-				return fmt.Errorf("shop: derive bridged quark client: %w", err)
-			}
-			m.client = bridged
-			return nil
-		},
-```
-
-`OnStart` runs before `Routes`, so every handler already uses the bridged
-client. The client in `main.go` stays unbridged on purpose: Data Studio
-uses it, so admin browsing doesn't flood the feed you're about to watch.
-
-```bash
-go get github.com/jcsvwinston/orbit/quarkbridge
-go mod tidy
-go run .
-```
-
-Open **/admin** → **Live** view, then hit the API a few times:
-
-```bash
-curl -s localhost:8080/api/articles > /dev/null
-curl -s -X POST localhost:8080/api/articles \
-    -H 'Content-Type: application/json' \
-    -d '{"author_id":1,"title":"watch the feed","body":"this insert shows up"}'
-```
-
-Each request arrives in the feed with the SQL it ran — `SELECT`s and the
-`INSERT` — correlated to the request by its `request_id`, with bind
-arguments redacted by default.
-
-## What you just built
-
-One process. Nucleus hosts the app and owns HTTP, config, auth and
-lifecycle; Quark owns the domain schema and the queries; Orbit watches and
-administers all of it from `/admin`. The two bridges —
-`quarkdatasource` for Data Studio, `quarkbridge` for the live feed — are
-the only glue, and each one was one import plus a couple of lines.
-
-The finished app is maintained as a runnable example,
-[`showcase_demo` in the Nucleus repo](https://github.com/jcsvwinston/nucleus/tree/main/examples/showcase_demo),
-exercised against every certified set — if this page and that example ever
-disagree, the example is right (and please tell us).
+**`quarkbridge.New(rt.Observability())` is the live SQL feed.** Orbit sees
+every request the app serves, but the SQL Quark runs is invisible to it
+until Quark publishes its statements onto the framework's observability
+bus. The bridge is a Quark middleware that does exactly that. `OnStart`
+derives a second client wrapped with it once the runtime exists, and the
+handlers use that one; the base client from `main.go` stays unbridged, so
+browsing in Data Studio does not flood the feed you are watching.
 
 ## Where to next
 
 | You want to… | Read |
 | --- | --- |
+| The same scaffold from the framework's side: `--db`, `--offline`, `--with` on the other templates | [Start a suite app](/nucleus/getting-started/suite-app/) |
+| Rebuild and restart on every save | `nucleus dev` in the [CLI overview](/nucleus/cli/overview/) |
+| Add your next feature | `nucleus generate module notes --mount --data quark` writes a slice on the same ORM and mounts it in `main.go` — [CLI overview](/nucleus/cli/overview/) |
+| Browse and edit the models from the panel | [Data Studio](/orbit/features/#data-studio) |
+| Watch the SQL arrive, request by request | [Bridging Quark statements](/orbit/features/#bridging-quark-orm-statements) into the live view |
 | Pin the exact versions this page was verified against | [Install the certified set](install.md) |
 | Decide whether Quark or `pkg/db` fits your app | [Choosing a data layer](choosing-a-data-layer.md) |
 | Understand what "certified set" means | [Certified sets](certified-sets.md) |
-| Go deeper on the host framework | [Nucleus docs](/nucleus/) |
-| Use Quark seriously (relations, migrations, tenancy) | [Quark docs](/quark/intro/) |
-| Everything the admin can do | [Orbit docs](/orbit/) |
