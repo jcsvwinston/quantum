@@ -18,14 +18,20 @@ echo "== align-orbit-pins ($MODE): nucleus $nt · quark $qt =="
 # «404 Not Found … unknown revision» (tren de 1.29.0). En modo escritura se
 # espera a que el proxy resuelva los dos antes de tocar nada (hasta 10 min).
 if [ "$MODE" = write ]; then
-  probe=$(mktemp -d); ( cd "$probe" && go mod init probe >/dev/null 2>&1
-    for i in $(seq 1 20); do
-      if GOFLAGS=-mod=mod go list -m "github.com/jcsvwinston/nucleus@$nt" >/dev/null 2>&1 \
-         && GOFLAGS=-mod=mod go list -m "github.com/jcsvwinston/quark@$qt" >/dev/null 2>&1; then exit 0; fi
-      [ "$i" -eq 1 ] && echo "  el proxy de Go aún no sirve $nt/$qt: esperando"
-      sleep 30
-    done; exit 1 ) || { echo "el proxy de Go no sirve nucleus $nt / quark $qt tras 10 min; reintenta más tarde" >&2; rm -rf "$probe"; exit 1; }
-  rm -rf "$probe"
+  # `go list -m` puede contestar desde la caché local o de GitHub; lo que
+  # muere en el tidy es la VERIFICACIÓN contra sum.golang.org, así que se
+  # pregunta a la sumdb directamente (200 = ya lo sirve).
+  for i in $(seq 1 60); do
+    ok=1
+    for m in "nucleus@$nt" "quark@$qt"; do
+      code=$(curl -s -o /dev/null -w '%{http_code}' "https://sum.golang.org/lookup/github.com/jcsvwinston/$m" || echo 000)
+      [ "$code" = "200" ] || ok=0
+    done
+    [ "$ok" -eq 1 ] && break
+    [ "$i" -eq 1 ] && echo "  sum.golang.org aún no sirve nucleus $nt / quark $qt: esperando (hasta 30 min)"
+    sleep 30
+  done
+  [ "$ok" -eq 1 ] || { echo "sum.golang.org no sirve nucleus $nt / quark $qt tras 30 min; reintenta más tarde" >&2; exit 1; }
 fi
 cd "$Q/../orbit" || exit 1
 # El check compara contra el árbol del checkout: en main y limpio, se pone al

@@ -359,8 +359,9 @@ maquillar el número. `Release-As` queda solo para el caso legítimo de
 - **El proxy de Go va unos minutos por detrás del tag.** Recién cortados
   quark v1.12.0 y nucleus v1.25.0, el `go mod tidy` de `align_set.sh`
   murió con «sum.golang.org … 404 … unknown revision v1.25.0».
-  `align-orbit-pins.sh` espera ahora (hasta 10 min) a que `go list -m`
-  resuelva los dos tags antes de escribir. La misma clase que el
+  `align-orbit-pins.sh` pregunta ahora a sum.golang.org (hasta 30 min) por
+  los dos tags antes de escribir — `go list -m` no vale de sonda: contesta
+  desde la caché o desde GitHub y la que muere es la verificación. La misma clase que el
   «INTERNAL_ERROR en tandas»: se espera, no se toca código.
 - **El cuerpo del squash puede dejar a release-please ciego.** Con `gh pr
   merge --squash` sin `--body`, GitHub compone el cuerpo con la lista de
