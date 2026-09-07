@@ -9,6 +9,10 @@ concepts:
   - quark.New
   - quarkdatasource.New
   - quarkbridge.New
+embeds:
+  - 'examples/showcase_demo/main.go | ^// Command showcase_demo | nucleus.New( | quark.New( | shop.Migrate( | quarkdatasource.New( | quarkdatasource.Register[ | orbit.Module( | DataSource: | Mount( | Start()'
+  - 'examples/showcase_demo/shop/models.go | type Author struct | type Article struct | rel:"belongs_to" | db:"'
+  - 'examples/showcase_demo/shop/module.go#L24-L66 | ^// Module returns | func Module( | Policies: | CSRFExempt: | OnStart: | quarkbridge.New(rt.Observability()) | Routes: | }.Build() | }$'
 ---
 
 import {GoInstallCLI} from '@site/src/components/CertifiedSet';
