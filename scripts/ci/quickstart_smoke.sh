@@ -68,7 +68,12 @@
 #
 # Se ejecuta desde la RAÍZ del paraguas. Uso: bash scripts/ci/quickstart_smoke.sh
 # Fallo: FAIL <motivo> + últimas 40 líneas de app.log; el trap mata la app y
-# borra el temporal.
+# borra el temporal. La app se arranca con bg_start (scripts/lib/
+# background-app.sh): el subshell hace exec, así que el PID que el trap mata
+# es el del servidor y no el de un subshell intermedio — con `(cd … && ./app) &`
+# a secas, bash 3.2 dejaba `./app` huérfano ESCUCHANDO en cada salida del
+# script, con su binario y su sqlite ya borrados (ronda adversaria del PR
+# quantum#155). Su autotest corre como paso 0 junto al del parser.
 set -uo pipefail
 
 ROOT=$(pwd)
@@ -76,6 +81,8 @@ ROOT=$(pwd)
 
 # shellcheck source=scripts/lib/quickstart-fences.sh
 source scripts/lib/quickstart-fences.sh
+# shellcheck source=scripts/lib/background-app.sh
+source scripts/lib/background-app.sh
 
 PAGE="${QUICKSTART_PAGE:-website/docs/quickstart.md}"
 BUDGET="${QUICKSTART_BUDGET_SECONDS:-60}"
@@ -89,10 +96,7 @@ APP_PID=""
 APP_LOG="$TMP/$PROJECT_NAME/app.log"
 
 cleanup() {
-  if [[ -n "$APP_PID" ]] && kill -0 "$APP_PID" 2>/dev/null; then
-    kill "$APP_PID" 2>/dev/null
-    wait "$APP_PID" 2>/dev/null
-  fi
+  bg_stop "$APP_PID" || echo "quickstart_smoke: la app ($APP_PID) sobrevivió a TERM y KILL — queda un servidor huérfano" >&2
   rm -rf "$TMP"
 }
 trap cleanup EXIT
@@ -116,6 +120,8 @@ summary() {
 # --- 0. el parser compartido se prueba a sí mismo -----------------------------
 echo "== 0. autotest del parser de fences compartido con el guard"
 bash tests/quickstart-fences/selftest.sh || fail "el parser compartido no pasa su autotest — ni el guard ni la lane pueden fiarse de lo que leen"
+echo "== 0b. autotest del arranque en segundo plano (el trap mata al servidor, no a un subshell)"
+bash tests/background-app/selftest.sh || fail "background-app.sh no pasa su autotest — la lane dejaría la app huérfana escuchando al salir"
 
 if [[ ! -f "$PAGE" ]]; then
   fail "$PAGE no existe — los curl de la lane salen de la página"
@@ -187,8 +193,8 @@ T_BUILD=$(now_ms)
 
 # --- 4. arranque --------------------------------------------------------------
 echo "== 4. arranque en $BASE"
-(cd "$TMP/$PROJECT_NAME" && NUCLEUS_PORT="$PORT" ADMIN_BOOTSTRAP_PASSWORD="$ADMIN_PASSWORD" ./app > app.log 2>&1) &
-APP_PID=$!
+bg_start "$TMP/$PROJECT_NAME" app.log env NUCLEUS_PORT="$PORT" ADMIN_BOOTSTRAP_PASSWORD="$ADMIN_PASSWORD" ./app
+APP_PID=$BG_PID
 for _ in $(seq 1 100); do
   if curl -sf "$BASE/healthz" >/dev/null 2>&1; then break; fi
   if ! kill -0 "$APP_PID" 2>/dev/null; then fail "la app murió durante el arranque"; fi

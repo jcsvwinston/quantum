@@ -15,18 +15,31 @@
 #
 # Se ejecuta desde la RAÍZ del paraguas, en modo workspace (go.work resuelve
 # los checkouts hermanos al pin). Uso: bash scripts/ci/showcase_smoke.sh
+#
+# La app se arranca con bg_start (scripts/lib/background-app.sh): el subshell
+# hace exec y el PID que el trap mata es el del servidor. Con `(cd … &&
+# ./showcase) &` a secas, bash 3.2 mataba al subshell y dejaba el showcase
+# huérfano ESCUCHANDO tras cada corrida local (mismo defecto que cerró la
+# ronda adversaria de quantum#155 en quickstart_smoke). Su autotest corre
+# como paso 0.
 set -uo pipefail
 
 ROOT=$(pwd)
+# shellcheck source=scripts/lib/background-app.sh
+source scripts/lib/background-app.sh
+
 TMP=$(mktemp -d)
 APP_PID=""
 cleanup() {
-  [ -n "$APP_PID" ] && kill "$APP_PID" 2>/dev/null && wait "$APP_PID" 2>/dev/null
+  bg_stop "$APP_PID" || echo "showcase_smoke: la app ($APP_PID) sobrevivió a TERM y KILL — queda un servidor huérfano" >&2
   rm -rf "$TMP"
 }
 trap cleanup EXIT
 
 fail() { echo "FAIL $*" >&2; exit 1; }
+
+echo "== 0. autotest del arranque en segundo plano (el trap mata al servidor, no a un subshell)"
+bash tests/background-app/selftest.sh || fail "background-app.sh no pasa su autotest — la lane dejaría el showcase huérfano escuchando al salir"
 
 # Puerto libre para no chocar con otros jobs del runner.
 PORT=$(python3 - <<'EOF'
@@ -41,8 +54,8 @@ go build -o "$TMP/showcase" ./nucleus/examples/showcase_demo || fail "showcase_d
 
 # La app escribe showcase_demo.db en el cwd y lee nucleus.yaml de ahí.
 cp "$ROOT/nucleus/examples/showcase_demo/nucleus.yaml" "$TMP/"
-(cd "$TMP" && NUCLEUS_PORT="$PORT" ./showcase > app.log 2>&1) &
-APP_PID=$!
+bg_start "$TMP" app.log env NUCLEUS_PORT="$PORT" ./showcase
+APP_PID=$BG_PID
 
 echo "== esperando /healthz en $BASE"
 for _ in $(seq 1 100); do
