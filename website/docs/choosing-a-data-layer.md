@@ -63,8 +63,9 @@ registry out of the box — you don't need Quark for an admin CRUD.
 
 With Quark you add the two small bridges when you want the suite
 experience: `orbit/quarkdatasource` puts Quark models in Data Studio,
-`orbit/quarkbridge` puts Quark's SQL in the live feed. Both are shown in
-the [quickstart](quickstart.md), steps 4 and 5.
+`orbit/quarkbridge` puts Quark's SQL in the live feed. Both are wired by
+the [quickstart](quickstart.md) scaffold and read there, in the generated
+`main.go` and `shop/module.go`.
 
 ## Can I mix them?
 

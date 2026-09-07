@@ -7,7 +7,8 @@
 # ``` de columna 0 (las ~~~ y las sangradas bajo un paso de lista son
 # bloques de código igual), el guard contaría mal y la lane ejecutaría
 # basura — los dos en verde. También prueba el predicado de encendido que
-# guard y lane comparten (qs_nucleus_knows_with). La lane lo corre como paso 0 en cada
+# guard y lane comparten (qs_nucleus_knows_with) y el lector de fences
+# `file=…` del guard umbrella-quickstart-embeds (qs_embeds). La lane lo corre como paso 0 en cada
 # PR (scripts/ci/quickstart_smoke.sh) y se puede lanzar a mano desde la raíz
 # del paraguas: bash tests/quickstart-fences/selftest.sh
 set -uo pipefail
@@ -93,6 +94,19 @@ echo inside-a-backtick-block-this-is-content
 ```sh
 echo after-the-nested-blocks
 ```
+
+```go file=<rootDir>/examples/x/main.go
+```
+
+1. Indented, with a range and a title after the file token:
+
+   ~~~go file=<rootDir>/examples/x/shop/module.go#L24-L66 title="module.go"
+   ~~~
+
+~~~text
+```go file=<rootDir>/inside-a-fence-is-content.go
+```
+~~~
 MD
 
 fails=0
@@ -164,6 +178,15 @@ qs_nucleus_knows_with "$TMP/nuc"; check "qs_nucleus_knows_with fs.StringVar" "0"
 printf 'func runNew() {\n\tcmd.Flags().StringSlice("with", nil, "sibling modules")\n}\n' > "$TMP/nuc/internal/cli/new.go"
 qs_nucleus_knows_with "$TMP/nuc"; check "qs_nucleus_knows_with pflag StringSlice" "0" "$?"
 qs_nucleus_knows_with "$TMP/no-such-dir"; check "qs_nucleus_knows_with sin new.go es 2" "2" "$?"
+
+# 6. Fences que importan código (qs_embeds): el token file= de la cadena de
+#    información, con rango y con atributos detrás, en columna 0 o sangrada;
+#    una fence con file= DENTRO de otra fence es contenido, no un embed.
+want_embeds=$'go\tfile=<rootDir>/examples/x/main.go\ngo\tfile=<rootDir>/examples/x/shop/module.go#L24-L66'
+check "qs_embeds" "$want_embeds" "$(qs_embeds "$PAGE" | cut -f2-)"
+check "qs_embeds cuenta 2" "2" "$(qs_embeds "$PAGE" | wc -l | tr -d ' ')"
+check "qs_embeds fence anidada es contenido" "" "$(qs_embeds "$PAGE" | grep 'inside-a-fence' || true)"
+check "qs_embeds vacío" "" "$(qs_embeds "$TMP/nofm.md")"
 
 if [[ $fails -ne 0 ]]; then
   echo "quickstart-fences selftest: FALLO ($fails aserciones)" >&2
