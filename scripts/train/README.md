@@ -356,6 +356,12 @@ maquillar el número. `Release-As` queda solo para el caso legítimo de
   `bash scripts/release/repin_examples.sh` en nucleus (PR `chore(examples)`,
   nucleus#486) ANTES de su fase; desde este tren `sube_suelos` de nucleus
   lo hace en el mismo PR de suelos.
+- **El proxy de Go va unos minutos por detrás del tag.** Recién cortados
+  quark v1.12.0 y nucleus v1.25.0, el `go mod tidy` de `align_set.sh`
+  murió con «sum.golang.org … 404 … unknown revision v1.25.0».
+  `align-orbit-pins.sh` espera ahora (hasta 10 min) a que `go list -m`
+  resuelva los dos tags antes de escribir. La misma clase que el
+  «INTERNAL_ERROR en tandas»: se espera, no se toca código.
 - **El cuerpo del squash puede dejar a release-please ciego.** Con `gh pr
   merge --squash` sin `--body`, GitHub compone el cuerpo con la lista de
   commits del PR; si alguno lleva una línea «Docs: …» o «Tests: …», el parser

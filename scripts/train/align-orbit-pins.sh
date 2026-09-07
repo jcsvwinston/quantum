@@ -13,6 +13,20 @@ qt=$(git -C "$Q/../quark" tag -l 'v[0-9]*' | sort -V | tail -1)
 nt=$(git -C "$Q/../nucleus" tag -l 'v[0-9]*' | sort -V | tail -1)
 [ -n "$qt" ] && [ -n "$nt" ] || { echo "no encuentro tags de raíz en quark/nucleus" >&2; exit 1; }
 echo "== align-orbit-pins ($MODE): nucleus $nt · quark $qt =="
+# Los tags acaban de cortarse y el proxy de Go (y sum.golang.org) tardan
+# unos minutos en servirlos: el `go mod tidy` de align_set.sh moría con
+# «404 Not Found … unknown revision» (tren de 1.29.0). En modo escritura se
+# espera a que el proxy resuelva los dos antes de tocar nada (hasta 10 min).
+if [ "$MODE" = write ]; then
+  probe=$(mktemp -d); ( cd "$probe" && go mod init probe >/dev/null 2>&1
+    for i in $(seq 1 20); do
+      if GOFLAGS=-mod=mod go list -m "github.com/jcsvwinston/nucleus@$nt" >/dev/null 2>&1 \
+         && GOFLAGS=-mod=mod go list -m "github.com/jcsvwinston/quark@$qt" >/dev/null 2>&1; then exit 0; fi
+      [ "$i" -eq 1 ] && echo "  el proxy de Go aún no sirve $nt/$qt: esperando"
+      sleep 30
+    done; exit 1 ) || { echo "el proxy de Go no sirve nucleus $nt / quark $qt tras 10 min; reintenta más tarde" >&2; rm -rf "$probe"; exit 1; }
+  rm -rf "$probe"
+fi
 cd "$Q/../orbit" || exit 1
 # El check compara contra el árbol del checkout: en main y limpio, se pone al
 # día primero (un main rancio diría que los pines van atrás cuando ya no).
