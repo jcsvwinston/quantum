@@ -85,6 +85,17 @@ GUARDS=(
   # gate con porqué; excepción auto-expirante ligada al pin de nucleus ≤ v1.23.0.
   # Requiere website/build construido — suite-integral construye el sitio antes.
   "umbrella-retired-claims|.|bash scripts/check_retired_claims.sh website/build"
+  # El quickstart de la suite cabe en 5 comandos y 5 conceptos DECLARADOS
+  # (`concepts:` en el front matter, espejo del `covers:` de nucleus), contados
+  # sobre la FUENTE markdown con el mismo parser que ejecuta la lane
+  # quickstart-smoke (scripts/lib/quickstart-fences.sh). Gate del arco A2: la
+  # página era «~15 minutes» con 22 líneas de shell y nadie la medía.
+  # Transición auto-expirante ligada a la CAPACIDAD del nucleus pinado (¿su
+  # new.go registra `--with`?), leída con el mismo predicado que enciende la
+  # lane (qs_nucleus_knows_with): mientras no, mide e informa; en cuanto el
+  # pin lo traiga, exige. No un número de versión: un patch sin --with no
+  # debe encender uno de los dos gates y el otro no.
+  "umbrella-quickstart-cost|.|bash scripts/check_quickstart_cost.sh website/docs/quickstart.md"
 
   # --- nucleus (al pin) -----------------------------------------------------
   # Marcadores x-release-please-version + directivas Go del scaffold + coherencia
@@ -313,6 +324,14 @@ GUARD_SCAN_EXCLUDE=(
   # una lane de integration.yml (job showcase-smoke), misma familia que los
   # run_* de nucleus — no un check estático que la certificación repita.
   "scripts/ci/showcase_smoke.sh"
+  # Arnés PESADO del gate del arco A2: compila el CLI de nucleus al pin, hace
+  # `nucleus new --with …`, compila y ARRANCA el proyecto generado, ejecuta los
+  # curl de la página y mide el presupuesto de 60 s. Lane de integration.yml
+  # (job quickstart-smoke), misma familia run_* que showcase_smoke — no un
+  # check estático que la certificación repita. Lo que SÍ certifica de forma
+  # estática (comandos y conceptos de la página) es el guard registrado
+  # umbrella-quickstart-cost, que esta lane también ejecuta como último paso.
+  "scripts/ci/quickstart_smoke.sh"
 )
 
 # guard_registry_selfcheck — EXIT!=0 si algún script escaneado no está ni
