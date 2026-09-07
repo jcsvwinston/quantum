@@ -25,7 +25,7 @@ for n in "$@"; do
       body=$(gh pr view "$n" -R "jcsvwinston/$repo" --json body --jq .body | sed -E 's/^([A-Za-z][A-Za-z -]*): /\1 — /' | grep -v '^🤖 Generated with' )
       body=$(printf '%s\n\nCo-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>\n' "$body")
       printf '%s' "$body" > "$TMPBODY"
-      extra=(--subject "$title" --body-file "$TMPBODY")
+      extra=(--subject "$title (#$n)" --body-file "$TMPBODY")
     fi
     if gh pr merge "$n" -R "jcsvwinston/$repo" "$method" --delete-branch ${extra[@]+"${extra[@]}"} >/dev/null 2>&1; then
       echo "  FUSIONADO $repo#$n"; break
