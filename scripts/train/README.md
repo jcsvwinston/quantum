@@ -347,6 +347,15 @@ maquillar el número. `Release-As` queda solo para el caso legítimo de
 
 ### Lo que aprendió el tren de 1.29.0 (A2)
 
+- **Un minor de quark deja rojo el CI de nucleus hasta re-pinar sus
+  ejemplos.** `check_example_pins.sh` (lane Showcase Example Smoke) exige
+  que `examples/*/go.mod` pinen el último tag de cada hermano con una minor
+  de tolerancia: cortado quark v1.12.0, el showcase (quark v1.10.1) quedó a
+  dos y el PR de suelos de nucleus (#485) no pudo fusionarse. `Repin
+  Showcase` sólo corre tras las releases de nucleus, no de quark. Remedio:
+  `bash scripts/release/repin_examples.sh` en nucleus (PR `chore(examples)`,
+  nucleus#486) ANTES de su fase; desde este tren `sube_suelos` de nucleus
+  lo hace en el mismo PR de suelos.
 - **El cuerpo del squash puede dejar a release-please ciego.** Con `gh pr
   merge --squash` sin `--body`, GitHub compone el cuerpo con la lista de
   commits del PR; si alguno lleva una línea «Docs: …» o «Tests: …», el parser
