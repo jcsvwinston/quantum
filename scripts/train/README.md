@@ -345,6 +345,18 @@ se cuela por error, el remedio es revertir el commit antes del corte, no
 maquillar el número. `Release-As` queda solo para el caso legítimo de
 «arreglar sólo un módulo no corta el root» (más arriba).
 
+### Lo que aprendió el tren de 1.29.0 (A2)
+
+- **El cuerpo del squash puede dejar a release-please ciego.** Con `gh pr
+  merge --squash` sin `--body`, GitHub compone el cuerpo con la lista de
+  commits del PR; si alguno lleva una línea «Docs: …» o «Tests: …», el parser
+  de conventional commits la toma por pie de página y aborta: «commit could
+  not be parsed». quark#355 (`feat`) desapareció del cálculo y el release PR
+  se quedó en 1.11.1 con un minor en main. `merge-group.sh` fusiona ahora con
+  `--subject` (el título del PR) y un cuerpo controlado (el del PR con esas
+  líneas neutralizadas + el trailer). Si vuelve a pasar: un commit real
+  mínimo que re-enuncie el `feat` con cuerpo limpio (quark#357).
+
 ### Lo que aprendió el tren de 1.28.0 (A1: quark, nucleus y orbit cortados el mismo día)
 
 - **Los pines CRUZADOS de orbit no son suelos tolerados.** Si quark y nucleus
