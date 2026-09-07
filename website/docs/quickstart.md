@@ -113,8 +113,8 @@ Ten files (eleven with `go.sum`). The three below are the whole wiring; `nucleus
 `shop/module_test.go` boots the module in-process (`go test ./...`). The
 listings are the committed output of the same command in the Nucleus
 repository (`examples/showcase_demo`; a test fails when template and
-example differ), so the import path and the panel title read
-`showcase_demo` where yours read `blog`.
+example differ), so the import path, the panel title and the port (8091 in
+the header comment) read `showcase_demo`'s where yours read `blog` and 8080.
 
 ### `main.go` — the composition root
 
