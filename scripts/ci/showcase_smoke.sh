@@ -52,8 +52,12 @@ BASE="http://127.0.0.1:$PORT"
 echo "== build del showcase (workspace, al pin)"
 go build -o "$TMP/showcase" ./nucleus/examples/showcase_demo || fail "showcase_demo no compila"
 
-# La app escribe showcase_demo.db en el cwd y lee nucleus.yaml de ahí.
-cp "$ROOT/nucleus/examples/showcase_demo/nucleus.yaml" "$TMP/"
+# Desde nucleus v1.25.0 el showcase es la salida de `nucleus new --template
+# suite`: lee nucleus.yml y rbac_policy.csv del cwd y escribe ahí su base de
+# datos; el admin de arranque es admin / ADMIN_BOOTSTRAP_PASSWORD (por
+# defecto «quickstart»).
+cp "$ROOT/nucleus/examples/showcase_demo/nucleus.yml" "$ROOT/nucleus/examples/showcase_demo/rbac_policy.csv" "$TMP/"
+ADMIN_PASSWORD="${ADMIN_BOOTSTRAP_PASSWORD:-quickstart}"
 bg_start "$TMP" app.log env NUCLEUS_PORT="$PORT" ./showcase
 APP_PID=$BG_PID
 
@@ -83,8 +87,9 @@ JAR="$TMP/cookies.txt"
 curl -s -c "$JAR" -b "$JAR" -o /dev/null "$BASE/admin/login"
 LOGIN_CODE=$(curl -s -c "$JAR" -b "$JAR" -o "$TMP/login.out" -w '%{http_code}' \
   -X POST "$BASE/admin/login" \
+  -H 'Sec-Fetch-Site: same-origin' \
   --data-urlencode 'username=admin' \
-  --data-urlencode 'password=showcase-demo')
+  --data-urlencode "password=$ADMIN_PASSWORD")
 case "$LOGIN_CODE" in
   200|302|303) ;;
   *) cat "$TMP/login.out" >&2; fail "login del admin devolvió HTTP $LOGIN_CODE" ;;

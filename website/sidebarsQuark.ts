@@ -12,6 +12,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'guides/installation',
         'guides/getting-started',
+        'guides/frameworks',
         'guides/modeling',
         'guides/querying',
         'guides/batch-operations',

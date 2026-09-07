@@ -254,6 +254,7 @@ JAR="$TMP/cookies.txt"
 curl -s -c "$JAR" -b "$JAR" -o /dev/null "$BASE/admin/login"
 LOGIN_CODE=$(curl -s -c "$JAR" -b "$JAR" -o "$TMP/login.out" -w '%{http_code}' \
   -X POST "$BASE/admin/login" \
+  -H 'Sec-Fetch-Site: same-origin' \
   --data-urlencode 'username=admin' \
   --data-urlencode "password=$ADMIN_PASSWORD")
 case "$LOGIN_CODE" in
