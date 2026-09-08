@@ -112,9 +112,10 @@ Un set **en ventana** significa tres cosas concretas, todas cumplibles hoy:
    compatibilidad de nucleus (las superficies estables no rompen en un
    minor), que es una promesa **medida**, no prosa.
 
-Un set **fuera de ventana** no pierde nada de lo que ya tiene: pierde la
-tercera garantía. La ruta de actualización se sigue pudiendo recorrer, pero
-no se verifica ni se documenta salto a salto.
+Un set **fuera de ventana** no se queda sin arreglo: la corrección sale
+igual en el set vigente, porque la garantía 2 no depende de la ventana. Lo
+que pierde son la 1 y la 3 — nadie comprueba si le afectaba, y nadie
+documenta el camino de vuelta salto a salto.
 
 Por qué 60 y no «los dos últimos minors»: a un minor por semana, «los dos
 últimos minors» son catorce días — y al ritmo real, un día. 60 días son
