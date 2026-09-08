@@ -1,0 +1,78 @@
+name: OpenSSF Scorecard
+
+# Mide la higiene de cadena de suministro de ESTE repositorio con OpenSSF
+# Scorecard y sube el resultado a code scanning. Es una lane de MEDIDA, no un
+# guard: no impone umbral y su rojo sólo significa que la corrida falló, no
+# que la nota bajó. El guard que lea la nota llega en un PR posterior del
+# arco A3 —y sólo tendrá sentido cuando exista una primera medida contra la
+# que comparar, que es justo lo que este workflow produce.
+#
+# Semanal + a mano. Scorecard puntúa el repositorio, no el commit: correrlo en
+# cada push mediría lo mismo veinte veces al día y gastaría cuota de API sin
+# cambiar el veredicto. El lunes 07:00 UTC va una hora después del cron de
+# suite-integral (06:00), para no solapar dos lanes largas.
+on:
+  schedule:
+    - cron: '0 7 * * 1'
+  workflow_dispatch:
+
+# El workflow entero lee. La escritura baja al único job, que la necesita para
+# subir el SARIF a code scanning (`security-events: write`). Un bloque de job
+# SUSTITUYE al del workflow, no se suma: por eso el job vuelve a nombrar las
+# lecturas que usa (ver docs/AUDITORIA_CONTINUA.md §7).
+permissions: read-all
+
+concurrency:
+  group: scorecard
+  cancel-in-progress: false
+
+jobs:
+  analysis:
+    name: análisis de Scorecard
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      # Subir el SARIF al panel de code scanning.
+      security-events: write
+      # Acuñar el OIDC con el que la acción publica en el dataset público de
+      # OpenSSF. Hoy NO se ejerce: `publish_results` está en false y sin
+      # publicación la acción no pide token. Queda declarado porque es lo que
+      # la acción documenta como requisito y porque el día que el propietario
+      # decida publicar, el cambio es una línea y no un permiso nuevo.
+      id-token: write
+      # Lecturas que el job usa de verdad: el checkout y la lectura de los
+      # workflows y de las corridas de Actions que hacen varias
+      # comprobaciones (Token-Permissions, Pinned-Dependencies, CI-Tests).
+      contents: read
+      actions: read
+    steps:
+      - name: Checkout (sin submódulos — Scorecard puntúa ESTE repo)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Ejecuta Scorecard
+        uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Publicar la nota en el dataset público de OpenSSF (y con ella el
+          # badge) es una decisión del propietario que no está tomada. Hasta
+          # que lo esté, la primera nota se lee de la propia corrida: del log
+          # del paso y del artefacto `scorecard-results` de abajo.
+          publish_results: false
+
+      # El artefacto es la vía de lectura que no depende de la interfaz de
+      # code scanning: `gh run download <run-id> -n scorecard-results` deja el
+      # SARIF, y de ahí salen la nota agregada y el detalle por comprobación.
+      - name: Guarda el SARIF como artefacto
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: scorecard-results
+          path: results.sarif
+          retention-days: 5
+
+      - name: Sube el SARIF a code scanning
+        uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
+        with:
+          sarif_file: results.sarif

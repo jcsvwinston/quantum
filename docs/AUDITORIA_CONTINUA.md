@@ -385,7 +385,7 @@ smoke (`showcase-smoke`, `quickstart-smoke`, `go-install-tag`,
 `orbit-lockstep`) y los builds— no usan el token más allá del checkout: leen
 el árbol pinado y salen con un EXIT.
 
-## 8. Acciones fijadas por SHA
+## 8. Acciones fijadas por SHA, y la lane de OpenSSF Scorecard
 
 ### La regla
 
@@ -408,7 +408,7 @@ Sin comentario no tiene de dónde partir y el pin queda opaco. Fijar sin bot,
 o poner el bot sin comentario, deja el trabajo a medias en direcciones
 opuestas.
 
-Estado tras el arco A3 (24 referencias en los cuatro workflows):
+Estado tras el arco A3 (24 referencias en cuatro workflows + 4 en el quinto):
 
 | Acción | SHA | Tag |
 |---|---|---|
@@ -417,6 +417,9 @@ Estado tras el arco A3 (24 referencias en los cuatro workflows):
 | `actions/setup-node` | `820762786026740c76f36085b0efc47a31fe5020` | `v7.0.0` |
 | `actions/upload-pages-artifact` | `fc324d3547104276b827a68afc52ff2a11cc49c9` | `v5.0.0` |
 | `actions/deploy-pages` | `368f82528645a54fb793d4d04e342629a3f51346` | `v5.0.1` |
+| `actions/upload-artifact` | `043fb46d1a93c77aae656e7c1c64a875d1fc6a0a` | `v7.0.1` |
+| `ossf/scorecard-action` | `2d1146689b8cda280b9bc96326124645441f03bc` | `v2.4.4` |
+| `github/codeql-action/upload-sarif` | `cdf488f595d80d6e07e03d4674febd5ab45fa938` | `v4.37.9` |
 
 Cada SHA se resolvió con `gh api repos/<owner>/<accion>/commits/<tag> --jq
 .sha` y se verificó contra el tag **y contra el propietario**: un SHA correcto
@@ -427,3 +430,52 @@ mal en silencio.
 Alcance: los workflows del paraguas. Los de nucleus, quark y orbit los fija
 cada producto en su propio PR del arco; el paraguas no reescribe ficheros del
 submódulo, y el guard no mira dentro de ellos.
+
+### La lane de Scorecard
+
+`.github/workflows/scorecard.yml` corre OpenSSF Scorecard los lunes a las
+07:00 UTC (una hora después del cron de `suite-integral`, para no solapar dos
+lanes largas) y a mano con `workflow_dispatch`. Sube el SARIF a code scanning
+y lo guarda como artefacto `scorecard-results`.
+
+**Es una lane de medida, no un guard.** No impone umbral y no está en el
+registro: su rojo significa que la corrida falló, no que la nota bajó. El
+guard que lea la nota llega en un PR posterior del arco, y hasta entonces no
+tendría contra qué comparar — no existe ninguna medida previa, en ninguno de
+los cinco repos.
+
+`publish_results` está en **false**. Publicar la nota en el dataset público de
+OpenSSF (y con ella el badge) es una decisión del propietario que no está
+tomada; mientras no lo esté, la nota se lee de la propia corrida: el log del
+paso la imprime por comprobación, y `gh run download <run-id> -n
+scorecard-results` deja el SARIF. La elección tiene consecuencia de diseño
+para el guard posterior: leyendo del dataset público bastaría un `curl` sin
+token; leyendo del artefacto hay que descargarlo de la corrida.
+
+### Qué se espera de la primera nota
+
+Estimación del mapa de A3 (medida por inspección, sin ejecutar Scorecard):
+**~5,8** para el paraguas antes del arco. La primera ola cerró
+Token-Permissions (+0,86 en el promedio ponderado del mapa) y este PR cierra
+Pinned-Dependencies (+0,57), lo que deja la estimación en **~7,2**. Es una
+estimación, y sustituirla por una medida es justo el propósito de la lane.
+
+Lo que **no** puede pasar todavía, y por qué:
+
+- **Signed-Releases.** Scorecard lee las cinco releases más recientes y busca
+  firmas en sus assets. Las del paraguas son tags de suite sin assets, así que
+  no hay nada que leer: la comprobación queda no concluyente y fuera del
+  promedio. En los tres productos ocurre lo mismo por la misma razón —tags de
+  módulo sin assets—, y ahí sí lo cambia el PR de firma del arco.
+- **Branch-Protection.** 0/10: `main` del paraguas no tiene protección. Es un
+  ajuste de repositorio, no un fichero del árbol.
+- **Code-Review.** 0/10: los últimos diez PRs fusionados aquí se fusionaron
+  sin revisión. Es historia de revisión, tampoco un fichero, y con un solo
+  mantenedor no se arregla declarándolo.
+- **SAST.** 0/10 hasta el PR de CodeQL del arco.
+- **Fuzzing.** 0/10, y aquí no hay nada que fuzzear: el paraguas no tiene
+  módulo Go propio (`go.work` sobre los submódulos). Ese punto se gana en los
+  productos.
+- **Vulnerabilities.** Sin medir hasta esta corrida: la superficie del
+  paraguas es el `package-lock.json` de `website/`, que ningún check actual
+  cubre. La primera nota es también la primera lectura de ese dato.
