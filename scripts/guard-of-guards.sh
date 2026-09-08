@@ -10,9 +10,13 @@
 #
 #   - El guard debe salir con EXIT != 0 sobre la copia doctorada. Si
 #     «sobrevive» (EXIT=0), el guard ha muerto y el harness FALLA.
-#   - Además su salida debe contener el regex `expect=` que declara la
-#     fixture — la causa de muerte esperada. Un EXIT != 0 por OTRA causa
-#     (p. ej. un error de setup) no cuenta: sería un falso «muerde».
+#   - Además su salida debe contener los regex `expect=` que declara la
+#     fixture — las causas de muerte esperadas. Un EXIT != 0 por OTRA causa
+#     (p. ej. un error de setup) no cuenta: sería un falso «muerde». Una
+#     fixture puede declarar VARIAS líneas `expect=`: entonces todas tienen
+#     que aparecer. Eso permite que un árbol doctorado lleve más de una
+#     rotura sin que ninguna quede sin comprobar —si una de las dos deja de
+#     cazarse, la otra mantendría el EXIT != 0 y el fallo pasaría en silencio.
 #
 # Cobertura en las dos direcciones:
 #   - guard registrado sin fixture → FALLO (todo guard nuevo trae fixture).
@@ -111,7 +115,9 @@ for name in $(guard_names); do
     continue
   fi
   workdir=$(sed -n 's/^workdir=//p' "$fx_out" | tail -1)
-  expect=$(sed -n 's/^expect=//p' "$fx_out" | tail -1)
+  # expect= (1..N líneas): todas las causas declaradas deben salir. Con una
+  # sola línea es el contrato de siempre.
+  expects=$(sed -n 's/^expect=//p' "$fx_out")
   # env= (opcional, 0..N líneas KEY=VALUE): entorno con el que se invoca el
   # guard sobre la copia. Un guard con MODOS (p. ej. check_suite_tag.sh, cuyo
   # assert de captura de HEAD y trato del mid-tren dependen de
@@ -119,7 +125,7 @@ for name in $(guard_names); do
   # canal el harness solo lo correría en el modo por defecto. Solo afecta a la
   # subshell de ESTE guard; las fixtures que no lo declaran no cambian.
   guard_env=$(sed -n 's/^env=//p' "$fx_out")
-  if [[ -z "$workdir" || -z "$expect" || ! -d "$workdir" ]]; then
+  if [[ -z "$workdir" || -z "$expects" || ! -d "$workdir" ]]; then
     echo "FAIL: la fixture de '$name' no declaró workdir=/expect= válidos" >&2
     results+="$(printf '%-28s %s' "$name" "FIXTURE-ROTA")"$'\n'
     overall=1
@@ -148,15 +154,22 @@ for name in $(guard_names); do
     sed 's/^/    /' "$guard_out" | tail -20 >&2
     results+="$(printf '%-28s %s' "$name" "SOBREVIVIO(0)")"$'\n'
     overall=1
-  elif ! grep -qE "$expect" "$guard_out"; then
-    echo "FAIL: el guard '$name' salió EXIT=$ec pero SIN la causa esperada (/$expect/) — murió por otra razón, eso no demuestra que muerda:" >&2
-    sed 's/^/    /' "$guard_out" | tail -20 >&2
-    results+="$(printf '%-28s %s' "$name" "CAUSA-EQUIVOCADA($ec)")"$'\n'
-    overall=1
   else
-    echo "OK: muerde (EXIT=$ec, causa esperada presente)"
-    bitten=$((bitten + 1))
-    results+="$(printf '%-28s %s' "$name" "muerde($ec)")"$'\n'
+    missing=""
+    while IFS= read -r expect; do
+      [[ -n "$expect" ]] || continue
+      grep -qE "$expect" "$guard_out" || missing+="/$expect/ "
+    done <<<"$expects"
+    if [[ -n "$missing" ]]; then
+      echo "FAIL: el guard '$name' salió EXIT=$ec pero SIN la causa esperada ($missing) — murió por otra razón, eso no demuestra que muerda:" >&2
+      sed 's/^/    /' "$guard_out" | tail -20 >&2
+      results+="$(printf '%-28s %s' "$name" "CAUSA-EQUIVOCADA($ec)")"$'\n'
+      overall=1
+    else
+      echo "OK: muerde (EXIT=$ec, $(printf '%s\n' "$expects" | grep -c .) causa(s) esperada(s) presente(s))"
+      bitten=$((bitten + 1))
+      results+="$(printf '%-28s %s' "$name" "muerde($ec)")"$'\n'
+    fi
   fi
   echo
 done

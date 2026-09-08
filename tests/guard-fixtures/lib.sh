@@ -9,11 +9,16 @@
 #     la copia del propio script del guard, con UNA rotura concreta).
 #   - Imprime por stdout las líneas de protocolo:
 #         workdir=<ruta absoluta donde el harness lanzará el comando del guard>
-#         expect=<regex grep -E que la salida del guard DEBE contener>
+#         expect=<regex grep -E que la salida del guard DEBE contener>  (1..N)
 #         env=KEY=VALUE   (OPCIONAL, 0..N líneas)
 #     `expect` fija la causa de muerte esperada: si el guard sale !=0 por otra
 #     razón (p. ej. un error de setup de la propia fixture), el harness lo
 #     trata como fallo — un EXIT!=0 accidental no demuestra que el guard muerde.
+#     Se pueden declarar VARIAS líneas `expect=`, y entonces TODAS tienen que
+#     aparecer: es lo que permite que un árbol doctorado lleve más de una
+#     rotura sin que ninguna quede sin comprobar —declarando una sola causa,
+#     si el guard dejara de cazar la otra rotura el EXIT!=0 de la primera
+#     taparía el agujero—.
 #     `env=` (opcional) declara el entorno con el que el harness invoca el guard
 #     sobre la copia — para guards con MODOS que solo muerden en cierto entorno
 #     (p. ej. check_suite_tag.sh en modo certificación, QUANTUM_CERTIFYING=1).
