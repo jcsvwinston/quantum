@@ -125,6 +125,18 @@ sube_suelos() {
   run git -C "$dir" pull -q --ff-only || return 1
   run git -C "$dir" checkout -q -b "$br" || return 1
   run bash scripts/train/align-module-floors.sh "$repo" --checkout "$dir" || return 1
+  if [ "$repo" = nucleus ] && [ -x "$dir/scripts/release/repin_examples.sh" ]; then
+    # Un minor de quark deja rojo check_example_pins.sh (lane Showcase Example
+    # Smoke) hasta re-pinar examples/*/go.mod; `Repin Showcase` sólo corre tras
+    # las releases de nucleus. Va en el mismo PR de suelos (1.29.0: nucleus#485).
+    say "  → re-pin de los ejemplos de nucleus a los últimos tags hermanos (repin_examples.sh)"
+    ( cd "$dir" && bash scripts/release/repin_examples.sh >/dev/null 2>&1 ) || say "  AVISO: repin_examples.sh falló; los ejemplos pueden quedar por detrás"
+    if [ -n "$(git -C "$dir" status --porcelain)" ]; then
+      run git -C "$dir" add -A && run git -C "$dir" commit -q -m "chore(examples): re-pin the examples to the latest published sibling tags
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>" || return 1
+    fi
+  fi
   run git -C "$dir" push -q -u origin "$br" || return 1
   local title body url n
   title=$(git -C "$dir" log -1 --format=%s)
@@ -197,6 +209,10 @@ alinea_pines_orbit() {
   run git -C "$dir" checkout -q main
   run git -C "$dir" pull -q --ff-only
   git -C "$dir" branch -q -D "$br" 2>/dev/null || true
+  # RT-9 de una release de alineación: la sección de notas del root, en la
+  # rama del bot (1.28.0 y 1.29.0 pararon aquí por una sección de tres líneas).
+  say "  → orbit-align-notes.sh (sección ## vX.Y.Z de la release de alineación en la rama del bot)"
+  run bash scripts/train/orbit-align-notes.sh || say "  AVISO: no pude escribir las notas de alineación; merge-bot-pr parará si el guard las exige"
   say "OK: pines cruzados de orbit alineados (orbit#$n)."
 }
 

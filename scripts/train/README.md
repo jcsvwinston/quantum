@@ -24,6 +24,7 @@ queda fuera del escaneo anti-fósil a propósito (solo cubre `scripts/`,
 | `align-module-floors.sh <nucleus\|quark>` | Sube el suelo `require github.com/jcsvwinston/<repo>` de los módulos hermanos al último tag de raíz publicado (QM-19). `--check` lista los que van por detrás; sin flag reescribe, `tidy` y commit `fix(deps)`. **Corre al principio de cada corte** (decisión 2026-09-05): el driver lo hace solo en la fase de cada repo (rama, PR, fusión, espera de Release Please), así que el `fix(deps)` entra en el mismo release PR que el trabajo. Orbit sigue con su `align_set.sh`. |
 | `align-orbit-pins.sh [--check]` | Los pines CRUZADOS de orbit (nucleus y quark en sus seis go.mod, más los hermanos) hacia los ÚLTIMOS tags de `../quark` y `../nucleus`, llamando al `align_set.sh` de orbit. `--check` solo verifica (pone `main` al día antes). El driver lo corre al principio de la fase orbit (`alinea_pines_orbit`: rama, PR, fusión, espera de Release Please) — sin esto, cortar quark/nucleus y orbit el mismo día deja el manifest-guard §5 en FAIL (1.28.0 costó un corte de más). |
 | `quark-doc-debt.sh [--dry-run]` | La deuda de doc de una release de quark (RT-9), pagada EN la rama del bot: worktree de `release-please--branches--main`, merge de `main` si la rama no lo trae, `gen_release_notes_skeleton.sh` de quark (sección del sitio, `RELEASE_NOTES`, línea marcada de CLAUDE.md, puntero del README) y push. Para (EXIT=2) sólo si el esqueleto dejó `TODO`: la prosa no se delega. El driver lo corre en la fase quark antes de `merge-bot-pr.sh`. |
+| `orbit-align-notes.sh [--dry-run]` | La deuda RT-9 de una release de ALINEACIÓN de orbit, en la rama del bot: la sección `## vX.Y.Z — fecha` («alignment release with no product change», con los pines y los tags que salen a la vez, leídos del manifest y los go.mod de la rama). `alinea_pines_orbit` la llama tras la espera de Release Please; no-op si la sección ya existe. |
 
 ## El tren, paso a paso
 
@@ -355,7 +356,7 @@ maquillar el número. `Release-As` queda solo para el caso legítimo de
   Showcase` sólo corre tras las releases de nucleus, no de quark. Remedio:
   `bash scripts/release/repin_examples.sh` en nucleus (PR `chore(examples)`,
   nucleus#486) ANTES de su fase; desde este tren `sube_suelos` de nucleus
-  lo hace en el mismo PR de suelos.
+  lo hace en el mismo PR de suelos (segundo commit `chore(examples)`).
 - **El proxy de Go va unos minutos por detrás del tag.** Recién cortados
   quark v1.12.0 y nucleus v1.25.0, el `go mod tidy` de `align_set.sh`
   murió con «sum.golang.org … 404 … unknown revision v1.25.0».
