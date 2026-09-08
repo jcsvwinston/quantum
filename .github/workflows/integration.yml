@@ -69,6 +69,23 @@ jobs:
       - name: El go.work cubre todo módulo publicable (QM-7)
         run: bash scripts/check_gowork_covers_manifest.sh
 
+      - name: El reparto del árbol del tren pasa su autotest (rutas que git cita)
+        # El PR de re-pin lo abre y lo fusiona el tren sin que nadie mire su
+        # diff: la ÚNICA revisión de lo que no es del re-pin es la parada que
+        # nombra la ruta e imprime la orden con la que se retoma. El autotest
+        # monta un paraguas de mentira y exige que esa orden, ejecutada
+        # LITERALMENTE, converja — también con rutas acentuadas, con espacios o
+        # con comillas, que son las que git entrecomilla y escapa.
+        run: bash tests/train-rutas/selftest.sh
+
+      - name: El cierre de un ensayo del tren dice lo que el ensayo ha tocado
+        # `--dry-run` no toca los remotos ni el set, pero en las fases de repo
+        # sí toca los checkouts hermanos en local, a propósito. La última línea
+        # que el operador lee decía «NADA se ha ejecutado con efectos» sin
+        # condición de fase: el autotest exige que nombre ../quark y ../orbit
+        # cuando el recorrido los ha tocado, y solo entonces.
+        run: bash tests/train-dry-run/selftest.sh
+
   # El manifiesto afirma que los binarios se instalan por tag; hasta la 5ª
   # ronda ningún job lo ejecutaba, y el comando literal de versions.yaml llevaba
   # semanas siendo inválido (QM5-5). Este job hace lo que un usuario haría:
