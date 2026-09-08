@@ -344,13 +344,26 @@ Nada de pendientes implícitos: lo que no está aquí, no existe.
 
 Regla, para que el próximo workflow nazca bien: **cada workflow declara
 `permissions:` arriba con lo mínimo que necesita para leer** (`contents:
-read`) **y la escritura baja al job que de verdad la usa**. Un workflow sin
-bloque arriba corre con el token por defecto del repo — lo que OpenSSF
-Scorecard cuenta como `write-all` en la comprobación Token-Permissions, de
-peso alto; declararlo arriba con write es la misma severidad. Ojo a la
+read`) **y la escritura baja al job que de verdad la usa**. El motivo es
+mínimo privilegio, y se sostiene solo: el token que no puede escribir no
+escribe tampoco cuando un paso del job resulta comprometido. Ojo a la
 mecánica: un bloque `permissions:` de job **sustituye** al del workflow, no se
 suma, así que un job que declara escritura vuelve a nombrar la lectura que
 necesite.
+
+Lo que puntúa OpenSSF Scorecard es sólo una parte de esta regla, y conviene no
+confundir las dos. Su comprobación Token-Permissions (riesgo alto, una de las
+ocho de ese peso) puntúa 0 el workflow **sin bloque arriba** cuyos jobs
+tampoco lo declaran: corre con el token por defecto del repo, que cuenta como
+`write-all`. Pero una escritura **declarada** arriba sólo resta si cae en uno
+de los siete ámbitos que Scorecard vigila —`contents`, `packages`, `actions`,
+`statuses`, `checks`, `security-events`, `deployments`—; `pages`, `id-token`,
+`issues` o `pull-requests` arriba no le restan nada: los clasifica como
+escritura no peligrosa y ni siquiera avisa (queda en la traza de depuración).
+Consecuencia práctica, medida en este repo: bajar `pages`/`id-token` de
+`deploy.yml` al job que los usa es mínimo privilegio real y **no** mueve la
+puntuación — Token-Permissions daba 10/10 antes del recorte y da 10/10
+después. La regla vale por sí misma; la puntuación no es su argumento.
 
 Qué puede escribir hoy cada lane, tras el barrido de `gh`, `git push` y
 `GITHUB_TOKEN`/`github.token` sobre los cuatro ficheros y los scripts que
