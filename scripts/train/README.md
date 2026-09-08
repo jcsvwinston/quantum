@@ -155,8 +155,9 @@ condiciones del driver:
   mismo dicho de otra forma: que **descienda de un `origin/main` al día**
   (`git merge-base --is-ancestor`). Si main se movió por debajo —la ola de PRs
   de la ronda se sigue fusionando mientras el tren corre—, se rebasa y se
-  relanza. El preflight lo avisa antes, en vez de descubrirlo cinco fases
-  después.
+  relanza. El preflight avisa de la RAMA (y del árbol sucio); que main esté al
+  día y que la rama del set descienda de `origin/main` lo comprueba la propia
+  fase paraguas al entrar.
 - **Solo las rutas del re-pin.** El commit era un `git add -A`: cualquier
   fichero suelto del árbol —una nota de trabajo, un `.orig` de un conflicto, un
   backup del editor, la salida de un script— entraba en el PR y se fusionaba.
@@ -175,6 +176,22 @@ condiciones del driver:
   aceptado**: sin eso, aceptar dos rutas ajenas de una en una perdía la
   primera, y ejecutar literalmente la orden impresa entraba en ping-pong (la
   vuelta 2 pedía A, la 3 volvía a pedir B).
+- **Y la ruta que la parada nombra es la ruta de verdad.** El árbol se lee con
+  `git status --porcelain -z` y las ramas con `git diff -z`, que ni
+  entrecomillan ni escapan, y las rutas se guardan en arrays. Sin eso,
+  `docs/handoff/año.md` llegaba a la parada como el literal
+  `"docs/handoff/a\303\261o.md"` —ilegible justo cuando hay que leerlo— y
+  viajaba así a la orden de relanzamiento, donde `--incluye` ya no lo reconocía:
+  el operador copiaba la orden que el propio driver le había dado, el tren
+  volvía a parar por la misma ruta y no convergía nunca. Una ruta con espacios
+  se partía además en varias, y la orden salía mutilada
+  (`--incluye nota --incluye de --incluye trabajo.md`). Ahora la orden se
+  imprime lista para pegar: lo que el shell miraría va entrecomillado
+  (`--incluye 'docs/handoff/nota de trabajo.md'`). Lo prueba
+  `tests/train-rutas/selftest.sh`, que monta un paraguas de mentira, ensucia el
+  árbol (o la rama) con rutas acentuadas, con espacios y con comillas, y exige
+  que la orden que imprime la parada, **ejecutada literalmente**, termine en
+  EXIT=0 con esas rutas en main.
 - **Lo mismo, sobre lo ya commiteado, en los otros dos caminos.** El filtro
   mira el árbol sin commitear, así que no veía nada en los dos caminos que
   fusionan una rama que ya existe: la rama `chore/set-*` que se retoma y el PR

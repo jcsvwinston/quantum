@@ -54,11 +54,14 @@
 #               defecto solo entran las rutas que el re-pin escribe; cualquier
 #               otra cosa PARA el tren con los ficheros por delante —uno por
 #               línea, y con la orden de relanzamiento ya escrita, que
-#               reimprime los --incluye ya aceptados— en vez de colarse en un
-#               PR que se fusiona solo. Nombrarla es la revisión. Se mira el
-#               árbol sin commitear (camino de creación) y también lo que
-#               lleva commiteado la rama que se retoma o el PR de set ya
-#               abierto: los tres acaban en main sin que nadie mire el diff.
+#               reimprime los --incluye ya aceptados y entrecomilla lo que el
+#               shell miraría— en vez de colarse en un PR que se fusiona solo.
+#               Nombrarla es la revisión, así que la ruta que se imprime es la
+#               de verdad: el árbol y las ramas se leen con `-z`, sin el
+#               entrecomillado con que git escapa lo no-ASCII. Se mira el árbol
+#               sin commitear (camino de creación) y también lo que lleva
+#               commiteado la rama que se retoma o el PR de set ya abierto:
+#               los tres acaban en main sin que nadie mire el diff.
 #   --reloj     imprime el reloj del tren en vuelo (desglose por fase, total
 #               conducido y espera del propietario) y sale. Sin efectos.
 #   --reloj-cero  archiva el reloj en vuelo y sale: el tren siguiente empieza
@@ -123,7 +126,10 @@ cd "$(dirname "$0")/../.."
 PHASES="preflight quark nucleus orbit paraguas cierre"
 DRY=0
 SOLO_SUELOS=0
-INCLUYE=""
+# Un array, no una cadena separada por espacios: `--incluye "docs/mis notas.md"`
+# se partía en dos rutas que no existen, y ninguna de las dos casaba con la que
+# el árbol trae.
+INCLUYE=()
 SOLO_RELOJ=0
 RELOJ_CERO=0
 FROM="preflight"
@@ -137,7 +143,7 @@ while [ $# -gt 0 ]; do
     --desde) shift; [ $# -gt 0 ] || { echo "--desde necesita una fase (ver --help)" >&2; exit 64; }; FROM="$1" ;;
     --hasta) shift; [ $# -gt 0 ] || { echo "--hasta necesita una fase (ver --help)" >&2; exit 64; }; TO="$1" ;;
     --solo-suelos) SOLO_SUELOS=1 ;;
-    --incluye) shift; [ $# -gt 0 ] || { echo "--incluye necesita una ruta (ver --help)" >&2; exit 64; }; INCLUYE="$INCLUYE $1" ;;
+    --incluye) shift; [ $# -gt 0 ] || { echo "--incluye necesita una ruta (ver --help)" >&2; exit 64; }; INCLUYE+=("$1") ;;
     --reloj) SOLO_RELOJ=1 ;;
     --reloj-cero) RELOJ_CERO=1 ;;
     -h|--help) sed -n '2,/^set -e/p' "$0" | sed '$d'; exit 0 ;;
@@ -738,7 +744,7 @@ repin_ya_escrito() {
 # trabajo, un .orig de un conflicto, la salida de un script— sin que ningún
 # guard del paraguas se entere. `--incluye <ruta>` amplía la lista a
 # propósito: nombrar el fichero es la revisión que el paso automático quitó.
-RUTAS_REPIN="versions.yaml README.md CHANGELOG.md docs/RUMBO.md go.work go.work.sum quark nucleus orbit"
+RUTAS_REPIN=(versions.yaml README.md CHANGELOG.md docs/RUMBO.md go.work go.work.sum quark nucleus orbit)
 
 # ruta_del_repin <ruta> — ¿está en RUTAS_REPIN (o bajo una de ellas) o en las
 # que se pasaron con --incluye?
@@ -752,7 +758,7 @@ RUTAS_REPIN="versions.yaml README.md CHANGELOG.md docs/RUMBO.md go.work go.work.
 # rechazaba en el otro.
 ruta_del_repin() {
   local r p=${1%/}
-  for r in $RUTAS_REPIN $INCLUYE; do
+  for r in "${RUTAS_REPIN[@]}" ${INCLUYE[@]+"${INCLUYE[@]}"}; do
     r=${r%/}
     [ "$p" = "$r" ] && return 0
     case "$p" in "$r"/*) return 0 ;; esac
@@ -760,10 +766,48 @@ ruta_del_repin() {
   return 1
 }
 
+# lee_rutas_git <qué> <argumentos de git...> — las rutas que devuelve un git
+# con `-z`, ENTERAS, en RUTAS_LEIDAS.
+#
+# Dos razones para el `-z` y para el fichero temporal, y las dos son la misma:
+# lo que se lee aquí decide qué entra en un PR que se fusiona sin que nadie
+# mire su diff.
+#
+#   - Sin `-z`, git CITA la ruta que lleva caracteres no-ASCII, comillas o
+#     backslash: `docs/handoff/año.md` sale como el literal
+#     `"docs/handoff/a\303\261o.md"` (comillas incluidas). Esa cadena viajaba
+#     a la orden de relanzamiento y al escape --incluye, donde ya no casa con
+#     la ruta real: el operador copiaba la orden, el tren volvía a parar por lo
+#     mismo y no convergía nunca. Con `-z` no cita, y separa por NUL, así que
+#     una ruta con espacios llega de una pieza.
+#   - Y el fichero temporal (en vez de `$(...)`) porque la sustitución de
+#     órdenes se COME los NUL —quedaría todo pegado en una sola ruta— y porque
+#     dentro de ella el código de salida de git se pierde: un git que falla se
+#     leería como «no hay nada ajeno», que es la forma de fallar que este gate
+#     existe para cerrar.
+RUTAS_LEIDAS=()
+lee_rutas_git() {
+  local que=$1; shift
+  local tmp ruta rc=0
+  RUTAS_LEIDAS=()
+  tmp=$(mktemp "${TMPDIR:-/tmp}/quantum-tren-rutas.XXXXXX") ||
+    die "no pude crear el fichero temporal donde leo $que"
+  git "$@" >"$tmp" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    rm -f "$tmp"
+    die "no pude leer $que (git $1 EXIT=$rc, su error justo arriba): sin esa respuesta daría por bueno lo que no he podido mirar, y esto se fusiona sin que nadie mire su diff"
+  fi
+  while IFS= read -r -d '' ruta; do
+    [ -n "$ruta" ] || continue
+    RUTAS_LEIDAS+=("$ruta")
+  done <"$tmp"
+  rm -f "$tmp"
+}
+
 # reparte_el_arbol — clasifica lo que el árbol tiene sin commitear en rutas
-# DEL re-pin y AJENAS (RUTAS_DENTRO / RUTAS_FUERA). Las rutas del re-pin no
-# llevan espacios; una ajena que los lleve se partirá al listarla, pero cae
-# igual en RUTAS_FUERA y para el tren, que es lo que importa.
+# DEL re-pin y AJENAS (RUTAS_DENTRO / RUTAS_FUERA), en arrays: una ruta con
+# espacios se partía en dos al acumularla en una cadena, y las dos mitades
+# llegaban rotas a la parada y al escape --incluye.
 #
 # `-uall` (en vez del `-unormal` por defecto) porque un directorio entero sin
 # rastrear se colapsa en una sola línea —«?? docs/handoff/»— y ese resumen
@@ -771,23 +815,47 @@ ruta_del_repin() {
 # set no aparecía por ninguna parte. Con los ficheros uno a uno, la orden de
 # relanzamiento los nombra —que es la revisión que el paso automático quitó— y
 # --incluye acepta tanto el fichero como el directorio que lo contiene.
-RUTAS_DENTRO=""
-RUTAS_FUERA=""
+RUTAS_DENTRO=()
+RUTAS_FUERA=()
 reparte_el_arbol() {
-  RUTAS_DENTRO=""; RUTAS_FUERA=""
-  local linea ruta
-  while IFS= read -r linea; do
-    [ -n "$linea" ] || continue
-    ruta=${linea:3}
-    ruta=${ruta##* -> }   # un rename se juzga por su destino
+  RUTAS_DENTRO=(); RUTAS_FUERA=()
+  local registro ruta origen tmp rc=0
+  tmp=$(mktemp "${TMPDIR:-/tmp}/quantum-tren-arbol.XXXXXX") ||
+    die "no pude crear el fichero temporal donde leo el árbol"
+  git status --porcelain -z -uall >"$tmp" || rc=$?
+  if [ "$rc" -ne 0 ]; then
+    rm -f "$tmp"
+    die "no pude leer el árbol (git status EXIT=$rc, su error justo arriba): sin esa respuesta no sé qué llevaría el commit, y este PR se fusiona sin que nadie mire su diff"
+  fi
+  while IFS= read -r -d '' registro; do
+    # «XY ruta»: los tres primeros caracteres son el estado y su espacio.
+    [ ${#registro} -gt 3 ] || continue
+    # Con `-z`, un rename o una copia emiten DOS registros: primero el destino
+    # —que es por donde este reparto ya juzgaba— y detrás el origen. Se consume
+    # aquí para no contarlo como una ruta más.
+    case ${registro:0:2} in [RC]?|?[RC]) IFS= read -r -d '' origen || origen="" ;; esac
+    ruta=${registro:3}
     if ruta_del_repin "$ruta"; then
-      RUTAS_DENTRO="$RUTAS_DENTRO $ruta"
+      RUTAS_DENTRO+=("$ruta")
     else
-      RUTAS_FUERA="$RUTAS_FUERA $ruta"
+      RUTAS_FUERA+=("$ruta")
     fi
-  done <<EOF
-$(git status --porcelain -uall)
-EOF
+  done <"$tmp"
+  rm -f "$tmp"
+}
+
+# cita <ruta> — la ruta escrita para pegarla en un shell. La orden de
+# relanzamiento se copia y se ejecuta TAL CUAL, así que la ruta tiene que
+# llegar entera al --incluye de la vuelta siguiente: `docs/mis notas.md` sin
+# comillas son dos argumentos, y el escape acaba nombrando dos rutas que no
+# existen. Se entrecomilla todo lo que no sea del alfabeto llano de una ruta
+# (una acentuada incluida: entre comillas simples se lee igual de bien y no
+# hay que decidir qué mira el shell).
+cita() {
+  case "$1" in
+    *[!A-Za-z0-9/._+,:@=-]*) printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")" ;;
+    *) printf '%s' "$1" ;;
+  esac
 }
 
 # orden_de_relanzamiento <rutas ajenas...> — la orden con la que se retoma la
@@ -804,7 +872,7 @@ EOF
 # --incluye compara rutas, no prefijos con barra.
 orden_de_relanzamiento() {
   local r orden="bash scripts/train/train.sh --desde paraguas"
-  for r in $INCLUYE "$@"; do orden="$orden --incluye ${r%/}"; done
+  for r in ${INCLUYE[@]+"${INCLUYE[@]}"} "$@"; do orden="$orden --incluye $(cita "${r%/}")"; done
   printf '%s' "$orden"
 }
 
@@ -815,7 +883,7 @@ orden_de_relanzamiento() {
 para_por_rutas_ajenas() {
   local ruta
   local -a lineas=()
-  for ruta in $RUTAS_FUERA; do lineas+=("  ${ruta%/}"); done
+  for ruta in ${RUTAS_FUERA[@]+"${RUTAS_FUERA[@]}"}; do lineas+=("  ${ruta%/}"); done
   [ ${#lineas[@]} -gt 0 ] || lineas=("  (ninguna)")
   MANUAL_DESDE=paraguas
   manual \
@@ -823,7 +891,7 @@ para_por_rutas_ajenas() {
     "${lineas[@]}" \
     "El PR de re-pin se fusiona a main sin que nadie mire su diff, así que no los arrastro." \
     "Sácalos del árbol (git stash / git checkout -- / rm) — o, si van EN el set, nómbralos:" \
-    "  $(orden_de_relanzamiento $RUTAS_FUERA)"
+    "  $(orden_de_relanzamiento ${RUTAS_FUERA[@]+"${RUTAS_FUERA[@]}"})"
 }
 
 # exige_main_al_dia — el re-pin sale de main y de un main al día. La rama se
@@ -916,12 +984,12 @@ abre_y_fusiona_repin() {
   local ver=$1 br="chore/set-$1" msg puesta
   exige_main_al_dia
   reparte_el_arbol
-  [ -z "$RUTAS_FUERA" ] || para_por_rutas_ajenas
-  [ -n "$RUTAS_DENTRO" ] ||
+  [ ${#RUTAS_FUERA[@]} -eq 0 ] || para_por_rutas_ajenas
+  [ ${#RUTAS_DENTRO[@]} -gt 0 ] ||
     die "no hay nada del re-pin sin commitear y main no lo declara: no sé qué commitear (relanza bump-set.sh)"
   msg="chore(set): $ver — re-pin del set: quark $(manifiesto_valor modules quark), nucleus $(manifiesto_valor modules nucleus) y orbit $(manifiesto_valor modules orbit)"
   say "  Lo que va en el commit (solo rutas del re-pin):"
-  git status --short -- $RUTAS_DENTRO | sed 's/^/    /'
+  git -c core.quotePath=false status --short -- "${RUTAS_DENTRO[@]}" | sed 's/^/    /'
   if git rev-parse -q --verify "refs/heads/$br" >/dev/null 2>&1 ||
      git ls-remote --exit-code --heads origin "$br" >/dev/null 2>&1; then
     br="$br-$(date +%m%d-%H%M)"
@@ -936,12 +1004,13 @@ abre_y_fusiona_repin() {
   # relanzamiento siguiente moría con otro mensaje distinto. Lo que se apunta
   # luego no hace falta volver a mirarlo: el pathspec son las rutas que
   # reparte_el_arbol ya dio por del re-pin.
-  for puesta in $(git diff --cached --name-only); do
+  lee_rutas_git "lo que el índice lleva apuntado" diff --cached --name-only -z
+  for puesta in ${RUTAS_LEIDAS[@]+"${RUTAS_LEIDAS[@]}"}; do
     ruta_del_repin "$puesta" ||
       die "el índice lleva $puesta, que no es del re-pin, y el commit se fusiona sin que nadie lo mire: git reset y relanza --desde paraguas"
   done
   run git checkout -q -b "$br" || return 1
-  run git add -A -- $RUTAS_DENTRO || return 1
+  run git add -A -- "${RUTAS_DENTRO[@]}" || return 1
   say "  → git commit -m \"$msg\" (cuerpo: las notes del manifiesto)"
   git commit -q -m "$msg" -m "$(cuerpo_notas)" \
     -m "Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>" || return 1
@@ -984,25 +1053,21 @@ exige_rama_sobre_main_al_dia() {
 # commiteado: la rama que se retoma en local y la rama del PR que ya está
 # abierto en GitHub (que pudo crecer desde que la abrimos).
 revisa_lo_que_lleva() {
-  local que=$1 ref=$2 ruta ajenas="" lista rc=0
-  local -a lineas=()
-  # El diff se pide ANTES del bucle y con su código de salida a la vista: un
-  # `git diff` que falla dentro de la sustitución del here-doc no se distingue
-  # de «no añade nada», y este gate se leería como «limpio» sin haber podido
-  # mirar — que es justo la forma de fallar que esta revisión existe para
-  # cerrar.
-  lista=$(git diff --name-only "origin/main...$ref") || rc=$?
-  [ "$rc" -eq 0 ] ||
-    die "no pude leer qué lleva $que sobre origin/main (git diff EXIT=$rc): sin esa respuesta no sé si arrastra algo ajeno, y esto se fusiona sin que nadie lo mire"
-  while IFS= read -r ruta; do
-    [ -n "$ruta" ] || continue
+  local que=$1 ref=$2 ruta
+  local -a ajenas=() lineas=()
+  # El diff se pide con su código de salida a la vista (lee_rutas_git PARA si
+  # git falla): un `git diff` que falla dentro de una sustitución no se
+  # distingue de «no añade nada», y este gate se leería como «limpio» sin haber
+  # podido mirar — que es justo la forma de fallar que esta revisión existe
+  # para cerrar. Y con `-z`, para que la ruta que se imprime y se nombra sea la
+  # de verdad y no la que git cita.
+  lee_rutas_git "qué lleva $que sobre origin/main" diff -z --name-only "origin/main...$ref"
+  for ruta in ${RUTAS_LEIDAS[@]+"${RUTAS_LEIDAS[@]}"}; do
     ruta_del_repin "$ruta" && continue
-    ajenas="$ajenas $ruta"
+    ajenas+=("$ruta")
     lineas+=("  $ruta")
-  done <<EOF
-$lista
-EOF
-  [ -n "$ajenas" ] || return 0
+  done
+  [ ${#ajenas[@]} -gt 0 ] || return 0
   MANUAL_DESDE=paraguas
   manual \
     "$que lleva commiteado, sobre origin/main, algo que NO es del re-pin:" \
@@ -1010,7 +1075,7 @@ EOF
     "El PR de re-pin se fusiona a main sin que nadie mire su diff, así que no lo arrastro." \
     "Sácalo de esa rama (git reset / git rebase -i, y empuja la corrección si ya está en origin)" \
     "— o, si va EN el set, nómbralo:" \
-    "  $(orden_de_relanzamiento $ajenas)"
+    "  $(orden_de_relanzamiento "${ajenas[@]}")"
 }
 
 # reanuda_rama_repin <versión> — el camino de recuperación que el propio A3
@@ -1030,13 +1095,13 @@ reanuda_rama_repin() {
     die "la rama $br no lleva commiteado el re-pin de $ver (su versions.yaml declara ${ver_rama:-nada legible}): mírala antes de seguir"
   if [ -n "$(git status --porcelain)" ]; then
     say "  la rama $br tiene además cambios sin commitear:"
-    git status --short | sed 's/^/    /'
+    git -c core.quotePath=false status --short | sed 's/^/    /'
     die "no los mezclo con un re-pin ya commiteado: commítealos tú en $br (o sácalos del árbol) y relanza --desde paraguas"
   fi
   exige_rama_sobre_main_al_dia "$br"
   revisa_lo_que_lleva "la rama $br" HEAD
   say "  Lo que la rama lleva sobre origin/main (solo rutas del re-pin):"
-  git diff --name-only origin/main...HEAD | sed 's/^/    /'
+  git -c core.quotePath=false diff --name-only origin/main...HEAD | sed 's/^/    /'
   run git push -q -u origin "$br" || die "no pude empujar $br"
   msg=$(git log -1 --format=%s)
   crea_pr_repin "$msg" "$(cuerpo_notas)" || die "no pude abrir el PR de re-pin desde $br"
@@ -1161,14 +1226,14 @@ fase_paraguas() {
     run git fetch -q origin "$pend_br" ||
       die "no pude traer la rama $pend_br del PR quantum#$pend_n: sin ella no puedo mirar qué lleva, y se fusiona sin que nadie la mire"
     revisa_lo_que_lleva "la rama $pend_br (PR quantum#$pend_n)" FETCH_HEAD
-    git diff --name-only "origin/main...FETCH_HEAD" | sed 's/^/    /'
+    git -c core.quotePath=false diff --name-only "origin/main...FETCH_HEAD" | sed 's/^/    /'
     fusiona_pr_repin "$pend_n" ||
       die "quantum#$pend_n sigue sin fusionar (ver arriba: sus checks o la protección de rama). Arregla la causa y relanza --desde paraguas"
   elif [ "$ver_main" = "$ver" ]; then
     say "PASO: nada que abrir — origin/main ya declara Quantum $ver y no queda ningún PR de set abierto"
     if [ -n "$(git status --porcelain)" ]; then
       say "  AVISO: el árbol tiene cambios que no están en el re-pin fusionado:"
-      git status --short | sed 's/^/    /'
+      git -c core.quotePath=false status --short | sed 's/^/    /'
       say "  La fase de cierre exige árbol limpio (el tag captura HEAD): resuélvelos antes."
     fi
   else
