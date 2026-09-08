@@ -14,10 +14,7 @@ queda fuera del escaneo anti-fósil a propósito (solo cubre `scripts/`,
 
 | Script | Qué hace |
 |---|---|
-| `train.sh` | Driver por fases: `preflight → quark → nucleus → orbit → paraguas → cierre`. Imprime SIEMPRE qué va a hacer antes de hacerlo, para EN SECO al primer rojo, y donde hace falta juicio humano se detiene con la instrucción exacta (EXIT=2). `--dry-run` para ensayar —sin efectos sobre los remotos ni sobre el
-set; en las fases de repo el ensayo sí toca los checkouts hermanos en local
-(pull ff-only de `../orbit`, worktree temporal en `../quark`)—; `--desde
-<fase>` para retomar. Se **cronometra por fase** («El reloj del tren», abajo: `--reloj`, `--reloj-cero`) y la fase paraguas **abre y fusiona ella misma** el PR de re-pin cuando las notes ya están redactadas — desde main al día, con solo las rutas del re-pin (`--incluye <ruta>` para añadir una a propósito) y preguntando a origin, no al árbol, si ya está fusionado. |
+| `train.sh` | Driver por fases: `preflight → quark → nucleus → orbit → paraguas → cierre`. Imprime SIEMPRE qué va a hacer antes de hacerlo, para EN SECO al primer rojo, y donde hace falta juicio humano se detiene con la instrucción exacta (EXIT=2). `--dry-run` para ensayar (alcance justo debajo de la tabla); `--desde <fase>` para retomar. Se **cronometra por fase** («El reloj del tren», abajo: `--reloj`, `--reloj-cero`) y la fase paraguas **abre y fusiona ella misma** el PR de re-pin cuando las notes ya están redactadas — desde main al día, con solo las rutas del re-pin (`--incluye <ruta>` para añadir una a propósito) y preguntando a origin, no al árbol, si ya está fusionado. |
 | `merge-bot-pr.sh <repo> <pr>` | Fusiona UN release PR del bot: push humano de commit vacío (dispara el CI que el token del bot no puede), espera de checks con `gh pr checks --watch --fail-fast`, `update-branch` si queda BEHIND, merge con el método del repo, y espera de los tags; si «Release Please» no corre la dispara, y si corre y termina SIN etiquetar (el auto-bloqueo) aplica `untag-recipe.sh` sola (`--sin-receta` para que solo lo imprima). |
 | `check-anchored-release-branch.sh <repo> [pr]` | Detecta la rama de release del ROOT anclada al main viejo: `git merge-base --is-ancestor` de cada último tag de módulo contra el head del PR. Si falla, imprime la receta cerrar + borrar rama + re-dispatch. Se ejecuta JUSTO ANTES de fusionar el root. |
 | `dispatch-app-bump.sh` | Anuncia el set YA certificado al consumidor externo `quantum-app` (`repository_dispatch` con el número de suite y la salida de `print-requires.sh`), **espera el run** que provoca y **exige que termine en PR** (QM-2). Allí un workflow reescribe el pin, corre sus gates y abre el PR. Exige `status: certified` y que el tag de suite exista; no fusiona ni escribe nada en el otro repo. |
@@ -28,6 +25,19 @@ set; en las fases de repo el ensayo sí toca los checkouts hermanos en local
 | `align-orbit-pins.sh [--check]` | Los pines CRUZADOS de orbit (nucleus y quark en sus seis go.mod, más los hermanos) hacia los ÚLTIMOS tags de `../quark` y `../nucleus`, llamando al `align_set.sh` de orbit. `--check` solo verifica (pone `main` al día antes). El driver lo corre al principio de la fase orbit (`alinea_pines_orbit`: rama, PR, fusión, espera de Release Please) — sin esto, cortar quark/nucleus y orbit el mismo día deja el manifest-guard §5 en FAIL (1.28.0 costó un corte de más). |
 | `quark-doc-debt.sh [--dry-run]` | La deuda de doc de una release de quark (RT-9), pagada EN la rama del bot: worktree de `release-please--branches--main`, merge de `main` si la rama no lo trae, `gen_release_notes_skeleton.sh` de quark (sección del sitio, `RELEASE_NOTES`, línea marcada de CLAUDE.md, puntero del README) y push. Para (EXIT=2) sólo si el esqueleto dejó `TODO`: la prosa no se delega. El driver lo corre en la fase quark antes de `merge-bot-pr.sh`. |
 | `orbit-align-notes.sh [--dry-run]` | La deuda RT-9 de una release de ALINEACIÓN de orbit, en la rama del bot: la sección `## vX.Y.Z — fecha` («alignment release with no product change», con los pines y los tags que salen a la vez, leídos del manifest y los go.mod de la rama). `alinea_pines_orbit` la llama tras la espera de Release Please; no-op si la sección ya existe. |
+
+**Qué ensaya `--dry-run` y qué no.** No toca los remotos ni el set: no empuja,
+no abre ni fusiona PRs, no etiqueta y no certifica. En las fases de repo sí toca
+los checkouts HERMANOS en local, porque dos comprobaciones corren a propósito
+fuera del ensayo —si no, el ensayo mentiría sobre lo que van a decir—:
+`align-orbit-pins.sh --check` pone `../orbit` al día con un `git pull --ff-only`
+(solo si está en `main` y limpio), y `quark-doc-debt.sh --dry-run` trae refs a
+`../quark` y abre allí un worktree temporal donde mergea `origin/main` y
+commitea el esqueleto de notas; no lo empuja, y el worktree se retira al salir.
+Las dos fases que A3 cambia —paraguas y cierre— no dejan rastro:
+`--dry-run --desde paraguas --hasta cierre` sale con el árbol igual, en la misma
+rama y en el mismo commit, sin directorio de reloj y con el reloj temporal
+borrado.
 
 ## El tren, paso a paso
 
