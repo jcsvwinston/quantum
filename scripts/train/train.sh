@@ -36,7 +36,13 @@
 #                        del set al consumidor externo quantum-app (D6/RT-5).
 #
 # Uso: train.sh [--dry-run] [--desde <fase>] [--hasta <fase>]
-#   --dry-run   imprime todos los pasos sin ejecutar nada con efectos.
+#   --dry-run   imprime los pasos sin efectos sobre los remotos ni sobre el set:
+#               no fusiona, no empuja, no abre PRs, no escribe el re-pin y no
+#               toca el reloj (usa un temporal). En las fases de repo sí toca
+#               los checkouts hermanos EN LOCAL, a propósito, para que el
+#               ensayo diga la verdad: align-orbit-pins.sh --check hace un
+#               pull ff-only de ../orbit y quark-doc-debt.sh --dry-run añade
+#               un worktree temporal en ../quark.
 #   --desde     retoma el tren en esa fase (default: preflight).
 #   --hasta     última fase a ejecutar (default: paraguas; «cierre» solo corre
 #               pedido explícitamente — exige el PR de re-pin ya fusionado).
@@ -46,14 +52,18 @@
 #   --incluye <ruta>  añade una ruta a lo que el PR de re-pin puede llevar
 #               (repetible; el fichero o el directorio que lo contiene). Por
 #               defecto solo entran las rutas que el re-pin escribe; cualquier
-#               otra cosa del árbol PARA el tren con los ficheros por delante
-#               —uno por línea, y con la orden de relanzamiento ya escrita— en
-#               vez de colarse en un PR que se fusiona solo. Nombrarla es la
-#               revisión.
+#               otra cosa PARA el tren con los ficheros por delante —uno por
+#               línea, y con la orden de relanzamiento ya escrita, que
+#               reimprime los --incluye ya aceptados— en vez de colarse en un
+#               PR que se fusiona solo. Nombrarla es la revisión. Se mira el
+#               árbol sin commitear (camino de creación) y también lo que
+#               lleva commiteado la rama que se retoma o el PR de set ya
+#               abierto: los tres acaban en main sin que nadie mire el diff.
 #   --reloj     imprime el reloj del tren en vuelo (desglose por fase, total
 #               conducido y espera del propietario) y sale. Sin efectos.
 #   --reloj-cero  archiva el reloj en vuelo y sale: el tren siguiente empieza
-#               de cero. No lo hace nadie por su cuenta.
+#               de cero. No lo hace nadie por su cuenta. Con --dry-run imprime
+#               qué archivaría, sin moverlo.
 #
 # «--desde paraguas --hasta cierre» encadena el re-pin y el cierre en una sola
 # invocación: desde que la fase paraguas fusiona su PR, entre las dos no queda
@@ -121,10 +131,13 @@ TO="paraguas"
 while [ $# -gt 0 ]; do
   case "$1" in
     --dry-run) DRY=1 ;;
-    --desde) shift; FROM="${1:-}" ;;
-    --hasta) shift; TO="${1:-}" ;;
+    # Un flag con valor y sin valor («--incluye» al final de la línea) añadía
+    # una entrada vacía y moría en el `shift` de abajo con $#=0: EXIT=1 y NI UNA
+    # línea, indistinguible de una parada en seco del tren.
+    --desde) shift; [ $# -gt 0 ] || { echo "--desde necesita una fase (ver --help)" >&2; exit 64; }; FROM="$1" ;;
+    --hasta) shift; [ $# -gt 0 ] || { echo "--hasta necesita una fase (ver --help)" >&2; exit 64; }; TO="$1" ;;
     --solo-suelos) SOLO_SUELOS=1 ;;
-    --incluye) shift; INCLUYE="$INCLUYE ${1:-}" ;;
+    --incluye) shift; [ $# -gt 0 ] || { echo "--incluye necesita una ruta (ver --help)" >&2; exit 64; }; INCLUYE="$INCLUYE $1" ;;
     --reloj) SOLO_RELOJ=1 ;;
     --reloj-cero) RELOJ_CERO=1 ;;
     -h|--help) sed -n '2,/^set -e/p' "$0" | sed '$d'; exit 0 ;;
@@ -264,6 +277,21 @@ reloj_archiva() {
 
 if [ "$SOLO_RELOJ" -eq 1 ]; then reloj_resumen; exit 0; fi
 if [ "$RELOJ_CERO" -eq 1 ]; then
+  # El reloj de --reloj-cero es el REAL (el temporal del ensayo lo dejaría sin
+  # nada que archivar), así que aquí el ensayo tiene que decirlo y no moverlo:
+  # «--dry-run» promete no ejecutar nada con efectos, y archivar el reloj del
+  # tren en vuelo lo es.
+  if [ "$DRY" -eq 1 ]; then
+    say "Reloj del tren (dry-run): esto es lo que archivaría — no lo muevo."
+    if [ -s "$RELOJ" ]; then
+      marcas=$(grep -c . "$RELOJ" || true)
+      pal_m=marcas; [ "$marcas" -eq 1 ] && pal_m=marca
+      say "  $RELOJ → ${RELOJ%.tsv}-<fecha>.tsv ($marcas $pal_m)"
+    else
+      say "  (el reloj está vacío: no habría nada que archivar — $RELOJ)"
+    fi
+    exit 0
+  fi
   say "Reloj del tren: archivo el que hubiera en vuelo y empiezo de cero."
   reloj_archiva "$(date +%Y%m%d-%H%M%S)"
   exit 0
@@ -653,8 +681,9 @@ fase_preflight() {
     say "  → main"
   else
     say "  AVISO: estás en «$rama». A las fases de repo les da igual; la fase paraguas"
-    say "  PARARÁ EN SECO ahí — desde una rama de trabajo, el PR del set arrastraría a"
-    say "  main lo que esa rama traiga, y ese PR se fusiona sin que nadie lo mire."
+    say "  PARARÁ EN SECO ahí nada más entrar —antes de escribir el re-pin— salvo que sea"
+    say "  la rama chore/set-* del camino de recuperación: desde una rama de trabajo, el PR"
+    say "  del set arrastraría a main lo que esa rama traiga, y se fusiona sin que nadie lo mire."
   fi
   say "PASO: árbol del paraguas limpio (QM8-5 — la certificación lo exigirá)"
   if [ "$DRY" -eq 0 ] && [ -n "$(git status --porcelain)" ]; then
@@ -761,28 +790,49 @@ $(git status --porcelain -uall)
 EOF
 }
 
+# orden_de_relanzamiento <rutas ajenas...> — la orden con la que se retoma la
+# fase, ya escrita para copiar y pegar.
+#
+# Se siembra con lo que el operador YA traía aceptado ($INCLUYE) y solo después
+# se le añaden las rutas que ahora se le enseñan. Sin esa siembra, aceptar dos
+# rutas ajenas de una en una perdía la primera: la vuelta 1 imprimía
+# «--incluye B», ejecutarla literalmente hacía que la vuelta 2 imprimiera
+# «--incluye A», y la 3 volvía a B — ping-pong infinito ejecutando justo la
+# orden que el driver imprime, en el paso que este driver automatiza.
+#
+# Sin la barra final del directorio: la orden se copia y se pega tal cual, y
+# --incluye compara rutas, no prefijos con barra.
+orden_de_relanzamiento() {
+  local r orden="bash scripts/train/train.sh --desde paraguas"
+  for r in $INCLUYE "$@"; do orden="$orden --incluye ${r%/}"; done
+  printf '%s' "$orden"
+}
+
 # para_por_rutas_ajenas — la parada (EXIT=2) cuando el árbol trae algo que no
-# es del re-pin: se enseñan los ficheros en vez de arrastrarlos.
+# es del re-pin: se enseñan los ficheros en vez de arrastrarlos. Uno por línea,
+# que es lo que promete --help: en una sola línea, con un árbol sucio de
+# verdad, no se leen justo cuando hay que leerlos.
 para_por_rutas_ajenas() {
-  local ruta lista="" relanza="bash scripts/train/train.sh --desde paraguas"
-  for ruta in $RUTAS_FUERA; do
-    lista="$lista $ruta"
-    # Sin la barra final del directorio: la orden se copia y se pega tal cual,
-    # y --incluye compara rutas, no prefijos con barra.
-    relanza="$relanza --incluye ${ruta%/}"
-  done
+  local ruta
+  local -a lineas=()
+  for ruta in $RUTAS_FUERA; do lineas+=("  ${ruta%/}"); done
+  [ ${#lineas[@]} -gt 0 ] || lineas=("  (ninguna)")
   MANUAL_DESDE=paraguas
   manual \
     "El árbol del paraguas trae cambios que NO son del re-pin:" \
-    "  $lista" \
+    "${lineas[@]}" \
     "El PR de re-pin se fusiona a main sin que nadie mire su diff, así que no los arrastro." \
     "Sácalos del árbol (git stash / git checkout -- / rm) — o, si van EN el set, nómbralos:" \
-    "  $relanza"
+    "  $(orden_de_relanzamiento $RUTAS_FUERA)"
 }
 
 # exige_main_al_dia — el re-pin sale de main y de un main al día. La rama se
 # creaba desde el HEAD que hubiera: conducido desde una rama de trabajo, el PR
 # del set arrastraba a main los commits de esa rama, y nadie los miraba.
+#
+# Se llama DOS veces y es idempotente: al entrar en la fase (por
+# exige_punto_de_partida, antes de que bump-set escriba el re-pin en la rama
+# equivocada) y otra vez justo antes de crear la rama.
 exige_main_al_dia() {
   local rama local_sha remoto_sha
   rama=$(git rev-parse --abbrev-ref HEAD)
@@ -793,6 +843,32 @@ exige_main_al_dia() {
   remoto_sha=$(git rev-parse origin/main)
   [ "$local_sha" = "$remoto_sha" ] ||
     die "main local ($(git rev-parse --short HEAD)) no es origin/main ($(git rev-parse --short origin/main)): ponlo al día con git pull --ff-only —o saca de main lo que tenga de más, que iría en el PR del set— y relanza --desde paraguas"
+}
+
+# exige_punto_de_partida — el control de DÓNDE está el tren, al ENTRAR en la
+# fase y no cinco pasos después. Solo hay dos puntos de partida legítimos:
+#
+#   main al día            el camino de creación (rama, commit, PR, fusión).
+#   una rama chore/set-*   el camino de recuperación (se retoma esa rama).
+#
+# Comprobarlo dentro de abre_y_fusiona_repin llegaba tarde: desde una rama de
+# trabajo, la fase corría antes bump-set (que mueve los tres gitlinks y
+# reescribe versions.yaml/README/CHANGELOG), la parada de prosa —con lo que el
+# propietario redactaba las notes enteras— y los guards locales, y SOLO
+# entonces paraba en seco con un «ponte en main» que dejaba todo ese trabajo en
+# la rama equivocada.
+exige_punto_de_partida() {
+  local rama
+  rama=$(git rev-parse --abbrev-ref HEAD)
+  case "$rama" in
+    chore/set-*)
+      say "  → «$rama»: la rama del re-pin (camino de recuperación). Lo que lleve se revisa antes de empujarla."
+      ;;
+    *)
+      exige_main_al_dia
+      say "  → main al día ($(git rev-parse --short HEAD) = origin/main)"
+      ;;
+  esac
 }
 
 # cuerpo_notas — las notes del manifiesto, sin la clave ni la indentación del
@@ -874,11 +950,63 @@ abre_y_fusiona_repin() {
   fusiona_pr_repin "$PR_REPIN"
 }
 
+# exige_rama_sobre_main_al_dia <rama> — la gemela de exige_main_al_dia para el
+# camino de recuperación: allí HEAD no es main (es la rama del set), así que lo
+# que se exige es que la rama DESCIENDA de un origin/main al día. Si main se
+# movió por debajo —la ola de PRs de la ronda se sigue fusionando mientras el
+# tren corre—, el merge del PR mezclaría el re-pin con un main que nadie
+# comparó, y este PR se fusiona sin que nadie mire su diff.
+exige_rama_sobre_main_al_dia() {
+  local br=$1
+  git fetch -q origin main || die "no pude traer origin/main: sin eso no sé sobre qué main está $br"
+  git merge-base --is-ancestor origin/main HEAD 2>/dev/null ||
+    die "la rama $br no desciende de origin/main ($(git rev-parse --short origin/main)): main se movió por debajo y el PR del set se fusiona sin que nadie mire su diff. Rebásala (git rebase origin/main), comprueba que sigue limpia y relanza --desde paraguas"
+}
+
+# revisa_lo_que_lleva <qué> <ref> — la gemela del filtro RUTAS_REPIN para los
+# caminos en los que el contenido ya está COMMITEADO. Ahí reparte_el_arbol (que
+# mira el árbol sin commitear) no ve nada: la rama se empujaba, se abría el PR
+# y se FUSIONABA entera sin mirar su diff. Bastaba con que el propietario, al
+# arreglar la causa de una fusión roja, dejara un fichero suelto commiteado en
+# la rama para que main se llevara el re-pin Y «wip: nota suelta» de un tirón.
+#
+# Se compara lo que la ref AÑADE sobre origin/main
+# (`git diff --name-only origin/main...<ref>`), con el mismo predicado
+# (ruta_del_repin), el mismo escape (--incluye) y la misma parada (EXIT=2) que
+# el camino de creación. La llaman los dos caminos que fusionan algo ya
+# commiteado: la rama que se retoma en local y la rama del PR que ya está
+# abierto en GitHub (que pudo crecer desde que la abrimos).
+revisa_lo_que_lleva() {
+  local que=$1 ref=$2 ruta ajenas=""
+  local -a lineas=()
+  while IFS= read -r ruta; do
+    [ -n "$ruta" ] || continue
+    ruta_del_repin "$ruta" && continue
+    ajenas="$ajenas $ruta"
+    lineas+=("  $ruta")
+  done <<EOF
+$(git diff --name-only "origin/main...$ref")
+EOF
+  [ -n "$ajenas" ] || return 0
+  MANUAL_DESDE=paraguas
+  manual \
+    "$que lleva commiteado, sobre origin/main, algo que NO es del re-pin:" \
+    "${lineas[@]}" \
+    "El PR de re-pin se fusiona a main sin que nadie mire su diff, así que no lo arrastro." \
+    "Sácalo de esa rama (git reset / git rebase -i, y empuja la corrección si ya está en origin)" \
+    "— o, si va EN el set, nómbralo:" \
+    "  $(orden_de_relanzamiento $ajenas)"
+}
+
 # reanuda_rama_repin <versión> — el camino de recuperación que el propio A3
 # crea: abre_y_fusiona_repin murió DESPUÉS del commit (en el push, en el
 # gh pr create o en la fusión) y el árbol quedó LIMPIO sobre chore/set-X.Y.Z
 # con el re-pin sin fusionar. Se retoma ESA rama; no se abre otra ni se da el
 # re-pin por hecho.
+#
+# Y se retoma REVISADA: empujar, abrir el PR y fusionarlo es exactamente lo
+# mismo que hace el camino de creación, así que pasa por los mismos dos
+# controles —de dónde sale y qué lleva—, solo que aplicados a lo ya commiteado.
 reanuda_rama_repin() {
   local ver=$1 br msg ver_rama
   br=$(git rev-parse --abbrev-ref HEAD)
@@ -890,6 +1018,10 @@ reanuda_rama_repin() {
     git status --short | sed 's/^/    /'
     die "no los mezclo con un re-pin ya commiteado: commítealos tú en $br (o sácalos del árbol) y relanza --desde paraguas"
   fi
+  exige_rama_sobre_main_al_dia "$br"
+  revisa_lo_que_lleva "la rama $br" HEAD
+  say "  Lo que la rama lleva sobre origin/main (solo rutas del re-pin):"
+  git diff --name-only origin/main...HEAD | sed 's/^/    /'
   run git push -q -u origin "$br" || die "no pude empujar $br"
   msg=$(git log -1 --format=%s)
   crea_pr_repin "$msg" "$(cuerpo_notas)" || die "no pude abrir el PR de re-pin desde $br"
@@ -905,6 +1037,9 @@ fase_paraguas() {
   if [ "$DRY" -eq 1 ]; then
     # El ensayo no escribe: ni bump-set, ni rama, ni PR. Lo que sí dice es la
     # BIFURCACIÓN, que es lo que cambia en esta fase (A3).
+    say "PASO: de dónde sale el re-pin — main AL DÍA, o la rama chore/set-* del camino de"
+    say "      recuperación; desde cualquier otra rama la fase para en seco AQUÍ, antes de que"
+    say "      bump-set escriba el re-pin (y el propietario redacte la prosa) en la rama equivocada"
     say "PASO: re-pin mecánico del set, si el manifiesto no lo lleva ya escrito"
     say "  → bash scripts/bump-set.sh"
     say "PASO: manifest-guard sobre el re-pin (tolera el marcador REDACTAR; el CI no)"
@@ -926,6 +1061,12 @@ fase_paraguas() {
     say "OK: fase paraguas (dry-run) — nada escrito."
     return 0
   fi
+  # ANTES de escribir nada: desde una rama de trabajo, todo lo que viene
+  # después (bump-set, la prosa de las notes, los guards) se escribiría en la
+  # rama equivocada para parar en seco al final.
+  say "PASO: de dónde sale el re-pin — main al día, o la rama chore/set-* del camino de recuperación"
+  exige_punto_de_partida
+
   if repin_ya_escrito; then
     say "PASO: re-pin mecánico — los tres pines ya están en el último tag: NO repito bump-set"
     say "  (lo escribió una invocación anterior de esta fase; repetirlo mandaría las notes ya"
@@ -997,6 +1138,15 @@ fase_paraguas() {
       *) die "el PR de set abierto (quantum#$pend_n, rama $pend_br) no es el de $ver: míralo antes de seguir — no fusiono un set que no es el de este tren" ;;
     esac
     say "PASO: quantum#$pend_n sigue abierto — retomo SU fusión (no abro otro PR)"
+    # El tercer camino que fusiona sin que nadie mire el diff. La rama la abrió
+    # una invocación anterior de esta fase (revisada), pero pudo crecer después:
+    # arreglar el rojo que impidió la fusión se hace empujando A ESA rama. Lo
+    # que se mira es su contenido; su base es cosa del merge de GitHub.
+    say "  → qué lleva la rama $pend_br sobre origin/main (solo rutas del re-pin)"
+    run git fetch -q origin "$pend_br" ||
+      die "no pude traer la rama $pend_br del PR quantum#$pend_n: sin ella no puedo mirar qué lleva, y se fusiona sin que nadie la mire"
+    revisa_lo_que_lleva "la rama $pend_br (PR quantum#$pend_n)" FETCH_HEAD
+    git diff --name-only "origin/main...FETCH_HEAD" | sed 's/^/    /'
     fusiona_pr_repin "$pend_n" ||
       die "quantum#$pend_n sigue sin fusionar (ver arriba: sus checks o la protección de rama). Arregla la causa y relanza --desde paraguas"
   elif [ "$ver_main" = "$ver" ]; then
@@ -1039,6 +1189,19 @@ fase_cierre() {
   local head_antes ver_antes pend rc_pend=0
   head_antes=$(git rev-parse HEAD 2>/dev/null || echo "")
   ver_antes=$(version_suite_en HEAD)
+  # «No lo pude leer» es una RESPUESTA, y sin ella el gate de abajo —el que
+  # impide certificar el set ANTERIOR con el re-pin nuevo sin fusionar— no
+  # tiene con qué decidir. Estaba condicionado a `[ -n "$ver_antes" ]`, así que
+  # un versions.yaml ilegible en HEAD lo desactivaba sin una línea de aviso:
+  # un fallo ABIERTO en el gate alrededor del que gira esta fase.
+  if [ -z "$ver_antes" ]; then
+    say "  el HEAD del que arranca el cierre ($(git rev-parse --short HEAD 2>/dev/null || echo '?')) declara Quantum <no lo pude leer>"
+    if [ "$DRY" -eq 1 ]; then
+      say "  AVISO (dry-run): sin esa respuesta el gate del set en curso no se puede evaluar — en real esto sería una parada en seco; el ensayo no certifica nada."
+    else
+      die "no pude leer el versions.yaml del HEAD del que arranca el cierre: sin él no puedo comprobar que el set que traía el tren es el que main declara, y certificar a ciegas publicaría el set anterior como si fuera el nuevo. Ponte en un HEAD con manifiesto (git checkout main) y relanza --desde cierre --hasta cierre"
+    fi
+  fi
   say "PASO: que no quede ningún PR de set sin fusionar (si lo hay, el re-pin no está en main)"
   pend=$(repin_pr_abierto) || rc_pend=$?
   if [ "$rc_pend" -ne 0 ]; then

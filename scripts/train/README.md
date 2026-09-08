@@ -14,7 +14,10 @@ queda fuera del escaneo anti-fósil a propósito (solo cubre `scripts/`,
 
 | Script | Qué hace |
 |---|---|
-| `train.sh` | Driver por fases: `preflight → quark → nucleus → orbit → paraguas → cierre`. Imprime SIEMPRE qué va a hacer antes de hacerlo, para EN SECO al primer rojo, y donde hace falta juicio humano se detiene con la instrucción exacta (EXIT=2). `--dry-run` para ensayar; `--desde <fase>` para retomar. Se **cronometra por fase** («El reloj del tren», abajo: `--reloj`, `--reloj-cero`) y la fase paraguas **abre y fusiona ella misma** el PR de re-pin cuando las notes ya están redactadas — desde main al día, con solo las rutas del re-pin (`--incluye <ruta>` para añadir una a propósito) y preguntando a origin, no al árbol, si ya está fusionado. |
+| `train.sh` | Driver por fases: `preflight → quark → nucleus → orbit → paraguas → cierre`. Imprime SIEMPRE qué va a hacer antes de hacerlo, para EN SECO al primer rojo, y donde hace falta juicio humano se detiene con la instrucción exacta (EXIT=2). `--dry-run` para ensayar —sin efectos sobre los remotos ni sobre el
+set; en las fases de repo el ensayo sí toca los checkouts hermanos en local
+(pull ff-only de `../orbit`, worktree temporal en `../quark`)—; `--desde
+<fase>` para retomar. Se **cronometra por fase** («El reloj del tren», abajo: `--reloj`, `--reloj-cero`) y la fase paraguas **abre y fusiona ella misma** el PR de re-pin cuando las notes ya están redactadas — desde main al día, con solo las rutas del re-pin (`--incluye <ruta>` para añadir una a propósito) y preguntando a origin, no al árbol, si ya está fusionado. |
 | `merge-bot-pr.sh <repo> <pr>` | Fusiona UN release PR del bot: push humano de commit vacío (dispara el CI que el token del bot no puede), espera de checks con `gh pr checks --watch --fail-fast`, `update-branch` si queda BEHIND, merge con el método del repo, y espera de los tags; si «Release Please» no corre la dispara, y si corre y termina SIN etiquetar (el auto-bloqueo) aplica `untag-recipe.sh` sola (`--sin-receta` para que solo lo imprima). |
 | `check-anchored-release-branch.sh <repo> [pr]` | Detecta la rama de release del ROOT anclada al main viejo: `git merge-base --is-ancestor` de cada último tag de módulo contra el head del PR. Si falla, imprime la receta cerrar + borrar rama + re-dispatch. Se ejecuta JUSTO ANTES de fusionar el root. |
 | `dispatch-app-bump.sh` | Anuncia el set YA certificado al consumidor externo `quantum-app` (`repository_dispatch` con el número de suite y la salida de `print-requires.sh`), **espera el run** que provoca y **exige que termine en PR** (QM-2). Allí un workflow reescribe el pin, corre sus gates y abre el PR. Exige `status: certified` y que el tag de suite exista; no fusiona ni escribe nada en el otro repo. |
@@ -134,8 +137,16 @@ condiciones del driver:
 - **De main y de un main al día.** La rama se creaba desde el HEAD que hubiera:
   conducir el tren desde una rama de trabajo metía los commits de esa rama en
   `chore/set-X.Y.Z` y de ahí a main. Ahora, si `HEAD` no es `main` o `main` no
-  coincide con `origin/main`, la fase para en seco. El preflight lo avisa
-  antes, en vez de descubrirlo cinco fases después.
+  coincide con `origin/main`, la fase para en seco — **nada más entrar**, antes
+  de que `bump-set` escriba el re-pin y el propietario redacte la prosa en la
+  rama equivocada; comprobarlo justo antes de crear la rama dejaba todo ese
+  trabajo hecho en el sitio que no era. La única otra procedencia legítima es
+  la rama `chore/set-*` del camino de recuperación, y ahí lo que se exige es lo
+  mismo dicho de otra forma: que **descienda de un `origin/main` al día**
+  (`git merge-base --is-ancestor`). Si main se movió por debajo —la ola de PRs
+  de la ronda se sigue fusionando mientras el tren corre—, se rebasa y se
+  relanza. El preflight lo avisa antes, en vez de descubrirlo cinco fases
+  después.
 - **Solo las rutas del re-pin.** El commit era un `git add -A`: cualquier
   fichero suelto del árbol —una nota de trabajo, un `.orig` de un conflicto, un
   backup del editor, la salida de un script— entraba en el PR y se fusionaba.
@@ -145,11 +156,25 @@ condiciones del driver:
   los ficheros por delante. Si alguno va de verdad en el set, se nombra:
   `--desde paraguas --incluye docs/handoff/<fichero>.md`. Nombrarlo es la
   revisión que el paso automático quitó, y la parada imprime la orden de
-  relanzamiento ya escrita, **con un fichero por ruta**: el árbol se lista con
-  `-uall` porque `git status` colapsa un directorio nuevo entero en una sola
-  línea (`docs/handoff/`), y entonces lo que viajaba a `--incluye` era el
-  resumen y no el fichero. `--incluye` acepta indistintamente el fichero o el
-  directorio que lo contiene, con barra final o sin ella.
+  relanzamiento ya escrita, **con un fichero por ruta y uno por línea**: el
+  árbol se lista con `-uall` porque `git status` colapsa un directorio nuevo
+  entero en una sola línea (`docs/handoff/`), y entonces lo que viajaba a
+  `--incluye` era el resumen y no el fichero. `--incluye` acepta
+  indistintamente el fichero o el directorio que lo contiene, con barra final o
+  sin ella. La orden se siembra con **los `--incluye` que ya se habían
+  aceptado**: sin eso, aceptar dos rutas ajenas de una en una perdía la
+  primera, y ejecutar literalmente la orden impresa entraba en ping-pong (la
+  vuelta 2 pedía A, la 3 volvía a pedir B).
+- **Lo mismo, sobre lo ya commiteado, en los otros dos caminos.** El filtro
+  mira el árbol sin commitear, así que no veía nada en los dos caminos que
+  fusionan una rama que ya existe: la rama `chore/set-*` que se retoma y el PR
+  de set que sigue abierto. Los dos empujaban/fusionaban la rama ENTERA sin
+  mirar su diff: bastaba con que el propietario, arreglando la causa de una
+  fusión roja, dejara un fichero suelto commiteado en esa rama para que main se
+  llevara el re-pin y el `wip:` de un tirón. Ahora los dos pasan por la misma
+  revisión (`git diff --name-only origin/main...<rama>` contra `RUTAS_REPIN`),
+  con el mismo escape `--incluye` y la misma parada EXIT=2. En el PR abierto se
+  revisa la rama recién traída de `origin`, que es la que puede haber crecido.
 - **El índice se mira antes de crear la rama.** `git add -- <rutas>` no
   desapunta lo que el índice ya llevara y `git commit` commitea el índice
   entero, así que lo que se comprueba es lo que va a ENTRAR. Comprobarlo
@@ -168,8 +193,8 @@ y a GitHub, y actúa según la respuesta:
 | Lo que dicen origin y GitHub | Lo que hace la fase |
 | --- | --- |
 | `origin/main` ya declara el set y no hay PR `chore/set-*` abierto | nada que abrir |
-| hay un PR `chore/set-*` abierto (y es el de este set) | retoma **su** fusión; no abre otro |
-| `HEAD` en una rama `chore/set-*` con el re-pin commiteado | retoma esa rama: push, PR y fusión |
+| hay un PR `chore/set-*` abierto (y es el de este set) | revisa lo que su rama lleva sobre `origin/main` y retoma **su** fusión; no abre otro |
+| `HEAD` en una rama `chore/set-*` con el re-pin commiteado | exige que descienda de `origin/main`, revisa lo que lleva, y retoma esa rama: push, PR y fusión |
 | nada de lo anterior, desde `main` al día | rama, commit, PR y fusión |
 
 Y al terminar no se da el merge por hecho: exige que `origin/main` **declare**
@@ -203,7 +228,9 @@ re-certificaría y re-anunciaría a `quantum-app`. Así que antes de tocar la
 rama: ningún PR `chore/set-*` abierto —preguntado a GitHub, y si GitHub no
 contesta se para en vez de dar por buena la respuesta que no llegó—, y si el
 manifiesto del que arranca la invocación declara otro set, su commit tiene que
-estar en main (si no, para en seco). Encadenado desde la fase paraguas, además, la versión que lee en main
+estar en main (si no, para en seco) — y si ese manifiesto no se puede leer, la
+respuesta que falta no desactiva el gate en silencio: se dice y se para (en
+`--dry-run`, que no certifica nada, se avisa y se sigue). Encadenado desde la fase paraguas, además, la versión que lee en main
 tiene que ser la que esa fase acaba de dejar fusionada. Y después:
 
 1. `git checkout main && git pull` — el tag se corta EN HEAD, **después del
@@ -256,7 +283,9 @@ seis columnas separadas por tabulador.
 La fase de cierre imprime el desglose y archiva el reloj como
 `reloj-vX.Y.Z.tsv` (el tren siguiente empieza en cero y el anterior queda para
 comparar). `train.sh --reloj` lo imprime en cualquier momento sin efectos;
-`train.sh --reloj-cero` archiva el que hubiera en vuelo.
+`train.sh --reloj-cero` archiva el que hubiera en vuelo — y con `--dry-run`
+imprime qué archivaría sin moverlo, porque el reloj de `--reloj-cero` es el
+real y archivarlo es un efecto.
 
 **Qué cuenta como CONDUCIDO**: la suma de las fases. Lo que el propietario
 tarda ENTRE invocaciones —redactar las notes, revisar, dormir— es el hueco
