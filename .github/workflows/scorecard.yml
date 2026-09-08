@@ -51,6 +51,13 @@ jobs:
         with:
           persist-credentials: false
 
+      # El SHA fija el ÁRBOL de la acción, y aquí eso no es todo el código que
+      # corre: `ossf/scorecard-action` es una acción DOCKER y su action.yaml a
+      # este mismo SHA dice `image: docker://ghcr.io/ossf/scorecard-action:v2.4.4`
+      # —un tag de ghcr.io, que su propietario puede reapuntar—. Es la única
+      # excepción del paraguas a la regla del §8 y está escrita allí con la
+      # exposición que queda y las salidas que existen; no se cierra fijando un
+      # digest aquí, porque quien elige la imagen es el action.yaml ajeno.
       - name: Ejecuta Scorecard
         uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
         with:

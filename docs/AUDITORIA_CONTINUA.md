@@ -424,7 +424,11 @@ el PR que añade la lane.
 El SHA, porque un tag de Git es un puntero móvil en un repositorio ajeno:
 quien controle esa cuenta puede reapuntar `v7` a otro commit, y ese commit
 corre dentro de nuestro CI con el token del repo sin que aquí cambie una
-línea. El SHA de 40 hex nombra un árbol concreto y no se reapunta.
+línea. El SHA de 40 hex nombra un árbol concreto y no se reapunta. Lo que fija
+es ese **árbol**, que para una acción JavaScript o compuesta es todo el código
+que corre y para una acción **Docker** no: ver la excepción del paraguas más
+abajo, que hay una y conviene decirla aquí para que la regla no suene
+absoluta.
 
 El comentario, porque es lo que hace el pin **mantenible**, y ahí está el
 riesgo real de esta regla: un pin abandonado congela también los fallos de
@@ -464,6 +468,58 @@ mal en silencio.
 Alcance: los workflows del paraguas. Los de nucleus, quark y orbit los fija
 cada producto en su propio PR del arco; el paraguas no reescribe ficheros del
 submódulo, y el guard no mira dentro de ellos.
+
+### La excepción: el SHA de una acción Docker no fija el código que corre
+
+Fijar el SHA fija el árbol de la acción. Para una acción **Docker** ese árbol
+son sus metadatos: el `action.yaml` dice qué imagen ejecutar, y si la nombra
+por tag, el tag se reapunta sin que el SHA cambie. El paraguas tiene hoy
+exactamente un caso, `ossf/scorecard-action`, cuyo `action.yaml` **al SHA que
+este repositorio fija** dice:
+
+```yaml
+runs:
+  using: "docker"
+  image: "docker://ghcr.io/ossf/scorecard-action:v2.4.4"
+```
+
+Es decir: el pin congela un fichero de metadatos, y el contenedor que de
+verdad se ejecuta lo trae el runner de `ghcr.io` **por tag**. Quien controle
+ese espacio de nombres puede reapuntar `v2.4.4` a otra imagen sin que aquí
+cambie una línea — el mismo modelo de amenaza que la regla cierra para las
+demás referencias. Lo que ese contenedor tiene delante es el job `analysis` de
+`scorecard.yml`: el token del repo en lectura, más `security-events: write`
+(subir el SARIF) e `id-token: write` declarado y hoy sin ejercer.
+
+Las otras siete referencias no tienen esta grieta, y se comprobó una por una
+leyendo su `action.yaml` al SHA fijado: seis son `using: node24` (`checkout`,
+`setup-go`, `setup-node`, `deploy-pages`, `upload-artifact`,
+`codeql-action/upload-sarif`) y `upload-pages-artifact` es compuesta, con su
+único paso —`actions/upload-artifact`— fijado por SHA.
+
+El guard no puede ver esto: leer el `action.yaml` de un repositorio ajeno
+exige red, y un guard de esta suite no sale a la red. Sí exige `@sha256:` a
+las imágenes que un paso nombra **directamente** (`docker://…`), que es la
+parte que sí está a nuestro alcance. La excepción se sostiene, por tanto, por
+escrito: aquí, en la cabecera del guard y en un comentario junto al `uses:` de
+la lane.
+
+Salidas examinadas, ninguna gratis:
+
+- **Llamar a la imagen directamente**, con un paso
+  `uses: docker://ghcr.io/ossf/scorecard-action@sha256:<digest>` (el digest de
+  `v2.4.4` hoy es `sha256:ae5104dd3cc28466ebeb11144354be4cac4b7ff829654f9fab89021d71c46670`).
+  El contenedor lee sus entradas de variables `INPUT_*`, así que habría que
+  pasarlas a mano: ese contrato es interno de la acción, no su interfaz
+  documentada, y el pin quedaría fuera del formato `owner/accion@sha # tag`
+  con el que Dependabot lo mueve. Se cambiaría una exposición por otra:
+  frescura a cambio de inmutabilidad.
+- **Bifurcar la acción** y fijar la imagen por digest en el fork: pone a
+  nuestro cargo el mantenimiento al día de una herramienta de seguridad ajena.
+- **Aceptarlo y dejarlo escrito**, que es lo que se hace: la lane mide, no
+  bloquea (no está en el registro de guards), y la subida de versión llega por
+  Dependabot como la de cualquier otra acción. La exposición queda anotada, no
+  cerrada. Si un día esta lane pasara a gating, la decisión se revisa.
 
 ### Dónde muerde el guard, y por qué eso obligó a tocar el filtro de rutas
 
