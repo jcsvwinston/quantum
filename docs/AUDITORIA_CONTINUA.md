@@ -32,7 +32,7 @@ Los guards de producto corren **al pin** — el submódulo tal y como lo fija
 significa que el set que el manifiesto certifica no pasa sus propios guards,
 que es exactamente lo que reportaría un auditor.
 
-Registro actual (39 guards — la cifra canónica NO es esta prosa, es el
+Registro actual (40 guards — la cifra canónica NO es esta prosa, es el
 registro: `source scripts/lib/guard-registry.sh && guard_names | wc -l`. Esta
 tabla es descriptiva y ya fue por detrás del registro real dos veces
 (DI-14/RT-10: decía «25» y omitía `orbit-versioned-markers`; QM-11: decía
@@ -80,6 +80,7 @@ en el mismo PR, y comprobar la cifra con el comando de arriba):
 | nucleus-pr-title-english | nucleus | bash scripts/ci/check_pr_title_english.sh | El título de un PR (= línea del changelog) está en inglés (QM-18) |
 | quark-pr-title-english | quark | bash scripts/ci/check_pr_title_english.sh | Ídem en quark |
 | orbit-pr-title-english | orbit | bash scripts/ci/check_pr_title_english.sh | Ídem en orbit |
+| umbrella-actions-pinned | paraguas | `bash scripts/check_actions_pinned.sh` | Una referencia `uses:` de los workflows del paraguas sin fijar por SHA de commit, o fijada sin el comentario `# <tag>` que Dependabot necesita para mantenerla. Ver §8. |
 
 Notas operativas:
 
@@ -383,3 +384,46 @@ CI —los guards (`manifest-guard`, `guard-of-guards`, `suite-integral`), los
 smoke (`showcase-smoke`, `quickstart-smoke`, `go-install-tag`,
 `orbit-lockstep`) y los builds— no usan el token más allá del checkout: leen
 el árbol pinado y salen con un EXIT.
+
+## 8. Acciones fijadas por SHA
+
+### La regla
+
+**Toda referencia `uses:` de los workflows de este repositorio se escribe
+`owner/accion@<40 hex> # <tag>`.** Las dos mitades son obligatorias y el guard
+`umbrella-actions-pinned` (`scripts/check_actions_pinned.sh`) exige las dos.
+
+El SHA, porque un tag de Git es un puntero móvil en un repositorio ajeno:
+quien controle esa cuenta puede reapuntar `v7` a otro commit, y ese commit
+corre dentro de nuestro CI con el token del repo sin que aquí cambie una
+línea. El SHA de 40 hex nombra un árbol concreto y no se reapunta.
+
+El comentario, porque es lo que hace el pin **mantenible**, y ahí está el
+riesgo real de esta regla: un pin abandonado congela también los fallos de
+seguridad de su versión, y eso es peor que el tag móvil que vino a sustituir.
+El bloque `github-actions` de `.github/dependabot.yml` es la otra mitad de la
+decisión: Dependabot lee el comentario para saber en qué versión está el pin
+y, cuando sale una nueva, reescribe SHA y comentario **a la vez** en un PR.
+Sin comentario no tiene de dónde partir y el pin queda opaco. Fijar sin bot,
+o poner el bot sin comentario, deja el trabajo a medias en direcciones
+opuestas.
+
+Estado tras el arco A3 (24 referencias en los cuatro workflows):
+
+| Acción | SHA | Tag |
+|---|---|---|
+| `actions/checkout` | `3d3c42e5aac5ba805825da76410c181273ba90b1` | `v7.0.1` |
+| `actions/setup-go` | `b7ad1dad31e06c5925ef5d2fc7ad053ef454303e` | `v7.0.0` |
+| `actions/setup-node` | `820762786026740c76f36085b0efc47a31fe5020` | `v7.0.0` |
+| `actions/upload-pages-artifact` | `fc324d3547104276b827a68afc52ff2a11cc49c9` | `v5.0.0` |
+| `actions/deploy-pages` | `368f82528645a54fb793d4d04e342629a3f51346` | `v5.0.1` |
+
+Cada SHA se resolvió con `gh api repos/<owner>/<accion>/commits/<tag> --jq
+.sha` y se verificó contra el tag **y contra el propietario**: un SHA correcto
+del repositorio equivocado no rompe nada visible: ejecuta otro código.
+Escribir el pin a mano sin esa verificación es lo único de esta regla que sale
+mal en silencio.
+
+Alcance: los workflows del paraguas. Los de nucleus, quark y orbit los fija
+cada producto en su propio PR del arco; el paraguas no reescribe ficheros del
+submódulo, y el guard no mira dentro de ellos.
