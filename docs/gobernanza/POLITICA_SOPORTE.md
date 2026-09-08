@@ -41,7 +41,10 @@ Tres defectos concretos, no de redacción:
 
 ## 2. El terreno medido
 
-Medido el 2026-09-08 sobre este repositorio; ninguna cifra es una estimación.
+Medido el 2026-09-08: las cifras de sets salen de los tags de este
+repositorio; las de ramas, de `git ls-remote` contra los cuatro remotos.
+Ninguna es una estimación, y la columna «Cómo se obtiene» dice con qué
+comando se rehace cada una.
 
 | Medida | Valor | Cómo se obtiene |
 |---|---|---|
@@ -49,8 +52,8 @@ Medido el 2026-09-08 sobre este repositorio; ninguna cifra es una estimación.
 | Sets en los últimos 60 días | **38** (todos) | idem |
 | Ráfaga más densa | **6 sets en 6 días**: 1.26.0 (09-03), 1.26.1 (09-04), 1.26.2 + 1.27.0 + 1.28.0 (los tres el 09-05), 1.29.0 (09-08) | idem |
 | Silencio más largo | **25 días**, del 2026-07-22 (`v1.10.0`) al 2026-08-16 (`v1.10.1`) | idem |
-| Cadencia prometida | semanal, `cron: '0 6 * * 1'` (lunes 06:00 UTC) | `.github/workflows/suite-integral.yml` + QADR-0008 |
-| Ramas de mantenimiento | **cero** en los cuatro repos | el paraguas no tiene ninguna rama remota `release*`; las de nucleus (14), quark (7) y orbit (2) son todas ramas de release-please sobre `main` |
+| Cadencia objetivo | semanal, `cron: '0 6 * * 1'` (lunes 06:00 UTC) | `.github/workflows/suite-integral.yml` + QADR-0008 |
+| Ramas de mantenimiento | **cero** en los cuatro repos: ninguna rama remota casa con `maint`, `lts`, `backport`, `stable` ni `N.x`, y las únicas `release-*` son ramas de release-please sobre `main` (nucleus 2, quark 1, orbit 2; el paraguas ninguna) | `git ls-remote --heads <origin>` contra cada remoto vivo — **nunca** `git branch -r` de un clon local: ahí sobreviven refs de ramas de componente ya borradas en el remoto y la cuenta sale inflada |
 
 La última fila manda sobre todo lo demás. Hoy **no existe ningún carril para
 parchear una línea antigua**, y no por descuido: la maquinaria lo prohíbe a
@@ -61,7 +64,10 @@ propósito.
   cannot be certified»).
 - `scripts/check_suite_tag.sh` §5 exige que el tag de suite **capture HEAD**:
   los gitlinks del tag deben ser los de HEAD y los del manifiesto de HEAD.
-- release-please trabaja sobre `main` en los cuatro repos.
+- release-please trabaja sobre `main` en los **tres repos de producto** (un
+  `release-please.yml` en cada uno). El paraguas **no tiene release-please**:
+  `scripts/train/*` pilota el de los tres productos y el tag de suite lo corta
+  `scripts/train/train.sh` en el HEAD de `main`.
 
 **Consecuencia que la política tiene que decir en voz alta:** la única forma
 física de corregir un set certificado es **certificar uno nuevo**. Un set no
@@ -74,7 +80,7 @@ frase que insinúe lo contrario es un incumplimiento escrito.
 
 | id | Qué fija | Propuesto | Decisión del propietario |
 |---|---|---|---|
-| **S1** | Cadencia de certificación | **1 set por semana**, cortado sobre la corrida del lunes 06:00 UTC. Fuera de cadencia, con razón escrita en el PR de re-pin | ☐ apruebo ☐ cambiar a: ______ |
+| **S1** | Cadencia de certificación | Cadencia **objetivo** de **1 set por semana**, anclada a la corrida del lunes 06:00 UTC. **No es un intervalo máximo garantizado**: un lunes puede pasar sin corte (§5). Cortar fuera de cadencia es legítimo, con razón escrita en el PR de re-pin | ☐ apruebo ☐ cambiar a: ______ |
 | **S2** | Ventana de soporte de un set | **60 días naturales** desde su certificación, y en todo caso **los 3 últimos sets**, lo que sea más amplio | ☐ apruebo ☐ cambiar a: ______ |
 | **S3** | LTS | **1 set por trimestre**, soportado **6 meses**. Primera candidata: el primer set certificado en o después del **2026-10-05**, con nombre `Quantum LTS 2026Q4` — **y no antes de que exista el carril de mantenimiento del §7.1** | ☐ apruebo ☐ cambiar a: ______ |
 | **S4** | Deprecación | Aviso publicado **≥ 90 días naturales** antes de la retirada; la retirada **sólo en un major de suite** (QADR-0002) | ☐ apruebo ☐ cambiar a: ______ |
@@ -91,12 +97,22 @@ documento, no compromisos con el lector.
 
 ## 4. Qué significa cada número, y por qué ese
 
-### S1 — Cadencia semanal
+### S1 — Cadencia semanal: objetivo, no suelo
 
 Ya está decidida en QADR-0008 y ya tiene reloj: el cron del lunes de
 `suite-integral.yml`. Esta política sólo la hace **pública** y le pone
 fechas (§6). La cadencia real ha sido mucho más rápida (38 sets en 59 días),
-así que la promesa semanal es un **mínimo cómodo**, no un techo.
+así que el semanal describe con holgura lo que ya viene pasando.
+
+Aun así S1 se redacta como **objetivo y no como suelo**, y la razón está en
+los mismos datos del §2. Un «mínimo de 1 set por semana» se lee, del lado de
+quien lo recibe, como **un intervalo máximo de 7 días**; el silencio más
+largo medido son **25 días** (2026-07-22 → 2026-08-16), así que ese suelo
+nacería ya incumplido por la propia historia de la suite. Prometerlo
+exigiría además un carril que garantice el corte aunque no haya nada que
+certificar, y QADR-0008 desacopló arcos y sets precisamente para no tenerlo.
+Por eso el §5 dice que no se promete intervalo máximo: es esta misma frase
+vista desde el otro lado, no una excepción a S1.
 
 ### S2 — 60 días, y qué significa exactamente «soportado»
 
@@ -119,7 +135,7 @@ documenta el camino de vuelta salto a salto.
 
 Por qué 60 y no «los dos últimos minors»: a un minor por semana, «los dos
 últimos minors» son catorce días — y al ritmo real, un día. 60 días son
-**~8,5 sets a la cadencia prometida** y **los 38 sets que existen** al ritmo
+**~8,5 sets a la cadencia objetivo** y **los 38 sets que existen** al ritmo
 medido: cubre entera la historia de la suite sin prometer ni una rama de
 mantenimiento.
 
@@ -222,9 +238,10 @@ aquí sólo se fecha.
 - **El calendario no promete contenido.** Una fecha del §6 dice cuándo corre
   la lane, no qué traerá el set ni que vaya a haberlo: QADR-0008 desacopló
   arcos y sets a propósito, así que un lunes puede pasar sin corte.
-- **No se promete un intervalo máximo entre sets.** La historia lo
-  desmentiría: hay un silencio medido de 25 días. El único plazo que corre
-  contra el proyecto es la ventana de S2.
+- **No se promete un intervalo máximo entre sets.** S1 es cadencia
+  objetivo, no suelo (§4): la historia desmentiría el suelo, porque hay un
+  silencio medido de 25 días. El único plazo que corre contra el proyecto es
+  la ventana de S2.
 - **No cubre combinaciones que nadie certificó.** Mezclar el nucleus de este
   set con el orbit de otro es un trío que no ha pasado por ningún guard, y
   el manifiesto existe precisamente para evitarlo.
