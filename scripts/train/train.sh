@@ -27,7 +27,10 @@
 #                        Si quedan marcadores REDACTAR, PARA (regla 3: la
 #                        prosa no se delega); si no quedan, no queda juicio
 #                        humano que ejercer y el driver abre el PR de re-pin
-#                        y lo FUSIONA con merge-group.sh sin preguntar.
+#                        y lo FUSIONA con merge-group.sh sin preguntar. Ese
+#                        commit va a main sin que nadie mire su diff, así que
+#                        sale de main al día y lleva SOLO las rutas del re-pin
+#                        (ver RUTAS_REPIN y --incluye).
 #   cierre               tras fusionar el PR de re-pin: tag de suite EN HEAD,
 #                        suite-integral --cierre (MAQ-1/MAQ-2) y el anuncio
 #                        del set al consumidor externo quantum-app (D6/RT-5).
@@ -40,6 +43,11 @@
 #   --solo-suelos  en las fases de repo, sube los suelos (QM-19) y para: no
 #               fusiona release PRs. Es el primer commit de un corte que aún
 #               no se va a cerrar (arranque de un arco).
+#   --incluye <ruta>  añade una ruta a lo que el PR de re-pin puede llevar
+#               (repetible). Por defecto solo entran las rutas que el re-pin
+#               escribe; cualquier otra cosa del árbol PARA el tren con los
+#               ficheros por delante en vez de colarse en un PR que se
+#               fusiona solo. Nombrarla es la revisión.
 #   --reloj     imprime el reloj del tren en vuelo (desglose por fase, total
 #               conducido y espera del propietario) y sale. Sin efectos.
 #   --reloj-cero  archiva el reloj en vuelo y sale: el tren siguiente empieza
@@ -47,7 +55,12 @@
 #
 # «--desde paraguas --hasta cierre» encadena el re-pin y el cierre en una sola
 # invocación: desde que la fase paraguas fusiona su PR, entre las dos no queda
-# ninguna decisión humana.
+# ninguna decisión humana. Encadenar sube el precio de equivocarse en «¿está
+# el re-pin en main?»: esa pregunta se le hace a origin y a GitHub —la versión
+# que declara origin/main y los PRs chore/set-* abiertos—, nunca al árbol. Un
+# árbol limpio no distingue «fusionado» de «parado en el merge sobre la rama
+# del set», y leerlo como lo primero certificaría y anunciaría el set ANTERIOR
+# con el nuevo aún sin fusionar.
 #
 # Deudas de doc por minor (RT-9): el driver NO las salda (son escritura), pero
 # las imprime antes de cada repo y el CI del release PR las exige — un release
@@ -96,6 +109,7 @@ cd "$(dirname "$0")/../.."
 PHASES="preflight quark nucleus orbit paraguas cierre"
 DRY=0
 SOLO_SUELOS=0
+INCLUYE=""
 SOLO_RELOJ=0
 RELOJ_CERO=0
 FROM="preflight"
@@ -106,6 +120,7 @@ while [ $# -gt 0 ]; do
     --desde) shift; FROM="${1:-}" ;;
     --hasta) shift; TO="${1:-}" ;;
     --solo-suelos) SOLO_SUELOS=1 ;;
+    --incluye) shift; INCLUYE="$INCLUYE ${1:-}" ;;
     --reloj) SOLO_RELOJ=1 ;;
     --reloj-cero) RELOJ_CERO=1 ;;
     -h|--help) sed -n '2,/^set -e/p' "$0" | sed '$d'; exit 0 ;;
@@ -260,6 +275,40 @@ manifiesto_valor() {
     inblock && $1 == key":" { v = $2; gsub(/"/, "", v); print v; exit }
   ' versions.yaml
 }
+
+# version_suite_en <ref> — la versión de suite que declara el versions.yaml de
+# una REF (no la del árbol). Dónde está el re-pin se lee de las refs y de los
+# PRs: el árbol de trabajo no distingue «fusionado» de «commiteado en su rama
+# y sin fusionar», y las dos cosas se ven exactamente igual (limpio).
+version_suite_en() {
+  git show "$1:versions.yaml" 2>/dev/null |
+    sed -nE 's/^quantum:[[:space:]]+"([^"]+)".*/\1/p' | head -1
+}
+
+# repin_pr_abierto — los PRs de set abiertos en el paraguas, uno por línea,
+# «número rama». Vacío si no hay ninguno. Se descuentan los que ESTA invocación
+# ya fusionó y comprobó MERGED (PR_REPIN_FUSIONADO): el listado de GitHub puede
+# ir un instante por detrás del merge que acabamos de verificar, y esa demora
+# no es un re-pin pendiente.
+PR_REPIN_FUSIONADO=""
+repin_pr_abierto() {
+  local linea n
+  while IFS= read -r linea; do
+    [ -n "$linea" ] || continue
+    n=${linea%% *}
+    case " $PR_REPIN_FUSIONADO " in *" $n "*) continue ;; esac
+    printf '%s\n' "$linea"
+  done <<EOF
+$(gh pr list -R jcsvwinston/quantum --state open --json number,headRefName \
+    --jq '.[] | select(.headRefName | startswith("chore/set-")) | "\(.number) \(.headRefName)"' 2>/dev/null || true)
+EOF
+}
+
+# SET_EN_CURSO — la versión de suite que la fase paraguas dejó FUSIONADA en
+# main en esta invocación. La fase de cierre se niega a certificar otra: con
+# «--desde paraguas --hasta cierre» las dos fases encadenan sin que nadie mire
+# entre medias.
+SET_EN_CURSO=""
 
 MERGE_BOT="bash scripts/train/merge-bot-pr.sh"
 CHECK_ANCHORED="bash scripts/train/check-anchored-release-branch.sh"
@@ -571,10 +620,22 @@ fase_preflight() {
   banner "preflight"
   say "PASO: gh autenticado"
   run gh auth status || die "gh sin autenticar"
+  say "PASO: rama del paraguas (el PR de re-pin sale de main, y de un main al día)"
+  local rama
+  rama=$(git rev-parse --abbrev-ref HEAD)
+  if [ "$rama" = "main" ]; then
+    say "  → main"
+  else
+    say "  AVISO: estás en «$rama». A las fases de repo les da igual; la fase paraguas"
+    say "  PARARÁ EN SECO ahí — desde una rama de trabajo, el PR del set arrastraría a"
+    say "  main lo que esa rama traiga, y ese PR se fusiona sin que nadie lo mire."
+  fi
   say "PASO: árbol del paraguas limpio (QM8-5 — la certificación lo exigirá)"
   if [ "$DRY" -eq 0 ] && [ -n "$(git status --porcelain)" ]; then
     say "  AVISO: árbol sucio. Las fases de repo no lo necesitan limpio, pero"
     say "  la fase paraguas/cierre sí: commitea o guarda antes de llegar ahí."
+    say "  El PR de re-pin lleva SOLO las rutas del re-pin: lo demás para el tren"
+    say "  (RUTAS_REPIN, --incluye), no se cuela en un PR que se fusiona solo."
   else
     say "  → git status --porcelain (limpio)"
   fi
@@ -613,46 +674,177 @@ repin_ya_escrito() {
   return 0
 }
 
+# RUTAS_REPIN — lo ÚNICO que el PR de re-pin puede llevar: los tres gitlinks
+# y los ficheros que escriben bump-set (versions.yaml, README.md, CHANGELOG.md)
+# y la parada de prosa (docs/RUMBO.md), más el go.work del `use` de un módulo
+# nuevo del pin (1.26.2). Hasta A3 el diff de este commit lo veía la persona
+# que abría el PR; ahora se fusiona sin que nadie lo mire, así que un
+# `git add -A` metería en main cualquier fichero suelto del árbol —una nota de
+# trabajo, un .orig de un conflicto, la salida de un script— sin que ningún
+# guard del paraguas se entere. `--incluye <ruta>` amplía la lista a
+# propósito: nombrar el fichero es la revisión que el paso automático quitó.
+RUTAS_REPIN="versions.yaml README.md CHANGELOG.md docs/RUMBO.md go.work go.work.sum quark nucleus orbit"
+
+# ruta_del_repin <ruta> — ¿está en RUTAS_REPIN (o bajo una de ellas) o en las
+# que se pasaron con --incluye?
+ruta_del_repin() {
+  local r
+  for r in $RUTAS_REPIN $INCLUYE; do
+    [ "$1" = "$r" ] && return 0
+    case "$1" in "$r"/*) return 0 ;; esac
+  done
+  return 1
+}
+
+# reparte_el_arbol — clasifica lo que el árbol tiene sin commitear en rutas
+# DEL re-pin y AJENAS (RUTAS_DENTRO / RUTAS_FUERA). Las rutas del re-pin no
+# llevan espacios; una ajena que los lleve se partirá al listarla, pero cae
+# igual en RUTAS_FUERA y para el tren, que es lo que importa.
+RUTAS_DENTRO=""
+RUTAS_FUERA=""
+reparte_el_arbol() {
+  RUTAS_DENTRO=""; RUTAS_FUERA=""
+  local linea ruta
+  while IFS= read -r linea; do
+    [ -n "$linea" ] || continue
+    ruta=${linea:3}
+    ruta=${ruta##* -> }   # un rename se juzga por su destino
+    if ruta_del_repin "$ruta"; then
+      RUTAS_DENTRO="$RUTAS_DENTRO $ruta"
+    else
+      RUTAS_FUERA="$RUTAS_FUERA $ruta"
+    fi
+  done <<EOF
+$(git status --porcelain)
+EOF
+}
+
+# para_por_rutas_ajenas — la parada (EXIT=2) cuando el árbol trae algo que no
+# es del re-pin: se enseñan los ficheros en vez de arrastrarlos.
+para_por_rutas_ajenas() {
+  local ruta lista="" relanza="bash scripts/train/train.sh --desde paraguas"
+  for ruta in $RUTAS_FUERA; do
+    lista="$lista $ruta"
+    relanza="$relanza --incluye $ruta"
+  done
+  MANUAL_DESDE=paraguas
+  manual \
+    "El árbol del paraguas trae cambios que NO son del re-pin:" \
+    "  $lista" \
+    "El PR de re-pin se fusiona a main sin que nadie mire su diff, así que no los arrastro." \
+    "Sácalos del árbol (git stash / git checkout -- / rm) — o, si van EN el set, nómbralos:" \
+    "  $relanza"
+}
+
+# exige_main_al_dia — el re-pin sale de main y de un main al día. La rama se
+# creaba desde el HEAD que hubiera: conducido desde una rama de trabajo, el PR
+# del set arrastraba a main los commits de esa rama, y nadie los miraba.
+exige_main_al_dia() {
+  local rama local_sha remoto_sha
+  rama=$(git rev-parse --abbrev-ref HEAD)
+  [ "$rama" = "main" ] ||
+    die "el PR de re-pin sale de main y estás en «$rama»: desde aquí el PR llevaría a main lo que traiga esta rama. Ponte en main (git checkout main) y relanza --desde paraguas"
+  git fetch -q origin main || die "no pude traer origin/main: sin eso no sé si main está al día"
+  local_sha=$(git rev-parse HEAD)
+  remoto_sha=$(git rev-parse origin/main)
+  [ "$local_sha" = "$remoto_sha" ] ||
+    die "main local ($(git rev-parse --short HEAD)) no es origin/main ($(git rev-parse --short origin/main)): ponlo al día con git pull --ff-only —o saca de main lo que tenga de más, que iría en el PR del set— y relanza --desde paraguas"
+}
+
+# cuerpo_notas — las notes del manifiesto, sin la clave ni la indentación del
+# bloque. Son el cuerpo del commit y del PR: la explicación del set ya la
+# redactó una persona, y repetirla en otras palabras abriría una segunda
+# versión de la verdad.
+cuerpo_notas() { sed -n '/^notes: >/,$p' versions.yaml | sed '1d;s/^  //'; }
+
+# crea_pr_repin <título> <cuerpo> — abre el PR del set desde la rama actual y
+# deja su número en PR_REPIN.
+PR_REPIN=""
+crea_pr_repin() {
+  local url
+  url=$(gh pr create -R jcsvwinston/quantum --base main --head "$(git rev-parse --abbrev-ref HEAD)" --title "$1" --body "$2
+
+Abierto por el tren: las notes ya están redactadas, así que en el re-pin no queda ninguna decisión: los pines son los tags recién cortados y el resto lo escribió bump-set. La lane suite-integral corre en modo normal (tolera el mid-tren sin tag) y el driver fusiona en cuanto salga verde.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)") || return 1
+  PR_REPIN=${url##*/}
+  say "  → PR quantum#$PR_REPIN abierto: $url"
+}
+
+# fusiona_pr_repin <n> — fusiona el PR del set y COMPRUEBA que quedó MERGED.
+# quantum fusiona con MERGE COMMIT (no squash): el historial del paraguas
+# guarda el re-pin y su PR.
+fusiona_pr_repin() {
+  local n=$1 br
+  br=$(git rev-parse --abbrev-ref HEAD)
+  run bash scripts/train/merge-group.sh quantum --merge "$n" || return 1
+  gh pr view "$n" -R jcsvwinston/quantum --json state --jq .state | grep -q MERGED ||
+    { say "  quantum#$n no quedó fusionado (mira sus checks)"; return 1; }
+  PR_REPIN_FUSIONADO="$PR_REPIN_FUSIONADO $n"
+  run git checkout -q main || return 1
+  run git pull -q --ff-only || return 1
+  case "$br" in chore/set-*) git branch -q -D "$br" 2>/dev/null || true ;; esac
+  say "OK: re-pin fusionado (quantum#$n)."
+}
+
 # abre_y_fusiona_repin <versión> — la parte MECÁNICA del re-pin del paraguas
 # (A3): rama, commit, PR y fusión. Sin preguntar nada: el único juicio de esta
-# fase es la prosa de las notes, y cuando esto corre ya está escrita. El PR
-# lleva esas notes por cuerpo — la explicación del set ya la redactó una
-# persona, y repetirla en otras palabras solo abriría una segunda versión de
-# la verdad.
+# fase es la prosa de las notes, y cuando esto corre ya está escrita. Lo que sí
+# comprueba, porque nadie va a mirar el diff, es de DÓNDE sale la rama y QUÉ
+# entra en el commit.
 abre_y_fusiona_repin() {
-  local ver=$1 br="chore/set-$1" n url msg notas
+  local ver=$1 br="chore/set-$1" msg puesta
+  exige_main_al_dia
+  reparte_el_arbol
+  [ -z "$RUTAS_FUERA" ] || para_por_rutas_ajenas
+  [ -n "$RUTAS_DENTRO" ] ||
+    die "no hay nada del re-pin sin commitear y main no lo declara: no sé qué commitear (relanza bump-set.sh)"
+  msg="chore(set): $ver — re-pin del set: quark $(manifiesto_valor modules quark), nucleus $(manifiesto_valor modules nucleus) y orbit $(manifiesto_valor modules orbit)"
+  say "  Lo que va en el commit (solo rutas del re-pin):"
+  git status --short -- $RUTAS_DENTRO | sed 's/^/    /'
   if git rev-parse -q --verify "refs/heads/$br" >/dev/null 2>&1 ||
      git ls-remote --exit-code --heads origin "$br" >/dev/null 2>&1; then
     br="$br-$(date +%m%d-%H%M)"
     say "  (chore/set-$ver ya existe: uso $br)"
   fi
-  msg="chore(set): $ver — re-pin del set: quark $(manifiesto_valor modules quark), nucleus $(manifiesto_valor modules nucleus) y orbit $(manifiesto_valor modules orbit)"
-  # Las notes del manifiesto, sin la clave ni la indentación del bloque.
-  notas=$(sed -n '/^notes: >/,$p' versions.yaml | sed '1d;s/^  //')
-  say "  Lo que va en el commit:"
-  git status --short | sed 's/^/    /'
   run git checkout -q -b "$br" || return 1
-  run git add -A || return 1
+  run git add -A -- $RUTAS_DENTRO || return 1
+  # `git add -- <rutas>` no desapunta lo que el índice ya llevara, y `git
+  # commit` commitea el índice entero: se comprueba lo que va a entrar, no lo
+  # que se acaba de añadir.
+  for puesta in $(git diff --cached --name-only); do
+    ruta_del_repin "$puesta" ||
+      die "el índice lleva $puesta, que no es del re-pin, y el commit se fusiona sin que nadie lo mire: git reset y relanza --desde paraguas"
+  done
   say "  → git commit -m \"$msg\" (cuerpo: las notes del manifiesto)"
-  git commit -q -m "$msg" -m "$notas" \
+  git commit -q -m "$msg" -m "$(cuerpo_notas)" \
     -m "Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>" || return 1
   run git push -q -u origin "$br" || return 1
-  url=$(gh pr create -R jcsvwinston/quantum --base main --head "$br" --title "$msg" --body "$notas
+  crea_pr_repin "$msg" "$(cuerpo_notas)" || return 1
+  fusiona_pr_repin "$PR_REPIN"
+}
 
-Abierto por el tren: las notes ya están redactadas, así que en el re-pin no queda ninguna decisión: los pines son los tags recién cortados y el resto lo escribió bump-set. La lane suite-integral corre en modo normal (tolera el mid-tren sin tag) y el driver fusiona en cuanto salga verde.
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)") || return 1
-  n=${url##*/}
-  say "  → PR quantum#$n abierto: $url"
-  # quantum fusiona con MERGE COMMIT (no squash): el historial del paraguas
-  # guarda el re-pin y su PR.
-  run bash scripts/train/merge-group.sh quantum --merge "$n" || return 1
-  gh pr view "$n" -R jcsvwinston/quantum --json state --jq .state | grep -q MERGED ||
-    { say "  quantum#$n no quedó fusionado (mira sus checks)"; return 1; }
-  run git checkout -q main || return 1
-  run git pull -q --ff-only || return 1
-  git branch -q -D "$br" 2>/dev/null || true
-  say "OK: re-pin fusionado (quantum#$n)."
+# reanuda_rama_repin <versión> — el camino de recuperación que el propio A3
+# crea: abre_y_fusiona_repin murió DESPUÉS del commit (en el push, en el
+# gh pr create o en la fusión) y el árbol quedó LIMPIO sobre chore/set-X.Y.Z
+# con el re-pin sin fusionar. Se retoma ESA rama; no se abre otra ni se da el
+# re-pin por hecho.
+reanuda_rama_repin() {
+  local ver=$1 br msg ver_rama
+  br=$(git rev-parse --abbrev-ref HEAD)
+  ver_rama=$(version_suite_en HEAD)
+  [ "$ver_rama" = "$ver" ] ||
+    die "la rama $br no lleva commiteado el re-pin de $ver (su versions.yaml declara ${ver_rama:-nada legible}): mírala antes de seguir"
+  if [ -n "$(git status --porcelain)" ]; then
+    say "  la rama $br tiene además cambios sin commitear:"
+    git status --short | sed 's/^/    /'
+    die "no los mezclo con un re-pin ya commiteado: commítealos tú en $br (o sácalos del árbol) y relanza --desde paraguas"
+  fi
+  run git push -q -u origin "$br" || die "no pude empujar $br"
+  msg=$(git log -1 --format=%s)
+  crea_pr_repin "$msg" "$(cuerpo_notas)" || die "no pude abrir el PR de re-pin desde $br"
+  fusiona_pr_repin "$PR_REPIN" ||
+    die "quantum#$PR_REPIN no quedó fusionado (ver arriba). El re-pin sigue en $br: arregla la causa y relanza --desde paraguas"
 }
 
 fase_paraguas() {
@@ -670,8 +862,16 @@ fase_paraguas() {
     say "PASO: la bifurcación de esta fase, según los marcadores REDACTAR de versions.yaml:"
     say "  CON marcadores → PARADA (EXIT=2): la prosa de las notes, el título del CHANGELOG y"
     say "                   la cabecera de docs/RUMBO.md; se retoma con --desde paraguas."
-    say "  SIN marcadores → guards locales del re-pin, rama chore/set-<versión>, commit con las"
-    say "                   notes por cuerpo, PR y merge-group.sh quantum --merge: sin preguntar."
+    say "  SIN marcadores → guards locales del re-pin y, según DÓNDE esté el re-pin:"
+    say "PASO: dónde está el re-pin — se le pregunta a origin/main y a los PRs chore/set-* abiertos,"
+    say "      NUNCA al árbol (limpio no distingue «fusionado» de «parado en el merge sobre su rama»)"
+    say "  origin/main ya declara el set  → nada que abrir."
+    say "  hay un PR chore/set-* abierto  → se retoma SU fusión; no se abre otro."
+    say "  HEAD en una rama chore/set-*   → se retoma esa rama (push, PR, fusión)."
+    say "  si no                          → desde main AL DÍA: rama, commit de SOLO las rutas del"
+    say "                                   re-pin (RUTAS_REPIN; lo ajeno PARA el tren), PR y"
+    say "                                   merge-group.sh quantum --merge."
+    say "  Y al final se exige que origin/main DECLARE el set: no se da por fusionado."
     say "OK: fase paraguas (dry-run) — nada escrito."
     return 0
   fi
@@ -718,19 +918,83 @@ fase_paraguas() {
   run bash scripts/check_gowork_covers_manifest.sh \
     || die "el go.work no cubre el manifiesto: el «use» de un módulo nuevo del pin va EN el PR de re-pin (1.26.2). Añádelo y relanza --desde paraguas"
 
-  if [ -z "$(git status --porcelain)" ]; then
-    say "PASO: abrir y fusionar el PR de re-pin"
-    say "  El árbol está limpio: el re-pin ya está en main, no hay PR que abrir."
+  # DÓNDE está el re-pin no se infiere del árbol. Un árbol limpio significaba
+  # aquí «ya está en main», y es falso justo en el camino de recuperación que
+  # esta fase crea: si la fusión murió (check rojo, protección de rama), el
+  # árbol queda LIMPIO sobre chore/set-X.Y.Z con el PR abierto. Dar eso por
+  # fusionado manda al cierre, que certifica y anuncia a quantum-app el set
+  # ANTERIOR mientras el nuevo sigue sin fusionar. Se pregunta a origin y a
+  # GitHub, que son los que lo saben.
+  say "PASO: ¿está el re-pin de $ver en main? (se le pregunta a origin y a GitHub, no al árbol)"
+  run git fetch -q origin main || die "no pude leer origin/main: sin eso no sé si el re-pin está fusionado"
+  local ver_main rama pend pend_n pend_br
+  ver_main=$(version_suite_en origin/main)
+  rama=$(git rev-parse --abbrev-ref HEAD)
+  pend=$(repin_pr_abierto)
+  say "  origin/main declara Quantum ${ver_main:-<no lo pude leer>} · rama actual «$rama» · PR de set abierto: ${pend:-ninguno}"
+
+  if [ -n "$pend" ]; then
+    [ "$(printf '%s\n' "$pend" | grep -c .)" -eq 1 ] ||
+      die "hay más de un PR chore/set-* abierto en el paraguas ($(printf '%s' "$pend" | tr '\n' ';')): cierra los que sobren y relanza --desde paraguas"
+    pend_n=${pend%% *}; pend_br=${pend#* }
+    case "$pend_br" in
+      "chore/set-$ver"|"chore/set-$ver"-*) : ;;
+      *) die "el PR de set abierto (quantum#$pend_n, rama $pend_br) no es el de $ver: míralo antes de seguir — no fusiono un set que no es el de este tren" ;;
+    esac
+    say "PASO: quantum#$pend_n sigue abierto — retomo SU fusión (no abro otro PR)"
+    fusiona_pr_repin "$pend_n" ||
+      die "quantum#$pend_n sigue sin fusionar (ver arriba: sus checks o la protección de rama). Arregla la causa y relanza --desde paraguas"
+  elif [ "$ver_main" = "$ver" ]; then
+    say "PASO: nada que abrir — origin/main ya declara Quantum $ver y no queda ningún PR de set abierto"
+    if [ -n "$(git status --porcelain)" ]; then
+      say "  AVISO: el árbol tiene cambios que no están en el re-pin fusionado:"
+      git status --short | sed 's/^/    /'
+      say "  La fase de cierre exige árbol limpio (el tag captura HEAD): resuélvelos antes."
+    fi
   else
-    say "PASO: abrir y fusionar el PR de re-pin (rama, commit, gh pr create, merge-group.sh)"
-    abre_y_fusiona_repin "$ver" || die "el PR de re-pin no quedó fusionado (ver arriba). El re-pin sigue en su rama: arregla la causa y relanza --desde paraguas"
+    case "$rama" in
+      chore/set-*)
+        say "PASO: el re-pin está commiteado en «$rama» y NO ha llegado a main — retomo esa rama"
+        reanuda_rama_repin "$ver"
+        ;;
+      *)
+        [ -n "$(git status --porcelain)" ] ||
+          die "origin/main declara Quantum ${ver_main:-?}, el manifiesto local declara $ver, y no hay ni cambios que commitear ni PR abierto: el re-pin no está en ninguna parte. Mira qué pasó con la rama chore/set-$ver antes de relanzar"
+        say "PASO: abrir y fusionar el PR de re-pin (rama, commit, gh pr create, merge-group.sh)"
+        abre_y_fusiona_repin "$ver" || die "el PR de re-pin no quedó fusionado (ver arriba). El re-pin sigue en su rama: arregla la causa y relanza --desde paraguas"
+        ;;
+    esac
   fi
-  say "OK: fase paraguas completa — Quantum $ver re-pinado en main."
+
+  # Y tampoco se da por hecho que salió bien: main tiene que DECLARARLO.
+  ver_main=$(version_suite_en origin/main)
+  [ "$ver_main" = "$ver" ] ||
+    die "tras la fusión origin/main sigue declarando Quantum ${ver_main:-?} y no $ver: el re-pin NO está en main. No sigas al cierre — certificaría el set anterior"
+  SET_EN_CURSO="$ver"
+  say "OK: fase paraguas completa — Quantum $ver re-pinado en main (lo declara origin/main)."
   say "  Siguiente: bash scripts/train/train.sh --desde cierre --hasta cierre"
 }
 
 fase_cierre() {
   banner "cierre"
+  # De qué set arranca esta invocación, ANTES de tocar la rama: el checkout y
+  # el pull de abajo abandonan en silencio un re-pin que no llegó a main, y a
+  # partir de ahí la fase certificaría —y anunciaría a quantum-app— el set
+  # ANTERIOR, que ya tiene tag («voy directo a la certificación»).
+  local head_antes ver_antes pend
+  head_antes=$(git rev-parse HEAD 2>/dev/null || echo "")
+  ver_antes=$(version_suite_en HEAD)
+  say "PASO: que no quede ningún PR de set sin fusionar (si lo hay, el re-pin no está en main)"
+  pend=$(repin_pr_abierto)
+  if [ -n "$pend" ]; then
+    if [ "$DRY" -eq 1 ]; then
+      say "  AVISO (dry-run): hay un PR de set abierto ($(printf '%s' "$pend" | tr '\n' ';')) — en real esto sería una parada en seco."
+    else
+      die "hay un PR de set sin fusionar (quantum#${pend%% *}, rama ${pend#* }): el re-pin no está en main. Fusiónalo (--desde paraguas) antes de certificar"
+    fi
+  else
+    say "  → ninguno abierto"
+  fi
   say "PASO: main al día y árbol limpio (el tag se corta EN HEAD)"
   run git checkout main
   run git pull --ff-only
@@ -740,6 +1004,17 @@ fase_cierre() {
   local ver
   ver=$(sed -nE 's/^quantum:[[:space:]]+"([^"]+)".*/\1/p' versions.yaml | head -1)
   [ -n "$ver" ] || die "no pude leer la versión de suite de versions.yaml"
+  # El set que se certifica es el que traía el tren, no el que main tuviera.
+  # Si el manifiesto del que arrancó esta invocación declaraba OTRO set y su
+  # commit no está en main, el re-pin se quedó fuera: certificar aquí sería
+  # publicar el set anterior como si fuera el nuevo.
+  if [ "$DRY" -eq 0 ] && [ -n "$ver_antes" ] && [ "$ver_antes" != "$ver" ] &&
+     ! git merge-base --is-ancestor "$head_antes" HEAD 2>/dev/null; then
+    die "arranqué sobre un manifiesto que declara Quantum $ver_antes, main declara $ver y ese HEAD ($(git rev-parse --short "$head_antes")) no está en main: el re-pin de $ver_antes NO se fusionó. No certifico el set anterior"
+  fi
+  if [ -n "$SET_EN_CURSO" ] && [ "$SET_EN_CURSO" != "$ver" ]; then
+    die "la fase paraguas dejó Quantum $SET_EN_CURSO fusionado y en main leo $ver: no certifico un set distinto del que acaba de re-pinarse"
+  fi
   if git rev-parse -q --verify "refs/tags/v$ver" >/dev/null; then
     say "  El tag v$ver ya existe — voy directo a la certificación."
   else

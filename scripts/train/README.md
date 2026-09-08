@@ -14,7 +14,7 @@ queda fuera del escaneo anti-fósil a propósito (solo cubre `scripts/`,
 
 | Script | Qué hace |
 |---|---|
-| `train.sh` | Driver por fases: `preflight → quark → nucleus → orbit → paraguas → cierre`. Imprime SIEMPRE qué va a hacer antes de hacerlo, para EN SECO al primer rojo, y donde hace falta juicio humano se detiene con la instrucción exacta (EXIT=2). `--dry-run` para ensayar; `--desde <fase>` para retomar. Se **cronometra por fase** («El reloj del tren», abajo: `--reloj`, `--reloj-cero`) y la fase paraguas **abre y fusiona ella misma** el PR de re-pin cuando las notes ya están redactadas. |
+| `train.sh` | Driver por fases: `preflight → quark → nucleus → orbit → paraguas → cierre`. Imprime SIEMPRE qué va a hacer antes de hacerlo, para EN SECO al primer rojo, y donde hace falta juicio humano se detiene con la instrucción exacta (EXIT=2). `--dry-run` para ensayar; `--desde <fase>` para retomar. Se **cronometra por fase** («El reloj del tren», abajo: `--reloj`, `--reloj-cero`) y la fase paraguas **abre y fusiona ella misma** el PR de re-pin cuando las notes ya están redactadas — desde main al día, con solo las rutas del re-pin (`--incluye <ruta>` para añadir una a propósito) y preguntando a origin, no al árbol, si ya está fusionado. |
 | `merge-bot-pr.sh <repo> <pr>` | Fusiona UN release PR del bot: push humano de commit vacío (dispara el CI que el token del bot no puede), espera de checks con `gh pr checks --watch --fail-fast`, `update-branch` si queda BEHIND, merge con el método del repo, y espera de los tags; si «Release Please» no corre la dispara, y si corre y termina SIN etiquetar (el auto-bloqueo) aplica `untag-recipe.sh` sola (`--sin-receta` para que solo lo imprima). |
 | `check-anchored-release-branch.sh <repo> [pr]` | Detecta la rama de release del ROOT anclada al main viejo: `git merge-base --is-ancestor` de cada último tag de módulo contra el head del PR. Si falla, imprime la receta cerrar + borrar rama + re-dispatch. Se ejecuta JUSTO ANTES de fusionar el root. |
 | `dispatch-app-bump.sh` | Anuncia el set YA certificado al consumidor externo `quantum-app` (`repository_dispatch` con el número de suite y la salida de `print-requires.sh`), **espera el run** que provoca y **exige que termine en PR** (QM-2). Allí un workflow reescribe el pin, corre sus gates y abre el PR. Exige `status: certified` y que el tag de suite exista; no fusiona ni escribe nada en el otro repo. |
@@ -36,8 +36,11 @@ mismo tren — cortar nucleus después de orbit obligó a DOS roots extra
 
 ### 0. Preflight (`train.sh --hasta preflight`)
 
-- `gh` autenticado; árbol del paraguas limpio (lo exigirá la certificación,
-  QM8-5); `declared_lags` vacío o con plan de vaciarse en este tren.
+- `gh` autenticado; el paraguas **en `main`** y árbol limpio (lo exigirá la
+  certificación, QM8-5, y de `main` sale el PR de re-pin, que se fusiona sin
+  que nadie mire su diff); `declared_lags` vacío o con plan de vaciarse en
+  este tren. El preflight avisa de la rama y del árbol sucio; la fase paraguas
+  es la que para en seco.
 - Las **deudas de doc por minor (RT-9)** se saldan EN la rama de cada release
   PR, no después (cada olvido cuesta 2 vueltas de CI):
   - **quark**: sección `## vX.Y.0` en las release notes del sitio +
@@ -123,6 +126,46 @@ encima— y el driver va directo a abrir y fusionar. Con
 `--desde paraguas --hasta cierre` el re-pin y el cierre encadenan en una sola
 invocación.
 
+**De dónde sale la rama y qué entra en el commit.** Hasta A3, el diff del
+re-pin lo veía la persona que abría el PR. Ahora se fusiona sin que nadie lo
+mire, así que las dos cosas que esa persona comprobaba de un vistazo son
+condiciones del driver:
+
+- **De main y de un main al día.** La rama se creaba desde el HEAD que hubiera:
+  conducir el tren desde una rama de trabajo metía los commits de esa rama en
+  `chore/set-X.Y.Z` y de ahí a main. Ahora, si `HEAD` no es `main` o `main` no
+  coincide con `origin/main`, la fase para en seco. El preflight lo avisa
+  antes, en vez de descubrirlo cinco fases después.
+- **Solo las rutas del re-pin.** El commit era un `git add -A`: cualquier
+  fichero suelto del árbol —una nota de trabajo, un `.orig` de un conflicto, un
+  backup del editor, la salida de un script— entraba en el PR y se fusionaba.
+  Ahora entran solo `versions.yaml`, `README.md`, `CHANGELOG.md`,
+  `docs/RUMBO.md`, `go.work`/`go.work.sum` y los gitlinks `quark`, `nucleus` y
+  `orbit` (`RUTAS_REPIN`), y lo que quede fuera **para el tren** (EXIT=2) con
+  los ficheros por delante. Si alguno va de verdad en el set, se nombra:
+  `--desde paraguas --incluye docs/handoff/<fichero>.md`. Nombrarlo es la
+  revisión que el paso automático quitó. El índice se comprueba después de
+  apuntar (un `git add -- <rutas>` no desapunta lo que ya estuviera puesto).
+
+**Dónde está el re-pin no se lee del árbol.** Un árbol limpio no distingue
+«fusionado» de «parado en el merge sobre su rama», y las dos cosas se ven
+igual — que es justo el estado en que deja el camino de recuperación que esta
+fase crea: si la fusión muere (check rojo, protección de rama), `HEAD` queda en
+`chore/set-X.Y.Z`, el árbol limpio y el PR abierto. La fase pregunta a `origin`
+y a GitHub, y actúa según la respuesta:
+
+| Lo que dicen origin y GitHub | Lo que hace la fase |
+| --- | --- |
+| `origin/main` ya declara el set y no hay PR `chore/set-*` abierto | nada que abrir |
+| hay un PR `chore/set-*` abierto (y es el de este set) | retoma **su** fusión; no abre otro |
+| `HEAD` en una rama `chore/set-*` con el re-pin commiteado | retoma esa rama: push, PR y fusión |
+| nada de lo anterior, desde `main` al día | rama, commit, PR y fusión |
+
+Y al terminar no se da el merge por hecho: exige que `origin/main` **declare**
+la versión del manifiesto. Si no, para en seco antes del cierre — un cierre
+sobre el set anterior lo certifica y lo anuncia a `quantum-app` como si fuera
+el nuevo.
+
 Un corte deliberado con otro número: `bump-set.sh --set X.Y.Z`. Ojo al re-pin
 que trae un guard nuevo de producto: la aserción anti-fósil pone la lane roja
 hasta registrarlo (con fixture) o excluirlo con porqué.
@@ -132,6 +175,15 @@ hasta registrarlo (con fixture) o excluirlo con porqué.
 Tras fusionar el PR de re-pin (lo fusiona la propia fase paraguas, con MERGE
 COMMIT, que es el método del paraguas):
 
+0. **Que el set que se certifica sea el del tren.** El `git checkout main` del
+   paso 1 abandona en silencio un re-pin que no llegó a main, y a partir de ahí
+   la fase leería del manifiesto de main el set ANTERIOR, encontraría su tag ya
+   cortado («voy directo a la certificación») y lo re-certificaría y
+   re-anunciaría. Así que antes de tocar la rama: ningún PR `chore/set-*`
+   abierto, y si el manifiesto del que arranca la invocación declara otro set,
+   su commit tiene que estar en main (si no, para en seco). Encadenado desde la
+   fase paraguas, además, la versión que lee en main tiene que ser la que esa
+   fase acaba de dejar fusionada.
 1. `git checkout main && git pull` — el tag se corta EN HEAD, **después del
    último PR de la ronda**, nunca antes.
 2. `git tag -a vX.Y.Z` + push.
