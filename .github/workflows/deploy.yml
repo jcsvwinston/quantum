@@ -11,10 +11,13 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Permisos mínimos: el workflow entero lee, y sólo el job que publica en Pages
+# recibe la escritura (`pages: write`) y el OIDC (`id-token: write`) que exige
+# actions/deploy-pages. El job `build` corre con el token de solo lectura: hace
+# checkout y sube el artefacto de Pages, y ninguna de las dos cosas escribe en
+# el repo. Un bloque de job SUSTITUYE al de workflow, no lo suma.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 # Un despliegue a la vez; no cancelar uno en curso.
 concurrency:
@@ -60,6 +63,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
