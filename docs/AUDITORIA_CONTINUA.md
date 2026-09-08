@@ -15,7 +15,7 @@ Piezas:
 | Registro de guards | `scripts/lib/guard-registry.sh` | Única fuente de verdad: nombre → cwd → comando de cada guard, más la aserción anti-fósil. |
 | Lane de certificación | `scripts/suite-integral.sh` | Ejecuta TODOS los guards del registro contra el árbol pinado; tabla `guard → EXIT`. Con `--cierre`/`QUANTUM_CERTIFYING=1` exige además que el tag de suite exista y capture HEAD (MAQ-2/B.2). |
 | Guard-of-guards | `scripts/guard-of-guards.sh` + `tests/guard-fixtures/` | Ejecuta cada guard contra una fixture de fallo y exige que muera por la causa esperada. |
-| CI | `.github/workflows/suite-integral.yml` | Ambos, en PR (paths relevantes), a demanda y cada lunes 06:00 UTC. |
+| CI | `.github/workflows/suite-integral.yml` | Ambos, en PR (paths relevantes — entre ellos todo `.github/workflows/**` y `.github/dependabot.yml`, que es lo que `umbrella-actions-pinned` vigila), a demanda y cada lunes 06:00 UTC. |
 | CI de integración | `.github/workflows/integration.yml` | Build + vet del set, lockstep de orbit, `go install @tag` con caché virgen, el smoke del showcase y la lane **quickstart-smoke** (gate del arco A2, abajo) — en PR, push a main y cada lunes 06:30 UTC (QM8-1, escalonado tras suite-integral). |
 | Lane quickstart-smoke | `scripts/ci/quickstart_smoke.sh` (job `quickstart-smoke` de integration.yml) | El quickstart de la suite EJECUTADO al set pinado: CLI de nucleus compilado del submódulo, `nucleus new --template suite --with orbit,quark,quarkbridge,quarkdatasource --db sqlite --offline`, build con los hermanos por copia del `go.work` (sin red), arranque, los `curl` EXTRAÍDOS de `website/docs/quickstart.md` con el parser del guard `umbrella-quickstart-cost`, sondas propias (/nope → 404, login admin, INSERT en el feed en vivo, modelos en Data Studio), 0 `level=WARN` en app.log, presupuesto de 60 s (scaffold + build + arranque + curls) sobre la caché de módulos restaurada, `go test ./...` del proyecto y el guard de coste al final. **Salvaguarda:** si el nucleus pinado no conoce `--with` sale 0 con `::notice` — se fusiona antes del tren y se enciende sola al re-pinar; el criterio es el mismo predicado del guard de coste (`qs_nucleus_knows_with`, fuente pinada) y la lane exige además que `nucleus new --help` coincida con él (si discrepan, rojo: el predicado no puede quedarse ciego en silencio). El job `go-install-tag` (caché virgen) corre el mismo script con `QUICKSTART_BUDGET_SECONDS=0` (sólo informa la cifra fría). Arnés, no guard: en `GUARD_SCAN_EXCLUDE` con su porqué. Esta lane y `showcase_smoke.sh` arrancan su app con `scripts/lib/background-app.sh` (`bg_start`: el subshell hace `exec`, así que el PID que el trap mata es el del servidor — con `(cd … && ./app) &` a secas, bash 3.2 dejaba la app huérfana ESCUCHANDO tras cada corrida local, con su temporal ya borrado); `bg_stop`: TERM, 5 s, KILL — con cota real también para un hijo de la shell, donde `wait` a secas bloquea sin límite: el KILL lo dispara un vigilante, así una app que ignora TERM o se atasca en su parada limpia no cuelga el trap EXIT hasta el timeout del job); autotest `tests/background-app/selftest.sh` (12 aserciones, con un servidor que ignora SIGTERM) como paso 0 de las dos lanes. |
 | Aviso activo del schedule rojo | `scripts/notify_schedule_failure.sh` | En corridas programadas fallidas **o canceladas** (MAQ-4/(c)), ambos workflows abren o actualizan un issue `[lane] fallo del schedule <workflow> <fecha>` con el enlace al run. Dedupe **server-side** por etiqueta `lane-schedule-failure` + término de título (MAQ-4/(b): con >100 issues abiertos un `--limit 100` sin filtro duplicaba). Si el propio job de aviso falla, un step de **último recurso** (MAQ-4/(a)) emite `::error::` + resumen del job + issue de título fijo, para que el fallo del notificador no degrade al email default (QM8-1, insuficiente). |
@@ -80,7 +80,7 @@ en el mismo PR, y comprobar la cifra con el comando de arriba):
 | nucleus-pr-title-english | nucleus | bash scripts/ci/check_pr_title_english.sh | El título de un PR (= línea del changelog) está en inglés (QM-18) |
 | quark-pr-title-english | quark | bash scripts/ci/check_pr_title_english.sh | Ídem en quark |
 | orbit-pr-title-english | orbit | bash scripts/ci/check_pr_title_english.sh | Ídem en orbit |
-| umbrella-actions-pinned | paraguas | `bash scripts/check_actions_pinned.sh` | Una referencia `uses:` de los workflows del paraguas sin fijar por SHA de commit, o fijada sin el comentario `# <tag>` que Dependabot necesita para mantenerla. Ver §8. |
+| umbrella-actions-pinned | paraguas | `bash scripts/check_actions_pinned.sh` | Una referencia `uses:` de los workflows del paraguas sin fijar por SHA de commit, o fijada sin el comentario `# <tag>` que Dependabot necesita para mantenerla — y la otra mitad de la misma decisión: el bloque `github-actions` de `.github/dependabot.yml` borrado, que dejaría los pines sin quien los suba. Corre desde `suite-integral.yml`, cuyo filtro de rutas incluye `.github/workflows/**` y `.github/dependabot.yml` para que muerda en el PR que introduce la deriva y no en el cron siguiente. Ver §8. |
 
 Notas operativas:
 
@@ -367,7 +367,7 @@ puntuación — Token-Permissions daba 10/10 antes del recorte y da 10/10
 después. La regla vale por sí misma; la puntuación no es su argumento.
 
 Qué puede escribir hoy cada lane, tras el barrido de `gh`, `git push` y
-`GITHUB_TOKEN`/`github.token` sobre los cuatro ficheros y los scripts que
+`GITHUB_TOKEN`/`github.token` sobre los cinco ficheros y los scripts que
 invocan:
 
 | Workflow | Arriba | Jobs con escritura | Por qué |
@@ -376,6 +376,7 @@ invocan:
 | `integration.yml` | `contents: read` | `notify-schedule-failure`: `issues: write` | `scripts/notify_schedule_failure.sh` crea la etiqueta `lane-schedule-failure` (`gh label create`, bajo el ámbito de issues) y abre o comenta el issue del schedule rojo. Sin ese permiso, el aviso del cron falla en silencio y el schedule rojo degrada al email por defecto, que es justo lo que QM8-1 declaró insuficiente. |
 | `suite-integral.yml` | `contents: read` | `notify-schedule-failure`: `issues: write` | El mismo script y el mismo motivo, para el cron del lunes 06:00 UTC. |
 | `website-ci.yml` | `contents: read` | ninguno | Construye el sitio y corre los guards sobre lo servido; no toca la API. |
+| `scorecard.yml` | `read-all` | `analysis`: `security-events: write` + `id-token: write` | La escritura de `security-events` es lo que exige subir el SARIF al panel de code scanning; va en el job, no arriba. `id-token` hoy **no se ejerce** —con `publish_results: false` la acción no acuña OIDC—: queda declarado porque es lo que la acción documenta como requisito y porque publicar sería una línea, no un permiso nuevo. El job vuelve a nombrar `contents: read` y `actions: read` porque un bloque de job sustituye al del workflow. |
 
 El barrido es el paso que hace la regla comprobable, y hay que repetirlo
 cuando un job gana un paso nuevo: el permiso se justifica por lo que el job
@@ -408,6 +409,12 @@ Sin comentario no tiene de dónde partir y el pin queda opaco. Fijar sin bot,
 o poner el bot sin comentario, deja el trabajo a medias en direcciones
 opuestas.
 
+Por eso el guard comprueba las dos mitades: los `uses:` de los cinco
+workflows y que `.github/dependabot.yml` siga declarando el ecosistema
+`github-actions`. De ese bloque comprueba que **existe**, no su contenido: la
+deriva realista es que desaparezca en un PR que no rompe ninguna corrida, no
+que se afine mal.
+
 Estado tras el arco A3 (24 referencias en cuatro workflows + 4 en el quinto):
 
 | Acción | SHA | Tag |
@@ -430,6 +437,31 @@ mal en silencio.
 Alcance: los workflows del paraguas. Los de nucleus, quark y orbit los fija
 cada producto en su propio PR del arco; el paraguas no reescribe ficheros del
 submódulo, y el guard no mira dentro de ellos.
+
+### Dónde muerde el guard, y por qué eso obligó a tocar el filtro de rutas
+
+`umbrella-actions-pinned` está en el registro, y el registro sólo lo ejecuta
+`scripts/suite-integral.sh` — en CI, el workflow `suite-integral.yml`. Ese
+workflow filtra por rutas en `pull_request`, así que **la lista de rutas es
+parte del guard**: si no nombra los ficheros que el guard vigila, el PR que
+puede deshacer la regla es justo el que no lo dispara.
+
+No es hipotético: el primer borrador de esta regla nombraba en el filtro
+`.github/workflows/suite-integral.yml` y nada más del directorio. Un workflow
+nuevo escrito a mano que naciera con `@v7`, un revert del pin, un PR de
+Dependabot del ecosistema `github-actions` (que por definición sólo toca
+`.github/workflows/*.yml`) o el borrado del bloque del bot se fusionaban en
+verde, y la deriva esperaba al cron del lunes 06:00 UTC. Por eso el filtro
+dice hoy `.github/workflows/**` y `.github/dependabot.yml`.
+
+La otra lane, `integration.yml`, sí corre en todo PR sin filtro de rutas,
+pero no ejecuta el registro (manifest-guard, `gowork-covers-manifest`, los
+smoke y el lockstep). Invocar ahí el guard a mano daría el mismo veredicto en
+dos sitios y una segunda fuente de verdad fuera del registro; la regla del
+paraguas es que un guard se ejecute desde el registro, así que lo que se
+ajusta es el filtro. **Al mover un guard de lane o al añadir uno que valide
+ficheros fuera de las rutas listadas, revisar ese filtro**: es la diferencia
+entre morder en el PR que introduce la deriva y morder una semana después.
 
 ### La lane de Scorecard
 

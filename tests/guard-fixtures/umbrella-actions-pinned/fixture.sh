@@ -12,7 +12,11 @@ TMP=$1
 TREE="$TMP/tree"
 ROOT=$(pwd)
 
-fx_copy "$ROOT" "$TREE" scripts/check_actions_pinned.sh .github/workflows
+# `.github/dependabot.yml` viaja en la copia aunque no sea lo que se rompe: el
+# guard exige también esa mitad (el bot que sube el pin), y sin el fichero la
+# copia moriría por DOS causas — un EXIT!=0 por la de setup no demuestra que
+# la mordida sea la del pin sin fijar.
+fx_copy "$ROOT" "$TREE" scripts/check_actions_pinned.sh .github/workflows .github/dependabot.yml
 python3 - "$TREE/.github/workflows/deploy.yml" <<'PY'
 import re, sys
 p = sys.argv[1]

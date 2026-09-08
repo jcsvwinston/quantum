@@ -16,13 +16,25 @@
 # mantenimiento es peor que un tag —se queda con los fallos de seguridad de
 # su versión para siempre—, así que aquí se exigen las dos cosas juntas.
 #
+# Por eso el guard comprueba las DOS mitades de la misma decisión: los pines
+# de los workflows y que `.github/dependabot.yml` siga declarando el
+# ecosistema `github-actions` que los mueve. Borrar ese bloque es un cambio de
+# tres líneas que no rompe ninguna corrida y deja los pines congelados.
+#
 # Alcance: los workflows de ESTE repositorio. Los de nucleus, quark y orbit
 # los fija cada producto en su propio PR del arco A3; el paraguas no reescribe
-# ficheros del submódulo.
+# ficheros del submódulo. Del bloque de Dependabot comprueba que EXISTE, no su
+# contenido: la deriva realista es que desaparezca, no que se afine mal.
+#
+# Dónde muerde: `scripts/suite-integral.sh` (registro de guards), que en CI
+# corre desde `.github/workflows/suite-integral.yml` — cuyo filtro de rutas
+# incluye '.github/workflows/**' y '.github/dependabot.yml' justamente para
+# que este guard corra en el PR que puede deshacerlo, no una semana después.
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
 DIR=${1:-.github/workflows}
+DEPENDABOT=${2:-.github/dependabot.yml}
 status=0
 refs=0
 files=0
@@ -78,5 +90,18 @@ if [ "$refs" -eq 0 ]; then
   exit 2
 fi
 
-[ "$status" -eq 0 ] && echo "OK: $refs referencias «uses:» en $files workflows, todas fijadas por SHA con su tag en el comentario"
+# La otra mitad: quien mueve el pin. Un pin por SHA que nadie sube congela
+# también los fallos de seguridad de su versión —para siempre—, así que es
+# peor que el tag móvil al que sustituyó. El bloque `github-actions` de
+# Dependabot es lo que lo evita, y sin esta comprobación su borrado no rompe
+# nada visible.
+if [ ! -f "$DEPENDABOT" ]; then
+  echo "FAIL: no existe $DEPENDABOT — los $refs pines por SHA quedan sin nadie que los suba, congelados con los fallos de seguridad de su versión (docs/AUDITORIA_CONTINUA.md §8)" >&2
+  status=1
+elif ! grep -qE '^[[:space:]]*-?[[:space:]]*package-ecosystem:[[:space:]]*"?'"'"'?github-actions'"'"'?"?[[:space:]]*$' "$DEPENDABOT"; then
+  echo "FAIL: $DEPENDABOT no declara el ecosistema «github-actions» — el pin y el bot son una sola decisión: sin el bloque, los $refs pines se fosilizan con los fallos de seguridad de su versión (docs/AUDITORIA_CONTINUA.md §8)" >&2
+  status=1
+fi
+
+[ "$status" -eq 0 ] && echo "OK: $refs referencias «uses:» en $files workflows, todas fijadas por SHA con su tag en el comentario; $DEPENDABOT declara el ecosistema github-actions que las mantiene"
 exit $status
