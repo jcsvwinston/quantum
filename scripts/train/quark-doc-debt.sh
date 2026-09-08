@@ -4,10 +4,14 @@
 #
 # check-version-coherence.sh exige, con la versión que el manifest de la rama
 # declara: la mención en README/SECURITY/CLAUDE.md, la sección «## vX.Y.Z» de
-# las notas del sitio, docs/RELEASE_NOTES_vX.Y.0.md y que el README apunte a
-# ese fichero. release-please bumpa README/SECURITY; lo demás lo escribe
-# scripts/release/gen_release_notes_skeleton.sh de quark (idempotente). Aquí
-# se corre ese esqueleto sobre la rama del bot y se empuja lo que cambie.
+# las notas del sitio, docs/RELEASE_NOTES_vX.Y.0.md, que el README apunte a
+# ese fichero y que la tabla de versiones soportadas de SECURITY.md nombre
+# EXACTAMENTE las minors del manifest. release-please bumpa las líneas
+# MARCADAS de README/SECURITY —en SECURITY solo la del marcador: las filas de
+# la tabla son contenido, no una mención—; todo lo demás, esas filas
+# incluidas, lo escribe scripts/release/gen_release_notes_skeleton.sh de quark
+# (idempotente). Aquí se corre ese esqueleto sobre la rama del bot y se empuja
+# lo que cambie.
 #
 # Dos detalles que costaron una vuelta de CI el 2026-09-05:
 #   - un `docs(release):` fusionado DESPUÉS de que el bot generase la rama NO

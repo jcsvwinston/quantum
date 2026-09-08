@@ -93,7 +93,8 @@ imprime_deudas() {
       say "  DEUDAS DE DOC de un minor de quark (check-version-coherence las exige):"
       say "    - sección ## vX.Y.0 en las release notes del sitio + docs/RELEASE_NOTES_vX.Y.0.md"
       say "    - menciones de la versión en README/SECURITY/CLAUDE.md (CLAUDE.md NO está en extra-files)"
-      say "    (el tren corre gen_release_notes_skeleton.sh en la rama del release: quark-doc-debt.sh; solo para si queda prosa)"
+      say "    - filas de la tabla de versiones soportadas de SECURITY.md (release-please solo bumpa su línea marcada)"
+      say "    (el tren corre gen_release_notes_skeleton.sh en la rama del release: quark-doc-debt.sh; escribe notas, línea marcada de CLAUDE.md, puntero del README y esas filas; solo para si queda prosa)"
       ;;
     nucleus)
       say "  DEUDAS DE DOC de un minor de nucleus (check_version_claims + check_docs_archive_freshness):"
