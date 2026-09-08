@@ -144,8 +144,19 @@ condiciones del driver:
   `orbit` (`RUTAS_REPIN`), y lo que quede fuera **para el tren** (EXIT=2) con
   los ficheros por delante. Si alguno va de verdad en el set, se nombra:
   `--desde paraguas --incluye docs/handoff/<fichero>.md`. Nombrarlo es la
-  revisión que el paso automático quitó. El índice se comprueba después de
-  apuntar (un `git add -- <rutas>` no desapunta lo que ya estuviera puesto).
+  revisión que el paso automático quitó, y la parada imprime la orden de
+  relanzamiento ya escrita, **con un fichero por ruta**: el árbol se lista con
+  `-uall` porque `git status` colapsa un directorio nuevo entero en una sola
+  línea (`docs/handoff/`), y entonces lo que viajaba a `--incluye` era el
+  resumen y no el fichero. `--incluye` acepta indistintamente el fichero o el
+  directorio que lo contiene, con barra final o sin ella.
+- **El índice se mira antes de crear la rama.** `git add -- <rutas>` no
+  desapunta lo que el índice ya llevara y `git commit` commitea el índice
+  entero, así que lo que se comprueba es lo que va a ENTRAR. Comprobarlo
+  después del `git checkout -b` dejaba, al rechazar, media rama
+  `chore/set-X.Y.Z` con el índice apuntado detrás: un estado que había que
+  deshacer a mano. Ahora la parada es en `main` y sin rama creada, así que la
+  orden de relanzamiento vale tal cual.
 
 **Dónde está el re-pin no se lee del árbol.** Un árbol limpio no distingue
 «fusionado» de «parado en el merge sobre su rama», y las dos cosas se ven
@@ -166,6 +177,15 @@ la versión del manifiesto. Si no, para en seco antes del cierre — un cierre
 sobre el set anterior lo certifica y lo anuncia a `quantum-app` como si fuera
 el nuevo.
 
+**Si GitHub no contesta, tampoco se sigue.** Un `gh pr list` que falla —503,
+token caducado a mitad de tren, rate limit, corte de red— no es «no hay ningún
+PR de set abierto»: las dos fases que preguntan (esta y la de cierre) paran en
+seco con el error de `gh` delante. Leído como «ninguno», el guard del cierre
+contestaba «todo en orden» sin haber podido preguntar y certificaba —y
+anunciaba a `quantum-app`— el set ANTERIOR con el re-pin nuevo sin fusionar; y
+aquí, esta fase abriría un SEGUNDO PR de set sobre el mismo re-pin. En
+`--dry-run`, que no certifica nada, lo avisa y sigue.
+
 Un corte deliberado con otro número: `bump-set.sh --set X.Y.Z`. Ojo al re-pin
 que trae un guard nuevo de producto: la aserción anti-fósil pone la lane roja
 hasta registrarlo (con fixture) o excluirlo con porqué.
@@ -180,9 +200,10 @@ Antes de nada, **que el set que se certifica sea el del tren**: el
 main, y a partir de ahí la fase leería del manifiesto de main el set ANTERIOR,
 encontraría su tag ya cortado («voy directo a la certificación») y lo
 re-certificaría y re-anunciaría a `quantum-app`. Así que antes de tocar la
-rama: ningún PR `chore/set-*` abierto, y si el manifiesto del que arranca la
-invocación declara otro set, su commit tiene que estar en main (si no, para en
-seco). Encadenado desde la fase paraguas, además, la versión que lee en main
+rama: ningún PR `chore/set-*` abierto —preguntado a GitHub, y si GitHub no
+contesta se para en vez de dar por buena la respuesta que no llegó—, y si el
+manifiesto del que arranca la invocación declara otro set, su commit tiene que
+estar en main (si no, para en seco). Encadenado desde la fase paraguas, además, la versión que lee en main
 tiene que ser la que esa fase acaba de dejar fusionada. Y después:
 
 1. `git checkout main && git pull` — el tag se corta EN HEAD, **después del

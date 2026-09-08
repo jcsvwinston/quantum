@@ -44,10 +44,12 @@
 #               fusiona release PRs. Es el primer commit de un corte que aún
 #               no se va a cerrar (arranque de un arco).
 #   --incluye <ruta>  añade una ruta a lo que el PR de re-pin puede llevar
-#               (repetible). Por defecto solo entran las rutas que el re-pin
-#               escribe; cualquier otra cosa del árbol PARA el tren con los
-#               ficheros por delante en vez de colarse en un PR que se
-#               fusiona solo. Nombrarla es la revisión.
+#               (repetible; el fichero o el directorio que lo contiene). Por
+#               defecto solo entran las rutas que el re-pin escribe; cualquier
+#               otra cosa del árbol PARA el tren con los ficheros por delante
+#               —uno por línea, y con la orden de relanzamiento ya escrita— en
+#               vez de colarse en un PR que se fusiona solo. Nombrarla es la
+#               revisión.
 #   --reloj     imprime el reloj del tren en vuelo (desglose por fase, total
 #               conducido y espera del propietario) y sale. Sin efectos.
 #   --reloj-cero  archiva el reloj en vuelo y sale: el tren siguiente empieza
@@ -60,7 +62,9 @@
 # que declara origin/main y los PRs chore/set-* abiertos—, nunca al árbol. Un
 # árbol limpio no distingue «fusionado» de «parado en el merge sobre la rama
 # del set», y leerlo como lo primero certificaría y anunciaría el set ANTERIOR
-# con el nuevo aún sin fusionar.
+# con el nuevo aún sin fusionar. Y si GitHub no contesta, la pregunta se queda
+# SIN responder y el tren para: un gh que falla no es «no hay ningún PR de set
+# abierto», y tratarlo como tal abre justo el gate que lo impide.
 #
 # Deudas de doc por minor (RT-9): el driver NO las salda (son escritura), pero
 # las imprime antes de cada repo y el CI del release PR las exige — un release
@@ -281,26 +285,48 @@ manifiesto_valor() {
 # PRs: el árbol de trabajo no distingue «fusionado» de «commiteado en su rama
 # y sin fusionar», y las dos cosas se ven exactamente igual (limpio).
 version_suite_en() {
-  git show "$1:versions.yaml" 2>/dev/null |
-    sed -nE 's/^quantum:[[:space:]]+"([^"]+)".*/\1/p' | head -1
+  local yaml
+  # No poder leer el versions.yaml de una ref es una RESPUESTA («no lo pude
+  # leer»), y los llamantes la tratan como tal —imprimen «<no lo pude leer>» y
+  # paran—; con set -euo pipefail, en cambio, el fallo de git show mataría al
+  # driver sin decir dónde.
+  yaml=$(git show "$1:versions.yaml" 2>/dev/null) || return 0
+  printf '%s\n' "$yaml" | sed -nE 's/^quantum:[[:space:]]+"([^"]+)".*/\1/p' | head -1
 }
 
 # repin_pr_abierto — los PRs de set abiertos en el paraguas, uno por línea,
-# «número rama». Vacío si no hay ninguno. Se descuentan los que ESTA invocación
-# ya fusionó y comprobó MERGED (PR_REPIN_FUSIONADO): el listado de GitHub puede
-# ir un instante por detrás del merge que acabamos de verificar, y esa demora
-# no es un re-pin pendiente.
+# «número rama». Distingue DOS respuestas que antes se veían igual:
+#
+#   EXIT=0 y salida vacía  GitHub contestó y no hay ninguno.
+#   EXIT≠0                 la consulta FALLÓ (503, token caducado a mitad de
+#                          tren, rate limit, corte de red). El error de gh sale
+#                          por stderr y quien pregunta PARA.
+#
+# La versión anterior (`2>/dev/null || true`) convertía cualquier fallo de la
+# API en «no hay ninguno», sin un solo aviso. De esta respuesta cuelgan los dos
+# guards que impiden certificar un set con su re-pin sin fusionar (fase cierre
+# y fase paraguas), así que el fallo abría el gate en vez de cerrarlo: un gate
+# que contesta «todo en orden» cuando no ha podido preguntar no es un gate.
+#
+# Se descuentan los PRs que ESTA invocación ya fusionó y comprobó MERGED
+# (PR_REPIN_FUSIONADO): el listado de GitHub puede ir un instante por detrás
+# del merge que acabamos de verificar, y esa demora no es un re-pin pendiente.
 PR_REPIN_FUSIONADO=""
 repin_pr_abierto() {
-  local linea n
+  local salida rc=0 linea n
+  # El stderr de gh NO se redirige: si falla, su error se lee en el terminal
+  # junto a la parada. Y solo su stdout se captura, para no parsear como PRs
+  # los avisos que gh escribe por stderr.
+  salida=$(gh pr list -R jcsvwinston/quantum --state open --json number,headRefName \
+    --jq '.[] | select(.headRefName | startswith("chore/set-")) | "\(.number) \(.headRefName)"') || rc=$?
+  [ "$rc" -eq 0 ] || return "$rc"
   while IFS= read -r linea; do
     [ -n "$linea" ] || continue
     n=${linea%% *}
     case " $PR_REPIN_FUSIONADO " in *" $n "*) continue ;; esac
     printf '%s\n' "$linea"
   done <<EOF
-$(gh pr list -R jcsvwinston/quantum --state open --json number,headRefName \
-    --jq '.[] | select(.headRefName | startswith("chore/set-")) | "\(.number) \(.headRefName)"' 2>/dev/null || true)
+$salida
 EOF
 }
 
@@ -687,11 +713,20 @@ RUTAS_REPIN="versions.yaml README.md CHANGELOG.md docs/RUMBO.md go.work go.work.
 
 # ruta_del_repin <ruta> — ¿está en RUTAS_REPIN (o bajo una de ellas) o en las
 # que se pasaron con --incluye?
+#
+# La barra final se normaliza en los DOS lados. Una ruta de directorio llega
+# con barra («docs/handoff/»), y esa barra viajaba tal cual a la orden de
+# relanzamiento que imprime para_por_rutas_ajenas, con lo que --incluye la
+# recibía de vuelta: el directorio pasaba al repartir el árbol y su contenido
+# moría después contra el patrón «docs/handoff//*», que no casa con
+# docs/handoff/set.md. La misma orden aceptaba la ruta en un sitio y la
+# rechazaba en el otro.
 ruta_del_repin() {
-  local r
+  local r p=${1%/}
   for r in $RUTAS_REPIN $INCLUYE; do
-    [ "$1" = "$r" ] && return 0
-    case "$1" in "$r"/*) return 0 ;; esac
+    r=${r%/}
+    [ "$p" = "$r" ] && return 0
+    case "$p" in "$r"/*) return 0 ;; esac
   done
   return 1
 }
@@ -700,6 +735,13 @@ ruta_del_repin() {
 # DEL re-pin y AJENAS (RUTAS_DENTRO / RUTAS_FUERA). Las rutas del re-pin no
 # llevan espacios; una ajena que los lleve se partirá al listarla, pero cae
 # igual en RUTAS_FUERA y para el tren, que es lo que importa.
+#
+# `-uall` (en vez del `-unormal` por defecto) porque un directorio entero sin
+# rastrear se colapsa en una sola línea —«?? docs/handoff/»— y ese resumen
+# viajaba a --incluye como si fuera una ruta: el fichero que de verdad va en el
+# set no aparecía por ninguna parte. Con los ficheros uno a uno, la orden de
+# relanzamiento los nombra —que es la revisión que el paso automático quitó— y
+# --incluye acepta tanto el fichero como el directorio que lo contiene.
 RUTAS_DENTRO=""
 RUTAS_FUERA=""
 reparte_el_arbol() {
@@ -715,7 +757,7 @@ reparte_el_arbol() {
       RUTAS_FUERA="$RUTAS_FUERA $ruta"
     fi
   done <<EOF
-$(git status --porcelain)
+$(git status --porcelain -uall)
 EOF
 }
 
@@ -725,7 +767,9 @@ para_por_rutas_ajenas() {
   local ruta lista="" relanza="bash scripts/train/train.sh --desde paraguas"
   for ruta in $RUTAS_FUERA; do
     lista="$lista $ruta"
-    relanza="$relanza --incluye $ruta"
+    # Sin la barra final del directorio: la orden se copia y se pega tal cual,
+    # y --incluye compara rutas, no prefijos con barra.
+    relanza="$relanza --incluye ${ruta%/}"
   done
   MANUAL_DESDE=paraguas
   manual \
@@ -807,15 +851,21 @@ abre_y_fusiona_repin() {
     br="$br-$(date +%m%d-%H%M)"
     say "  (chore/set-$ver ya existe: uso $br)"
   fi
-  run git checkout -q -b "$br" || return 1
-  run git add -A -- $RUTAS_DENTRO || return 1
-  # `git add -- <rutas>` no desapunta lo que el índice ya llevara, y `git
-  # commit` commitea el índice entero: se comprueba lo que va a entrar, no lo
-  # que se acaba de añadir.
+  # El índice se mira ANTES de crear la rama y antes de apuntar nada. `git add
+  # -- <rutas>` no desapunta lo que el índice ya llevara y `git commit`
+  # commitea el índice ENTERO, así que un fichero ajeno ya apuntado entraría en
+  # el commit aunque el árbol esté repartido; y comprobarlo después del
+  # checkout dejaba, al rechazar, media rama chore/set-X.Y.Z con el índice
+  # apuntado detrás —un estado que había que deshacer a mano y que en el
+  # relanzamiento siguiente moría con otro mensaje distinto. Lo que se apunta
+  # luego no hace falta volver a mirarlo: el pathspec son las rutas que
+  # reparte_el_arbol ya dio por del re-pin.
   for puesta in $(git diff --cached --name-only); do
     ruta_del_repin "$puesta" ||
       die "el índice lleva $puesta, que no es del re-pin, y el commit se fusiona sin que nadie lo mire: git reset y relanza --desde paraguas"
   done
+  run git checkout -q -b "$br" || return 1
+  run git add -A -- $RUTAS_DENTRO || return 1
   say "  → git commit -m \"$msg\" (cuerpo: las notes del manifiesto)"
   git commit -q -m "$msg" -m "$(cuerpo_notas)" \
     -m "Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>" || return 1
@@ -865,6 +915,7 @@ fase_paraguas() {
     say "  SIN marcadores → guards locales del re-pin y, según DÓNDE esté el re-pin:"
     say "PASO: dónde está el re-pin — se le pregunta a origin/main y a los PRs chore/set-* abiertos,"
     say "      NUNCA al árbol (limpio no distingue «fusionado» de «parado en el merge sobre su rama»)"
+    say "      y si GitHub no contesta se PARA: un gh que falla no es «no hay ningún PR abierto»"
     say "  origin/main ya declara el set  → nada que abrir."
     say "  hay un PR chore/set-* abierto  → se retoma SU fusión; no se abre otro."
     say "  HEAD en una rama chore/set-*   → se retoma esa rama (push, PR, fusión)."
@@ -930,7 +981,11 @@ fase_paraguas() {
   local ver_main rama pend pend_n pend_br
   ver_main=$(version_suite_en origin/main)
   rama=$(git rev-parse --abbrev-ref HEAD)
-  pend=$(repin_pr_abierto)
+  # Si GitHub no contesta, no se sigue con la mitad de la respuesta: sin saber
+  # si ya hay un PR de set abierto, el camino de abajo abriría un SEGUNDO PR
+  # (con sufijo de fecha) sobre el mismo re-pin.
+  pend=$(repin_pr_abierto) ||
+    die "no pude preguntar a GitHub por los PRs chore/set-* (el error de gh, justo arriba): sin esa respuesta no sé si el re-pin de $ver ya tiene un PR abierto, y abrir otro dejaría dos PRs de set. Relanza --desde paraguas cuando gh conteste"
   say "  origin/main declara Quantum ${ver_main:-<no lo pude leer>} · rama actual «$rama» · PR de set abierto: ${pend:-ninguno}"
 
   if [ -n "$pend" ]; then
@@ -981,12 +1036,22 @@ fase_cierre() {
   # el pull de abajo abandonan en silencio un re-pin que no llegó a main, y a
   # partir de ahí la fase certificaría —y anunciaría a quantum-app— el set
   # ANTERIOR, que ya tiene tag («voy directo a la certificación»).
-  local head_antes ver_antes pend
+  local head_antes ver_antes pend rc_pend=0
   head_antes=$(git rev-parse HEAD 2>/dev/null || echo "")
   ver_antes=$(version_suite_en HEAD)
   say "PASO: que no quede ningún PR de set sin fusionar (si lo hay, el re-pin no está en main)"
-  pend=$(repin_pr_abierto)
-  if [ -n "$pend" ]; then
+  pend=$(repin_pr_abierto) || rc_pend=$?
+  if [ "$rc_pend" -ne 0 ]; then
+    # gh mudo NO se lee como «no hay ninguno»: este es el guard que impide
+    # certificar y anunciar el set ANTERIOR con el re-pin nuevo sin fusionar,
+    # y sin respuesta de GitHub no tiene con qué decidir. El ensayo, que no
+    # certifica nada, lo dice y sigue.
+    if [ "$DRY" -eq 1 ]; then
+      say "  AVISO (dry-run): GitHub no contestó (el error de gh, justo arriba) — en real esto sería una parada en seco; el ensayo no certifica nada."
+    else
+      die "no pude preguntar a GitHub por los PRs chore/set-* (el error de gh, justo arriba): sin esa respuesta no sé si queda un re-pin sin fusionar, y certificar a ciegas publicaría el set anterior como si fuera el nuevo. Reintenta --desde cierre --hasta cierre cuando gh conteste"
+    fi
+  elif [ -n "$pend" ]; then
     if [ "$DRY" -eq 1 ]; then
       say "  AVISO (dry-run): hay un PR de set abierto ($(printf '%s' "$pend" | tr '\n' ';')) — en real esto sería una parada en seco."
     else
