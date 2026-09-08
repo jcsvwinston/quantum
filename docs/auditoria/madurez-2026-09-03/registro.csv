@@ -1,4 +1,4 @@
-# arcos_cerrados: A1
+# arcos_cerrados: A1 A2
 id,sev,repo,arco,estado,evidencia,informe,donde
 QK-1,P0,quark,—,hecho,quark#338,quark.md,"`quarkdriver/known.go:88-98` (`IsRegistered`), usado en `client.go:255-259`"
 QK-2,P1,quark,—,hecho,quark#338,quark.md,"`superapp` (raíz, 42 232 786 B, Mach-O arm64), `.gitignore:5-9`"
@@ -35,9 +35,9 @@ NU-12,P2,nucleus,—,hecho,nucleus#472,nucleus.md,"`pkg/tasks/providers/memory/m
 NU-13,P2,nucleus,—,hecho,nucleus#472,nucleus.md,`pkg/db/migrate.go:221-296`
 NU-14,P2,nucleus,—,hecho,nucleus#473,nucleus.md,`internal/cli/generatemodule.go:432-433`
 NU-15,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`pkg/db/migrate.go:471` ; `internal/cli/migrationmaintenance.go:136` vs `internal/cli/generate.go:464`
-NU-16,P2,nucleus,A2,abierto,,nucleus.md,`internal/cli/routes.go:92` ; `internal/cli/serve.go:20-25` ; `internal/cli/migrate.go`
-NU-17,P2,nucleus,A2,abierto,,nucleus.md,`internal/cli/openapi.go:46-75`
-NU-18,P2,nucleus,A2,abierto,,nucleus.md,`internal/cli/migrate.go:18-30` (+ 34 comandos con `flag.PrintDefaults`)
+NU-16,P2,nucleus,—,hecho,nucleus#480 (`nucleus routes` y `migrate status` leen el binario compilado vía NUCLEUS_PRINT_ROUTES y el ledger por espacio de nombres),nucleus.md,"`internal/cli/routes.go`, `pkg/nucleus/printroutes.go`, `internal/routedump`, `internal/cli/migrate.go`"
+NU-17,P2,nucleus,—,hecho,nucleus#478 (`openapi` falla con la receta cuando falta internal/contracts),nucleus.md,`internal/cli/openapi.go` (`requireContractsAggregator`)
+NU-18,P2,nucleus,—,hecho,nucleus#478 (`usageSpec` por comando: sinopsis + posicionales + subcomandos; `nucleus help <cmd>` == `<cmd> --help`) + nucleus#482 (`completion bash|zsh|fish`),nucleus.md,"`internal/cli/usage.go`, `internal/cli/completion.go`"
 NU-19,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`internal/cli/plugincommands_test.go:76` ; `pkg/plugins/plugins.go:19`
 NU-20,P2,nucleus,—,hecho,nucleus#472,nucleus.md,`pkg/model/registry.go:63-85`
 NU-21,P2,nucleus,—,hecho,nucleus#473,nucleus.md,`CHANGELOG.md:10-17` ; `docs/governance/COMPATIBILITY_SLO.md`
@@ -67,8 +67,8 @@ NU-44,P3,nucleus,A10,abierto,,nucleus.md,`pkg/nucleus/nucleus.go:826-836` ; `pkg
 NU-45,P3,nucleus,—,hecho,nucleus#455,nucleus.md,`internal/cli/generatemodule.go:368-371`
 NU-46,P3,nucleus,—,hecho,nucleus#455,nucleus.md,"`internal/cli/add.go:43-54` ; `root.go:141-152,47,200`"
 NU-47,P3,nucleus,—,hecho,nucleus#455,nucleus.md,`internal/cli/startapp.go` (`startAppHTMLTemplate`)
-NU-48,P3,nucleus,A2,abierto,,nucleus.md,`internal/cli/generate.go:80` ; `contracts_scaffold.go` ; `generatemodule.go`
-NU-49,P3,nucleus,A2,abierto,,nucleus.md,`internal/cli/scaffold/templates/mvc/rbac_policy.csv:13-19` ; `nucleus.yml.tmpl:26-28`
+NU-48,P3,nucleus,—,hecho,nucleus#481 (`generate module --mount` edita main.go y emite module_test.go; el agregador de contratos sólo en generate resource/handler/service/repository/model),nucleus.md,"`internal/cli/generate.go`, `internal/cli/mountedit.go`, `internal/cli/generatemodule.go`"
+NU-49,P3,nucleus,—,hecho,nucleus#481 (el scaffold deja de llevar las filas /notes y la exención CSRF de un módulo que no genera),nucleus.md,"`internal/cli/scaffold/templates/mvc/rbac_policy.csv`, `nucleus.yml.tmpl`"
 NU-50,P3,nucleus,—,hecho,nucleus#455,nucleus.md,"`internal/cli/configcommands.go:82,95`"
 NU-51,P3,nucleus,—,hecho,nucleus#455,nucleus.md,"`Dockerfile:8-15` ; `docker-compose.yml`, `docker-compose.test.yml` ; `CONTRIBUTING.md:53`"
 NU-52,P3,nucleus,—,hecho,nucleus#455,nucleus.md,"`nucleus-test.yml` ; `scripts/dev/stop_admin_cluster_lab.sh`, `scripts/dev/local_lb.go` ; `Makefile:64`"

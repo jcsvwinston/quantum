@@ -7,6 +7,9 @@
 #                                          conceptos de la página (techo 5/5).
 #   - scripts/ci/quickstart_smoke.sh     — la lane que EJECUTA los curl de la
 #                                          página contra la app generada.
+#   - scripts/check_quickstart_embeds.sh — el guard que resuelve las fences
+#                                          `file=…` de la página contra el
+#                                          submódulo pinado (qs_embeds).
 #
 # Si el guard contara con un parser y la lane con otro, la página podría
 # pasar el techo con un parser y romper la lane con el otro. Un parser, dos
@@ -133,6 +136,37 @@ qs_identifiers() {
     | grep -oE '(^|[^A-Za-z0-9_./])(nucleus|orbit|quark|quarkbridge|quarkdatasource)\.[A-Z][A-Za-z0-9]*' \
     | sed -E 's/^[^A-Za-z]//' \
     | awk '!seen[$0]++'
+}
+
+# qs_embeds <page.md> — las fences que IMPORTAN código en build: una línea por
+# fence cuya cadena de información lleva un token `file=…` (remark-code-import,
+# cableado en website/docusaurus.config.ts), en orden de aparición y con el
+# formato `<línea>\t<lenguaje>\t<file=…>`. Mismas reglas de fence que
+# qs_commands (``` o ~~~, columna 0 o sangrada, cada fence se cierra sólo con
+# su marcador; lo que hay DENTRO de una fence es contenido, no otra fence).
+# El token es el primero de la cadena que empieza por `file=`, como hace el
+# plugin (parte por espacios). Lo consume el guard umbrella-quickstart-embeds:
+# lo que la página promete embeber tiene que existir y decir lo que la prosa
+# explica EN EL SUBMÓDULO PINADO, no en el main del producto.
+qs_embeds() {
+  qs_body "$1" | awk '
+    function close_re_of(open,    m) {
+      m = open; sub(/^[[:space:]]*/, "", m)
+      return (substr(m, 1, 1) == "~") ? "^[[:space:]]*~~~+[[:space:]]*$" : "^[[:space:]]*```+[[:space:]]*$"
+    }
+    # El cuerpo empieza tras el front matter; la línea real de la página es
+    # NR + las líneas del front matter, que qs_body ya quitó — se informa la
+    # línea del CUERPO, suficiente para localizar la fence.
+    !infence && $0 ~ /^[[:space:]]*(```+|~~~+)/ {
+      infence = 1; close_re = close_re_of($0)
+      info = $0; sub(/^[[:space:]]*(```+|~~~+)[[:space:]]*/, "", info)
+      n = split(info, parts, /[[:space:]]+/)
+      lang = (n >= 1) ? parts[1] : ""
+      for (i = 2; i <= n; i++) if (parts[i] ~ /^file=/) { printf "%d\t%s\t%s\n", NR, lang, parts[i]; break }
+      next
+    }
+    infence && $0 ~ close_re { infence = 0; next }
+  '
 }
 
 # qs_nucleus_knows_with <dir del submódulo nucleus> — ¿el `nucleus new` de ese

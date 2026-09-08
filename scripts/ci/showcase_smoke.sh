@@ -52,9 +52,22 @@ BASE="http://127.0.0.1:$PORT"
 echo "== build del showcase (workspace, al pin)"
 go build -o "$TMP/showcase" ./nucleus/examples/showcase_demo || fail "showcase_demo no compila"
 
-# La app escribe showcase_demo.db en el cwd y lee nucleus.yaml de ahí.
-cp "$ROOT/nucleus/examples/showcase_demo/nucleus.yaml" "$TMP/"
-bg_start "$TMP" app.log env NUCLEUS_PORT="$PORT" ./showcase
+# La app lee su configuración del cwd y escribe ahí el sqlite: se arranca
+# desde una COPIA del directorio del ejemplo entero, no de un solo fichero.
+# Con el showcase generado por `nucleus new --template suite` (nucleus
+# ≥ v1.25.0) eso es nucleus.yml + rbac_policy.csv + migrations/; con el
+# anterior, nucleus.yaml — copiar «el fichero de config» por nombre dejaba
+# la lane ciega al re-pin (cp fallaba y la app arrancaba con defaults).
+mkdir -p "$TMP/app"
+cp -R "$ROOT/nucleus/examples/showcase_demo/." "$TMP/app/" || fail "no se pudo copiar nucleus/examples/showcase_demo"
+rm -f "$TMP/app"/*.db "$TMP/app"/*.db-* 2>/dev/null
+mv "$TMP/showcase" "$TMP/app/showcase"
+# Credencial del primer arranque: el showcase generado la lee de
+# ADMIN_BOOTSTRAP_PASSWORD (por defecto `quickstart`); el anterior la lleva
+# fija (`showcase-demo`) e ignora la variable. Se pasa la fija: vale para los
+# dos pines. SHOWCASE_ADMIN_PASSWORD la cambia para un ejemplo con otra.
+ADMIN_PASSWORD="${SHOWCASE_ADMIN_PASSWORD:-showcase-demo}"
+bg_start "$TMP/app" app.log env NUCLEUS_PORT="$PORT" ADMIN_BOOTSTRAP_PASSWORD="$ADMIN_PASSWORD" ./showcase
 APP_PID=$BG_PID
 
 echo "== esperando /healthz en $BASE"
@@ -79,14 +92,22 @@ case "$CODE" in
 esac
 
 echo "== login en el admin de Orbit"
+# Con `Sec-Fetch-Site: same-origin`, la cabecera que manda un navegador: el
+# showcase generado trae `csrf_enabled: true` con sólo /api/ exento, y el
+# formulario de login de Orbit no embebe ningún `_csrf_token` que reenviar —
+# sin la cabecera el POST responde 419 (verificado sobre el scaffold de suite
+# construido con los tres mains). El showcase anterior no verifica origen y
+# la cabecera le es indiferente: la sonda vale para los dos pines.
 JAR="$TMP/cookies.txt"
 curl -s -c "$JAR" -b "$JAR" -o /dev/null "$BASE/admin/login"
 LOGIN_CODE=$(curl -s -c "$JAR" -b "$JAR" -o "$TMP/login.out" -w '%{http_code}' \
   -X POST "$BASE/admin/login" \
+  -H 'Sec-Fetch-Site: same-origin' \
   --data-urlencode 'username=admin' \
-  --data-urlencode 'password=showcase-demo')
+  --data-urlencode "password=$ADMIN_PASSWORD")
 case "$LOGIN_CODE" in
-  200|302|303) ;;
+  200|302|303) echo "   HTTP $LOGIN_CODE (admin/$ADMIN_PASSWORD, Sec-Fetch-Site: same-origin)" ;;
+  419) cat "$TMP/login.out" >&2; fail "login del admin devolvió HTTP 419 (CSRF) pese a Sec-Fetch-Site: same-origin — ¿cambió la verificación de origen de nucleus o la cabecera que acepta?" ;;
   *) cat "$TMP/login.out" >&2; fail "login del admin devolvió HTTP $LOGIN_CODE" ;;
 esac
 

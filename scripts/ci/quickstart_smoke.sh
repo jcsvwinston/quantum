@@ -21,7 +21,9 @@
 #      lo que la página manda teclear es lo que aquí se ejecuta, con
 #      localhost:8080 reescrito al puerto libre del job;
 #   4. sondas propias de la lane: /nope → 404 (rutas desconocidas dejan de
-#      esconderse tras un 403 uniforme), login en /admin, el feed SQL en vivo
+#      esconderse tras un 403 uniforme), login en /admin (con `Sec-Fetch-Site:
+#      same-origin`, la cabecera que el navegador manda: el scaffold trae CSRF
+#      activo y sin ella el formulario responde 419), el feed SQL en vivo
 #      vio el INSERT de Quark sobre `articles`, Data Studio lista Author y
 #      Article;
 #   5. aserciones sobre app.log: 0 WARN (el scaffold limpio arranca y sirve
@@ -138,8 +140,15 @@ if [[ -z "$REHEARSAL" ]]; then
   # coincidir: es lo que garantiza que guard y lane se encienden a la vez.
   qs_nucleus_knows_with nucleus; source_knows=$?
   [[ $source_knows -ne 2 ]] || fail "nucleus/internal/cli/new.go no existe — ¿checkout sin submódulos? sin la fuente pinada no hay predicado de encendido"
+  # La ayuda se CAPTURA antes de buscar: con `set -o pipefail`, `cli | grep -q`
+  # cierra la tubería al primer match y el CLI, que sigue escribiendo (la
+  # ayuda de `new` supera las 50 líneas), muere con SIGPIPE — la tubería sale
+  # !=0 con el flag encontrado y la lane moría aquí por «el binario dice NO»
+  # con el primer nucleus que lo conocía (misma trampa que quantum#151 en el
+  # registro de guards).
   binary_knows=1
-  "$TMP/nucleus" new --help 2>&1 | grep -qE -- '(^|[[:space:]])-+with([[:space:]=]|$)' && binary_knows=0
+  new_help=$("$TMP/nucleus" new --help 2>&1 || true)
+  grep -qE -- '(^|[[:space:]])-+with([[:space:]=]|$)' <<<"$new_help" && binary_knows=0
   if [[ $source_knows -ne $binary_knows ]]; then
     fail "el predicado de encendido y el CLI discrepan al pin $pin: qs_nucleus_knows_with (fuente, new.go) dice $([[ $source_knows -eq 0 ]] && echo SÍ || echo NO) y \`nucleus new --help\` dice $([[ $binary_knows -eq 0 ]] && echo SÍ || echo NO) — el guard umbrella-quickstart-cost se enciende con la fuente; ajustar el regex de qs_nucleus_knows_with (scripts/lib/quickstart-fences.sh) a cómo registra nucleus el flag"
   fi
@@ -250,14 +259,25 @@ code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/nope")
 [[ "$code" == "404" ]] || fail "GET /nope devolvió HTTP $code (esperado 404: una ruta que no existe no se esconde tras un 403)"
 echo "   HTTP 404 ← GET /nope"
 
+# El scaffold de suite trae `csrf_enabled: true` con sólo /api/ exento: el
+# POST del formulario de login pasa por la verificación de origen de nucleus
+# (Sec-Fetch-Site, capa 1) y, si falta, por el token (capa 2). Un navegador
+# manda la cabecera solo; curl no — y el formulario de login de Orbit no
+# embebe ningún `_csrf_token` que se pueda reenviar, así que sin la cabecera
+# la respuesta es 419 (`csrf denied: token missing … sec_fetch_site=""`),
+# verificado sobre el scaffold construido con los tres mains (ronda de
+# revisión de la rama docs/a2-quickstart). La sonda dice lo que diría el
+# navegador: mismo origen.
 JAR="$TMP/cookies.txt"
 curl -s -c "$JAR" -b "$JAR" -o /dev/null "$BASE/admin/login"
 LOGIN_CODE=$(curl -s -c "$JAR" -b "$JAR" -o "$TMP/login.out" -w '%{http_code}' \
   -X POST "$BASE/admin/login" \
+  -H 'Sec-Fetch-Site: same-origin' \
   --data-urlencode 'username=admin' \
   --data-urlencode "password=$ADMIN_PASSWORD")
 case "$LOGIN_CODE" in
-  200|302|303) echo "   HTTP $LOGIN_CODE ← POST /admin/login (admin/$ADMIN_PASSWORD)" ;;
+  200|302|303) echo "   HTTP $LOGIN_CODE ← POST /admin/login (admin/$ADMIN_PASSWORD, Sec-Fetch-Site: same-origin)" ;;
+  419) head -c 600 "$TMP/login.out" >&2; echo >&2; fail "login del admin devolvió HTTP 419 (CSRF): el scaffold rechazó el POST pese a Sec-Fetch-Site: same-origin — ¿cambió la verificación de origen de nucleus o la cabecera que acepta?" ;;
   *) head -c 600 "$TMP/login.out" >&2; echo >&2; fail "login del admin devolvió HTTP $LOGIN_CODE" ;;
 esac
 

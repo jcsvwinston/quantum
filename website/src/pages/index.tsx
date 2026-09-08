@@ -74,7 +74,7 @@ export default function Home(): ReactNode {
   // Pitch de VALOR (9ª ronda): la portada responde «por qué usar Quantum»,
   // no cómo está organizado el repo. Cinco frases: qué obtienes, qué hace
   // cada pilar, qué promete el set certificado, la honestidad standalone,
-  // y el siguiente paso concreto (el quickstart de 15 minutos).
+  // y el siguiente paso concreto (el quickstart de cinco comandos).
   return (
     <Layout
       title="Quantum"
@@ -103,7 +103,7 @@ export default function Home(): ReactNode {
           </div>
           <div className={styles.actions}>
             <Link className="button button--primary button--lg" to="/start/quickstart/">
-              Quickstart — the suite in ~15 min&nbsp;→
+              Quickstart — the suite in five commands&nbsp;→
             </Link>
             <Link className="button button--secondary button--lg" to="/start/">What is Quantum?</Link>
             <Link className="button button--secondary button--lg" to="/start/install/">Install</Link>
@@ -125,8 +125,8 @@ export default function Home(): ReactNode {
           </li>
           <li>
             <b>The whole suite</b> — the{' '}
-            <Link to="/start/quickstart/">quickstart</Link> wires all three
-            pillars in one small app, with real output at every step.
+            <Link to="/start/quickstart/">quickstart</Link> scaffolds all three
+            pillars wired in one command, with real output at every step.
           </li>
         </ul>
       </section>

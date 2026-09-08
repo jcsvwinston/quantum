@@ -96,6 +96,18 @@ GUARDS=(
   # pin lo traiga, exige. No un número de versión: un patch sin --with no
   # debe encender uno de los dos gates y el otro no.
   "umbrella-quickstart-cost|.|bash scripts/check_quickstart_cost.sh website/docs/quickstart.md"
+  # Lo que el quickstart de la suite EMBEBE (fences ```go file=<rootDir>/…```
+  # que remark-code-import resuelve contra el submódulo nucleus) existe al pin
+  # y dice lo que la prosa explica: cada fence resuelta con las reglas del
+  # plugin (ruta, #Lx-Ly, sangría común) y contrastada con el `embeds:` del
+  # front matter (primera/última línea y subcadenas obligatorias) y con la
+  # regex de jerga de check_served_jargon.sh. Caza el pin POR DETRÁS de la
+  # página: el ejemplo existe con el mismo nombre en el pin anterior, el build
+  # sale verde y built-codeblocks no lo ve (el bloque no está vacío) — se
+  # publicaría el `Module` sin `Policies`/`CSRFExempt` bajo el párrafo que los
+  # explica. Sin transición: rojo al pin viejo ES la información (la página
+  # del arco A2 sólo se fusiona en el PR del set que re-pina nucleus).
+  "umbrella-quickstart-embeds|.|bash scripts/check_quickstart_embeds.sh website/docs/quickstart.md"
 
   # --- nucleus (al pin) -----------------------------------------------------
   # Marcadores x-release-please-version + directivas Go del scaffold + coherencia

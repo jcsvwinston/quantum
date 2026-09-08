@@ -13,14 +13,15 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
 ## Estado real (2026-09-05)
 
-- **Set certificado: Quantum 1.28.0** (2026-09-05) — quark v1.11.0
-  (drivers/{postgres,mysql,sqlite,mssql,oracle} v0.1.2) · nucleus v1.24.0
+- **Set certificado: Quantum 1.29.0** (2026-09-08) — quark v1.12.0
+  (drivers/{postgres,mysql,sqlite,mssql,oracle} v0.1.3) · nucleus v1.25.0
   (doce módulos hermanos: cinco drivers, dos exportadores y cuatro providers
-  en v0.1.2, providers/ldap v0.2.6) · orbit v1.9.2 (proto v0.4.4, agent
-  v0.6.16, server v0.11.2, quarkbridge v1.8.20, quarkdatasource v1.8.21).
-  1.28.0 publica el arco A1 (la deuda de la auditoría de madurez del
-  2026-09-03 en los tres pilares); minor de suite por las minors de quark y
-  nucleus. Siguiente arco: A2 (starter de suite).
+  en v0.1.3, providers/ldap v0.2.7) · orbit v1.9.3 (proto v0.4.4, agent
+  v0.6.17, server v0.11.3, quarkbridge v1.8.21, quarkdatasource v1.8.22).
+  1.29.0 publica el arco A2 (una aplicación de suite a un comando; el
+  quickstart en cinco comandos y cinco conceptos, medidos); minor de suite
+  por las minors de quark y nucleus. Siguiente arco: A3 (cadena de
+  suministro y gobernanza).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`.
 - **Auditoría de madurez 2026-09-03 sobre 1.26.0: ejecutada, corregida y
