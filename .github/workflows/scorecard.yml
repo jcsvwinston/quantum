@@ -76,3 +76,60 @@ jobs:
         uses: github/codeql-action/upload-sarif@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
           sarif_file: results.sarif
+
+  # QM8-1: el schedule rojo no puede morir en el email default de Actions. Es
+  # regla del paraguas y no una cortesía de las otras dos lanes: toda lane con
+  # disparador `schedule:` lleva este job (docs/AUDITORIA_CONTINUA.md §7), y
+  # desde este PR el guard `umbrella-schedule-notify` lo exige por mecánica.
+  # Aquí la regla muerde en el propósito de la propia lane: existe para
+  # PRODUCIR una medida, y un lunes que falle en silencio —cuota de la API,
+  # subida del SARIF rechazada, bump de la acción— no deja medida y nadie se
+  # entera hasta el lunes siguiente.
+  # MAQ-4/(c): además de failure(), cubre cancelled() — un schedule cancelado
+  # por `concurrency` perdía el aviso.
+  # RT-8: `needs` lista TODOS los demás jobs del workflow — failure() solo mira
+  # la cadena de dependencias. Al añadir un job aquí, añadirlo a esta lista.
+  notify-schedule-failure:
+    name: aviso activo del schedule rojo/cancelado (issue)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [analysis]
+    if: (failure() || cancelled()) && github.event_name == 'schedule'
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout (solo el script de aviso, sin submódulos)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Abre o actualiza el issue del fallo
+        id: notify
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/notify_schedule_failure.sh "scorecard.yml" "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      # MAQ-4/(a): si el PROPIO aviso falló, el rojo no puede degradar al email
+      # default (QM8-1, insuficiente). Canal fijo de último recurso, siempre
+      # visible: anotación ::error::, resumen del job, y un issue de título FIJO
+      # (dedup bracket-free, independiente del canal principal que falló).
+      - name: Canal de último recurso si el aviso falló
+        if: always() && steps.notify.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          echo "::error title=Notificador del schedule caído::El aviso del schedule rojo/cancelado de scorecard.yml FALLÓ (run: $run_url). Revisar permisos issues:write / la API de gh."
+          {
+            echo "## Notificador del schedule CAÍDO — scorecard.yml"
+            echo "El job de aviso no pudo abrir/actualizar su issue. Run: $run_url"
+            echo "El email default de Actions no basta (QM8-1); revisa el notificador."
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Último recurso best-effort: issue de título FIJO, dedup bracket-free.
+          fixed_prefix="NOTIFICADOR CAÍDO scorecard.yml"
+          if gh issue list --state open --search "$fixed_prefix in:title" --limit 20 --json title --jq '.[].title' 2>/dev/null | grep -Fq "$fixed_prefix"; then
+            echo "issue de último recurso ya abierto — no se duplica"
+          else
+            gh issue create --title "[lane] $fixed_prefix" \
+              --body "El aviso automático del schedule de scorecard.yml falló ANTES de registrar el rojo. Run: $run_url. Canal de último recurso (QM8-1/MAQ-4)." \
+              || echo "::error::Tampoco se pudo abrir el issue de último recurso; quedan el ::error:: y el resumen del job."
+          fi

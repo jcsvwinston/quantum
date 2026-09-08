@@ -117,6 +117,15 @@ GUARDS=(
   # Entra con el arco A3; los workflows de los tres productos los fija cada
   # repo en su propio PR (este guard no mira dentro de los submódulos).
   "umbrella-actions-pinned|.|bash scripts/check_actions_pinned.sh"
+  # Toda lane del paraguas con disparador `schedule:` lleva su job
+  # `notify-schedule-failure`: el cron rojo no puede degradar al email por
+  # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que
+  # el aviso sirva —failure() Y cancelled(), sólo en schedule, `issues: write`
+  # y el canal común— y RT-8: que su `needs` liste TODOS los demás jobs, que
+  # es lo que hace que failure() los vea. La regla vivía sólo en la prosa del
+  # §7 y la tercera lane programada nació sin el job, con la certificación en
+  # verde.
+  "umbrella-schedule-notify|.|bash scripts/check_schedule_notify.sh"
 
   # --- nucleus (al pin) -----------------------------------------------------
   # Marcadores x-release-please-version + directivas Go del scaffold + coherencia

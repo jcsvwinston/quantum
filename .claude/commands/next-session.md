@@ -272,7 +272,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   disparadores. **Ya no hay rondas completas de auditoría**; el trabajo entra
   por arcos. Runbook: [`docs/AUDITORIA_CONTINUA.md`](../../docs/AUDITORIA_CONTINUA.md).
 - `suite-integral.yml` corre los **lunes 06:00 UTC** e `integration.yml` a las
-  **06:30**; una lane roja abre issue automático. Hoy hay **39 guards**
+  **06:30**; una lane roja abre issue automático —y `umbrella-schedule-notify`
+  exige ese aviso en toda lane con `schedule:`—. Hoy hay **41 guards**
   registrados y `guard-of-guards` prueba con fixture que cada uno muerde.
 - Escribir el set: `scripts/bump-set.sh` (submódulos al tag, los bloques de
   módulos, pins y tablas del README, y desde 1.27.0 la versión de suite por

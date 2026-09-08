@@ -5,8 +5,9 @@ Describe qué comprueba la certificación mecánica, cómo se demuestra que los
 checks siguen vivos, el procedimiento de cierre de una ronda, qué queda
 deliberadamente fuera para el juicio humano — y, desde la 8ª, el régimen
 operativo de la auditoría continua (§6): la 8ª pasada fue LA ÚLTIMA manual
-completa. El §7 fija la regla de permisos del token con la que nace cada
-workflow del paraguas.
+completa. El §7 fija las dos reglas con las que nace cada workflow
+del paraguas: permisos mínimos del token, y aviso activo si el cron se pone
+rojo.
 
 Piezas:
 
@@ -18,7 +19,8 @@ Piezas:
 | CI | `.github/workflows/suite-integral.yml` | Ambos, en PR (paths relevantes — entre ellos todo `.github/workflows/**` y `.github/dependabot.yml`, que es lo que `umbrella-actions-pinned` vigila), a demanda y cada lunes 06:00 UTC. |
 | CI de integración | `.github/workflows/integration.yml` | Build + vet del set, lockstep de orbit, `go install @tag` con caché virgen, el smoke del showcase y la lane **quickstart-smoke** (gate del arco A2, abajo) — en PR, push a main y cada lunes 06:30 UTC (QM8-1, escalonado tras suite-integral). |
 | Lane quickstart-smoke | `scripts/ci/quickstart_smoke.sh` (job `quickstart-smoke` de integration.yml) | El quickstart de la suite EJECUTADO al set pinado: CLI de nucleus compilado del submódulo, `nucleus new --template suite --with orbit,quark,quarkbridge,quarkdatasource --db sqlite --offline`, build con los hermanos por copia del `go.work` (sin red), arranque, los `curl` EXTRAÍDOS de `website/docs/quickstart.md` con el parser del guard `umbrella-quickstart-cost`, sondas propias (/nope → 404, login admin, INSERT en el feed en vivo, modelos en Data Studio), 0 `level=WARN` en app.log, presupuesto de 60 s (scaffold + build + arranque + curls) sobre la caché de módulos restaurada, `go test ./...` del proyecto y el guard de coste al final. **Salvaguarda:** si el nucleus pinado no conoce `--with` sale 0 con `::notice` — se fusiona antes del tren y se enciende sola al re-pinar; el criterio es el mismo predicado del guard de coste (`qs_nucleus_knows_with`, fuente pinada) y la lane exige además que `nucleus new --help` coincida con él (si discrepan, rojo: el predicado no puede quedarse ciego en silencio). El job `go-install-tag` (caché virgen) corre el mismo script con `QUICKSTART_BUDGET_SECONDS=0` (sólo informa la cifra fría). Arnés, no guard: en `GUARD_SCAN_EXCLUDE` con su porqué. Esta lane y `showcase_smoke.sh` arrancan su app con `scripts/lib/background-app.sh` (`bg_start`: el subshell hace `exec`, así que el PID que el trap mata es el del servidor — con `(cd … && ./app) &` a secas, bash 3.2 dejaba la app huérfana ESCUCHANDO tras cada corrida local, con su temporal ya borrado); `bg_stop`: TERM, 5 s, KILL — con cota real también para un hijo de la shell, donde `wait` a secas bloquea sin límite: el KILL lo dispara un vigilante, así una app que ignora TERM o se atasca en su parada limpia no cuelga el trap EXIT hasta el timeout del job); autotest `tests/background-app/selftest.sh` (12 aserciones, con un servidor que ignora SIGTERM) como paso 0 de las dos lanes. |
-| Aviso activo del schedule rojo | `scripts/notify_schedule_failure.sh` | En corridas programadas fallidas **o canceladas** (MAQ-4/(c)), ambos workflows abren o actualizan un issue `[lane] fallo del schedule <workflow> <fecha>` con el enlace al run. Dedupe **server-side** por etiqueta `lane-schedule-failure` + término de título (MAQ-4/(b): con >100 issues abiertos un `--limit 100` sin filtro duplicaba). Si el propio job de aviso falla, un step de **último recurso** (MAQ-4/(a)) emite `::error::` + resumen del job + issue de título fijo, para que el fallo del notificador no degrade al email default (QM8-1, insuficiente). |
+| Lane de medida (Scorecard) | `.github/workflows/scorecard.yml` | OpenSSF Scorecard sobre este repositorio, lunes 07:00 UTC y a demanda; sube el SARIF a code scanning y lo guarda como artefacto `scorecard-results`. Es MEDIDA, no guard: no está en el registro y no impone umbral (§8). Su rojo avisa por el mismo canal que las otras dos lanes. |
+| Aviso activo del schedule rojo | `scripts/notify_schedule_failure.sh` | En corridas programadas fallidas **o canceladas** (MAQ-4/(c)), las **tres** lanes programadas —`integration.yml`, `suite-integral.yml` y `scorecard.yml`— abren o actualizan un issue `[lane] fallo del schedule <workflow> <fecha>` con el enlace al run. Dedupe **server-side** por etiqueta `lane-schedule-failure` + término de título (MAQ-4/(b): con >100 issues abiertos un `--limit 100` sin filtro duplicaba). Si el propio job de aviso falla, un step de **último recurso** (MAQ-4/(a)) emite `::error::` + resumen del job + issue de título fijo, para que el fallo del notificador no degrade al email default (QM8-1, insuficiente). Que toda lane con `schedule:` lleve el job —y que su `needs` cubra a todos los demás (RT-8)— lo exige el guard `umbrella-schedule-notify`; hasta el arco A3 era costumbre copiada de lane a lane, y la tercera nació sin él. |
 
 ## 1. Qué cubre la certificación mecánica
 
@@ -32,7 +34,7 @@ Los guards de producto corren **al pin** — el submódulo tal y como lo fija
 significa que el set que el manifiesto certifica no pasa sus propios guards,
 que es exactamente lo que reportaría un auditor.
 
-Registro actual (40 guards — la cifra canónica NO es esta prosa, es el
+Registro actual (41 guards — la cifra canónica NO es esta prosa, es el
 registro: `source scripts/lib/guard-registry.sh && guard_names | wc -l`. Esta
 tabla es descriptiva y ya fue por detrás del registro real dos veces
 (DI-14/RT-10: decía «25» y omitía `orbit-versioned-markers`; QM-11: decía
@@ -81,6 +83,7 @@ en el mismo PR, y comprobar la cifra con el comando de arriba):
 | quark-pr-title-english | quark | bash scripts/ci/check_pr_title_english.sh | Ídem en quark |
 | orbit-pr-title-english | orbit | bash scripts/ci/check_pr_title_english.sh | Ídem en orbit |
 | umbrella-actions-pinned | paraguas | `bash scripts/check_actions_pinned.sh` | Una referencia `uses:` de los workflows del paraguas sin fijar por SHA de commit, o fijada sin el comentario `# <tag>` que Dependabot necesita para mantenerla — y la otra mitad de la misma decisión: el bloque `github-actions` de `.github/dependabot.yml` borrado, que dejaría los pines sin quien los suba. Corre desde `suite-integral.yml`, cuyo filtro de rutas incluye `.github/workflows/**` y `.github/dependabot.yml` para que muerda en el PR que introduce la deriva y no en el cron siguiente. Ver §8. |
+| umbrella-schedule-notify | paraguas | `bash scripts/check_schedule_notify.sh` | Una lane con disparador `schedule:` sin su job `notify-schedule-failure` —el cron rojo degradando al email por defecto de Actions, que QM8-1 declaró insuficiente—, o con el job puesto pero inservible: `if:` que no cubre `cancelled()` (MAQ-4/(c)) o que no acota a `schedule`, sin `issues: write`, sin el canal común (`scripts/notify_schedule_failure.sh`), o con un `needs` incompleto (RT-8: `failure()` sólo mira la cadena de dependencias, y así se perdió el rojo de `showcase-smoke`). Ver §7.
 
 Notas operativas:
 
@@ -376,7 +379,7 @@ invocan:
 | `integration.yml` | `contents: read` | `notify-schedule-failure`: `issues: write` | `scripts/notify_schedule_failure.sh` crea la etiqueta `lane-schedule-failure` (`gh label create`, bajo el ámbito de issues) y abre o comenta el issue del schedule rojo. Sin ese permiso, el aviso del cron falla en silencio y el schedule rojo degrada al email por defecto, que es justo lo que QM8-1 declaró insuficiente. |
 | `suite-integral.yml` | `contents: read` | `notify-schedule-failure`: `issues: write` | El mismo script y el mismo motivo, para el cron del lunes 06:00 UTC. |
 | `website-ci.yml` | `contents: read` | ninguno | Construye el sitio y corre los guards sobre lo servido; no toca la API. |
-| `scorecard.yml` | `read-all` | `analysis`: `security-events: write` + `id-token: write` | La escritura de `security-events` es lo que exige subir el SARIF al panel de code scanning; va en el job, no arriba. `id-token` hoy **no se ejerce** —con `publish_results: false` la acción no acuña OIDC—: queda declarado porque es lo que la acción documenta como requisito y porque publicar sería una línea, no un permiso nuevo. El job vuelve a nombrar `contents: read` y `actions: read` porque un bloque de job sustituye al del workflow. |
+| `scorecard.yml` | `read-all` | `analysis`: `security-events: write` + `id-token: write`; `notify-schedule-failure`: `issues: write` | La escritura de `security-events` es lo que exige subir el SARIF al panel de code scanning; va en el job, no arriba. `id-token` hoy **no se ejerce** —con `publish_results: false` la acción no acuña OIDC—: queda declarado porque es lo que la acción documenta como requisito y porque publicar sería una línea, no un permiso nuevo. El job vuelve a nombrar `contents: read` y `actions: read` porque un bloque de job sustituye al del workflow. El `issues: write` del job de aviso es el mismo de las otras dos lanes y por el mismo motivo (abajo). |
 
 El barrido es el paso que hace la regla comprobable, y hay que repetirlo
 cuando un job gana un paso nuevo: el permiso se justifica por lo que el job
@@ -385,6 +388,30 @@ CI —los guards (`manifest-guard`, `guard-of-guards`, `suite-integral`), los
 smoke (`showcase-smoke`, `quickstart-smoke`, `go-install-tag`,
 `orbit-lockstep`) y los builds— no usan el token más allá del checkout: leen
 el árbol pinado y salen con un EXIT.
+
+### El aviso del cron es parte de la lane, no un añadido
+
+Segunda regla, hermana de la anterior y del mismo §7: **toda lane con
+disparador `schedule:` lleva su job `notify-schedule-failure`**. El motivo es
+QM8-1: para un cron rojo, Actions sólo ofrece por defecto un email a la cuenta
+del propietario —señal que nadie mira—, y el remedio del paraguas es un job
+que abre o actualiza un issue con el enlace al run
+(`scripts/notify_schedule_failure.sh`, fila de la tabla de piezas). El job
+tiene que servir, no sólo estar: cubre `failure()` **y** `cancelled()`
+(MAQ-4/(c)), se acota a `github.event_name == 'schedule'` —en un PR el rojo ya
+se ve—, declara `issues: write`, usa el canal común y su `needs` lista TODOS
+los demás jobs del workflow (RT-8: `failure()` sólo mira la cadena de
+dependencias; con `showcase-smoke` fuera de la lista, el lunes enrojecía sin
+abrir issue).
+
+Hasta el arco A3 esta regla vivía sólo aquí, y las dos lanes programadas la
+cumplían porque se habían copiado la una de la otra. La tercera —`scorecard.yml`,
+la lane de medida del §8— nació sin el job y la certificación salió verde con
+la omisión dentro: 40 de 40 guards, ninguno mirando eso. El caso era además el
+peor posible para esa lane en concreto, que existe para PRODUCIR una medida: un
+lunes fallido en silencio no deja medida y nadie se entera. Desde este PR la
+regla la sostiene el guard `umbrella-schedule-notify`, que la comprueba en el
+PR que añade la lane.
 
 ## 8. Acciones fijadas por SHA, y la lane de OpenSSF Scorecard
 
@@ -469,6 +496,12 @@ entre morder en el PR que introduce la deriva y morder una semana después.
 07:00 UTC (una hora después del cron de `suite-integral`, para no solapar dos
 lanes largas) y a mano con `workflow_dispatch`. Sube el SARIF a code scanning
 y lo guarda como artefacto `scorecard-results`.
+
+Como toda lane programada del paraguas, lleva su job
+`notify-schedule-failure` (§7): si el lunes falla —cuota de la API, subida del
+SARIF rechazada, bump de la acción—, el rojo abre issue en vez de morir en el
+email por defecto. Sin ese aviso, una lane cuyo propósito es producir una
+medida podría dejar de producirla sin que nadie lo notara.
 
 **Es una lane de medida, no un guard.** No impone umbral y no está en el
 registro: su rojo significa que la corrida falló, no que la nota bajó. El
