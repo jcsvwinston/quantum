@@ -4,7 +4,7 @@ title: Idioma único del sitio del paraguas — inglés
 status: accepted
 date: 2026-07-19
 deciders: jcsvwinston
-related: [QADR-0003]
+related: [QADR-0003, QADR-0009]
 supersedes: null
 tags: [docs, website, idioma]
 ---
@@ -32,6 +32,13 @@ estuviera.
 El español sigue siendo el idioma de trabajo interno del proyecto (ADRs,
 commits, PRs, informes de auditoría): esta decisión cubre solo la superficie
 publicada.
+
+> **Enmendado por [QADR-0009](QADR-0009-idioma-por-superficie.md)
+> (2026-09-08):** el párrafo anterior sigue valiendo para el paraguas y para
+> los ADRs de todos los repos, pero no para los commits ni los PRs de los
+> tres productos, que van en inglés porque el título del squash es la línea
+> del CHANGELOG y de las notas de release. La decisión de este QADR (sitio
+> publicado en inglés) no cambia.
 
 ## Reversibilidad
 
