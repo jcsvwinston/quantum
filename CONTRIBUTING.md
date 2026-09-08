@@ -36,6 +36,7 @@ muevas un gitlink en un PR normal**: el re-pin es parte del tren de releases
 | Un script de `scripts/` | `bash -n`, y si es un **guard** (tiene veredicto sobre el árbol), la regla dura de abajo. |
 | `versions.yaml`, submódulos, README (tablas de versiones) | Solo dentro del tren de releases. `bash scripts/manifest-guard.sh` es el juez. |
 | `docs/RUMBO.md` | Su cabecera «Estado real» debe decir el set del manifiesto (`scripts/check_rumbo_estado.sh`). |
+| Un workflow de `.github/workflows/` | `permissions:` arriba con solo lectura (`contents: read`) y la escritura **en el job que la usa**, nunca arriba; el bloque de job sustituye al del workflow, no se suma. Justifica el permiso con lo que el job ejecuta (`gh`, `git push`, `GITHUB_TOKEN`): [§7 de `docs/AUDITORIA_CONTINUA.md`](docs/AUDITORIA_CONTINUA.md). |
 | `go.work` | Debe cubrir todo módulo publicable (`scripts/check_gowork_covers_manifest.sh`); los patrones de build salen de él (`scripts/gowork-patterns.sh`). |
 
 ## Regla dura: un guard nuevo trae fixture

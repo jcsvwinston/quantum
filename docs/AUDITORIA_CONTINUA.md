@@ -5,7 +5,8 @@ Describe qué comprueba la certificación mecánica, cómo se demuestra que los
 checks siguen vivos, el procedimiento de cierre de una ronda, qué queda
 deliberadamente fuera para el juicio humano — y, desde la 8ª, el régimen
 operativo de la auditoría continua (§6): la 8ª pasada fue LA ÚLTIMA manual
-completa.
+completa. El §7 fija la regla de permisos del token con la que nace cada
+workflow del paraguas.
 
 Piezas:
 
@@ -338,3 +339,34 @@ excluido, su casilla es ⚠️ con la asimetría nombrada, nunca ✅.
 (vacío) — o entradas «DECISIÓN REQUERIDA: …» con dueño (Carlos) y contexto.
 Nada de pendientes implícitos: lo que no está aquí, no existe.
 ```
+
+## 7. Permisos del token en los workflows del paraguas
+
+Regla, para que el próximo workflow nazca bien: **cada workflow declara
+`permissions:` arriba con lo mínimo que necesita para leer** (`contents:
+read`) **y la escritura baja al job que de verdad la usa**. Un workflow sin
+bloque arriba corre con el token por defecto del repo — lo que OpenSSF
+Scorecard cuenta como `write-all` en la comprobación Token-Permissions, de
+peso alto; declararlo arriba con write es la misma severidad. Ojo a la
+mecánica: un bloque `permissions:` de job **sustituye** al del workflow, no se
+suma, así que un job que declara escritura vuelve a nombrar la lectura que
+necesite.
+
+Qué puede escribir hoy cada lane, tras el barrido de `gh`, `git push` y
+`GITHUB_TOKEN`/`github.token` sobre los cuatro ficheros y los scripts que
+invocan:
+
+| Workflow | Arriba | Jobs con escritura | Por qué |
+|---|---|---|---|
+| `deploy.yml` | `contents: read` | `deploy`: `pages: write` + `id-token: write` | Es lo que exige `actions/deploy-pages`: publicar en Pages y acuñar el OIDC del despliegue. El job `build` se queda en solo lectura — hace checkout con submódulos y sube el artefacto de Pages, y ninguna de las dos cosas escribe en el repo. |
+| `integration.yml` | `contents: read` | `notify-schedule-failure`: `issues: write` | `scripts/notify_schedule_failure.sh` crea la etiqueta `lane-schedule-failure` (`gh label create`, bajo el ámbito de issues) y abre o comenta el issue del schedule rojo. Sin ese permiso, el aviso del cron falla en silencio y el schedule rojo degrada al email por defecto, que es justo lo que QM8-1 declaró insuficiente. |
+| `suite-integral.yml` | `contents: read` | `notify-schedule-failure`: `issues: write` | El mismo script y el mismo motivo, para el cron del lunes 06:00 UTC. |
+| `website-ci.yml` | `contents: read` | ninguno | Construye el sitio y corre los guards sobre lo servido; no toca la API. |
+
+El barrido es el paso que hace la regla comprobable, y hay que repetirlo
+cuando un job gana un paso nuevo: el permiso se justifica por lo que el job
+ejecuta, no por lo que el workflow parece. Los demás jobs de las tres lanes de
+CI —los guards (`manifest-guard`, `guard-of-guards`, `suite-integral`), los
+smoke (`showcase-smoke`, `quickstart-smoke`, `go-install-tag`,
+`orbit-lockstep`) y los builds— no usan el token más allá del checkout: leen
+el árbol pinado y salen con un EXIT.
