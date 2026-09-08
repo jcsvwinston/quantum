@@ -37,7 +37,9 @@ commitea el esqueleto de notas; no lo empuja, y el worktree se retira al salir.
 Las dos fases que A3 cambia —paraguas y cierre— no dejan rastro:
 `--dry-run --desde paraguas --hasta cierre` sale con el árbol igual, en la misma
 rama y en el mismo commit, sin directorio de reloj y con el reloj temporal
-borrado.
+borrado. Y el propio ensayo lo dice al terminar: su última línea nombra los
+checkouts hermanos que el recorrido ha tocado —y solo esos— en vez de rematar
+con un «nada se ha ejecutado con efectos» que en las fases de repo sería falso.
 
 ## El tren, paso a paso
 
