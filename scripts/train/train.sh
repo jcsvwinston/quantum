@@ -186,9 +186,15 @@ else
   RELOJ="$RELOJ_GITDIR/quantum-train/reloj.tsv"
 fi
 # El ensayo no toca el estado real: reloj temporal que se borra al salir.
+#
+# La plantilla va entera y con XXXXXX: `mktemp -t <prefijo>` es la forma de
+# BSD, y el mktemp de GNU la rechaza («too few X's in template»). En Linux —el
+# runner del CI, y cualquier máquina que no sea el mac del propietario— el
+# ensayo se quedaba con el fallback RELOJ=/dev/null y moría al salir intentando
+# borrarlo: `--dry-run` salía EXIT=1 después de haber recorrido bien sus fases.
 RELOJ_TMP=0
 if [ "$DRY" -eq 1 ] && [ "$SOLO_RELOJ" -eq 0 ] && [ "$RELOJ_CERO" -eq 0 ]; then
-  RELOJ=$(mktemp -t quantum-tren-reloj) || RELOJ=/dev/null
+  RELOJ=$(mktemp "${TMPDIR:-/tmp}/quantum-tren-reloj.XXXXXX") || RELOJ=/dev/null
   RELOJ_TMP=1
 fi
 OBJETIVO_MIN="${QUANTUM_TREN_OBJETIVO_MIN:-30}"
@@ -229,7 +235,11 @@ reloj_al_salir() {
     1) reloj_marca rojo ;;
     *) reloj_marca interrumpido ;;
   esac
-  [ "$RELOJ_TMP" -eq 1 ] && rm -f "$RELOJ"
+  # Retirar el temporal no puede decidir el código de salida del tren: con
+  # `set -e`, un `rm` que falla sale del trap por la puerta de atrás —sin
+  # llegar al `return`— y bash se queda con ESE código, convirtiendo un ensayo
+  # bueno en EXIT=1.
+  if [ "$RELOJ_TMP" -eq 1 ] && [ "$RELOJ" != /dev/null ]; then rm -f "$RELOJ" || true; fi
   return 0
 }
 trap reloj_al_salir EXIT

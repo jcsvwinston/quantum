@@ -39,7 +39,7 @@ trap 'rm -rf "$BASE"' EXIT
 monta() {
   LAB=$(mktemp -d "$BASE/lab.XXXXXX")
   local t="$LAB/paraguas"
-  mkdir -p "$t/scripts/train" "$LAB/bin" "$LAB/marcas"
+  mkdir -p "$t/scripts/train" "$LAB/bin" "$LAB/gnubin" "$LAB/marcas" "$LAB/tmp"
   git init -q -b main "$t"
   git -C "$t" config user.email tren@example.com
   git -C "$t" config user.name "Tren de mentira"
@@ -61,16 +61,46 @@ EOF
   # ahí, que es todo lo que este autotest necesita de ella).
   printf '#!/usr/bin/env bash\nexit 0\n' > "$LAB/bin/gh"
   chmod +x "$LAB/bin/gh"
+  # mktemp «a la GNU»: rechaza la forma de BSD (`-t <prefijo>` sin XXXXXX), que
+  # es la que el driver usaba para el reloj del ensayo. Con ella, en Linux el
+  # reloj caía a /dev/null y el tren moría al salir intentando borrarlo.
+  cat > "$LAB/gnubin/mktemp" <<'EOF'
+#!/usr/bin/env bash
+if [ "${1:-}" = "-t" ] && [ $# -eq 2 ]; then
+  case "$2" in *XXX*) ;; *) echo "mktemp: too few X's in template '$2'" >&2; exit 1 ;; esac
+fi
+exec "$MKTEMP_REAL" "$@"
+EOF
+  chmod +x "$LAB/gnubin/mktemp"
   git -C "$t" add -A
   git -C "$t" commit -q -m "paraguas de mentira"
 }
 
-# tren <args...> — el driver en el paraguas de mentira. Deja SALIDA y RC.
+# tren <args...> — el driver en el paraguas de mentira. Deja SALIDA y RC. El
+# TMPDIR es del laboratorio, para poder mirar después si el ensayo dejó rastro.
 SALIDA=""; RC=0
+MKTEMP_REAL=$(command -v mktemp)
 tren() {
   RC=0
-  SALIDA=$(cd "$LAB/paraguas" && PATH="$LAB/bin:$PATH" QUANTUM_TREN_RELOJ="$LAB/reloj.tsv" \
+  SALIDA=$(cd "$LAB/paraguas" && PATH="$LAB/bin:$PATH" TMPDIR="$LAB/tmp" \
+    QUANTUM_TREN_RELOJ="$LAB/reloj.tsv" \
     bash scripts/train/train.sh "$@" 2>&1) || RC=$?
+}
+
+# tren_gnu <args...> — lo mismo con el mktemp de GNU por delante.
+tren_gnu() {
+  RC=0
+  SALIDA=$(cd "$LAB/paraguas" && PATH="$LAB/gnubin:$LAB/bin:$PATH" TMPDIR="$LAB/tmp" \
+    MKTEMP_REAL="$MKTEMP_REAL" QUANTUM_TREN_RELOJ="$LAB/reloj.tsv" \
+    bash scripts/train/train.sh "$@" 2>&1) || RC=$?
+}
+
+# sin_rastro — el ensayo no deja temporales suyos en el TMPDIR del laboratorio.
+sin_rastro() {
+  local quedan
+  quedan=$(ls -A "$LAB/tmp" 2>/dev/null | grep -c . || true)
+  [ "$quedan" -eq 0 ] && ok "el ensayo no deja temporales" ||
+    bad "el ensayo dejó $quedan temporales en su TMPDIR: $(ls -A "$LAB/tmp" | tr '\n' ' ')"
 }
 
 echo "== autotest del cierre de un ensayo del tren =="
@@ -106,6 +136,13 @@ dice "Sin fases de repo en el recorrido"
 no_dice "En local sí se ha tocado"
 sin_marcar quark-doc-debt.sh
 sin_marcar align-orbit-pins.sh
+
+echo "-- el reloj del ensayo, con el mktemp de GNU (la forma de BSD no vale allí)"
+monta
+tren_gnu --dry-run --hasta preflight
+[ "$RC" -eq 0 ] || bad "el ensayo debía salir EXIT=0 y salió EXIT=$RC (¿el reloj temporal?)"
+no_dice "/dev/null"
+sin_rastro
 
 echo
 if [ "$fails" -eq 0 ]; then
