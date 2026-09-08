@@ -210,6 +210,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   suite** (SIGUIENTE) → A3 cadena de suministro (hereda QK-14) → A4 Quark
   como capa de datos → … → A12. El registro de hallazgos y su guard
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
+- **Deuda con fecha de vencimiento**: al re-pinar quark a un tag que
+  contenga `scripts/ci/check_action_pins.sh` (quark#364), el PR del set debe
+  registrar el guard `quark-action-pins` con su fixture, o la lane muere.
+  El parche y la fixture, verificados, están en
+  [`docs/handoff/deuda-registro-quark-action-pins.md`](../../docs/handoff/deuda-registro-quark-action-pins.md).
 - **Pendiente de Carlos**: fusionar quantum-app#14 (bump a 1.28.0; sus gates
   ya pasan con los imports de módulos y los doce paquetes clasificados) y
   cerrar quantum-app#13. El paso 2 de QK-8 (quark#352) y la mitad nucleus de
