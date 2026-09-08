@@ -20,6 +20,7 @@
 | [QADR-0006](QADR-0006-integracion-quark-orbit.md) | Integración Quark↔Orbit — feed SQL en tiempo real y Data Studio sobre Quark | Accepted | Fase 4 |
 | [QADR-0007](QADR-0007-idioma-del-paraguas.md) | Idioma único del sitio del paraguas — inglés | Accepted | Fase 3 |
 | [QADR-0008](QADR-0008-cadencia-de-certificacion.md) | La certificación de un set va por cadencia, no por arco | Accepted | Auditoría integral (D1) |
+| [QADR-0009](QADR-0009-idioma-por-superficie.md) | Idioma por superficie: los productos en inglés, el paraguas en español | Accepted | Auditoría de madurez (QM-18) |
 
 ## Cómo añadir un QADR nuevo
 

@@ -216,11 +216,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   OR-43 (nucleus#476) salen con la siguiente release de cada pilar. La
   deuda del tren de 1.28.0 (`align_set.sh` de orbit antes de su fase) quedó
   pagada el mismo día: `alinea_pines_orbit` en `train.sh`.
-- **QADR pendiente**: QM-18 puso commits y títulos de PR de los productos en
-  inglés, pero QADR-0007 sigue diciendo que el español es el idioma de
-  commits y PRs. Toca QADR-0009 (o enmienda fechada de QADR-0007): producto
-  en inglés (código, docs, commits, títulos), paraguas y CLAUDE.md en
-  español. Decisión de coordinación: la firma Carlos.
+- **QADR-0009 firmado** (2026-09-08): el idioma va por SUPERFICIE. Producto
+  (código, comentarios, docs, commits, títulos y cuerpos de PR) en inglés;
+  paraguas (commits, PRs, QADRs, informes, runbooks, notas del manifiesto) en
+  español; el sitio publicado sigue en inglés por QADR-0007, que queda
+  enmendado en su alcance. Los ADRs de los productos quedan FUERA: cada repo
+  mantiene su idioma (nucleus inglés; quark y orbit español).
 - **Lo que deja a deber el arreglo del auto-bloqueo**: la prueba en vivo. El
   próximo release PR de raíz sola en cualquiera de los tres repos debe
   etiquetar sin receta; si vuelve a fallar, el diagnóstico está en la
@@ -271,7 +272,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   disparadores. **Ya no hay rondas completas de auditoría**; el trabajo entra
   por arcos. Runbook: [`docs/AUDITORIA_CONTINUA.md`](../../docs/AUDITORIA_CONTINUA.md).
 - `suite-integral.yml` corre los **lunes 06:00 UTC** e `integration.yml` a las
-  **06:30**; una lane roja abre issue automático. Hoy hay **37 guards**
+  **06:30**; una lane roja abre issue automático. Hoy hay **39 guards**
   registrados y `guard-of-guards` prueba con fixture que cada uno muerde.
 - Escribir el set: `scripts/bump-set.sh` (submódulos al tag, los bloques de
   módulos, pins y tablas del README, y desde 1.27.0 la versión de suite por
