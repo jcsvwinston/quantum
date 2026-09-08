@@ -83,7 +83,7 @@ en el mismo PR, y comprobar la cifra con el comando de arriba):
 | quark-pr-title-english | quark | bash scripts/ci/check_pr_title_english.sh | Ídem en quark |
 | orbit-pr-title-english | orbit | bash scripts/ci/check_pr_title_english.sh | Ídem en orbit |
 | umbrella-actions-pinned | paraguas | `bash scripts/check_actions_pinned.sh` | Una referencia `uses:` de los workflows del paraguas sin fijar por SHA de commit, o fijada sin el comentario `# <tag>` que Dependabot necesita para mantenerla — y la otra mitad de la misma decisión: el bloque `github-actions` de `.github/dependabot.yml` borrado, que dejaría los pines sin quien los suba. Corre desde `suite-integral.yml`, cuyo filtro de rutas incluye `.github/workflows/**` y `.github/dependabot.yml` para que muerda en el PR que introduce la deriva y no en el cron siguiente. Ver §8. |
-| umbrella-schedule-notify | paraguas | `bash scripts/check_schedule_notify.sh` | Una lane con disparador `schedule:` sin su job `notify-schedule-failure` —el cron rojo degradando al email por defecto de Actions, que QM8-1 declaró insuficiente—, o con el job puesto pero inservible: `if:` que no cubre `cancelled()` (MAQ-4/(c)) o que no acota a `schedule`, sin `issues: write`, sin el canal común (`scripts/notify_schedule_failure.sh`), o con un `needs` incompleto (RT-8: `failure()` sólo mira la cadena de dependencias, y así se perdió el rojo de `showcase-smoke`). Ver §7.
+| umbrella-schedule-notify | paraguas | `bash scripts/check_schedule_notify.sh` | Una lane con disparador `schedule:` sin su job `notify-schedule-failure` —el cron rojo degradando al email por defecto de Actions, que QM8-1 declaró insuficiente—, o con el job puesto pero inservible: `if:` que no cubre `cancelled()` (MAQ-4/(c)) o que no acota a `schedule`, sin `issues: write`, sin el canal común (`scripts/notify_schedule_failure.sh`), o con un `needs` incompleto (RT-8: `failure()` sólo mira la cadena de dependencias, y así se perdió el rojo de `showcase-smoke`). Ver §7. |
 
 Notas operativas:
 
@@ -364,10 +364,12 @@ de los siete ámbitos que Scorecard vigila —`contents`, `packages`, `actions`,
 `statuses`, `checks`, `security-events`, `deployments`—; `pages`, `id-token`,
 `issues` o `pull-requests` arriba no le restan nada: los clasifica como
 escritura no peligrosa y ni siquiera avisa (queda en la traza de depuración).
-Consecuencia práctica, medida en este repo: bajar `pages`/`id-token` de
-`deploy.yml` al job que los usa es mínimo privilegio real y **no** mueve la
-puntuación — Token-Permissions daba 10/10 antes del recorte y da 10/10
-después. La regla vale por sí misma; la puntuación no es su argumento.
+Consecuencia práctica, derivada de las reglas de puntuación y no de una
+corrida (aquí no se ha ejecutado Scorecard todavía — §8): bajar
+`pages`/`id-token` de `deploy.yml` al job que los usa es mínimo privilegio
+real y **no** mueve la puntuación, porque Token-Permissions sólo penaliza los
+siete ámbitos de arriba y ninguno de esos dos está entre ellos. La regla vale
+por sí misma; la puntuación no es su argumento.
 
 Qué puede escribir hoy cada lane, tras el barrido de `gh`, `git push` y
 `GITHUB_TOKEN`/`github.token` sobre los cinco ficheros y los scripts que
@@ -446,7 +448,8 @@ workflows y que `.github/dependabot.yml` siga declarando el ecosistema
 deriva realista es que desaparezca en un PR que no rompe ninguna corrida, no
 que se afine mal.
 
-Estado tras el arco A3 (24 referencias en cuatro workflows + 4 en el quinto):
+Estado tras el arco A3 (29 referencias: 24 en cuatro workflows + 5 en el
+quinto, `scorecard.yml`, contando el checkout de su job de aviso):
 
 | Acción | SHA | Tag |
 |---|---|---|
@@ -552,6 +555,13 @@ entre morder en el PR que introduce la deriva y morder una semana después.
 07:00 UTC (una hora después del cron de `suite-integral`, para no solapar dos
 lanes largas) y a mano con `workflow_dispatch`. Sube el SARIF a code scanning
 y lo guarda como artefacto `scorecard-results`.
+
+Sobre la corrida a mano: el README de la acción marca `pull_request` y
+`workflow_dispatch` como **experimentales**. Leyendo `options.Validate()` al
+SHA fijado, un dispatch sobre `main` cumple lo que exige —token no vacío y
+evento de PR **o** rama por defecto—, así que debería funcionar; pero la vía
+soportada es el `schedule`, y si el disparo a mano se porta mal, la primera
+medida espera al lunes. Es una posibilidad conocida, no una sorpresa.
 
 Como toda lane programada del paraguas, lleva su job
 `notify-schedule-failure` (§7): si el lunes falla —cuota de la API, subida del
