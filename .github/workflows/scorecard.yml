@@ -80,7 +80,7 @@ jobs:
   # QM8-1: el schedule rojo no puede morir en el email default de Actions. Es
   # regla del paraguas y no una cortesía de las otras dos lanes: toda lane con
   # disparador `schedule:` lleva este job (docs/AUDITORIA_CONTINUA.md §7), y
-  # desde este PR el guard `umbrella-schedule-notify` lo exige por mecánica.
+  # el guard `umbrella-schedule-notify` lo exige por mecánica.
   # Aquí la regla muerde en el propósito de la propia lane: existe para
   # PRODUCIR una medida, y un lunes que falle en silencio —cuota de la API,
   # subida del SARIF rechazada, bump de la acción— no deja medida y nadie se

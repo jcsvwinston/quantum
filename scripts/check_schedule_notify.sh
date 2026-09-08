@@ -8,7 +8,7 @@
 # (scripts/notify_schedule_failure.sh). La regla estaba escrita en
 # docs/AUDITORIA_CONTINUA.md §7 y sostenida sólo por la costumbre: las dos
 # lanes programadas lo llevaban porque se copiaron la una a la otra. La
-# TERCERA nació sin él —scorecard.yml, en este mismo PR— y la lane de
+# tercera —scorecard.yml, la lane de medida del arco A3— nació sin él y la
 # certificación salió 40/40 verde con la omisión dentro. Una regla que sólo
 # vive en la prosa se pierde en el siguiente workflow escrito a mano.
 #

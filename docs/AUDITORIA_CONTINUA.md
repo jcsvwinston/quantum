@@ -409,9 +409,9 @@ cumplían porque se habían copiado la una de la otra. La tercera —`scorecard.
 la lane de medida del §8— nació sin el job y la certificación salió verde con
 la omisión dentro: 40 de 40 guards, ninguno mirando eso. El caso era además el
 peor posible para esa lane en concreto, que existe para PRODUCIR una medida: un
-lunes fallido en silencio no deja medida y nadie se entera. Desde este PR la
-regla la sostiene el guard `umbrella-schedule-notify`, que la comprueba en el
-PR que añade la lane.
+lunes fallido en silencio no deja medida y nadie se entera. Desde el arco A3
+la regla la sostiene el guard `umbrella-schedule-notify`, que la comprueba en
+el PR que añade la lane.
 
 ## 8. Acciones fijadas por SHA, y la lane de OpenSSF Scorecard
 

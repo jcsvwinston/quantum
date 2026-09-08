@@ -4,9 +4,9 @@
 # Rotura: una lane con disparador `schedule:` se queda SIN su job
 # `notify-schedule-failure` —la deriva exacta que este guard existe para
 # cazar, y que no es hipotética: la tercera lane programada del paraguas
-# (scorecard.yml) nació así en la primera versión de este mismo PR, y la
-# certificación salió verde con la omisión dentro. El cron rojo degradaba al
-# email por defecto de Actions, que QM8-1 declaró insuficiente.
+# (scorecard.yml) nació así en el arco A3, y la certificación salió verde con
+# la omisión dentro. El cron rojo degradaba al email por defecto de Actions,
+# que QM8-1 declaró insuficiente.
 set -euo pipefail
 source tests/guard-fixtures/lib.sh
 
