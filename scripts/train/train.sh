@@ -199,6 +199,13 @@ if [ "$DRY" -eq 1 ] && [ "$SOLO_RELOJ" -eq 0 ] && [ "$RELOJ_CERO" -eq 0 ]; then
 fi
 OBJETIVO_MIN="${QUANTUM_TREN_OBJETIVO_MIN:-30}"
 
+# Los checkouts HERMANOS que se han llegado a tocar. Se anotan donde se ejecuta
+# el script que los toca, y el cierre de un ensayo los nombra: la última línea
+# que el operador lee no puede decir «nada» cuando ../quark o ../orbit se han
+# movido, ni nombrarlos cuando no.
+TOCADO_QUARK=0
+TOCADO_ORBIT=0
+
 FASE_ACTUAL=""
 FASE_INICIO=0
 
@@ -542,6 +549,7 @@ fase_repo() {
     say "PASO: deuda de doc de quark en la rama del release (quark-doc-debt.sh)"
     local rc=0
     if [ "$DRY" -eq 1 ]; then
+      TOCADO_QUARK=1
       bash scripts/train/quark-doc-debt.sh --dry-run || rc=$?
       case "$rc" in
         0) say "  → (dry-run) nada que pagar" ;;
@@ -565,6 +573,7 @@ fase_repo() {
     # El check es de solo lectura (un ff-only de ../orbit main): se ejecuta
     # también en dry-run, para que el ensayo diga la verdad.
     say "  → bash scripts/train/align-orbit-pins.sh --check"
+    TOCADO_ORBIT=1
     if bash scripts/train/align-orbit-pins.sh --check; then
       say "  → pines al día"
     else
@@ -1368,10 +1377,6 @@ fase_cierre() {
 }
 
 started=0
-# Las fases REALMENTE recorridas (el bucle puede romper en $TO y «cierre» se
-# salta si no se pidió): el cierre del ensayo nombra lo que ha tocado, no lo
-# que se le pidió recorrer.
-RECORRIDAS=""
 for ph in $PHASES; do
   [ "$ph" = "$FROM" ] && started=1
   [ "$started" -eq 1 ] || continue
@@ -1388,32 +1393,32 @@ for ph in $PHASES; do
     cierre) fase_cierre ;;
   esac
   reloj_marca ok
-  RECORRIDAS="$RECORRIDAS $ph"
   [ "$ph" = "$TO" ] && break
 done
 say ""
 if [ "$DRY" -eq 1 ]; then
   # Esta es la ÚLTIMA línea que el operador lee de un ensayo, así que dice el
-  # mismo alcance que --help y que el README, y solo de las fases que se han
-  # recorrido. «NADA se ha ejecutado con efectos» era falso en las fases de
-  # repo: ahí el ensayo toca a propósito los checkouts hermanos EN LOCAL —si no
-  # los tocara, mentiría sobre lo que esas dos comprobaciones van a decir—, y
-  # quien lea solo el cierre no se enteraría de que ../quark y ../orbit se han
-  # movido.
+  # mismo alcance que --help y que el README. «NADA se ha ejecutado con
+  # efectos» era falso en las fases de repo: ahí el ensayo toca a propósito los
+  # checkouts hermanos EN LOCAL —si no los tocara, mentiría sobre lo que esas
+  # dos comprobaciones van a decir—, y quien lea solo el cierre no se enteraría
+  # de que ../quark y ../orbit se han movido.
+  #
+  # Y se nombra lo que de verdad se ha tocado, anotado donde se ejecuta y no
+  # deducido de las fases pedidas: con --solo-suelos la fase quark termina
+  # antes de llamar a quark-doc-debt.sh, y ../quark no llega a moverse.
   say "Tren (DRY-RUN): fases $FROM..$TO recorridas — sin efectos sobre los remotos ni sobre el set: no se ha empujado, ni fusionado, ni abierto ningún PR, ni escrito el re-pin, ni etiquetado nada."
   TOCADOS=0
-  case " $RECORRIDAS " in
-    *" quark "*)
-      TOCADOS=1
-      say "  En local sí se ha tocado ../quark: quark-doc-debt.sh --dry-run trae sus refs (git fetch) y abre un worktree temporal donde mergea origin/main y commitea el esqueleto de notas. No lo empuja, y el worktree se retira al salir." ;;
-  esac
-  case " $RECORRIDAS " in
-    *" orbit "*)
-      TOCADOS=1
-      say "  En local sí se ha tocado ../orbit: align-orbit-pins.sh --check lo pone al día con un git pull --ff-only antes de comparar (solo si está en main y limpio)." ;;
-  esac
+  if [ "$TOCADO_QUARK" -eq 1 ]; then
+    TOCADOS=1
+    say "  En local sí se ha tocado ../quark: quark-doc-debt.sh --dry-run trae sus refs (git fetch) y abre un worktree temporal donde mergea origin/main y commitea el esqueleto de notas. No lo empuja, y el worktree se retira al salir."
+  fi
+  if [ "$TOCADO_ORBIT" -eq 1 ]; then
+    TOCADOS=1
+    say "  En local sí se ha tocado ../orbit: align-orbit-pins.sh --check lo pone al día con un git pull --ff-only antes de comparar (solo si está en main y limpio)."
+  fi
   [ "$TOCADOS" -eq 1 ] ||
-    say "  Sin fases de repo en el recorrido: tampoco se ha tocado ningún checkout hermano."
+    say "  Ningún checkout hermano se ha tocado en este recorrido."
 else
   say "Tren: fases $FROM..$TO terminadas."
 fi

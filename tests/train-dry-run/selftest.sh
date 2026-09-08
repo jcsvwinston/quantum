@@ -9,7 +9,9 @@
 # `quark-doc-debt.sh --dry-run`—. El cierre decía «NADA se ha ejecutado con
 # efectos» sin condición de fase, así que quien leía solo esa línea no se
 # enteraba de que ../quark y ../orbit se habían movido. Aquí se comprueba que
-# nombra los checkouts que el recorrido ha tocado, y solo esos.
+# nombra los que se han movido DE VERDAD, y solo esos: nombrar un checkout que
+# el recorrido no llegó a tocar (--solo-suelos termina la fase quark antes) es
+# la misma mentira del revés.
 #
 # Cómo: un paraguas de MENTIRA con el driver DE VERDAD y los dos scripts
 # hermanos sustituidos por testigos que dejan una marca al ejecutarse. Se
@@ -132,10 +134,21 @@ echo "-- ninguna fase de repo (--hasta preflight)"
 monta
 tren --dry-run --hasta preflight
 [ "$RC" -eq 0 ] || bad "el ensayo debía salir EXIT=0 y salió EXIT=$RC"
-dice "Sin fases de repo en el recorrido"
+dice "Ningún checkout hermano se ha tocado"
 no_dice "En local sí se ha tocado"
 sin_marcar quark-doc-debt.sh
 sin_marcar align-orbit-pins.sh
+
+# La fase quark existe en el recorrido, pero --solo-suelos la termina ANTES de
+# llamar a quark-doc-debt.sh: deducir del nombre de la fase que ../quark se ha
+# tocado sería mentir igual, solo que al revés.
+echo "-- la fase quark que no llega a tocar ../quark (--solo-suelos)"
+monta
+tren --dry-run --solo-suelos --desde quark --hasta quark
+[ "$RC" -eq 0 ] || bad "el ensayo debía salir EXIT=0 y salió EXIT=$RC"
+sin_marcar quark-doc-debt.sh
+no_dice "En local sí se ha tocado"
+dice "Ningún checkout hermano se ha tocado"
 
 echo "-- el reloj del ensayo, con el mktemp de GNU (la forma de BSD no vale allí)"
 monta
