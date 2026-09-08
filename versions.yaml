@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.28.0"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-09-05
-status: certified           # Minor de suite por las minors de quark y nucleus (QADR-0002): el arco A1 (auditoría de madurez 2026-09-03) publicado en los tres pilares; corte en cadencia (QADR-0008)
+quantum: "1.29.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-09-08
+status: certified           # Minor de suite por las minors de quark y nucleus (QADR-0002): el arco A2 (starter de suite y primer endpoint en cinco comandos) publicado; corte en cadencia (QADR-0008)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules»; los módulos hermanos de
@@ -18,9 +18,9 @@ status: certified           # Minor de suite por las minors de quark y nucleus (
 # minor topológicamente forzado, tolerado por el guard extendido, ceñido al
 # único borde root↔quarkdatasource por MAQ-3.
 modules:
-  quark:   "v1.11.0"
-  nucleus: "v1.24.0"
-  orbit:   "v1.9.2"
+  quark:   "v1.12.0"
+  nucleus: "v1.25.0"
+  orbit:   "v1.9.3"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -31,45 +31,45 @@ modules:
 # DESPUÉS del de la raíz no es certificable. Los bumps de módulo van dentro
 # de la release de la raíz, no detrás.
 nucleus_modules:
-  mssql:         "v0.1.2"
-  mysql:         "v0.1.2"
-  oracle:        "v0.1.2"
-  postgres:      "v0.1.2"
-  sqlite:        "v0.1.2"
-  otlp:          "v0.1.2"
-  prometheus:    "v0.1.2"
-  ldap:          "v0.2.6"
-  secrets-aws:   "v0.1.2"
-  storage-azure: "v0.1.2"
-  storage-gcs:   "v0.1.2"
-  storage-s3:    "v0.1.2"
+  mssql:         "v0.1.3"
+  mysql:         "v0.1.3"
+  oracle:        "v0.1.3"
+  postgres:      "v0.1.3"
+  sqlite:        "v0.1.3"
+  otlp:          "v0.1.3"
+  prometheus:    "v0.1.3"
+  ldap:          "v0.2.7"
+  secrets-aws:   "v0.1.3"
+  storage-azure: "v0.1.3"
+  storage-gcs:   "v0.1.3"
+  storage-s3:    "v0.1.3"
 
 # Módulos del repo quark que se publican aparte. Quark pasa a multi-módulo en
 # v1.9.0: cada driver de base de datos vive en su propio módulo para que la
 # biblioteca no cargue los tipos de error de cinco motores. Verificados por
 # manifest-guard §3b igual que los de nucleus y orbit.
 quark_modules:
-  mssql:    "v0.1.2"
-  mysql:    "v0.1.2"
-  oracle:   "v0.1.2"
-  postgres: "v0.1.2"
-  sqlite:   "v0.1.2"
+  mssql:    "v0.1.3"
+  mysql:    "v0.1.3"
+  oracle:   "v0.1.3"
+  postgres: "v0.1.3"
+  sqlite:   "v0.1.3"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.4"
-  agent:           "v0.6.16"
-  server:          "v0.11.2"
-  quarkbridge:     "v1.8.20"
-  quarkdatasource: "v1.8.21"
+  agent:           "v0.6.17"
+  server:          "v0.11.3"
+  quarkbridge:     "v1.8.21"
+  quarkdatasource: "v1.8.22"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
-  quark:   "9d3dcb86"                                # = v1.11.0 exacto (contiene drivers/mssql/v0.1.2, drivers/mysql/v0.1.2, drivers/oracle/v0.1.2, drivers/postgres/v0.1.2, drivers/sqlite/v0.1.2 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  nucleus: "7075e9ac"                                # = v1.24.0 exacto (contiene drivers/mssql/v0.1.2, drivers/mysql/v0.1.2, drivers/oracle/v0.1.2, drivers/postgres/v0.1.2, drivers/sqlite/v0.1.2, exporters/otlp/v0.1.2, exporters/prometheus/v0.1.2, providers/ldap/v0.2.6, providers/secrets-aws/v0.1.2, providers/storage-azure/v0.1.2, providers/storage-gcs/v0.1.2, providers/storage-s3/v0.1.2 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  orbit:   "2744ac68"                                # = v1.9.2 exacto (contiene agent/v0.6.16, proto/v0.4.4, quarkbridge/v1.8.20, quarkdatasource/v1.8.21, server/v0.11.2 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  quark:   "c59850ac"                                # = v1.12.0 exacto (contiene drivers/mssql/v0.1.3, drivers/mysql/v0.1.3, drivers/oracle/v0.1.3, drivers/postgres/v0.1.3, drivers/sqlite/v0.1.3 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  nucleus: "2e46aca6"                                # = v1.25.0 exacto (contiene drivers/mssql/v0.1.3, drivers/mysql/v0.1.3, drivers/oracle/v0.1.3, drivers/postgres/v0.1.3, drivers/sqlite/v0.1.3, exporters/otlp/v0.1.3, exporters/prometheus/v0.1.3, providers/ldap/v0.2.7, providers/secrets-aws/v0.1.3, providers/storage-azure/v0.1.3, providers/storage-gcs/v0.1.3, providers/storage-s3/v0.1.3 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  orbit:   "f8416446"                                # = v1.9.3 exacto (contiene agent/v0.6.17, proto/v0.4.4, quarkbridge/v1.8.21, quarkdatasource/v1.8.22, server/v0.11.3 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -83,55 +83,47 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.28.0 — la minor que publica el arco A1: la deuda de la
-  auditoría de madurez del 3 de septiembre pagada en los tres pilares.
-  quark v1.10.1 → v1.11.0 (drivers/* v0.1.2), nucleus v1.23.2 → v1.24.0
-  (once módulos en v0.1.2 y providers/ldap v0.2.6) y orbit v1.9.0 →
-  v1.9.2 (agent v0.6.16, server v0.11.2, quarkbridge v1.8.20,
-  quarkdatasource v1.8.21, proto v0.4.4): v1.9.1 publica A1 y v1.9.2 es
-  la alineación de pines a nucleus v1.24.0 y quark v1.11.0, sin cambio
-  de producto. Minor de suite porque lo son las de quark y nucleus
+  Quantum 1.29.0 — la minor que publica el arco A2: una aplicación de suite
+  a un comando y el primer endpoint en cinco. quark v1.11.0 → v1.12.0
+  (drivers/* v0.1.3), nucleus v1.24.0 → v1.25.0 (sus doce módulos: once en v0.1.3 y providers/ldap v0.2.7)
+  y orbit v1.9.2 → v1.9.3 (agent v0.6.17, server v0.11.3, quarkbridge
+  v1.8.21, quarkdatasource v1.8.22, proto v0.4.4: alineación de pines a
+  los dos, sin cambio de producto). Minor de suite porque lo son las de quark y nucleus
   (QADR-0002); corte en la cadencia semanal (QADR-0008).
 
-  Lo que cierra A1, por pilar. Nucleus (27 hallazgos): el timeout de
-  petición es clave propia (request_timeout, con timeout_exempt_paths
-  para SSE y descargas largas), el límite de tasa cuenta por usuario y
-  tenant y no por IP, los datos flash viven exactamente una petición, los
-  tokens se comprueban contra el emisor (y jwt_audience si se fija), un
-  módulo generado abre solo lecturas al anónimo; CORS viaja en toda
-  respuesta que sale de la pila, un subárbol montado contesta en su ruta
-  sin barra en vez de redirigir, dos módulos con la misma ruta son un
-  error que nombra al módulo, las migraciones toman el candado de sesión
-  del motor, y ADR-032 fija dónde está la línea del major (mover código
-  a un módulo con error guiado NO lo es). Quark (QK-6, QK-8): el migrador
-  toma el candado de esquema por defecto y admite migraciones
-  transaccionales (UpTx/DownTx), y el contrato del listener es público
-  (quarkdriver.ListenerFactory sobre IdentifierValidator). Orbit (14
-  hallazgos): en el fleet, tope de streams por operador, replay acotado,
-  push agregado coalescido, un solo matcher de nodos, LIKE escapado por
-  motor, reconexiones reales, CPU normalizada y comandos del agente bajo
-  semáforo; en el panel, ids como string de punta a punta (ADR-001),
-  tenant obligatorio en cada operación de Data Studio con 403 cuando no
-  resuelve, 400 a una búsqueda sin campos buscables, auditoría de cada
-  ruta mutante con valores antes y después (login incluido) y con lo
-  que un anónimo puede escribir acotado, lookup del admin en una
-  consulta acotada, y la SPA carga sus páginas bajo demanda (JS inicial
-  1.693 → 308 kB). Suite (QM-18, QM-19): títulos de PR en inglés con
-  guard en los tres repos, y los suelos de los módulos hermanos suben
-  como PRIMER commit de cada corte (align-module-floors en el tren).
+  Lo que publica A2. Nucleus: `nucleus new <app> --template suite --with
+  orbit,quark,quarkbridge,quarkdatasource` escribe la aplicación que el
+  quickstart pedía teclear (main.go con el panel de Orbit y un módulo
+  shop sobre Quark, nucleus.yml, política, migración, artículo sembrado y
+  test), `--db` elige el driver y deja go.mod en orden, y
+  examples/showcase_demo se genera de la misma plantilla con un test que
+  los mantiene idénticos; `generate module --mount` monta en main.go y
+  emite test; `nucleus routes` y `migrate status` leen el binario real
+  (NUCLEUS_PRINT_ROUTES, ledger por espacio de nombres); `nucleus dev`
+  recompila y reinicia al cambiar (con proxy de assets y rutas impresas);
+  `nucleus completion` para bash, zsh y fish; `--help` con gramática en
+  catorce comandos; `openapi` falla con receta sin contratos; una ruta no
+  registrada contesta 404 (los gates de authz y CSRF corren tras el
+  enrutado) y un scaffold limpio arranca con cero WARN. Quark: `quark init
+  --with nucleus` escribe el módulo de Nucleus y el nucleus.yml mínimo;
+  ejemplos chi, echo y gin con guía de frameworks; drivers/postgres adopta
+  el contrato público del listener (QK-8 cerrado del todo). Paraguas: el
+  quickstart de la suite pasa a «lee lo que se generó» — cinco comandos y
+  cinco conceptos, medidos por el guard quickstart-cost; los ficheros
+  embebidos se atan a su contenido (quickstart-embeds); la lane
+  quickstart-smoke genera, arranca y recorre el quickstart con presupuesto
+  de 60 s; 39 guards en el registro. Registro de la auditoría: NU-16, NU-17,
+  NU-18, NU-48 y NU-49 hechos; `arcos_cerrados: A1 A2`.
 
-  Lo que se difiere a propósito: QK-14 (el go.mod raíz de quark requiere
-  los cinco drivers porque el CLI enlaza todos los motores) va a A3 con
-  la explicación en el README de quark; la mitad nucleus de OR-43
-  (CRUD.FindAll responde 400 sin campos buscables, nucleus#476) y el
-  paso 2 de QK-8 (drivers/postgres adopta ListenerFactory, quark#352)
-  están fusionados en main y salen en la siguiente release de cada uno.
+  Lo que aprendió el tren: el cuerpo por defecto de un squash puede dejar
+  a release-please sin ver un feat (quark#355 → 1.11.1 con un minor en
+  main); merge-group fusiona ahora con título y cuerpo controlados. Los
+  pines cruzados de orbit se alinean solos antes de su fase; la deuda de
+  doc de quark se paga sola en la rama del bot.
 
-  Lo que cambia para quien instala: en nucleus, cuatro claves nuevas con
-  default (request_timeout, timeout_exempt_paths, jwt_audience,
-  session_memcached_servers), el limitador de tasa cambia de clave y un
-  prefijo montado sin barra ya no redirige; en quark, Migrator.Up/Down
-  toman el candado del motor (WithoutLock lo desactiva) y el migrador
-  informa por Client.Logger() en vez de stdout; en orbit, un operador
-  sin tenant resuelto recibe 403 en el panel multi-tenant y los ids del
-  API de Data Studio son strings.
+  Lo que cambia para quien instala: en nucleus, una ruta que nadie
+  registra contesta 404 y no 403 (y 419 en POST); `nucleus migrate` sin
+  acción es un error de uso en vez de un `up` implícito; `nucleus new`
+  hace `go get` del driver y `go mod tidy` salvo `--offline`; `generate
+  module` rechaza nombres que no pueden ser paquete Go. En quark y orbit,
+  nada en la configuración cambia.

@@ -6,6 +6,61 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.28.0 — La minor que publica el arco A1
+
+Quantum 1.28.0 — la minor que publica el arco A1: la deuda de la
+auditoría de madurez del 3 de septiembre pagada en los tres pilares.
+quark v1.10.1 → v1.11.0 (drivers/* v0.1.2), nucleus v1.23.2 → v1.24.0
+(once módulos en v0.1.2 y providers/ldap v0.2.6) y orbit v1.9.0 →
+v1.9.2 (agent v0.6.16, server v0.11.2, quarkbridge v1.8.20,
+quarkdatasource v1.8.21, proto v0.4.4): v1.9.1 publica A1 y v1.9.2 es
+la alineación de pines a nucleus v1.24.0 y quark v1.11.0, sin cambio
+de producto. Minor de suite porque lo son las de quark y nucleus
+(QADR-0002); corte en la cadencia semanal (QADR-0008).
+
+Lo que cierra A1, por pilar. Nucleus (27 hallazgos): el timeout de
+petición es clave propia (request_timeout, con timeout_exempt_paths
+para SSE y descargas largas), el límite de tasa cuenta por usuario y
+tenant y no por IP, los datos flash viven exactamente una petición, los
+tokens se comprueban contra el emisor (y jwt_audience si se fija), un
+módulo generado abre solo lecturas al anónimo; CORS viaja en toda
+respuesta que sale de la pila, un subárbol montado contesta en su ruta
+sin barra en vez de redirigir, dos módulos con la misma ruta son un
+error que nombra al módulo, las migraciones toman el candado de sesión
+del motor, y ADR-032 fija dónde está la línea del major (mover código
+a un módulo con error guiado NO lo es). Quark (QK-6, QK-8): el migrador
+toma el candado de esquema por defecto y admite migraciones
+transaccionales (UpTx/DownTx), y el contrato del listener es público
+(quarkdriver.ListenerFactory sobre IdentifierValidator). Orbit (14
+hallazgos): en el fleet, tope de streams por operador, replay acotado,
+push agregado coalescido, un solo matcher de nodos, LIKE escapado por
+motor, reconexiones reales, CPU normalizada y comandos del agente bajo
+semáforo; en el panel, ids como string de punta a punta (ADR-001),
+tenant obligatorio en cada operación de Data Studio con 403 cuando no
+resuelve, 400 a una búsqueda sin campos buscables, auditoría de cada
+ruta mutante con valores antes y después (login incluido) y con lo
+que un anónimo puede escribir acotado, lookup del admin en una
+consulta acotada, y la SPA carga sus páginas bajo demanda (JS inicial
+1.693 → 308 kB). Suite (QM-18, QM-19): títulos de PR en inglés con
+guard en los tres repos, y los suelos de los módulos hermanos suben
+como PRIMER commit de cada corte (align-module-floors en el tren).
+
+Lo que se difiere a propósito: QK-14 (el go.mod raíz de quark requiere
+los cinco drivers porque el CLI enlaza todos los motores) va a A3 con
+la explicación en el README de quark; la mitad nucleus de OR-43
+(CRUD.FindAll responde 400 sin campos buscables, nucleus#476) y el
+paso 2 de QK-8 (drivers/postgres adopta ListenerFactory, quark#352)
+están fusionados en main y salen en la siguiente release de cada uno.
+
+Lo que cambia para quien instala: en nucleus, cuatro claves nuevas con
+default (request_timeout, timeout_exempt_paths, jwt_audience,
+session_memcached_servers), el limitador de tasa cambia de clave y un
+prefijo montado sin barra ya no redirige; en quark, Migrator.Up/Down
+toman el candado del motor (WithoutLock lo desactiva) y el migrador
+informa por Client.Logger() en vez de stdout; en orbit, un operador
+sin tenant resuelto recibe 403 en el panel multi-tenant y los ids del
+API de Data Studio son strings.
+
 ## Quantum 1.27.0 — La minor que publica ADR-006 de orbit
 
 Quantum 1.27.0 — la minor que publica ADR-006 de orbit. Solo se mueve
