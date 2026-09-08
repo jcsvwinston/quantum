@@ -53,7 +53,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout (con submódulos — son el trío fijado)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
           # Tags de los submódulos: el guard compara cada pin con el commit del
@@ -81,12 +81,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout (con submódulos — el tag sale del submódulo pinado)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
 
       - name: Setup Go (versión declarada en go.work)
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.work
           cache: false # caché de módulos deliberadamente virgen
@@ -134,12 +134,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout (con submódulos — son el trío fijado)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
 
       - name: Setup Go (versión declarada en go.work)
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.work
           cache-dependency-path: '**/go.sum'
@@ -168,12 +168,12 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout (con submódulos — son el trío fijado)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
 
       - name: Setup Go (versión declarada en go.work)
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.work
           cache-dependency-path: '**/go.sum'
@@ -198,13 +198,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout (con submódulos — son el trío fijado)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
 
       - name: Setup Go (versión declarada en go.work, caché de módulos restaurada)
         id: go
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.work
           cache-dependency-path: '**/go.sum'
@@ -231,12 +231,12 @@ jobs:
       ORBIT_MODULES: ./orbit/... ./orbit/agent/... ./orbit/proto/... ./orbit/quarkbridge/... ./orbit/quarkdatasource/... ./orbit/server/...
     steps:
       - name: Checkout (con submódulos — son el trío fijado)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
 
       - name: Setup Go (versión declarada en go.work)
-        uses: actions/setup-go@v7
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.work
           cache-dependency-path: '**/go.sum'
@@ -268,7 +268,7 @@ jobs:
       issues: write
     steps:
       - name: Checkout (solo el script de aviso, sin submódulos)
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Abre o actualiza el issue del fallo
         id: notify

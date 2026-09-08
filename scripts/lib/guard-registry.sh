@@ -108,6 +108,24 @@ GUARDS=(
   # explica. Sin transición: rojo al pin viejo ES la información (la página
   # del arco A2 sólo se fusiona en el PR del set que re-pina nucleus).
   "umbrella-quickstart-embeds|.|bash scripts/check_quickstart_embeds.sh website/docs/quickstart.md"
+  # Toda referencia `uses:` de los workflows del PARAGUAS está fijada por SHA
+  # de commit y lleva su tag en el comentario. Un tag es un puntero móvil en
+  # un repositorio ajeno: quien controle esa cuenta reapunta `v7` y ese commit
+  # corre en nuestro CI sin que aquí cambie una línea. El comentario `# vX.Y.Z`
+  # es parte del contrato, no adorno: es lo que Dependabot lee para subir el
+  # pin, y un pin sin bot se queda con los fallos de su versión para siempre.
+  # Entra con el arco A3; los workflows de los tres productos los fija cada
+  # repo en su propio PR (este guard no mira dentro de los submódulos).
+  "umbrella-actions-pinned|.|bash scripts/check_actions_pinned.sh"
+  # Toda lane del paraguas con disparador `schedule:` lleva su job
+  # `notify-schedule-failure`: el cron rojo no puede degradar al email por
+  # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que
+  # el aviso sirva —failure() Y cancelled(), sólo en schedule, `issues: write`
+  # y el canal común— y RT-8: que su `needs` liste TODOS los demás jobs, que
+  # es lo que hace que failure() los vea. La regla vivía sólo en la prosa del
+  # §7 y la tercera lane programada nació sin el job, con la certificación en
+  # verde.
+  "umbrella-schedule-notify|.|bash scripts/check_schedule_notify.sh"
 
   # --- nucleus (al pin) -----------------------------------------------------
   # Marcadores x-release-please-version + directivas Go del scaffold + coherencia

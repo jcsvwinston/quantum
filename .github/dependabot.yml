@@ -5,6 +5,13 @@
 # Dependabot.
 version: 2
 updates:
+  # Las referencias `uses:` están fijadas por SHA de commit con su tag en el
+  # comentario (`@<40 hex> # v7.0.1`, arco A3). Este bloque es lo que evita
+  # que ese pin se fosilice: Dependabot lee el comentario para saber en qué
+  # versión está, y cuando sale una nueva reescribe SHA y comentario a la vez.
+  # Sin bot, el pin congela también los fallos de seguridad de esa versión —
+  # por eso el pin y este bloque son una sola decisión, no dos. Que ninguna
+  # referencia vuelva al tag móvil lo verifica scripts/check_actions_pinned.sh.
   - package-ecosystem: github-actions
     directory: /
     schedule:

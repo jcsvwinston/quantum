@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # notify_schedule_failure.sh — la lane programada roja no puede morir en el
 # email default de Actions (QM8-1: «la lane roja solo notifica por el email
-# default» — señal que nadie mira). Los jobs de aviso de los dos workflows
-# programados (integration.yml y suite-integral.yml) lo ejecutan cuando la
-# corrida de schedule falla O se cancela (concurrency): abre O actualiza un
-# issue, sin duplicar.
+# default» — señal que nadie mira). Los jobs de aviso de los TRES workflows
+# programados (integration.yml, suite-integral.yml y scorecard.yml) lo
+# ejecutan cuando la corrida de schedule falla O se cancela (concurrency):
+# abre O actualiza un issue, sin duplicar. Que ninguna lane programada se
+# quede sin ese job lo exige el guard `umbrella-schedule-notify`
+# (scripts/check_schedule_notify.sh).
 #
 # Uso: bash scripts/notify_schedule_failure.sh <workflow> <run_url>
 #
