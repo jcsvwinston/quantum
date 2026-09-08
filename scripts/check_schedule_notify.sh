@@ -53,25 +53,35 @@ fi
 
 # Jobs declarados en un workflow: las claves a DOS espacios que siguen a la
 # línea `jobs:` de nivel cero, hasta la siguiente clave de nivel cero.
+#
+# La clave se reconoce por lo que hay ANTES de los dos puntos, no por lo que
+# venga detrás: `  publica:  # sube la nota` es una clave de job tan válida
+# como `  publica:`, y un patrón que exija fin de línea tras los dos puntos la
+# deja invisible. Ese era un falso NEGATIVO —el peligroso aquí— por partida
+# doble: el job no se exigía en el `needs` (RT-8) y tampoco cerraba el cuerpo
+# del job anterior en job_block(), de modo que un `issues: write` de MÁS ABAJO
+# valía por el del job de aviso. Ambas roturas van en la fixture.
 jobs_of() {
   awk '
-    /^jobs:[[:space:]]*$/ { injobs = 1; next }
+    /^jobs:([[:space:]]|$)/ { injobs = 1; next }
     injobs && /^[^[:space:]#]/ { injobs = 0 }
-    injobs && /^  [A-Za-z0-9_.-]+:[[:space:]]*$/ {
+    injobs && /^  [A-Za-z0-9_.-]+:([[:space:]]|$)/ {
       line = $0
-      sub(/:[[:space:]]*$/, "", line)
       sub(/^  /, "", line)
+      sub(/:.*$/, "", line)
       print line
     }
   ' "$1"
 }
 
 # Cuerpo de un job: de su clave a dos espacios hasta la siguiente clave a dos
-# espacios (o al fin del fichero).
+# espacios (o al fin del fichero). El terminador usa el MISMO patrón de clave
+# que jobs_of(), por el motivo de arriba: si una clave con comentario no cierra
+# el bloque, el cuerpo del job de aviso se traga el del siguiente.
 job_block() {
   awk -v job="$2" '
-    $0 ~ "^  " job ":[[:space:]]*$" { inblock = 1; next }
-    inblock && /^  [A-Za-z0-9_.-]+:[[:space:]]*$/ { inblock = 0 }
+    $0 ~ "^  " job ":([[:space:]]|$)" { inblock = 1; next }
+    inblock && /^  [A-Za-z0-9_.-]+:([[:space:]]|$)/ { inblock = 0 }
     inblock && /^[^[:space:]#]/ { inblock = 0 }
     inblock { print }
   ' "$1"
