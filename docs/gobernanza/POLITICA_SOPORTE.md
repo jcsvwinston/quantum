@@ -52,7 +52,7 @@ comando se rehace cada una.
 | Sets en los últimos 60 días | **38** (todos) | idem |
 | Ráfaga más densa | **11 sets en 6 días**, del 2026-08-25 al 2026-08-30: 1.15.0, 1.16.0, 1.17.0 y 1.17.1 (los **cuatro el mismo 08-25**), 1.18.0, 1.19.0, 1.20.0, 1.21.0, 1.22.0, 1.23.0 y 1.24.0 | ventana deslizante de 6 días naturales, extremos incluidos, sobre `git tag -l 'v*' --sort=creatordate --format='%(refname:short) %(creatordate:short)'` |
 | Ráfaga más reciente | **6 sets en 6 días**: 1.26.0 (09-03), 1.26.1 (09-04), 1.26.2 + 1.27.0 + 1.28.0 (los tres el 09-05), 1.29.0 (09-08) | idem, con la ventana pegada al set vigente. **No es el máximo**: la fila anterior lo casi duplica |
-| Silencio más largo | **25 días**, del 2026-07-22 (`v1.10.0`) al 2026-08-16 (`v1.10.1`) | idem |
+| Silencio más largo | **25 días**, del 2026-07-22 (`v1.10.0`) al 2026-08-16 (`v1.10.1`) | mayor diferencia entre fechas de dos tags consecutivos, sobre la misma lista de `git tag -l 'v*' --sort=creatordate --format='%(refname:short) %(creatordate:short)'` |
 | Cadencia objetivo | semanal, `cron: '0 6 * * 1'` (lunes 06:00 UTC) | `.github/workflows/suite-integral.yml` + QADR-0008 |
 | Ramas de mantenimiento | **cero** en los cuatro repos: ninguna rama remota casa con `maint`, `lts`, `backport`, `stable` ni `N.x`, y las únicas `release-*` son ramas de release-please sobre `main` (nucleus 2, quark 1, orbit 2; el paraguas ninguna) | `git ls-remote --heads <origin>` contra cada remoto vivo — **nunca** `git branch -r` de un clon local: ahí sobreviven refs de ramas de componente ya borradas en el remoto y la cuenta sale inflada |
 
