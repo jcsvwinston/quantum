@@ -81,9 +81,14 @@ for f in "$DIR"/*.yml "$DIR"/*.yaml; do
   [ -e "$f" ] || continue
   files=$((files + 1))
 
-  # `- cron:` sólo aparece bajo el disparador `schedule:`; una lane sin cron
-  # no entra en la regla.
-  grep -qE '^[[:space:]]*-[[:space:]]*cron:' "$f" || continue
+  # La clave `cron:` sólo aparece bajo el disparador `schedule:`; una lane sin
+  # cron no entra en la regla. Se busca la clave en cualquier posición (y no
+  # sólo como `- cron:` al principio de línea) para que la forma en flujo
+  # —`schedule: [{cron: '0 7 * * 1'}]`— no se escape: en este guard el falso
+  # NEGATIVO es el peligroso, porque deja una lane sin aviso y en verde. Los
+  # comentarios se descartan antes, para no exigir el job a un workflow que
+  # sólo NOMBRA un cron en su prosa.
+  grep -vE '^[[:space:]]*#' "$f" | grep -qE '(^|[[:space:]{,])cron:' || continue
   scheduled=$((scheduled + 1))
 
   all_jobs=$(jobs_of "$f")
@@ -167,5 +172,5 @@ if [ "$scheduled" -eq 0 ]; then
   exit 2
 fi
 
-[ "$status" -eq 0 ] && echo "OK: $scheduled lanes programadas de $files workflows, todas con su job «$NOTIFY_JOB» (failure+cancelled, sólo en schedule, issues: write, canal común y needs completo)"
+[ "$status" -eq 0 ] && echo "OK: $scheduled/$files workflows disparan por «schedule:»; todos con su job «$NOTIFY_JOB» (failure+cancelled, sólo en schedule, issues: write, canal común y needs completo)"
 exit $status
