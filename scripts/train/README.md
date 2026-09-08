@@ -173,17 +173,18 @@ hasta registrarlo (con fixture) o excluirlo con porqué.
 ### 5. Cierre (`train.sh --desde cierre --hasta cierre`)
 
 Tras fusionar el PR de re-pin (lo fusiona la propia fase paraguas, con MERGE
-COMMIT, que es el método del paraguas):
+COMMIT, que es el método del paraguas).
 
-0. **Que el set que se certifica sea el del tren.** El `git checkout main` del
-   paso 1 abandona en silencio un re-pin que no llegó a main, y a partir de ahí
-   la fase leería del manifiesto de main el set ANTERIOR, encontraría su tag ya
-   cortado («voy directo a la certificación») y lo re-certificaría y
-   re-anunciaría. Así que antes de tocar la rama: ningún PR `chore/set-*`
-   abierto, y si el manifiesto del que arranca la invocación declara otro set,
-   su commit tiene que estar en main (si no, para en seco). Encadenado desde la
-   fase paraguas, además, la versión que lee en main tiene que ser la que esa
-   fase acaba de dejar fusionada.
+Antes de nada, **que el set que se certifica sea el del tren**: el
+`git checkout main` del paso 1 abandona en silencio un re-pin que no llegó a
+main, y a partir de ahí la fase leería del manifiesto de main el set ANTERIOR,
+encontraría su tag ya cortado («voy directo a la certificación») y lo
+re-certificaría y re-anunciaría a `quantum-app`. Así que antes de tocar la
+rama: ningún PR `chore/set-*` abierto, y si el manifiesto del que arranca la
+invocación declara otro set, su commit tiene que estar en main (si no, para en
+seco). Encadenado desde la fase paraguas, además, la versión que lee en main
+tiene que ser la que esa fase acaba de dejar fusionada. Y después:
+
 1. `git checkout main && git pull` — el tag se corta EN HEAD, **después del
    último PR de la ronda**, nunca antes.
 2. `git tag -a vX.Y.Z` + push.
