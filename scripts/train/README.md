@@ -14,7 +14,7 @@ queda fuera del escaneo anti-fósil a propósito (solo cubre `scripts/`,
 
 | Script | Qué hace |
 |---|---|
-| `train.sh` | Driver por fases: `preflight → quark → nucleus → orbit → paraguas → cierre`. Imprime SIEMPRE qué va a hacer antes de hacerlo, para EN SECO al primer rojo, y donde hace falta juicio humano se detiene con la instrucción exacta (EXIT=2). `--dry-run` para ensayar; `--desde <fase>` para retomar. |
+| `train.sh` | Driver por fases: `preflight → quark → nucleus → orbit → paraguas → cierre`. Imprime SIEMPRE qué va a hacer antes de hacerlo, para EN SECO al primer rojo, y donde hace falta juicio humano se detiene con la instrucción exacta (EXIT=2). `--dry-run` para ensayar; `--desde <fase>` para retomar. Se **cronometra por fase** («El reloj del tren», abajo: `--reloj`, `--reloj-cero`) y la fase paraguas **abre y fusiona ella misma** el PR de re-pin cuando las notes ya están redactadas. |
 | `merge-bot-pr.sh <repo> <pr>` | Fusiona UN release PR del bot: push humano de commit vacío (dispara el CI que el token del bot no puede), espera de checks con `gh pr checks --watch --fail-fast`, `update-branch` si queda BEHIND, merge con el método del repo, y espera de los tags; si «Release Please» no corre la dispara, y si corre y termina SIN etiquetar (el auto-bloqueo) aplica `untag-recipe.sh` sola (`--sin-receta` para que solo lo imprima). |
 | `check-anchored-release-branch.sh <repo> [pr]` | Detecta la rama de release del ROOT anclada al main viejo: `git merge-base --is-ancestor` de cada último tag de módulo contra el head del PR. Si falla, imprime la receta cerrar + borrar rama + re-dispatch. Se ejecuta JUSTO ANTES de fusionar el root. |
 | `dispatch-app-bump.sh` | Anuncia el set YA certificado al consumidor externo `quantum-app` (`repository_dispatch` con el número de suite y la salida de `print-requires.sh`), **espera el run** que provoca y **exige que termine en PR** (QM-2). Allí un workflow reescribe el pin, corre sus gates y abre el PR. Exige `status: certified` y que el tag de suite exista; no fusiona ni escribe nada en el otro repo. |
@@ -100,17 +100,37 @@ el comentario de `status`, las notes anteriores a `CHANGELOG.md` (DX-25) y un
 esqueleto de notes con los movimientos del set y marcadores `REDACTAR`
 (`scripts/lib/set-notes.py`). `manifest-guard` §0 rechaza el marcador — el
 driver lo tolera en local con `QUANTUM_ALLOW_NOTES_SKELETON=1` mientras se
-redacta; el CI nunca. Queda lo humano de verdad: redactar las notes, revisar
-el título de la entrada del CHANGELOG, quitar `QUANTUM_ALLOW_DECLARED_LAGS`
-del workflow si estaba, y el PR de re-pin — cuya lane suite-integral debe
-salir verde **sin escapes** (corre en modo normal: tolera el mid-tren sin
-tag). Un corte deliberado con otro número: `bump-set.sh --set X.Y.Z`. Ojo al re-pin
+redacta; el CI nunca.
+
+Desde A3 esta fase para en UN solo sitio, y por una sola razón: **la prosa**.
+Con marcadores `REDACTAR` en `versions.yaml` el driver sale con EXIT=2 y pide
+lo que no se delega — redactar las notes, revisar el título que `bump-set`
+puso a la entrada anterior del `CHANGELOG.md`, actualizar la cabecera «Estado
+real» de `docs/RUMBO.md` con el set nuevo y quitar
+`QUANTUM_ALLOW_DECLARED_LAGS` del workflow si estaba. Sin marcadores ya no
+queda ninguna decisión que tomar, así que **el driver hace el resto solo**:
+corre en local los guards que la lane va a exigir (`manifest-guard` sin
+escapes, `check_rumbo_estado`, `check_gowork_covers_manifest` — abrir un PR
+que ya se sabe rojo cuesta una vuelta de CI), crea la rama `chore/set-X.Y.Z`,
+commitea con las notes por cuerpo, abre el PR y lo fusiona con
+`merge-group.sh quantum --merge`. La lane suite-integral del PR debe salir
+verde **sin escapes** (corre en modo normal: tolera el mid-tren sin tag).
+
+Se retoma con `--desde paraguas` (la propia fase, no la siguiente): al volver,
+`bump-set` NO se repite —los tres pines ya están en el último tag, y repetirlo
+mandaría las notes recién redactadas al CHANGELOG y escribiría otro esqueleto
+encima— y el driver va directo a abrir y fusionar. Con
+`--desde paraguas --hasta cierre` el re-pin y el cierre encadenan en una sola
+invocación.
+
+Un corte deliberado con otro número: `bump-set.sh --set X.Y.Z`. Ojo al re-pin
 que trae un guard nuevo de producto: la aserción anti-fósil pone la lane roja
 hasta registrarlo (con fixture) o excluirlo con porqué.
 
 ### 5. Cierre (`train.sh --desde cierre --hasta cierre`)
 
-Tras fusionar el PR de re-pin (quantum usa MERGE COMMIT):
+Tras fusionar el PR de re-pin (lo fusiona la propia fase paraguas, con MERGE
+COMMIT, que es el método del paraguas):
 
 1. `git checkout main && git pull` — el tag se corta EN HEAD, **después del
    último PR de la ronda**, nunca antes.
@@ -127,9 +147,86 @@ Tras fusionar el PR de re-pin (quantum usa MERGE COMMIT):
    falla no se pierde nada: el set ya está certificado y la pieza se relanza
    sola (`bash scripts/train/dispatch-app-bump.sh`) o se dispara a mano desde
    la pestaña Actions de quantum-app.
-5. El CIERRE de ronda se escribe con la plantilla de `AUDITORIA_CONTINUA.md`
-   §6 (conteos COPIADOS de las tablas de las lanes) y se actualiza
-   `docs/RUMBO.md`.
+5. El driver imprime el **reloj del tren** (desglose por fase, conducido y
+   espera del propietario) y lo archiva como `reloj-vX.Y.Z.tsv`.
+6. El CIERRE de ronda se escribe con la plantilla de `AUDITORIA_CONTINUA.md`
+   §6 (conteos COPIADOS de las tablas de las lanes). (`docs/RUMBO.md` ya va
+   actualizado en el PR de re-pin: sin eso, ese PR sale rojo.)
+
+### El reloj del tren (cuánto cuesta conducir un set)
+
+Hasta A3 nadie lo medía: «el tren tarda demasiado» era una impresión, y sin
+número no hay recorte que se pueda defender. El driver se cronometra por fase
+y guarda las marcas en `<git-common-dir>/quantum-train/reloj.tsv` — dentro de
+`.git`, así que ni ensucia el árbol ni lo ve el guard de árbol limpio de la
+certificación (QM8-5). `QUANTUM_TREN_RELOJ=<fichero>` lo mueve; `--dry-run`
+usa un temporal y no deja rastro.
+
+Como el tren se lanza varias veces (`--desde quark`, `--desde nucleus`…), el
+reloj vive ENTRE invocaciones: TSV sin cabecera, una línea por fase ejecutada,
+seis columnas separadas por tabulador.
+
+```
+1757370216	quark	1757370216	1757371160	944	manual
+1757372100	quark	1757372100	1757372740	640	ok
+```
+
+| columna | qué es |
+|---|---|
+| `corrida` | epoch en que arrancó la invocación: agrupa las fases de una misma llamada y las cuenta. |
+| `fase` | `preflight`, `quark`, `nucleus`, `orbit`, `paraguas`, `cierre`. |
+| `inicio`, `fin` | epoch UNIX de entrada y de salida de la fase. |
+| `segundos` | `fin - inicio`. |
+| `resultado` | `ok` (la fase terminó), `manual` (parada de prosa, EXIT=2), `rojo` (parada en seco, EXIT=1), `interrumpido` (Ctrl-C u otra salida). |
+
+La fase de cierre imprime el desglose y archiva el reloj como
+`reloj-vX.Y.Z.tsv` (el tren siguiente empieza en cero y el anterior queda para
+comparar). `train.sh --reloj` lo imprime en cualquier momento sin efectos;
+`train.sh --reloj-cero` archiva el que hubiera en vuelo.
+
+**Qué cuenta como CONDUCIDO**: la suma de las fases. Lo que el propietario
+tarda ENTRE invocaciones —redactar las notes, revisar, dormir— es el hueco
+entre el `fin` de una fase y el `inicio` de la siguiente: queda fuera por
+construcción y se imprime aparte, para que el descuento sea explícito y no un
+recorte silencioso. La espera de CI **sí** cuenta: el driver está bloqueado en
+`gh pr checks --watch`, y descontarla daría un número bonito que no paga
+nadie. El objetivo se compara con `QUANTUM_TREN_OBJETIVO_MIN` (30 por
+defecto), y por encima el driver imprime un AVISO **y sigue**: el reloj mide,
+no manda — en la fase de cierre el set ya está certificado y un cronómetro no
+puede descertificarlo por haber tardado.
+
+**El tren de 1.29.0, reconstruido — y lo que la reconstrucción NO es.** El
+reloj no existía entonces, y lo que mide (tiempo conducido, invocación a
+invocación) no lo registra nadie más: GitHub no sabe cuándo estaba corriendo
+el driver. Lo que sí se reconstruye de los PRs y los tags es el ENVOLVENTE de
+reloj de pared, del primer PR que abrió el driver al anuncio del set:
+
+| momento | UTC | desde el anterior |
+|---|---|---|
+| quark#358 abierto (suelos: primer PR del driver) | 2026-09-07 22:43:36 | — |
+| quark#358 fusionado | 22:49:52 | +6m16s |
+| **quark v1.12.0** | 22:59:19 | +9m27s |
+| nucleus#486 abierto (re-pin de los ejemplos) | 23:08:47 | +9m28s |
+| nucleus#486 fusionado | 23:14:20 | +5m33s |
+| nucleus#487 abierto (suelos) | 23:14:29 | +9s |
+| nucleus#487 fusionado | 23:20:15 | +5m46s |
+| nucleus#488 fusionado (el arreglo para que la rama del release siguiera verde) | 23:37:39 | +17m24s |
+| **nucleus v1.25.0** | 23:47:51 | +10m12s |
+| orbit#437 abierto (pines cruzados) | 23:54:00 | +6m09s |
+| orbit#437 fusionado | 23:56:41 | +2m41s |
+| **orbit v1.9.3** (orbit#438 fusionado) | 2026-09-08 00:02:41 | +6m00s |
+| quantum#156 abierto (re-pin del paraguas) | 00:06:13 | +3m32s |
+| quantum#156 fusionado | 00:11:51 | +5m38s |
+| **quantum v1.29.0** (tag de suite) | 00:11:54 | +3s |
+| quantum-app#15 (el anuncio del cierre) | 00:15:46 | +3m52s |
+
+**1h32m10s** de punta a punta. Los huecos entre fases son de minutos —el mayor
+es 9m28s, entre el tag de quark y el primer PR de nucleus—, así que aquel tren
+fue conducción casi continua, y el reparto se ve a simple vista: lo que se
+lleva el tiempo son las vueltas de CI de PRs que el driver abre y espera, no
+la escritura humana. Tres veces el objetivo de 30 minutos. Pero es una
+INFERENCIA sobre el envolvente, no la medida que el reloj hace: el primer dato
+de verdad lo dará el tren siguiente.
 
 ### El anuncio a quantum-app exige un permiso del repo (REQUISITO)
 

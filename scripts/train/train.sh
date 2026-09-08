@@ -23,8 +23,11 @@
 #                        check-anchored-release-branch.sh).
 #   paraguas             re-pin mecánico (bump-set.sh: submódulos, pines,
 #                        versión de suite por QADR-0002, notes anteriores al
-#                        CHANGELOG y esqueleto de las nuevas) + manifest-guard,
-#                        y parada manual: redactar las notes, PR de re-pin.
+#                        CHANGELOG y esqueleto de las nuevas) + manifest-guard.
+#                        Si quedan marcadores REDACTAR, PARA (regla 3: la
+#                        prosa no se delega); si no quedan, no queda juicio
+#                        humano que ejercer y el driver abre el PR de re-pin
+#                        y lo FUSIONA con merge-group.sh sin preguntar.
 #   cierre               tras fusionar el PR de re-pin: tag de suite EN HEAD,
 #                        suite-integral --cierre (MAQ-1/MAQ-2) y el anuncio
 #                        del set al consumidor externo quantum-app (D6/RT-5).
@@ -37,18 +40,64 @@
 #   --solo-suelos  en las fases de repo, sube los suelos (QM-19) y para: no
 #               fusiona release PRs. Es el primer commit de un corte que aún
 #               no se va a cerrar (arranque de un arco).
+#   --reloj     imprime el reloj del tren en vuelo (desglose por fase, total
+#               conducido y espera del propietario) y sale. Sin efectos.
+#   --reloj-cero  archiva el reloj en vuelo y sale: el tren siguiente empieza
+#               de cero. No lo hace nadie por su cuenta.
+#
+# «--desde paraguas --hasta cierre» encadena el re-pin y el cierre en una sola
+# invocación: desde que la fase paraguas fusiona su PR, entre las dos no queda
+# ninguna decisión humana.
 #
 # Deudas de doc por minor (RT-9): el driver NO las salda (son escritura), pero
 # las imprime antes de cada repo y el CI del release PR las exige — un release
 # PR sin ellas es un rojo que para el tren, no una sorpresa dos vueltas de CI
 # después. Saldarlas EN la rama del release PR (el push humano además dispara
 # el CI del bot).
+#
+# EL RELOJ DEL TREN (A3). Nadie medía cuánto cuesta cortar un set, así que
+# «el tren tarda demasiado» era una impresión y no un número. El driver se
+# cronometra por fase. Como el tren se lanza varias veces (--desde quark,
+# --desde nucleus…), un cronómetro dentro de una invocación no mediría nada:
+# las marcas se acumulan en un fichero de ESTADO que sobrevive entre
+# invocaciones.
+#
+#   Dónde     <git-common-dir>/quantum-train/reloj.tsv — dentro de .git, así
+#             que ni ensucia el árbol ni lo ve el guard de árbol limpio de la
+#             certificación (QM8-5). QUANTUM_TREN_RELOJ=<fichero> lo mueve.
+#   Formato   TSV sin cabecera, una línea por fase EJECUTADA, seis columnas:
+#               corrida   epoch en que arrancó la invocación (agrupa las
+#                         fases de una misma llamada y las cuenta).
+#               fase      preflight|quark|nucleus|orbit|paraguas|cierre.
+#               inicio    epoch UNIX de entrada en la fase.
+#               fin       epoch UNIX de salida.
+#               segundos  fin - inicio.
+#               resultado ok        la fase terminó,
+#                         manual    parada de prosa (EXIT=2),
+#                         rojo      parada en seco (EXIT=1),
+#                         interrumpido  cualquier otra salida (Ctrl-C…).
+#   Ciclo     la fase de cierre imprime el desglose y ARCHIVA el reloj como
+#             reloj-vX.Y.Z.tsv: el tren siguiente empieza en cero y el
+#             anterior queda para comparar.
+#
+# Qué cuenta como CONDUCIDO: la suma de las fases. Lo que el propietario tarda
+# ENTRE invocaciones (redactar las notes, revisar, dormir) queda fuera por
+# construcción —es el hueco entre el `fin` de una fase y el `inicio` de la
+# siguiente— y se imprime aparte, para que el descuento sea explícito y no un
+# recorte silencioso. La espera de CI SÍ cuenta: el driver está bloqueado en
+# `gh pr checks --watch` y esconderla daría un número bonito y falso.
+#
+# El reloj MIDE; no manda. Por encima del objetivo imprime un AVISO y sigue:
+# en la fase de cierre el set ya está certificado, y un cronómetro no puede
+# descertificar un set por haber tardado.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
 PHASES="preflight quark nucleus orbit paraguas cierre"
 DRY=0
 SOLO_SUELOS=0
+SOLO_RELOJ=0
+RELOJ_CERO=0
 FROM="preflight"
 TO="paraguas"
 while [ $# -gt 0 ]; do
@@ -57,7 +106,9 @@ while [ $# -gt 0 ]; do
     --desde) shift; FROM="${1:-}" ;;
     --hasta) shift; TO="${1:-}" ;;
     --solo-suelos) SOLO_SUELOS=1 ;;
-    -h|--help) sed -n '2,40p' "$0"; exit 0 ;;
+    --reloj) SOLO_RELOJ=1 ;;
+    --reloj-cero) RELOJ_CERO=1 ;;
+    -h|--help) sed -n '2,/^set -e/p' "$0" | sed '$d'; exit 0 ;;
     *) echo "argumento desconocido: $1 (ver --help)" >&2; exit 64 ;;
   esac
   shift
@@ -72,14 +123,143 @@ run() {
   "$@"
 }
 die() { say ""; say "PARADA EN SECO: $*" >&2; exit 1; }
+# MANUAL_DESDE — la fase con la que se RETOMA el tren tras la parada. La de
+# prosa del paraguas se retoma en la PROPIA fase paraguas (el driver abre y
+# fusiona el PR de re-pin al volver), no en la siguiente.
+MANUAL_DESDE=""
 manual() {
   say ""
   say "== PASO MANUAL PENDIENTE =="
   while [ $# -gt 0 ]; do say "  $1"; shift; done
-  say "Cuando esté hecho: bash scripts/train/train.sh --desde <fase-siguiente>"
+  say "Cuando esté hecho: bash scripts/train/train.sh --desde ${MANUAL_DESDE:-<fase-siguiente>}"
   exit 2
 }
 banner() { say ""; say "==== FASE: $1 ===="; }
+
+# --- el reloj (ver la cabecera para el formato y qué cuenta como conducido) --
+RELOJ_CORRIDA=$(date +%s)
+if [ -n "${QUANTUM_TREN_RELOJ:-}" ]; then
+  RELOJ="$QUANTUM_TREN_RELOJ"
+else
+  RELOJ_GITDIR=$(git rev-parse --git-common-dir 2>/dev/null || echo .git)
+  case "$RELOJ_GITDIR" in /*) : ;; *) RELOJ_GITDIR="$PWD/$RELOJ_GITDIR" ;; esac
+  RELOJ="$RELOJ_GITDIR/quantum-train/reloj.tsv"
+fi
+# El ensayo no toca el estado real: reloj temporal que se borra al salir.
+RELOJ_TMP=0
+if [ "$DRY" -eq 1 ] && [ "$SOLO_RELOJ" -eq 0 ] && [ "$RELOJ_CERO" -eq 0 ]; then
+  RELOJ=$(mktemp -t quantum-tren-reloj) || RELOJ=/dev/null
+  RELOJ_TMP=1
+fi
+OBJETIVO_MIN="${QUANTUM_TREN_OBJETIVO_MIN:-30}"
+
+FASE_ACTUAL=""
+FASE_INICIO=0
+
+hms() { # segundos → 1h04m10s | 4m10s | 10s
+  local s=$1 h m
+  h=$((s / 3600)); m=$(((s % 3600) / 60)); s=$((s % 60))
+  if [ "$h" -gt 0 ]; then printf '%dh%02dm%02ds' "$h" "$m" "$s"
+  elif [ "$m" -gt 0 ]; then printf '%dm%02ds' "$m" "$s"
+  else printf '%ds' "$s"; fi
+}
+
+reloj_abre() { FASE_ACTUAL="$1"; FASE_INICIO=$(date +%s); }
+
+# reloj_marca <resultado> — cierra la fase EN VUELO. Idempotente: una segunda
+# llamada (la del trap de salida tras un cierre normal) no escribe nada.
+reloj_marca() {
+  [ -n "$FASE_ACTUAL" ] || return 0
+  local fin
+  fin=$(date +%s)
+  mkdir -p "$(dirname "$RELOJ")" 2>/dev/null || true
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
+    "$RELOJ_CORRIDA" "$FASE_ACTUAL" "$FASE_INICIO" "$fin" "$((fin - FASE_INICIO))" "$1" >> "$RELOJ" 2>/dev/null || true
+  FASE_ACTUAL=""
+}
+
+# El trap traduce la salida a resultado: el tren muere por manual() (EXIT=2) o
+# por die() (EXIT=1) mucho más a menudo que por terminar sus fases, y una fase
+# que no se anota es tiempo conducido que desaparece del reloj.
+reloj_al_salir() {
+  local rc=$?
+  case "$rc" in
+    0) reloj_marca ok ;;
+    2) reloj_marca manual ;;
+    1) reloj_marca rojo ;;
+    *) reloj_marca interrumpido ;;
+  esac
+  [ "$RELOJ_TMP" -eq 1 ] && rm -f "$RELOJ"
+  return 0
+}
+trap reloj_al_salir EXIT
+
+reloj_resumen() {
+  if [ ! -s "$RELOJ" ]; then
+    say "  (el reloj está vacío: ninguna fase anotada todavía — $RELOJ)"
+    return 0
+  fi
+  local ph veces seg total=0 corridas paradas transcurrido espera
+  say ""
+  say "== RELOJ DEL TREN =="
+  say "  fase        veces   conducido"
+  for ph in $PHASES; do
+    veces=$(awk -F'\t' -v p="$ph" '$2 == p' "$RELOJ" | grep -c . || true)
+    [ "$veces" -gt 0 ] || continue
+    seg=$(awk -F'\t' -v p="$ph" '$2 == p { s += $5 } END { print s + 0 }' "$RELOJ")
+    total=$((total + seg))
+    printf '  %-10s %5d   %s\n' "$ph" "$veces" "$(hms "$seg")"
+  done
+  corridas=$(awk -F'\t' '{ print $1 }' "$RELOJ" | sort -u | grep -c . || true)
+  paradas=$(awk -F'\t' '$6 == "manual"' "$RELOJ" | grep -c . || true)
+  local pal_c="invocaciones" pal_p="paradas de prosa"
+  [ "$corridas" -eq 1 ] && pal_c="invocación"
+  [ "$paradas" -eq 1 ] && pal_p="parada de prosa"
+  transcurrido=$(awk -F'\t' 'NR == 1 { min = $3; max = $4 } { if ($3 < min) min = $3; if ($4 > max) max = $4 } END { print max - min }' "$RELOJ")
+  espera=$((transcurrido - total))
+  [ "$espera" -ge 0 ] || espera=0
+  say "  ------------------------------"
+  say "  CONDUCIDO por el driver        $(hms "$total")   ($corridas $pal_c, $paradas $pal_p)"
+  say "  Espera del propietario         $(hms "$espera")   (entre invocaciones: la prosa y lo que la rodea; NO conducido)"
+  say "  Transcurrido de punta a punta  $(hms "$transcurrido")"
+  say "  Dentro de «conducido» va la espera de CI: el driver está bloqueado en"
+  say "  «gh pr checks --watch», y descontarla daría un número que no paga nadie."
+  if [ "$total" -gt "$((OBJETIVO_MIN * 60))" ]; then
+    say "  AVISO: por encima del objetivo de ${OBJETIVO_MIN}m (+$(hms "$((total - OBJETIVO_MIN * 60))")). El reloj mide; no descertifica."
+  else
+    say "  Dentro del objetivo de ${OBJETIVO_MIN}m."
+  fi
+  say "  (reloj: $RELOJ)"
+}
+
+# reloj_archiva <sufijo> — el reloj de un tren cerrado se guarda al lado, para
+# poder comparar trenes; el fichero en vuelo desaparece y el siguiente empieza
+# en cero.
+reloj_archiva() {
+  if [ "$RELOJ_TMP" -eq 1 ]; then say "  (dry-run: el reloj es temporal — ni se archiva ni deja rastro)"; return 0; fi
+  [ -s "$RELOJ" ] || { say "  (reloj vacío: nada que archivar)"; return 0; }
+  local dest="${RELOJ%.tsv}-$1.tsv"
+  [ -e "$dest" ] && dest="${RELOJ%.tsv}-$1-$(date +%H%M%S).tsv"
+  mv "$RELOJ" "$dest" && say "  reloj archivado en $dest"
+}
+
+if [ "$SOLO_RELOJ" -eq 1 ]; then reloj_resumen; exit 0; fi
+if [ "$RELOJ_CERO" -eq 1 ]; then
+  say "Reloj del tren: archivo el que hubiera en vuelo y empiezo de cero."
+  reloj_archiva "$(date +%Y%m%d-%H%M%S)"
+  exit 0
+fi
+
+# manifiesto_valor <sección> <clave> — lee `clave: "valor"` bajo una clave de
+# primer nivel de versions.yaml (el mismo lector que manifest-guard: el
+# manifiesto es plano y no merece una dependencia de yq).
+manifiesto_valor() {
+  awk -v sec="$1" -v key="$2" '
+    $0 ~ "^"sec":" { inblock = 1; next }
+    /^[a-zA-Z_]/   { inblock = 0 }
+    inblock && $1 == key":" { v = $2; gsub(/"/, "", v); print v; exit }
+  ' versions.yaml
+}
 
 MERGE_BOT="bash scripts/train/merge-bot-pr.sh"
 CHECK_ANCHORED="bash scripts/train/check-anchored-release-branch.sh"
@@ -251,7 +431,7 @@ fase_repo() {
       run bash scripts/train/quark-doc-debt.sh || rc=$?
       case "$rc" in
         0) ;;
-        2) manual "Redacta la prosa en los ficheros listados arriba (marcadores TODO): el esqueleto YA está empujado a release-please--branches--main. Empuja la prosa a esa rama y relanza: bash scripts/train/train.sh --desde quark" ;;
+        2) MANUAL_DESDE=quark; manual "Redacta la prosa en los ficheros listados arriba (marcadores TODO): el esqueleto YA está empujado a release-please--branches--main. Empuja la prosa a esa rama y relanza: bash scripts/train/train.sh --desde quark" ;;
         *) die "la deuda de doc de quark no quedó pagada (ver arriba)" ;;
       esac
     fi
@@ -404,9 +584,75 @@ fase_preflight() {
   else
     say "  AVISO: declared_lags NO está vacío — el tren debe alinearlos y vaciarlo."
   fi
+  say "PASO: reloj del tren (el desglose se imprime en la fase de cierre)"
+  if [ -s "$RELOJ" ]; then
+    say "  AVISO: el reloj ya lleva $(grep -c . "$RELOJ" || true) marcas de un tren sin cerrar."
+    say "  Se acumulan a las de este; para empezar de cero: bash scripts/train/train.sh --reloj-cero"
+  else
+    say "  → reloj en cero ($RELOJ)"
+  fi
   say "RECORDATORIO del orden del tren (docs/AUDITORIA_CONTINUA.md §3 + 1.24.0):"
   say "  quark → nucleus (ldap antes que root) → orbit (módulos → root EL ÚLTIMO,"
   say "  re-pinando TODOS sus módulos Y el root en el mismo tren) → re-pin del paraguas."
+}
+
+# repin_ya_escrito — ¿versions.yaml declara ya el último tag de los tres
+# submódulos? Entonces bump-set corrió en una invocación anterior de esta fase
+# y NO se repite: sin movimiento, set-notes.py sale en error («ningún pilar ni
+# módulo hermano se mueve»), y sobre unas notes ya redactadas las mandaría al
+# CHANGELOG y escribiría otro esqueleto encima. El re-pin se escribe una vez
+# por tren; la fase, en cambio, se entra tantas veces como haga falta.
+repin_ya_escrito() {
+  local m t v
+  for m in quark nucleus orbit; do
+    git -C "$m" fetch --tags --quiet origin >/dev/null 2>&1 || true
+    t=$(git -C "$m" tag --list 'v*' --sort=-v:refname | head -1)
+    v=$(manifiesto_valor modules "$m")
+    [ -n "$t" ] && [ "$t" = "$v" ] || return 1
+  done
+  return 0
+}
+
+# abre_y_fusiona_repin <versión> — la parte MECÁNICA del re-pin del paraguas
+# (A3): rama, commit, PR y fusión. Sin preguntar nada: el único juicio de esta
+# fase es la prosa de las notes, y cuando esto corre ya está escrita. El PR
+# lleva esas notes por cuerpo — la explicación del set ya la redactó una
+# persona, y repetirla en otras palabras solo abriría una segunda versión de
+# la verdad.
+abre_y_fusiona_repin() {
+  local ver=$1 br="chore/set-$1" n url msg notas
+  if git rev-parse -q --verify "refs/heads/$br" >/dev/null 2>&1 ||
+     git ls-remote --exit-code --heads origin "$br" >/dev/null 2>&1; then
+    br="$br-$(date +%m%d-%H%M)"
+    say "  (chore/set-$ver ya existe: uso $br)"
+  fi
+  msg="chore(set): $ver — re-pin del set: quark $(manifiesto_valor modules quark), nucleus $(manifiesto_valor modules nucleus) y orbit $(manifiesto_valor modules orbit)"
+  # Las notes del manifiesto, sin la clave ni la indentación del bloque.
+  notas=$(sed -n '/^notes: >/,$p' versions.yaml | sed '1d;s/^  //')
+  say "  Lo que va en el commit:"
+  git status --short | sed 's/^/    /'
+  run git checkout -q -b "$br" || return 1
+  run git add -A || return 1
+  say "  → git commit -m \"$msg\" (cuerpo: las notes del manifiesto)"
+  git commit -q -m "$msg" -m "$notas" \
+    -m "Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>" || return 1
+  run git push -q -u origin "$br" || return 1
+  url=$(gh pr create -R jcsvwinston/quantum --base main --head "$br" --title "$msg" --body "$notas
+
+Abierto por el tren: las notes ya están redactadas, así que en el re-pin no queda ninguna decisión: los pines son los tags recién cortados y el resto lo escribió bump-set. La lane suite-integral corre en modo normal (tolera el mid-tren sin tag) y el driver fusiona en cuanto salga verde.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)") || return 1
+  n=${url##*/}
+  say "  → PR quantum#$n abierto: $url"
+  # quantum fusiona con MERGE COMMIT (no squash): el historial del paraguas
+  # guarda el re-pin y su PR.
+  run bash scripts/train/merge-group.sh quantum --merge "$n" || return 1
+  gh pr view "$n" -R jcsvwinston/quantum --json state --jq .state | grep -q MERGED ||
+    { say "  quantum#$n no quedó fusionado (mira sus checks)"; return 1; }
+  run git checkout -q main || return 1
+  run git pull -q --ff-only || return 1
+  git branch -q -D "$br" 2>/dev/null || true
+  say "OK: re-pin fusionado (quantum#$n)."
 }
 
 fase_paraguas() {
@@ -414,20 +660,73 @@ fase_paraguas() {
   if [ ! -f nucleus/go.mod ] || [ ! -f quark/go.mod ] || [ ! -f orbit/go.mod ]; then
     die "submódulos sin inicializar (git submodule update --init --recursive)"
   fi
-  say "PASO: re-pin mecánico del set (bump-set.sh: submódulos al tag, versions.yaml/README, versión"
-  say "      de suite por QADR-0002, notes anteriores al CHANGELOG y esqueleto de las nuevas)"
-  run bash scripts/bump-set.sh || die "bump-set.sh falló"
+  if [ "$DRY" -eq 1 ]; then
+    # El ensayo no escribe: ni bump-set, ni rama, ni PR. Lo que sí dice es la
+    # BIFURCACIÓN, que es lo que cambia en esta fase (A3).
+    say "PASO: re-pin mecánico del set, si el manifiesto no lo lleva ya escrito"
+    say "  → bash scripts/bump-set.sh"
+    say "PASO: manifest-guard sobre el re-pin (tolera el marcador REDACTAR; el CI no)"
+    say "  → env QUANTUM_ALLOW_NOTES_SKELETON=1 bash scripts/manifest-guard.sh"
+    say "PASO: la bifurcación de esta fase, según los marcadores REDACTAR de versions.yaml:"
+    say "  CON marcadores → PARADA (EXIT=2): la prosa de las notes, el título del CHANGELOG y"
+    say "                   la cabecera de docs/RUMBO.md; se retoma con --desde paraguas."
+    say "  SIN marcadores → guards locales del re-pin, rama chore/set-<versión>, commit con las"
+    say "                   notes por cuerpo, PR y merge-group.sh quantum --merge: sin preguntar."
+    say "OK: fase paraguas (dry-run) — nada escrito."
+    return 0
+  fi
+  if repin_ya_escrito; then
+    say "PASO: re-pin mecánico — los tres pines ya están en el último tag: NO repito bump-set"
+    say "  (lo escribió una invocación anterior de esta fase; repetirlo mandaría las notes ya"
+    say "   redactadas al CHANGELOG y escribiría otro esqueleto encima)"
+  else
+    say "PASO: re-pin mecánico del set (bump-set.sh: submódulos al tag, versions.yaml/README, versión"
+    say "      de suite por QADR-0002, notes anteriores al CHANGELOG y esqueleto de las nuevas)"
+    run bash scripts/bump-set.sh || die "bump-set.sh falló"
+  fi
   say "PASO: manifest-guard sobre lo que bump-set escribió (tolera el marcador REDACTAR del esqueleto; el CI no)"
   run env QUANTUM_ALLOW_NOTES_SKELETON=1 bash scripts/manifest-guard.sh || die "manifest-guard rechaza el re-pin"
-  manual \
-    "1. Redacta las notes de versions.yaml: bump-set dejó versión de suite, released, status y los" \
-    "   movimientos del set; sustituye cada REDACTAR (manifest-guard §0 lo rechaza) y revisa el título" \
-    "   que puso a la entrada anterior en CHANGELOG.md (DX-25). Si el número de suite no es el que" \
-    "   toca (corte deliberado): bash scripts/bump-set.sh --set X.Y.Z (solo cambia el número)." \
-    "2. Si el workflow llevaba QUANTUM_ALLOW_DECLARED_LAGS, quítalo: el PR de re-pin sale verde SIN escapes." \
-    "3. Abre el PR de re-pin; su lane suite-integral corre en modo normal (tolera el mid-tren sin tag)." \
-    "4. Fusiona el PR (quantum usa MERGE COMMIT; puedes usar merge-bot-pr.sh quantum <n> si es del bot)." \
-    "5. Después: bash scripts/train/train.sh --desde cierre --hasta cierre"
+
+  # La ÚNICA parada de esta fase: la prosa. Lo demás —abrir el PR y fusionarlo—
+  # no es juicio humano, y desde A3 lo hace el driver.
+  if grep -q 'REDACTAR' versions.yaml; then
+    MANUAL_DESDE=paraguas
+    manual \
+      "La prosa del set, que no se delega. Todo lo demás de esta fase lo hace el driver al volver." \
+      "1. Redacta las notes de versions.yaml: bump-set dejó versión de suite, released, status y los" \
+      "   movimientos del set; sustituye cada REDACTAR (manifest-guard §0 lo rechaza) y revisa el título" \
+      "   que puso a la entrada anterior en CHANGELOG.md (DX-25). Si el número de suite no es el que" \
+      "   toca (corte deliberado): bash scripts/bump-set.sh --set X.Y.Z (solo cambia el número)." \
+      "2. Actualiza la cabecera «Estado real» de docs/RUMBO.md con el set nuevo (regla de" \
+      "   mantenimiento del RUMBO; check_rumbo_estado está en el registro y el PR saldría rojo)." \
+      "3. Si el workflow llevaba QUANTUM_ALLOW_DECLARED_LAGS, quítalo: el PR de re-pin sale verde SIN escapes." \
+      "Al volver, el driver abre el PR de re-pin y lo fusiona él (y con --hasta cierre, sigue al cierre)."
+  fi
+
+  local ver
+  ver=$(sed -nE 's/^quantum:[[:space:]]+"([^"]+)".*/\1/p' versions.yaml | head -1)
+  [ -n "$ver" ] || die "no pude leer la versión de suite de versions.yaml"
+  say "PASO: notes redactadas (sin marcadores REDACTAR) — el re-pin de Quantum $ver ya no tiene nada que decidir"
+
+  # Los guards del re-pin que corren en local y en segundos: abrir un PR que ya
+  # se sabe rojo es gastar una vuelta de CI y la atención de quien mira.
+  say "PASO: los guards locales que la lane del PR va a exigir, ANTES de abrirlo"
+  run bash scripts/manifest-guard.sh \
+    || die "manifest-guard en rojo sin escapes: el PR de re-pin saldría rojo. Arregla y relanza --desde paraguas"
+  run bash scripts/check_rumbo_estado.sh \
+    || die "docs/RUMBO.md no declara el set del manifiesto (regla de mantenimiento del RUMBO): actualiza su cabecera «Estado real» y relanza --desde paraguas"
+  run bash scripts/check_gowork_covers_manifest.sh \
+    || die "el go.work no cubre el manifiesto: el «use» de un módulo nuevo del pin va EN el PR de re-pin (1.26.2). Añádelo y relanza --desde paraguas"
+
+  if [ -z "$(git status --porcelain)" ]; then
+    say "PASO: abrir y fusionar el PR de re-pin"
+    say "  El árbol está limpio: el re-pin ya está en main, no hay PR que abrir."
+  else
+    say "PASO: abrir y fusionar el PR de re-pin (rama, commit, gh pr create, merge-group.sh)"
+    abre_y_fusiona_repin "$ver" || die "el PR de re-pin no quedó fusionado (ver arriba). El re-pin sigue en su rama: arregla la causa y relanza --desde paraguas"
+  fi
+  say "OK: fase paraguas completa — Quantum $ver re-pinado en main."
+  say "  Siguiente: bash scripts/train/train.sh --desde cierre --hasta cierre"
 }
 
 fase_cierre() {
@@ -465,24 +764,31 @@ fase_cierre() {
     bash scripts/train/dispatch-app-bump.sh"
   say ""
   say "OK: set v$ver certificado. Queda lo humano: CIERRE de ronda con la plantilla"
-  say "de docs/AUDITORIA_CONTINUA.md §6 (conteos COPIADOS de las tablas de las lanes),"
-  say "y actualizar docs/RUMBO.md (regla de mantenimiento del arco)."
+  say "de docs/AUDITORIA_CONTINUA.md §6 (conteos COPIADOS de las tablas de las lanes)."
+  # El reloj se cierra AQUÍ (la fase en vuelo es «cierre») para que su propio
+  # tiempo entre en el desglose, y se archiva con la versión del set.
+  reloj_marca ok
+  reloj_resumen
+  reloj_archiva "v$ver"
 }
 
 started=0
 for ph in $PHASES; do
   [ "$ph" = "$FROM" ] && started=1
   [ "$started" -eq 1 ] || continue
+  # «cierre» nunca arranca por arrastre: exige pedirse explícitamente
+  # (--desde/--hasta cierre) porque presupone el PR de re-pin fusionado —
+  # que desde A3 fusiona la fase paraguas, así que «--desde paraguas --hasta
+  # cierre» encadena las dos sin volver a arrancar el tren.
+  if [ "$ph" = "cierre" ] && [ "$FROM" != "cierre" ] && [ "$TO" != "cierre" ]; then continue; fi
+  reloj_abre "$ph"
   case "$ph" in
     preflight) fase_preflight ;;
     quark|nucleus|orbit) fase_repo "$ph" ;;
     paraguas) fase_paraguas ;;
-    cierre)
-      # «cierre» nunca arranca por arrastre: exige pedirse explícitamente
-      # (--desde/--hasta cierre) porque presupone el PR de re-pin fusionado.
-      if [ "$FROM" = "cierre" ] || [ "$TO" = "cierre" ]; then fase_cierre; fi
-      ;;
+    cierre) fase_cierre ;;
   esac
+  reloj_marca ok
   [ "$ph" = "$TO" ] && break
 done
 say ""
