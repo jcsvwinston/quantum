@@ -957,10 +957,17 @@ abre_y_fusiona_repin() {
 # tren corre—, el merge del PR mezclaría el re-pin con un main que nadie
 # comparó, y este PR se fusiona sin que nadie mire su diff.
 exige_rama_sobre_main_al_dia() {
-  local br=$1
+  local br=$1 rc=0
   git fetch -q origin main || die "no pude traer origin/main: sin eso no sé sobre qué main está $br"
-  git merge-base --is-ancestor origin/main HEAD 2>/dev/null ||
-    die "la rama $br no desciende de origin/main ($(git rev-parse --short origin/main)): main se movió por debajo y el PR del set se fusiona sin que nadie mire su diff. Rebásala (git rebase origin/main), comprueba que sigue limpia y relanza --desde paraguas"
+  # EXIT=1 es la RESPUESTA «no desciende»; cualquier otro código es que la
+  # pregunta no se pudo hacer, y eso no se lee como un sí (el stderr de git
+  # sale por delante de la parada).
+  git merge-base --is-ancestor origin/main HEAD || rc=$?
+  case "$rc" in
+    0) : ;;
+    1) die "la rama $br no desciende de origin/main ($(git rev-parse --short origin/main)): main se movió por debajo y el PR del set se fusiona sin que nadie mire su diff. Rebásala (git rebase origin/main), comprueba que sigue limpia y relanza --desde paraguas" ;;
+    *) die "no pude comparar $br con origin/main (git merge-base EXIT=$rc, su error justo arriba): sin esa respuesta no sé sobre qué main está la rama que voy a fusionar" ;;
+  esac
 }
 
 # revisa_lo_que_lleva <qué> <ref> — la gemela del filtro RUTAS_REPIN para los
@@ -977,15 +984,23 @@ exige_rama_sobre_main_al_dia() {
 # commiteado: la rama que se retoma en local y la rama del PR que ya está
 # abierto en GitHub (que pudo crecer desde que la abrimos).
 revisa_lo_que_lleva() {
-  local que=$1 ref=$2 ruta ajenas=""
+  local que=$1 ref=$2 ruta ajenas="" lista rc=0
   local -a lineas=()
+  # El diff se pide ANTES del bucle y con su código de salida a la vista: un
+  # `git diff` que falla dentro de la sustitución del here-doc no se distingue
+  # de «no añade nada», y este gate se leería como «limpio» sin haber podido
+  # mirar — que es justo la forma de fallar que esta revisión existe para
+  # cerrar.
+  lista=$(git diff --name-only "origin/main...$ref") || rc=$?
+  [ "$rc" -eq 0 ] ||
+    die "no pude leer qué lleva $que sobre origin/main (git diff EXIT=$rc): sin esa respuesta no sé si arrastra algo ajeno, y esto se fusiona sin que nadie lo mire"
   while IFS= read -r ruta; do
     [ -n "$ruta" ] || continue
     ruta_del_repin "$ruta" && continue
     ajenas="$ajenas $ruta"
     lineas+=("  $ruta")
   done <<EOF
-$(git diff --name-only "origin/main...$ref")
+$lista
 EOF
   [ -n "$ajenas" ] || return 0
   MANUAL_DESDE=paraguas
