@@ -22,8 +22,14 @@
 #      firma sin clave, `attestations: write` para la atestación). Sin ellos
 #      los pasos existen y fallan, que es la forma más cara de no tener nada.
 #
-# Corre AL PIN, como el resto del registro: lo que certifica es lo que el set
-# publica, no lo que hay en la rama de nadie.
+# El PARAGUAS entró en la lista con quantum#166, que publica el set como
+# paquete verificable (manifiesto, bloque require, gitlinks y sumas). No tiene
+# GoReleaser —no compila nada— así que de él se comprueban las dos mitades que
+# sí tiene: la firma del fichero de sumas y la atestación, con sus permisos.
+#
+# Corre AL PIN para los tres productos, como el resto del registro: lo que
+# certifica es lo que el set publica, no lo que hay en la rama de nadie. El
+# paraguas se comprueba en el árbol de trabajo, que es donde vive.
 #
 # Uso: bash scripts/check_supply_chain.sh
 set -uo pipefail
@@ -33,6 +39,7 @@ status=0
 
 # repo|fichero de goreleaser|workflow de release
 OBJETIVOS="
+.|—|.github/workflows/release-set.yml
 quark|.goreleaser.yaml|.github/workflows/release.yml
 nucleus|.goreleaser.yaml|.github/workflows/release.yml
 orbit|.goreleaser.yaml|.github/workflows/release.yml
@@ -50,8 +57,28 @@ for linea in $OBJETIVOS; do
   wf=${resto#*|}
   [ -n "$repo" ] || continue
 
-  if [ ! -d "$repo" ]; then
+  if [ "$repo" != "." ] && [ ! -d "$repo" ]; then
     falta "falta el submódulo $repo — ¿git submodule update --init?"
+    continue
+  fi
+
+  if [ "$repo" = "." ]; then
+    # El paraguas no compila binarios: no hay config de GoReleaser que mirar.
+    if [ ! -f "$wf" ]; then
+      falta "el paraguas no tiene $wf — el set se publicaría sin firma ni procedencia"
+      continue
+    fi
+    if ! grep -q "cosign" "$wf"; then
+      falta "$wf no firma nada — falta la firma sin clave sobre el fichero de sumas"
+    fi
+    if ! grep -q "actions/attest-build-provenance" "$wf"; then
+      falta "$wf no atesta la procedencia — falta el paso actions/attest-build-provenance"
+    fi
+    for permiso in "id-token: write" "attestations: write" "contents: write"; do
+      if ! grep -qE "^[[:space:]]*${permiso}([[:space:]]|$)" "$wf"; then
+        falta "$wf no pide \`${permiso}\` — el paso que lo necesita existiría y fallaría en la corrida del tag"
+      fi
+    done
     continue
   fi
 
@@ -80,6 +107,6 @@ for linea in $OBJETIVOS; do
 done
 
 if [ "$status" -eq 0 ]; then
-  echo "OK: cadena de suministro — quark, nucleus y orbit publican con SBOM, firma sin clave y atestación de procedencia"
+  echo "OK: cadena de suministro — quark, nucleus y orbit publican con SBOM, firma sin clave y atestación de procedencia, y el paraguas publica el set firmado y atestado"
 fi
 exit $status
