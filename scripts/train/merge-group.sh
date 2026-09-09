@@ -14,16 +14,43 @@ for n in "$@"; do
     echo "  checks: $s"
     if echo "$s" | grep -q fail; then echo "  ROJO: no fusiono $repo#$n"; break; fi
     # Con --squash, el cuerpo del commit lo compone GitHub con la lista de
-    # commits del PR, y una línea «Palabra: texto» de esos cuerpos la lee el
-    # parser de conventional commits como pie de página y aborta: release-please
-    # descartó quark#355 (feat) y propuso un patch (1.11.1) con un minor en
-    # main. Aquí el squash lleva título = título del PR y un cuerpo controlado:
-    # el del PR con esas líneas neutralizadas, más el trailer de coautoría.
+    # commits del PR, y ese cuerpo puede tirar el parser de release-please. Si
+    # lo tira, el commit DESAPARECE: el log dice «commit could not be parsed» y
+    # después «No user facing commits found … skipping», así que un feat o un
+    # fix no corta release y no hay nada rojo que lo delate. Aquí el squash
+    # lleva título = título del PR y un cuerpo controlado, con las dos formas
+    # conocidas neutralizadas.
+    #
+    # FORMA 1, «Palabra: texto» al principio de línea. El parser la lee como
+    # pie de página. Costó quark#355: release-please no vio el feat y propuso
+    # un patch (1.11.1) con un minor ya en main.
+    #
+    # FORMA 2, una línea que EMPIEZA por un token seguido de paréntesis
+    # ANIDADOS. release-please 17 no usa el parser laxo de conventional
+    # commits, usa una gramática que revienta con
+    # «unexpected token '(' … valid tokens [)]». Costó orbit#443: su fix quedó
+    # sin publicar y orbit sin PR de release. Medido con release-please
+    # 17.11.2 sobre ese cuerpo real:
+    #
+    #     `f(g(x))` es la llamada.    → ROMPE  (empieza por el token)
+    #     f(g(x)) es la llamada.      → ROMPE  (los backticks dan igual)
+    #      `f(g(x))` es la llamada.   → parsea (basta UN espacio delante)
+    #     usa `f(g(x))` para leer.    → parsea (basta que algo la preceda)
+    #     | a | `f(g(x))` |           → parsea (empieza por «|»)
+    #
+    # Por eso la segunda regla solo antepone un espacio. Sobre el cuerpo de
+    # orbit#443 toca 2 líneas de 283 y lo deja parseando; verificado llamando
+    # a parseConventionalCommits de release-please, no a ojo.
     extra=()
     if [ "$method" = "--squash" ]; then
       title=$(gh pr view "$n" -R "jcsvwinston/$repo" --json title --jq .title)
-      body=$(gh pr view "$n" -R "jcsvwinston/$repo" --json body --jq .body | sed -E 's/^([A-Za-z][A-Za-z -]*): /\1 — /' | grep -v '^🤖 Generated with' )
-      body=$(printf '%s\n\nCo-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>\n' "$body")
+      body=$(gh pr view "$n" -R "jcsvwinston/$repo" --json body --jq .body \
+        | sed -E 's/^([A-Za-z][A-Za-z -]*): /\1 — /' \
+        | sed -E 's/^(`?[A-Za-z_][A-Za-z0-9_.-]*\()/ \1/' \
+        | grep -v '^🤖 Generated with' )
+      # El coautor sigue al modelo en uso, así que vive en una variable: al
+      # cambiar de modelo se ajusta aquí (o por entorno) y no en la lógica.
+      body=$(printf '%s\n\nCo-Authored-By: %s\n' "$body" "${TRAIN_CO_AUTHOR:-Claude Opus 5 <noreply@anthropic.com>}")
       printf '%s' "$body" > "$TMPBODY"
       extra=(--subject "$title (#$n)" --body-file "$TMPBODY")
     fi

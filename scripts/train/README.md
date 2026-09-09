@@ -575,6 +575,42 @@ se cuela por error, el remedio es revertir el commit antes del corte, no
 maquillar el número. `Release-As` queda solo para el caso legítimo de
 «arreglar sólo un módulo no corta el root» (más arriba).
 
+### Un paréntesis anidado al principio de una línea del cuerpo se come la release
+
+release-please 17 no usa el parser laxo de conventional commits: usa una
+gramática. Cuando esa gramática revienta, el commit **desaparece** — el log
+dice `commit could not be parsed: <sha> <título>` y a continuación
+`No user facing commits found … skipping`—, así que un `feat:` o un `fix:` no
+corta release, no hay PR del bot y **no hay nada rojo que lo delate**. Es la
+misma familia que la trampa de los pies de página, pero con otro disparador y
+más fácil de escribir sin darse cuenta.
+
+Lo que rompe es una línea del cuerpo que **empieza** por un token seguido de
+paréntesis **anidados**. Medido con release-please 17.11.2 llamando a
+`parseConventionalCommits`, no a ojo:
+
+```
+`f(g(x))` es la llamada.      → ROMPE   (la línea empieza por el token)
+f(g(x)) es la llamada.        → ROMPE   (los backticks son irrelevantes)
+ `f(g(x))` es la llamada.     → parsea  (basta UN espacio delante)
+usa `f(g(x))` para leer.      → parsea  (basta que algo la preceda)
+| a | `f(g(x))` |             → parsea  (empieza por «|»)
+```
+
+Vale en cualquier línea del cuerpo, no solo en las primeras, y en estos repos
+el riesgo es alto porque los cuerpos de PR van llenos de referencias a código
+del tipo `strconv.ParseInt(strings.TrimSpace(raw), 10, 64)`.
+
+**Lo costó orbit#443**: dos líneas de 283 dejaron su `fix:` invisible, orbit
+sin PR de release y el arreglo sin publicar. `merge-group.sh` ya antepone ese
+espacio al componer el cuerpo del squash.
+
+**Cómo reproducirlo cuando vuelva a pasar**, sin adivinar: `npm i
+release-please@17` y llamar a `parseConventionalCommits` de
+`release-please/build/src/commit.js` con `{sha, message, files}`; después
+bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
+la línea y la columna.
+
 ### Lo que aprendió el tren de 1.29.0 (A2)
 
 - **Un minor de quark deja rojo el CI de nucleus hasta re-pinar sus
