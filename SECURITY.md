@@ -41,3 +41,20 @@ al set vigente.
 
 Los tres CI de producto ejecutan `govulncheck`; el paraguas mantiene sus
 dependencias de sitio y de Actions con Dependabot (`.github/dependabot.yml`).
+
+## Cómo comprobar que un set es el que publicamos
+
+Desde el primer tag firmado, la release de cada set publica el manifiesto, el
+bloque `require` pegable y los gitlinks de los tres productos junto a un
+`checksums.txt` firmado **sin clave** por la corrida que lo construyó
+(`.github/workflows/release-set.yml`), más una atestación de procedencia. No
+hay clave de firma que custodiar: lo que se comprueba es qué workflow, de qué
+repositorio y en qué tag firmó.
+
+Las invocaciones exactas de `cosign verify-blob` y `gh attestation verify`,
+con la identidad que hay que exigir, están en
+[Verifying a set](https://jcsvwinston.github.io/quantum/start/verifying-a-set).
+
+Lo que esto **no** cubre: el tag de suite en sí es un tag anotado sin firmar
+—se firma el contenido del set, no el puntero— y los binarios de cada producto
+se verifican en su propio repositorio, donde se publican.

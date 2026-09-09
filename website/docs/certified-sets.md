@@ -104,3 +104,11 @@ patch may exist for days before a set certifies it alongside the others.
 
 The full history of sets lives in the manifest's git log — every certified
 combination since the first one, one commit each.
+
+## Checking that a set is the one we published
+
+From the first signed tag onward, each set release publishes the manifest, the
+pasteable `require` block and the three products' gitlinks alongside a keyless
+signature and a build provenance attestation — so the claim above can be
+checked by someone who does not have this repository.
+[Verifying a set](verifying-a-set.md) has the commands.

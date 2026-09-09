@@ -1,0 +1,221 @@
+name: Release del set (paquete verificable)
+
+# QUÉ CIERRA ESTA LANE. El arco A3 dejó a los tres productos publicando sus
+# binarios con SBOM, firma sin clave y atestación de procedencia: quien
+# descarga un `nucleus` o un `admin-server` puede comprobar qué corrida lo
+# construyó. El cuarto repositorio se quedó fuera, y es el que MÁS afirma: el
+# paraguas certifica un SET —un trío de versiones compatibles— y hasta aquí
+# esa afirmación viajaba sin nada detrás. El tren corta `git tag -a` (anotado,
+# sin firmar) desde la máquina del propietario y lo que llegaba al otro lado
+# era un tag y un fichero YAML dentro de un repositorio: cualquiera con
+# permiso de escritura podía reescribir el manifiesto o mover el tag, y no
+# había forma de notarlo desde fuera.
+#
+# Esta lane no corta ni mueve tags: REACCIONA a un tag que ya existe. Empaqueta
+# lo que ese tag certifica, lo firma sin clave y lo atesta, y lo publica como
+# activos de la release.
+#
+# QUÉ NO ES. No sustituye a `scripts/check_suite_tag.sh` —de hecho lo ejecuta
+# primero, en modo certificación—: aquel comprueba DENTRO del repositorio que
+# el tag respalda lo que su nombre afirma. Lo que aquí se añade es que ese
+# mismo hecho pueda comprobarlo alguien que NO tiene el repositorio, con dos
+# herramientas públicas y sin confiar en la página de releases. El
+# procedimiento del consumidor está en website/docs/verifying-a-set.md.
+#
+# LO QUE SIGUE SIN CUBRIR, dicho aquí para que no se lea de más: el tag de
+# suite en sí sigue siendo un tag anotado SIN FIRMAR. Firmarlo exige
+# `git tag -s` con una clave configurada en la máquina del propietario, que es
+# una decisión suya y no algo que un workflow pueda hacer. Lo que esta lane
+# firma es el CONTENIDO del set, no el puntero.
+
+on:
+  # El tag del paraguas lo empuja el propietario con SUS credenciales
+  # (scripts/train/train.sh, fase de cierre), así que `push: tags` sí dispara —
+  # a diferencia de los productos, donde el tag lo crea release-please con el
+  # GITHUB_TOKEN y GitHub suprime el evento.
+  push:
+    tags:
+      - "v*.*.*"
+  # Para re-publicar el paquete de un tag ya cortado (por ejemplo, uno anterior
+  # a esta lane). Hay que lanzarlo SOBRE EL TAG: el primer paso rechaza
+  # cualquier otro ref.
+  workflow_dispatch:
+
+# Restrictivo por defecto: lo que necesita escribir lo pide su propio job.
+permissions:
+  contents: read
+
+concurrency:
+  # Por tag, y SIN cancelar en curso: una corrida a medias dejaría la release
+  # con activos sin firma.
+  group: release-set-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    name: paquete del set, firmado y atestado
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      # Las tres son necesarias y ninguna sustituye a otra: `contents` es con
+      # lo que se crea la release y se suben los activos, `id-token` es el
+      # token OIDC con el que cosign firma sin clave (aquí no vive ninguna
+      # clave), y `attestations` es lo que escribe la procedencia. Quitar
+      # cualquiera de ellas rompe un paso distinto.
+      contents: write
+      id-token: write
+      attestations: write
+
+    steps:
+      - name: Checkout del tag (con submódulos — los gitlinks SON el set)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # print-requires.sh resuelve la ruta de cada módulo hermano contra el
+          # árbol pinado y se niega a emitir una línea cuyo go.mod no exista:
+          # sin submódulos el paquete saldría incompleto y con pinta de correcto.
+          submodules: true
+          # check_suite_tag.sh compara el tag con HEAD y necesita la historia y
+          # los tags completos.
+          fetch-depth: 0
+          # Nada de lo que sigue empuja a git; el token va por env al `gh` que
+          # publica. Un checkout sin credencial persistida es una superficie
+          # menos en un job que sí tiene permiso de escritura.
+          persist-credentials: false
+
+      - name: El ref es un tag de suite y el manifiesto lo respalda
+        id: set
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_TYPE}" != "tag" ]; then
+            echo "::error::esta lane publica el paquete de un TAG ya cortado; el ref '${GITHUB_REF_NAME}' es un ${GITHUB_REF_TYPE}. Relánzala sobre el tag."
+            exit 1
+          fi
+          ver=$(sed -nE 's/^quantum:[[:space:]]+"([^"]+)".*/\1/p' versions.yaml | head -1)
+          if [ -z "$ver" ]; then
+            echo "::error::el versions.yaml de ${GITHUB_REF_NAME} no declara 'quantum:'"
+            exit 1
+          fi
+          # check_suite_tag.sh (paso siguiente) verifica el tag que el MANIFIESTO
+          # nombra, no el que se empujó. Sin esta comparación, empujar v9.9.9
+          # sobre un árbol que declara 1.29.0 publicaría bajo el nombre v9.9.9
+          # un paquete que dice ser el set 1.29.0 — y aquel guard pasaría, porque
+          # v1.29.0 existe y es ancestro.
+          if [ "${GITHUB_REF_NAME}" != "v$ver" ]; then
+            echo "::error::el tag empujado es ${GITHUB_REF_NAME} pero su versions.yaml declara la suite $ver — el tag no nombra el set que lleva dentro."
+            exit 1
+          fi
+          echo "set=$ver" >> "$GITHUB_OUTPUT"
+
+      - name: El tag respalda lo que afirma (modo certificación)
+        # El mismo guard del registro que corre la lane semanal, aquí en modo
+        # --cierre: el tag debe EXISTIR, su versions.yaml declarar la versión
+        # del tag, sus gitlinks coincidir con los workspace_pins, y capturar el
+        # set de HEAD. Publicar un paquete de un tag que no pasa esto sería
+        # firmar una afirmación falsa con toda la ceremonia.
+        run: bash scripts/check_suite_tag.sh --cierre
+
+      - name: Armar el paquete del set
+        run: bash scripts/release/build-set-bundle.sh dist
+
+      - name: Instalar cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+
+      - name: Firmar checksums.txt sin clave
+        # Sin clave: la firma la hace ESTA corrida con un certificado de vida
+        # corta emitido contra su token OIDC, y lo que el consumidor comprueba
+        # no es «quién tiene la clave» sino qué workflow, de qué repositorio y
+        # en qué tag firmó. Se firma un solo fichero —el de sumas— porque cubre
+        # a los otros cuatro; es el mismo patrón que el bloque `signs:` de
+        # GoReleaser de los tres productos.
+        run: |
+          set -euo pipefail
+          cosign sign-blob dist/checksums.txt \
+            --output-signature dist/checksums.txt.sig \
+            --output-certificate dist/checksums.txt.pem \
+            --yes
+
+      - name: Atestar la procedencia del paquete
+        # Una atestación sobre el fichero de sumas cubre por digest los cuatro
+        # ficheros que lista, así que `gh attestation verify versions.yaml`
+        # resuelve sin que el consumidor tenga que saber nada de esto. La
+        # atestación NO es un activo de la release: vive en la API de
+        # atestaciones de GitHub, que es lo que la hace una prueba independiente
+        # de la página de releases.
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-checksums: dist/checksums.txt
+
+      - name: Publicar la release con los activos del set
+        # Idempotente a propósito: si la release ya existe (la creó el
+        # propietario, o una corrida anterior de esta misma lane) solo se suben
+        # los activos con --clobber. Re-lanzar la lane sobre un tag ya publicado
+        # es seguro y deja el paquete recién firmado.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+          SET: ${{ steps.set.outputs.set }}
+        run: |
+          set -euo pipefail
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "la release $TAG ya existe — solo se suben los activos"
+          else
+            # Las notas del set vigente viven en el bloque `notes:` de
+            # versions.yaml (el CHANGELOG guarda las de los sets ANTERIORES),
+            # así que el texto que el propietario ya escribió al certificar es
+            # el cuerpo de la release. Se desangra la sangría del escalar
+            # plegado; los saltos simples los vuelve a plegar Markdown y las
+            # líneas en blanco quedan como separación de párrafo.
+            awk '
+              /^notes: >/ { inb = 1; next }
+              inb && /^[^[:space:]]/ { inb = 0 }
+              inb { sub(/^  /, ""); print }
+            ' versions.yaml > /tmp/notas.md
+
+            {
+              echo
+              echo "---"
+              echo
+              echo "**Paquete del set, verificable.** Esta release publica \`versions.yaml\`,"
+              echo "el bloque \`require\` pegable, los gitlinks de los tres productos y un"
+              echo "\`checksums.txt\` firmado sin clave por la corrida que lo construyó, más"
+              echo "una atestación de procedencia. Cómo comprobarlo:"
+              echo "<https://jcsvwinston.github.io/quantum/start/verifying-a-set>."
+            } >> /tmp/notas.md
+
+            # Título: el primer segmento del primer párrafo de las notas, que es
+            # como se han titulado las releases del paraguas hasta ahora
+            # («Quantum 1.29.0 — la minor que publica el arco A2»). Si el texto
+            # no tiene esa forma, se cae a un título mecánico en vez de inventar.
+            primero=$(awk 'BEGIN { RS = "" } NR == 1 { gsub(/\n/, " "); print; exit }' /tmp/notas.md)
+            titulo=$(printf '%s' "$primero" | sed -n 's/^\(Quantum [0-9][^:]*\):.*/\1/p')
+            case "$titulo" in
+              "Quantum $SET "*) ;;
+              *) titulo="Quantum $SET" ;;
+            esac
+            if [ "${#titulo}" -gt 120 ]; then titulo="Quantum $SET"; fi
+
+            gh release create "$TAG" --title "$titulo" --notes-file /tmp/notas.md
+          fi
+
+          gh release upload "$TAG" \
+            dist/SET.md \
+            dist/versions.yaml \
+            dist/require.txt \
+            dist/gitlinks.txt \
+            dist/checksums.txt \
+            dist/checksums.txt.sig \
+            dist/checksums.txt.pem \
+            --clobber
+
+      - name: Resumen de lo publicado
+        if: always()
+        run: |
+          {
+            echo "## Paquete del set ${GITHUB_REF_NAME}"
+            echo
+            echo '```'
+            cat dist/checksums.txt 2>/dev/null || echo "(el paquete no llegó a armarse)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

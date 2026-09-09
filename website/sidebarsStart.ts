@@ -11,6 +11,7 @@ const sidebars: SidebarsConfig = {
     'install',
     'choosing-a-data-layer',
     'certified-sets',
+    'verifying-a-set',
   ],
 };
 
