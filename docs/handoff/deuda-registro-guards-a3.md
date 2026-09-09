@@ -236,3 +236,161 @@ echo "workdir=$TREE"
 echo "expect=quark/\.goreleaser\.yaml no declara el bloque .signs:"
 echo "expect=nucleus/\.github/workflows/release\.yml no pide .attestations: write"
 ```
+
+---
+
+## C. `nucleus-action-pins`
+
+**Cuándo se aplica: EN el PR del set que re-pine `nucleus` a un tag que
+contenga `scripts/ci/check_action_pins.sh` (nucleus#499, fusionado el
+2026-09-09).**
+
+Mismo mecanismo exacto que el de quark
+(`docs/handoff/deuda-registro-quark-action-pins.md`): el escaneo anti-fósil
+recorre `scripts/ci/` de los tres productos AL PIN, así que con el pin nuevo y
+sin registrar muere `suite-integral` con «guard sin registrar», y con el pin
+viejo la fixture no encuentra el guard y muere `guard-of-guards`. Los dos
+ficheros van en el mismo commit que mueve el gitlink de nucleus.
+
+Nucleus lleva además, en el mismo PR, un paso de `actionlint` fijado en
+`v1.7.12` dentro del job `Test And Smoke`, que el agregador `CI Required Gate`
+sí cubre. Eso NO se registra como guard del paraguas: es un linter del
+producto, de la misma familia que los arneses que ya están en
+`GUARD_SCAN_EXCLUDE`, y no tiene veredicto sobre el árbol del set.
+
+### C.1 Entrada del registro
+
+Va junto a las demás de nucleus en `scripts/lib/guard-registry.sh`:
+
+```
+  # Toda Action de GitHub que corre el CI de nucleus está fijada por SHA de
+  # commit, con su tag escrito al lado (el comentario es lo que Dependabot
+  # reescribe y lo que hace legible el pin). Entra al set con la release de
+  # nucleus que traiga scripts/ci/check_action_pins.sh.
+  "nucleus-action-pins|nucleus|bash scripts/ci/check_action_pins.sh"
+```
+
+### C.2 La fixture
+
+`tests/guard-fixtures/nucleus-action-pins/fixture.sh`. Verificada el
+2026-09-09 contra el guard real de `origin/main`: revierte el primer `uses:`
+fijado a su tag móvil y el guard muere con el mensaje que declara el
+`expect=`.
+
+```bash
+#!/usr/bin/env bash
+# Fixture de nucleus-action-pins.
+#
+# Rotura: una referencia `uses:` del CI de nucleus vuelve a su TAG móvil — el
+# SHA fijado se sustituye por la etiqueta que llevaba al lado, que es
+# exactamente lo que el guard existe para impedir (un tag lo mueve su dueño,
+# bajo un job que ya tiene este repositorio checkouteado). El guard debe morir
+# nombrando el tag.
+set -euo pipefail
+source tests/guard-fixtures/lib.sh
+
+TMP=$1
+TREE="$TMP/tree"
+ROOT=$(pwd)
+
+fx_copy "$ROOT/nucleus" "$TREE" \
+  scripts/ci/check_action_pins.sh \
+  .github/workflows
+
+awk 'BEGIN{done=0}
+{
+  if (!done && $0 ~ /uses:[ \t]*actions\/checkout@/) {
+    sub(/actions\/checkout@.*/, "actions/checkout@v5")
+    done=1
+  }
+  print
+}' "$TREE/.github/workflows/ci.yml" > "$TREE/.github/workflows/ci.yml.tmp"
+mv "$TREE/.github/workflows/ci.yml.tmp" "$TREE/.github/workflows/ci.yml"
+fx_assert_doctored "$TREE/.github/workflows/ci.yml" 'uses:[ \t]*actions/checkout@v5$'
+
+echo "workdir=$TREE"
+echo "expect=is pinned to 'v5', which is a moving tag"
+```
+
+---
+
+## D. `orbit-action-pins`
+
+**Cuándo se aplica: EN el PR del set que re-pine `orbit` a un tag que
+contenga `scripts/ci/check_action_pins.sh` (orbit#447).**
+
+Con esto los tres productos tienen el mismo guard y el paraguas los tres
+registrados, que es lo que cierra el frente de pines del arco A3: hasta hoy
+sólo quark lo tenía, y en los otros dos la disciplina se sostenía por
+revisión.
+
+Orbit es el caso con más trabajo por debajo: sus acciones no estaban barridas,
+así que el PR además las fija. El guard, como en los hermanos, muerde por las
+dos mitades — el tag móvil y el SHA sin comentario — y orbit lo cuelga de un
+job que el agregador `CI Required Gate` (orbit#446) cubre.
+
+### D.1 Entrada del registro
+
+```
+  # Toda Action de GitHub que corre el CI de orbit está fijada por SHA de
+  # commit, con su tag escrito al lado. Entra al set con la release de orbit
+  # que traiga scripts/ci/check_action_pins.sh.
+  "orbit-action-pins|orbit|bash scripts/ci/check_action_pins.sh"
+```
+
+### D.2 La fixture
+
+`tests/guard-fixtures/orbit-action-pins/fixture.sh`, idéntica a la de nucleus
+salvo el repositorio. El mensaje de muerte es el mismo en los tres guards,
+comprobado en el diff de orbit#447 y ejecutado contra el de nucleus.
+
+```bash
+#!/usr/bin/env bash
+# Fixture de orbit-action-pins.
+#
+# Rotura: una referencia `uses:` del CI de orbit vuelve a su TAG móvil. Mismo
+# razonamiento que en quark y nucleus: un tag lo mueve su dueño, bajo un job
+# que ya tiene este repositorio checkouteado.
+set -euo pipefail
+source tests/guard-fixtures/lib.sh
+
+TMP=$1
+TREE="$TMP/tree"
+ROOT=$(pwd)
+
+fx_copy "$ROOT/orbit" "$TREE" \
+  scripts/ci/check_action_pins.sh \
+  .github/workflows
+
+awk 'BEGIN{done=0}
+{
+  if (!done && $0 ~ /uses:[ \t]*actions\/checkout@/) {
+    sub(/actions\/checkout@.*/, "actions/checkout@v5")
+    done=1
+  }
+  print
+}' "$TREE/.github/workflows/ci.yml" > "$TREE/.github/workflows/ci.yml.tmp"
+mv "$TREE/.github/workflows/ci.yml.tmp" "$TREE/.github/workflows/ci.yml"
+fx_assert_doctored "$TREE/.github/workflows/ci.yml" 'uses:[ \t]*actions/checkout@v5$'
+
+echo "workdir=$TREE"
+echo "expect=is pinned to 'v5', which is a moving tag"
+```
+
+---
+
+## Resumen: qué lleva el PR de set que cierre A3
+
+Cuatro guards nuevos en `scripts/lib/guard-registry.sh` y sus cuatro fixtures,
+más el de quark que ya estaba anotado aparte:
+
+| Guard | Directorio | Desbloqueado por |
+|---|---|---|
+| `umbrella-deprecations` | `.` | quark#373 |
+| `umbrella-supply-chain` | `.` | quark, nucleus y orbit#445 |
+| `quark-action-pins` | `quark` | quark#364 (ver `deuda-registro-quark-action-pins.md`) |
+| `nucleus-action-pins` | `nucleus` | nucleus#499 |
+| `orbit-action-pins` | `orbit` | orbit#447 |
+
+Y dos líneas que salen de `GUARD_SCAN_EXCLUDE`: `scripts/check_deprecations.sh`
+y `scripts/check_supply_chain.sh`. El registro pasa de 41 a 46 guards.
