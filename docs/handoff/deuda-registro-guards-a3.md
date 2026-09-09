@@ -400,3 +400,37 @@ más el de quark que ya estaba anotado aparte:
 
 Y dos líneas que salen de `GUARD_SCAN_EXCLUDE`: `scripts/check_deprecations.sh`
 y `scripts/check_supply_chain.sh`. El registro pasa de 41 a 46 guards.
+
+## Lo que el propietario decidió el 2026-09-09, y que el mismo PR de set anota
+
+1. **Política de soporte**: aprobados S1, S2 y S4–S8. **S3 (la LTS) no**, y no
+   se declara hasta que exista el carril de mantenimiento del §7.1. La cabecera
+   del documento ya lo dice.
+2. **Política de deprecación**: aprobadas D1, D2 y D3 tal cual. El guard
+   `umbrella-deprecations` entra en este mismo PR, que es lo que la pone en
+   vigor.
+3. **QK-14**: **se trocea** `cmd/quark` en su propio módulo, entero y como
+   manda `quark/docs/adr/0024-cli-en-modulo-propio.md` (CLI, `examples/superapp`,
+   `internal/driverclassify` y las suites por motor). QK-14 se cierra en el
+   registro **cuando ese troceado llegue al pin**, no antes.
+
+### Una trampa de nombre que este PR tiene que resolver a conciencia
+
+`manifest-guard.sh` descubre los módulos del árbol y deriva la clave del
+manifiesto como el **último segmento de la ruta** (`key=${mod##*/}`). Para
+`cmd/quark` esa clave es `quark`, así que el bloque queda:
+
+```yaml
+modules:
+  quark:   "v1.13.0"      # el pilar
+quark_modules:
+  quark:   "v0.1.0"       # ← el CLI, no el pilar
+```
+
+Mecánicamente no choca —son secciones distintas y `yaml_value` busca dentro de
+la suya—, pero se lee mal y es exactamente la clase de ambigüedad que cuesta un
+tren. Al añadir la entrada, dejar el comentario al lado. Si se prefiere
+resolverlo de raíz, la vía es que `check_sibling_modules` use la ruta completa
+como clave para los módulos anidados, y eso renombra también las claves de los
+`drivers/*` de quark y de los `providers/*` y `exporters/*` de nucleus: es un
+cambio aparte, no del PR de set.
