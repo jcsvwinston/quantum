@@ -183,12 +183,20 @@ publica un aviso nuevo o una retirada.
 | Aviso | Producto | Qué se deprecia | Recambio | Estado | Retirada no antes de |
 |---|---|---|---|---|---|
 | — | nucleus | — | — | — | ninguna viva: los 8 avisos de nucleus están en `removed` |
-| pendiente | quark | `RowLevelSecurity` (alias de constante) | `RowLevelSecurityClient` | por abrir | 2026-12-08 |
-| pendiente | quark | forma anterior del registro de listeners (4 símbolos) | `ListenerFactory` + `RegisterListenerFactory` | por abrir | 2026-12-08 |
+| `DEP-2026-001` | quark | `RowLevelSecurity` (alias de constante) | `RowLevelSecurityClient` | `active` | 2026-12-08, retirada en v2.0.0 |
+| `DEP-2026-002` | quark | forma anterior del registro de listeners (4 símbolos) | `ListenerFactory` + `RegisterListenerFactory` | `active` | 2026-12-08, retirada en v2.0.0 |
 | — | orbit | — | — | — | ninguna |
 
-Las dos filas «pendiente» las cierra el PR de quark que trae el registro; sus
-ids se escriben aquí cuando existan.
+Los dos avisos de quark los abre quark#373, que trae el registro y reescribe
+las cinco marcas. El agrupamiento es por DECISIÓN y no por símbolo: los
+cuatro símbolos del registro de listeners migran y se retiran juntos, así que
+llevan un aviso y no cuatro.
+
+Un detalle que el aviso `DEP-2026-002` deja escrito y conviene no perder: los
+registradores deprecados nombran `internal/guard.SQLGuard` en su firma, y la
+regla `internal` de Go impide que nadie de fuera del repo los llame. O sea que
+esa mitad deprecada **no tiene consumidor externo posible**, y su retirada en
+v2.0.0 es más barata de lo que la nota deja entender.
 
 ## 7. Qué NO decide esta política
 
@@ -205,9 +213,11 @@ ids se escriben aquí cuando existan.
 
 1. **Este PR** deja el documento, el guard y su fixture; el guard todavía no
    se registra.
-2. **PR en quark**: `docs/deprecations/` con su README, los avisos de las dos
-   deprecaciones vivas y las cinco marcas reescritas a la forma del §5. Sin
-   retirar nada.
+2. **PR en quark** (quark#373, hecho): `docs/deprecations/` con su README,
+   los avisos `DEP-2026-001` y `DEP-2026-002` y las cinco marcas reescritas a
+   la forma del §5. Sin retirar nada. Con esa rama, el guard sale **EXIT=0**;
+   contra `main` sigue saliendo «5 de 5», que es lo que prueba que el verde es
+   el cambio y no un pase vacío.
 3. **PR de set** que re-pina quark por encima de (2): registra
    `umbrella-deprecations` en `scripts/lib/guard-registry.sh` y rellena las
    dos filas del §6.

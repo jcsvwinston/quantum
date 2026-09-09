@@ -136,9 +136,9 @@ echo "expect=tenant_router\.go:[0-9]+ — promete retirarse en v1\.0\.0 y quark 
 
 ### A.3 Lo demás que se rellena en ese mismo PR
 
-- El §6 de `docs/gobernanza/POLITICA_DEPRECACION.md` tiene dos filas
-  «pendiente»: se sustituyen por los ids `DEP-YYYY-NNN` que quark haya
-  asignado de verdad.
+- El §6 de `docs/gobernanza/POLITICA_DEPRECACION.md` ya nombra los dos avisos
+  reales (`DEP-2026-001` y `DEP-2026-002`, de quark#373); si quark abre alguno
+  más antes del corte, se añade su fila.
 - La fixture no necesita tocarse: parte del estado conforme y lo rompe ella
   misma, así que sigue valiendo con el pin nuevo.
 
