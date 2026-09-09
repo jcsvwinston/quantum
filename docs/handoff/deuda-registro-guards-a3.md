@@ -147,9 +147,8 @@ echo "expect=tenant_router\.go:[0-9]+ — promete retirarse en v1\.0\.0 y quark 
 ## B. `umbrella-supply-chain`
 
 **Cuándo se aplica: EN el PR del set que re-pine los TRES productos por
-encima de sus PRs de cadena de suministro.** Para quark y nucleus eso ya está
-en `main`; para orbit hace falta que entre orbit#445, que es el que trae su
-`.goreleaser.yaml` y su `release.yml`.
+encima de sus PRs de cadena de suministro.** Los tres ya están en `main`
+(orbit#445 fusionado el 2026-09-09); lo que falta es sólo el corte.
 
 Al pin de 1.29.0 el guard falla siete veces y todas son ciertas: quark y
 orbit no tenían `.goreleaser.yaml` cuando se cortó, y el de nucleus no
@@ -161,8 +160,8 @@ Comprobación antes de registrar, con los tres gitlinks ya movidos:
 bash scripts/check_supply_chain.sh   # tiene que salir EXIT=0
 ```
 
-Verificado el 2026-09-09 contra un árbol simulado con `main` de quark y
-nucleus y la rama de orbit#445: **EXIT=0**.
+Verificado el 2026-09-09 contra los tres `main` reales (`git archive` de
+`origin/main` de cada repo sobre una copia del guard): **EXIT=0**.
 
 ### B.1 Entrada del registro
 
@@ -181,7 +180,7 @@ Va con las demás del paraguas en `scripts/lib/guard-registry.sh`, junto a
 
 Va en `tests/guard-fixtures/umbrella-supply-chain/fixture.sh`, en el mismo
 commit que la entrada del registro. Verificada el 2026-09-09 sobre el árbol
-simulado descrito arriba: dos fallos, uno por cada `expect=`.
+descrito arriba: dos fallos, uno por cada `expect=`.
 
 ```bash
 #!/usr/bin/env bash

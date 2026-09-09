@@ -14,17 +14,18 @@
 QM-14 decía que la suite publicaba binarios sin nada que permitiera
 comprobar de dónde salían: nucleus era el único repo con GoReleaser y su
 config no tenía bloque `sboms:` ni `signs:`. El arco A3 lo cierra repo a
-repo. Estado medido en `main` de cada producto:
+repo. Estado medido en `main` de cada producto el 2026-09-09, con orbit#445 ya
+fusionado:
 
 | | quark | nucleus | orbit |
 |---|---|---|---|
-| Config de GoReleaser | sí | sí | en orbit#445 |
-| Bloque `sboms:` | sí | sí | en orbit#445 |
-| Bloque `signs:` (cosign sin clave) | sí | sí | en orbit#445 |
-| Atestación de procedencia en el release | sí | sí | en orbit#445 |
+| Config de GoReleaser | sí | sí | sí |
+| Bloque `sboms:` | sí | sí | sí |
+| Bloque `signs:` (cosign sin clave) | sí | sí | sí |
+| Atestación de procedencia en el release | sí | sí | sí |
 | CodeQL | sí (setup por defecto) | sí (workflow) | sí (workflow) |
 | OpenSSF Scorecard | sí | sí | sí |
-| Actions fijadas por SHA, con guard | sí | en nucleus#499 | no |
+| Actions fijadas por SHA, con guard | sí | en nucleus#499 | en curso |
 
 Lo que no cambia con esto: los módulos que son **librería** no publican
 binario. Llegan por el proxy de Go, donde la base de datos de sumas es la
