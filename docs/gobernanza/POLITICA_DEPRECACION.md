@@ -1,10 +1,15 @@
 # Política de deprecación de la suite
 
-> **Estado: BORRADOR — no publicado.** Es el documento que el §7.5 de
-> [`POLITICA_SOPORTE.md`](POLITICA_SOPORTE.md) declara bloqueante para
-> publicar S4. Redactado el 2026-09-09 sobre el set vigente **Quantum
-> 1.29.0**; el [§4](#4-los-tres-números--bloque-que-decide-el-propietario) es
-> lo único que hay que aprobar.
+> **Estado: APROBADO el 2026-09-09, sin publicar todavía.** El propietario
+> aprobó **D1, D2 y D3** tal como estaban propuestos. Es el documento que el
+> §7.5 de [`POLITICA_SOPORTE.md`](POLITICA_SOPORTE.md) declara bloqueante para
+> publicar S4, así que con esto S4 deja de estar bloqueado por su lado.
+> Redactado el 2026-09-09 sobre el set vigente **Quantum 1.29.0**.
+>
+> Sin publicar quiere decir que todavía no está en el sitio (`website/`) ni
+> enlazado desde ningún `SECURITY.md`; lo que ya está en vigor es el mecanismo,
+> porque el guard del [§5](#5-la-forma-de-la-marca-y-qué-la-comprueba) entra en
+> el registro con el próximo corte.
 >
 > Relacionados: [QADR-0002](../adr/QADR-0002-versionado-dos-niveles.md) (un
 > major mueve los tres pilares a la vez),
@@ -119,9 +124,9 @@ Lo que queda son tres cifras operativas que S4 no toca.
 
 | id | Qué fija | Propuesto | Decisión del propietario |
 |---|---|---|---|
-| **D1** | Versión que nombra la marca de godoc | La **v2.0.0** del producto: por S4 la retirada es de major, y por QADR-0002 el major de un producto es el major de la suite. La marca dice «la retirada cabe aquí», no «la retirada será tal semana» | ☐ apruebo ☐ cambiar a: ______ |
-| **D2** | Qué pasa cuando la fecha se cumple y el major no llega | El guard **avisa** con los días vencidos y **no** rompe el CI. La deprecación pasa a `completed` en su aviso y espera al major en esa lista | ☐ apruebo ☐ cambiar a: ______ |
-| **D3** | Retroactividad | Las cinco marcas vivas de quark se **re-fechan** al 2026-12-08 con aviso `DEP`, **sin retirar nada**. Ninguna se retira en `v1.x` | ☐ apruebo ☐ cambiar a: ______ |
+| **D1** | Versión que nombra la marca de godoc | La **v2.0.0** del producto: por S4 la retirada es de major, y por QADR-0002 el major de un producto es el major de la suite. La marca dice «la retirada cabe aquí», no «la retirada será tal semana» | **APROBADO** 2026-09-09 |
+| **D2** | Qué pasa cuando la fecha se cumple y el major no llega | El guard **avisa** con los días vencidos y **no** rompe el CI. La deprecación pasa a `completed` en su aviso y espera al major en esa lista | **APROBADO** 2026-09-09 |
+| **D3** | Retroactividad | Las cinco marcas vivas de quark se **re-fechan** al 2026-12-08 con aviso `DEP`, **sin retirar nada**. Ninguna se retira en `v1.x` | **APROBADO** 2026-09-09 |
 
 <!-- FIN BLOQUE DE DECISIÓN -->
 

@@ -1,11 +1,16 @@
 # Política de soporte, LTS y calendario de releases de la suite
 
-> **Estado: BORRADOR — no publicado.** Está redactado, no preguntado: el
-> propietario aprueba el [§3](#3-los-ocho-números--bloque-que-decide-el-propietario)
-> tal cual o cambia los números que quiera. Hoy no compromete a nada con
-> nadie: no está en el sitio (`website/`) ni enlazado desde ningún
-> `SECURITY.md`. El [§8](#8-plan-de-adopción-el-día-que-se-apruebe) dice
-> exactamente qué ficheros cambian el día que se apruebe.
+> **Estado: APROBADO EN PARTE el 2026-09-09, sin publicar todavía.** El
+> propietario aprobó **S1, S2 y S4–S8**. **S3 (la LTS) queda sin aprobar y sin
+> declarar**, por la razón que el propio [§7.1](#7-maquinaria-que-falta-para-que-cada-promesa-sea-cumplible)
+> da: no existe carril de mantenimiento, y hasta que exista y se ensaye no hay
+> forma de cumplir una línea de seis meses. Prometerla sería prometer lo que la
+> maquinaria no puede sostener.
+>
+> Sigue **sin publicar** mientras el §7 tenga puntos abiertos: no está en el
+> sitio (`website/`) ni enlazado desde ningún `SECURITY.md`, así que todavía no
+> compromete a nadie. El [§8](#8-plan-de-adopción-el-día-que-se-apruebe) dice
+> exactamente qué ficheros cambian el día que se publique.
 >
 > Redactado el 2026-09-08 sobre el set vigente **Quantum 1.29.0**.
 > Relacionados: [QADR-0002](../adr/QADR-0002-versionado-dos-niveles.md)
@@ -81,14 +86,14 @@ frase que insinúe lo contrario es un incumplimiento escrito.
 
 | id | Qué fija | Propuesto | Decisión del propietario |
 |---|---|---|---|
-| **S1** | Cadencia de certificación | Cadencia **objetivo** de **1 set por semana**, anclada a la corrida del lunes 06:00 UTC. **No es un intervalo máximo garantizado**: un lunes puede pasar sin corte (§5). Cortar fuera de cadencia es legítimo, con razón escrita en el PR de re-pin | ☐ apruebo ☐ cambiar a: ______ |
-| **S2** | Ventana de soporte de un set | **60 días naturales** desde su certificación, y en todo caso **los 3 últimos sets**, lo que sea más amplio | ☐ apruebo ☐ cambiar a: ______ |
-| **S3** | LTS | **1 set por trimestre**, soportado **6 meses**. Primera candidata: el primer set certificado en o después del **2026-10-05**, con nombre `Quantum LTS 2026Q4` — **y no antes de que exista el carril de mantenimiento del §7.1** | ☐ apruebo ☐ cambiar a: ______ |
-| **S4** | Deprecación | Aviso publicado **≥ 90 días naturales** antes de la retirada; la retirada **sólo en un major de suite** (QADR-0002) | ☐ apruebo ☐ cambiar a: ______ |
-| **S5** | Aviso escrito de fin de vida | **30 días** antes de estrechar esta política o de terminar una línea LTS. Un set ordinario **no** lleva aviso: su fin de ventana es aritmética (certificación + S2) | ☐ apruebo ☐ cambiar a: ______ |
-| **S6** | Acuse de un reporte de vulnerabilidad | **72 horas** | ☐ apruebo ☐ cambiar a: ______ |
-| **S7** | Respuesta y plan | Respuesta sustantiva en **7 días naturales**; para severidad **alta o crítica**, plan de corrección o mitigación **con fecha** en **14 días** | ☐ apruebo ☐ cambiar a: ______ |
-| **S8** | Divulgación coordinada | **90 días** | ☐ apruebo ☐ cambiar a: ______ |
+| **S1** | Cadencia de certificación | Cadencia **objetivo** de **1 set por semana**, anclada a la corrida del lunes 06:00 UTC. **No es un intervalo máximo garantizado**: un lunes puede pasar sin corte (§5). Cortar fuera de cadencia es legítimo, con razón escrita en el PR de re-pin | **APROBADO** 2026-09-09 |
+| **S2** | Ventana de soporte de un set | **60 días naturales** desde su certificación, y en todo caso **los 3 últimos sets**, lo que sea más amplio | **APROBADO** 2026-09-09 |
+| **S3** | LTS | **1 set por trimestre**, soportado **6 meses**. Primera candidata: el primer set certificado en o después del **2026-10-05**, con nombre `Quantum LTS 2026Q4` — **y no antes de que exista el carril de mantenimiento del §7.1** | **NO APROBADO** — sin declarar hasta que exista el carril de mantenimiento (§7.1) |
+| **S4** | Deprecación | Aviso publicado **≥ 90 días naturales** antes de la retirada; la retirada **sólo en un major de suite** (QADR-0002) | **APROBADO** 2026-09-09 |
+| **S5** | Aviso escrito de fin de vida | **30 días** antes de estrechar esta política o de terminar una línea LTS. Un set ordinario **no** lleva aviso: su fin de ventana es aritmética (certificación + S2) | **APROBADO** 2026-09-09 |
+| **S6** | Acuse de un reporte de vulnerabilidad | **72 horas** | **APROBADO** 2026-09-09 |
+| **S7** | Respuesta y plan | Respuesta sustantiva en **7 días naturales**; para severidad **alta o crítica**, plan de corrección o mitigación **con fecha** en **14 días** | **APROBADO** 2026-09-09 |
+| **S8** | Divulgación coordinada | **90 días** | **APROBADO** 2026-09-09 |
 
 <!-- FIN BLOQUE DE DECISIÓN -->
 
