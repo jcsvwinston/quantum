@@ -152,7 +152,10 @@ encima de sus PRs de cadena de suministro.** Los tres ya están en `main`
 
 Al pin de 1.29.0 el guard falla siete veces y todas son ciertas: quark y
 orbit no tenían `.goreleaser.yaml` cuando se cortó, y el de nucleus no
-llevaba `sboms:` ni `signs:`.
+llevaba `sboms:` ni `signs:`. La mitad del PARAGUAS ya sale en verde: con
+quantum#166 fusionado, `release-set.yml` firma el fichero de sumas y atesta
+la procedencia, y el guard lo comprueba en el árbol de trabajo (el paraguas
+no está pinado a sí mismo).
 
 Comprobación antes de registrar, con los tres gitlinks ya movidos:
 
@@ -161,7 +164,9 @@ bash scripts/check_supply_chain.sh   # tiene que salir EXIT=0
 ```
 
 Verificado el 2026-09-09 contra los tres `main` reales (`git archive` de
-`origin/main` de cada repo sobre una copia del guard): **EXIT=0**.
+`origin/main` de cada repo sobre una copia del guard) más el
+`release-set.yml` del paraguas: **EXIT=0**, y rojo al comentar el permiso
+`attestations: write` del paraguas.
 
 ### B.1 Entrada del registro
 
@@ -170,9 +175,10 @@ Va con las demás del paraguas en `scripts/lib/guard-registry.sh`, junto a
 
 ```
   # Los tres productos siguen publicando con SBOM, firma sin clave y
-  # atestación de procedencia, y con los permisos que esas dos cosas
-  # necesitan (QM-14). Un release sin firma sale VERDE: por eso esto se
-  # comprueba en el árbol y no en la corrida.
+  # atestación de procedencia, y el paraguas sigue publicando el set firmado
+  # y atestado, todos con los permisos que esas dos cosas necesitan (QM-14).
+  # Un release sin firma sale VERDE: por eso esto se comprueba en el árbol y
+  # no en la corrida.
   "umbrella-supply-chain|.|bash scripts/check_supply_chain.sh"
 ```
 
