@@ -49,6 +49,13 @@ Va con las demás del paraguas en `scripts/lib/guard-registry.sh`, junto a
 
 ### A.2 La fixture
 
+> Rehecha el 2026-09-09. La primera versión partía del árbol ANTERIOR a
+> quark#373 y empezaba haciendo conformes las cinco marcas para luego romper
+> una; desde que ese PR entró, el árbol al pin ya es conforme, así que la
+> fixture parte de él y solo rompe. Verificada contra un árbol construido con
+> `origin/main` de quark y un pin simulado: verde sobre el conforme, y sobre
+> el doctorado exactamente los dos fallos que declara.
+
 Va en `tests/guard-fixtures/umbrella-deprecations/fixture.sh`, **en el mismo
 commit que la entrada del registro y no antes**: `guard-of-guards` falla con
 una fixture huérfana —una fixture cuyo guard no está registrado— igual que
@@ -61,11 +68,10 @@ doctorado.
 # Fixture de umbrella-deprecations. Dos roturas, las dos formas en que una
 # nota de deprecación deja de ser una promesa:
 #
-# (A) la nota no dice cuándo se retira el símbolo. Es el estado por defecto —
+# (A) la nota pierde su cláusula de retirada. Es el estado por defecto —
 #     `// Deprecated: use X.` es lo que sale de escribirlo sin pensar en el
-#     calendario—, y es el que convierte la deprecación en una etiqueta
-#     permanente: nadie puede planificar contra ella y nadie tiene motivo
-#     para quitarla.
+#     calendario— y convierte la deprecación en una etiqueta permanente:
+#     nadie puede planificar contra ella y nadie tiene motivo para quitarla.
 #
 # (B) la nota promete una versión que YA está publicada. Es peor que (A)
 #     porque parece un compromiso: el lector entiende que el símbolo ya no
@@ -73,9 +79,8 @@ doctorado.
 #     `RowLevelSecurity` prometía retirarse «in v1.0» con quark en v1.12.0—,
 #     que es por lo que este guard se escribió.
 #
-# El árbol de la fixture parte del estado CONFORME (las notas reales
-# reescritas a la forma que exige la política) para que el EXIT!=0 sea
-# atribuible a la rotura y no al punto de partida.
+# El árbol parte del estado REAL al pin, que desde quark#373 es conforme, así
+# que el EXIT!=0 es atribuible a la rotura y no al punto de partida.
 set -euo pipefail
 source tests/guard-fixtures/lib.sh
 
@@ -88,7 +93,10 @@ ROOT=$(pwd)
 # basta un fichero: lo que se comprueba es que el guard los recorre sin
 # tropezar, no lo que contienen (ninguno tiene deprecaciones a mano).
 fx_copy "$ROOT" "$TREE" versions.yaml scripts/check_deprecations.sh
-fx_copy "$ROOT" "$TREE" quark/quarkdriver/listener.go quark/tenant_router.go
+# Los avisos DEP viajan también: el guard exige que el DEP-YYYY-NNN que cita
+# cada marca exista en <repo>/docs/deprecations/, y sin ellos la copia moriría
+# por una causa de setup en vez de por la rotura declarada.
+fx_copy "$ROOT" "$TREE" quark/quarkdriver/listener.go quark/tenant_router.go quark/docs/deprecations
 mkdir -p "$TREE/nucleus" "$TREE/orbit"
 : > "$TREE/nucleus/vacio.go"
 : > "$TREE/orbit/vacio.go"
@@ -98,40 +106,27 @@ import re, sys
 
 listener, tenant = sys.argv[1], sys.argv[2]
 
-# Punto de partida CONFORME: toda nota de listener.go gana su cláusula de
-# retirada con una versión por delante del pin y una fecha lejana.
+# (A) UNA nota pierde su cláusula: vuelve a no decir cuándo se retira.
 s = open(listener, encoding='utf-8').read()
-s, n = re.subn(
-    r'(// Deprecated: [^\n]*(?:\n//[^\n]*)*?)\.\n',
-    r'\1. Scheduled for removal in v1.99.0, no earlier than 2099-01-01.\n',
-    s)
-assert n >= 4, f'la fixture esperaba al menos 4 notas en listener.go, encontró {n}'
-
-# (A) UNA de ellas pierde la cláusula: la nota vuelve a no decir cuándo.
-s, n = re.subn(
-    r'// Deprecated: use LookupListenerFactory\. Scheduled for removal in v1\.99\.0, no earlier than 2099-01-01\.',
-    '// Deprecated: use LookupListenerFactory.',
-    s, count=1)
-assert n == 1, 'la fixture no encontró la nota de LookupListenerFactory'
+s, n = re.subn(r'\n// Scheduled for removal in v[0-9.]+, no earlier than [0-9-]+\.', '', s, count=1)
+assert n == 1, 'la fixture no encontró ninguna cláusula de retirada en listener.go'
 open(listener, 'w', encoding='utf-8').write(s)
 
 # (B) la nota del alias promete una versión que el manifiesto ya pina como
-# publicada (quark v1.12.0 > v1.0.0).
+# publicada. v1.0.0 es anterior a cualquier pin de quark que este repo haya
+# certificado, así que la rotura no caduca con el set.
 t = open(tenant, encoding='utf-8').read()
-t, n = re.subn(
-    r'scheduled for\n// removal in v1\.0\.',
-    'scheduled for\n// removal in v1.0.0, no earlier than 2020-01-01.',
-    t, count=1)
-assert n == 1, 'la fixture no encontró la nota de RowLevelSecurity'
+t, n = re.subn(r'Scheduled for removal in v[0-9.]+, no earlier than [0-9-]+\.',
+               'Scheduled for removal in v1.0.0, no earlier than 2020-01-01.', t, count=1)
+assert n == 1, 'la fixture no encontró la cláusula de RowLevelSecurity'
 open(tenant, 'w', encoding='utf-8').write(t)
 PY
 
-fx_assert_doctored "$TREE/quark/quarkdriver/listener.go" '// Deprecated: use LookupListenerFactory\.$'
 fx_assert_doctored "$TREE/quark/tenant_router.go" 'removal in v1\.0\.0, no earlier than 2020-01-01\.'
 
 echo "workdir=$TREE"
 echo "expect=listener\.go:[0-9]+ — la deprecación no dice cuándo se retira"
-echo "expect=tenant_router\.go:[0-9]+ — promete retirarse en v1\.0\.0 y quark ya va por v1\.12\.0"
+echo "expect=tenant_router\.go:[0-9]+ — promete retirarse en v1\.0\.0 y quark ya va por v"
 ```
 
 ### A.3 Lo demás que se rellena en ese mismo PR
@@ -184,6 +179,11 @@ Va con las demás del paraguas en `scripts/lib/guard-registry.sh`, junto a
 
 ### B.2 La fixture
 
+> Rehecha el 2026-09-09: le faltaba copiar `.github/workflows/release-set.yml`,
+> que entró en el guard con quantum#167, así que la copia moría también por una
+> causa de setup. Verificada contra los tres `origin/main`: sobre el árbol
+> doctorado salen exactamente los dos fallos que declara y ninguno más.
+
 Va en `tests/guard-fixtures/umbrella-supply-chain/fixture.sh`, en el mismo
 commit que la entrada del registro. Verificada el 2026-09-09 sobre el árbol
 descrito arriba: dos fallos, uno por cada `expect=`.
@@ -209,7 +209,10 @@ TMP=$1
 TREE="$TMP/tree"
 ROOT=$(pwd)
 
-fx_copy "$ROOT" "$TREE" scripts/check_supply_chain.sh
+# El paraguas entró en el guard con quantum#167, así que su workflow de
+# release viaja en la copia: sin él la copia moriría por una causa de setup
+# además de por las dos roturas declaradas.
+fx_copy "$ROOT" "$TREE" scripts/check_supply_chain.sh .github/workflows/release-set.yml
 for repo in quark nucleus orbit; do
   fx_copy "$ROOT" "$TREE" "$repo/.goreleaser.yaml" "$repo/.github/workflows/release.yml"
 done
