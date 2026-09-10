@@ -47,6 +47,7 @@ const sidebars: SidebarsConfig = {
         'operations/deployment',
         'operations/security',
         'operations/upgrade',
+        'operations/verifying-releases',
       ],
     },
     {
