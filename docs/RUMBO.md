@@ -27,7 +27,9 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   de quark y nucleus. **Siguiente arco: A4** (quark como capa de datos de
   nucleus).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
-  desde esta cabecera lo vigila `check_rumbo_estado.sh`.
+  desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de A4 en
+  sesiones, y el contrato que permite trabajarlo sin recordar la sesión
+  anterior, están en [`planes/`](planes/README.md).
 - **Certificación mecánica:** 47 guards en el registro (41, más los cinco que A3
   dejó escritos esperando a que el pin los contuviera, más el de suelos de
   Dependabot de orbit que ese mismo pin destapó), lane semanal + modo
