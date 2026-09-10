@@ -93,11 +93,10 @@ caduca cada vez que se añade un lane.
 
 ## 4. Qué vigila el árbol, y qué no
 
-Dos guards nuevos del paraguas, los dos **escritos y verificados, todavía sin
-registrar**: al pin de 1.29.0 fallan porque lo que comprueban entró en los
-productos después del corte. Se registran en el PR de set que mueva los
-gitlinks; la entrada exacta y las fixtures están en
-`docs/handoff/deuda-registro-guards-a3.md`.
+Dos guards nuevos del paraguas, **registrados con sus fixtures en Quantum
+1.30.0**. Esperaron fuera del registro hasta ese set por una razón mecánica y
+no por descuido: al pin de 1.29.0 fallaban, porque lo que comprueban entró en
+los productos después de aquel corte.
 
 - **`umbrella-supply-chain`** (`scripts/check_supply_chain.sh`) — los tres
   productos siguen declarando `sboms:`, `signs:`, el paso de atestación y los
@@ -108,9 +107,10 @@ gitlinks; la entrada exacta y las fixtures están en
 - **`umbrella-deprecations`** (`scripts/check_deprecations.sh`) — descrito en
   [`POLITICA_DEPRECACION.md`](POLITICA_DEPRECACION.md) §5.
 
-Y uno por repo para los pines de Actions: quark ya lo tiene registrado como
-deuda del set (`docs/handoff/deuda-registro-quark-action-pins.md`), nucleus
-lo trae en nucleus#499, orbit no lo tiene todavía.
+Y uno por repo para los pines de Actions —`quark-action-pins`,
+`nucleus-action-pins` y `orbit-action-pins`—, los tres registrados en el mismo
+set. Con eso, y con el de suelos de Dependabot que orbit trae en el mismo pin,
+el registro pasa de 41 a 47 guards.
 
 **Lo que ningún guard cubre hoy**, dicho para que no se confunda con estar
 cubierto:

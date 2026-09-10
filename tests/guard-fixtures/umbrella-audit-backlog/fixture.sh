@@ -12,12 +12,26 @@ TREE="$TMP/tree"
 ROOT=$(pwd)
 
 fx_copy "$ROOT" "$TREE" scripts/check_audit_backlog.sh docs/auditoria/madurez-2026-09-03
-sed -i.bak -E 's/^(QK-14,P3,quark,)A3,/\1,/' "$TREE/docs/auditoria/madurez-2026-09-03/registro.csv"
-rm -f "$TREE/docs/auditoria/madurez-2026-09-03/registro.csv.bak"
-if ! grep -q '^QK-14,P3,quark,,abierto' "$TREE/docs/auditoria/madurez-2026-09-03/registro.csv"; then
-  echo "fixture: la rotura no se aplicó — QK-14 sigue con arco" >&2
-  exit 1
-fi
+# Se le quita el arco a la PRIMERA fila abierta, sea cual sea: la fixture
+# nombraba QK-14, y QK-14 se cerró en el set 1.30.0 —con lo que la rotura dejó
+# de aplicarse y la fixture murió preparándose—. Un hallazgo concreto caduca;
+# «la primera que siga abierta» no.
+python3 - "$TREE/docs/auditoria/madurez-2026-09-03/registro.csv" <<'PYEOF'
+import sys
+
+p = sys.argv[1]
+lineas = open(p, encoding='utf-8').read().splitlines(keepends=True)
+for i, ln in enumerate(lineas):
+    campos = ln.split(',')
+    if len(campos) > 4 and campos[4] == 'abierto':
+        campos[3] = ''
+        lineas[i] = ','.join(campos)
+        print('fixture: arco borrado en', campos[0])
+        break
+else:
+    raise SystemExit('fixture: no queda ninguna fila abierta que romper')
+open(p, 'w', encoding='utf-8').write(''.join(lineas))
+PYEOF
 
 echo "workdir=$TREE"
-echo "expect=QK-14 .*abierto y sin arco"
+echo "expect=abierto y sin arco del plan"

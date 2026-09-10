@@ -6,6 +6,53 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.29.0 — La minor que publica el arco A2
+
+Quantum 1.29.0 — la minor que publica el arco A2: una aplicación de suite
+a un comando y el primer endpoint en cinco. quark v1.11.0 → v1.12.0
+(drivers/* v0.1.3), nucleus v1.24.0 → v1.25.0 (sus doce módulos: once en v0.1.3 y providers/ldap v0.2.7)
+y orbit v1.9.2 → v1.9.3 (agent v0.6.17, server v0.11.3, quarkbridge
+v1.8.21, quarkdatasource v1.8.22, proto v0.4.4: alineación de pines a
+los dos, sin cambio de producto). Minor de suite porque lo son las de quark y nucleus
+(QADR-0002); corte en la cadencia semanal (QADR-0008).
+
+Lo que publica A2. Nucleus: `nucleus new <app> --template suite --with
+orbit,quark,quarkbridge,quarkdatasource` escribe la aplicación que el
+quickstart pedía teclear (main.go con el panel de Orbit y un módulo
+shop sobre Quark, nucleus.yml, política, migración, artículo sembrado y
+test), `--db` elige el driver y deja go.mod en orden, y
+examples/showcase_demo se genera de la misma plantilla con un test que
+los mantiene idénticos; `generate module --mount` monta en main.go y
+emite test; `nucleus routes` y `migrate status` leen el binario real
+(NUCLEUS_PRINT_ROUTES, ledger por espacio de nombres); `nucleus dev`
+recompila y reinicia al cambiar (con proxy de assets y rutas impresas);
+`nucleus completion` para bash, zsh y fish; `--help` con gramática en
+catorce comandos; `openapi` falla con receta sin contratos; una ruta no
+registrada contesta 404 (los gates de authz y CSRF corren tras el
+enrutado) y un scaffold limpio arranca con cero WARN. Quark: `quark init
+--with nucleus` escribe el módulo de Nucleus y el nucleus.yml mínimo;
+ejemplos chi, echo y gin con guía de frameworks; drivers/postgres adopta
+el contrato público del listener (QK-8 cerrado del todo). Paraguas: el
+quickstart de la suite pasa a «lee lo que se generó» — cinco comandos y
+cinco conceptos, medidos por el guard quickstart-cost; los ficheros
+embebidos se atan a su contenido (quickstart-embeds); la lane
+quickstart-smoke genera, arranca y recorre el quickstart con presupuesto
+de 60 s; 39 guards en el registro. Registro de la auditoría: NU-16, NU-17,
+NU-18, NU-48 y NU-49 hechos; `arcos_cerrados: A1 A2`.
+
+Lo que aprendió el tren: el cuerpo por defecto de un squash puede dejar
+a release-please sin ver un feat (quark#355 → 1.11.1 con un minor en
+main); merge-group fusiona ahora con título y cuerpo controlados. Los
+pines cruzados de orbit se alinean solos antes de su fase; la deuda de
+doc de quark se paga sola en la rama del bot.
+
+Lo que cambia para quien instala: en nucleus, una ruta que nadie
+registra contesta 404 y no 403 (y 419 en POST); `nucleus migrate` sin
+acción es un error de uso en vez de un `up` implícito; `nucleus new`
+hace `go get` del driver y `go mod tidy` salvo `--offline`; `generate
+module` rechaza nombres que no pueden ser paquete Go. En quark y orbit,
+nada en la configuración cambia.
+
 ## Quantum 1.28.0 — La minor que publica el arco A1
 
 Quantum 1.28.0 — la minor que publica el arco A1: la deuda de la

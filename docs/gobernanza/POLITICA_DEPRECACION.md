@@ -174,11 +174,10 @@ El guard tiene fixture en `tests/guard-fixtures/umbrella-deprecations/`, con
 las dos roturas que importan: la nota sin cláusula y la nota que promete una
 versión ya publicada.
 
-**No está registrado todavía en `scripts/lib/guard-registry.sh`.** Hoy
-fallaría al pin, porque las cinco marcas de quark aún son las viejas. Se
-registra en el PR de set que re-pine quark por encima del arreglo; la deuda
-está escrita en `docs/handoff/deuda-registro-umbrella-deprecations.md`, junto
-a la del guard `quark-action-pins`.
+**Registrado en `scripts/lib/guard-registry.sh` desde Quantum 1.30.0**, que es
+el primer set cuyo pin de quark contiene las cinco marcas reescritas y su
+`docs/deprecations/`. Antes de ese pin fallaba con razón, y por eso esperó
+fuera del registro con su porqué escrito al lado.
 
 ## 6. Índice de deprecaciones vivas de la suite
 
