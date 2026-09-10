@@ -434,22 +434,38 @@ sube_suelos() {
   run git -C "$dir" pull -q --ff-only || return 1
   run git -C "$dir" checkout -q -b "$br" || return 1
   run bash scripts/train/align-module-floors.sh "$repo" --checkout "$dir" || return 1
+  # El título y el cuerpo del PR salen de ESTE commit, no del último: en
+  # squash-only el título del PR ES el commit que llega a main, y si lo pone
+  # el re-pin de los ejemplos (un `chore`) release-please no ve el `fix(deps)`
+  # y no corta el patch de cada módulo. Entonces sus go.mod cambian sin tag y
+  # manifest-guard §3b rechaza el set entero. Pasó en el corte de 1.30.0 con
+  # los doce módulos de nucleus, y costó revertirlos.
+  local title body url n
+  title=$(git -C "$dir" log -1 --format=%s)
+  body=$(git -C "$dir" log -1 --format=%b | sed '/^Co-Authored-By/d')
   if [ "$repo" = nucleus ] && [ -x "$dir/scripts/release/repin_examples.sh" ]; then
     # Un minor de quark deja rojo check_example_pins.sh (lane Showcase Example
     # Smoke) hasta re-pinar examples/*/go.mod; `Repin Showcase` sólo corre tras
     # las releases de nucleus. Va en el mismo PR de suelos (1.29.0: nucleus#485).
     say "  → re-pin de los ejemplos de nucleus a los últimos tags hermanos (repin_examples.sh)"
-    ( cd "$dir" && bash scripts/release/repin_examples.sh >/dev/null 2>&1 ) || say "  AVISO: repin_examples.sh falló; los ejemplos pueden quedar por detrás"
+    # Si falla, PARA. El aviso que había aquí decía «los ejemplos pueden quedar
+    # por detrás», y lo que de verdad queda es un go.mod que nombra un tag y un
+    # go.sum que no lo tiene: un ejemplo que no compila. Falla, además, por una
+    # causa que se cura sola —el proxy todavía no sirve el tag recién cortado,
+    # y guarda en negativo lo que el CI le preguntó antes de que existiera—.
+    ( cd "$dir" && bash scripts/release/repin_examples.sh ) || {
+      say "  PARADA: repin_examples.sh falló. Suele ser el proxy: espera a que sirva el tag"
+      say "          (curl -sf https://proxy.golang.org/github.com/jcsvwinston/quark/@v/<tag>.info)"
+      say "          y relanza esta fase; el árbol de $dir queda sin commitear."
+      return 1
+    }
     if [ -n "$(git -C "$dir" status --porcelain)" ]; then
       run git -C "$dir" add -A && run git -C "$dir" commit -q -m "chore(examples): re-pin the examples to the latest published sibling tags
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>" || return 1
+Co-Authored-By: ${TRAIN_CO_AUTHOR:-Claude Opus 5 <noreply@anthropic.com>}" || return 1
     fi
   fi
   run git -C "$dir" push -q -u origin "$br" || return 1
-  local title body url n
-  title=$(git -C "$dir" log -1 --format=%s)
-  body=$(git -C "$dir" log -1 --format=%b | sed '/^Co-Authored-By/d')
   url=$(gh pr create -R "jcsvwinston/$repo" --head "$br" --title "$title" --body "$body
 Opened by the release train: the sibling module floors are raised as the first commit of every cut (QM-19), so the modules cut together with the root.
 
@@ -1034,7 +1050,7 @@ abre_y_fusiona_repin() {
   run git add -A -- "${RUTAS_DENTRO[@]}" || return 1
   say "  → git commit -m \"$msg\" (cuerpo: las notes del manifiesto)"
   git commit -q -m "$msg" -m "$(cuerpo_notas)" \
-    -m "Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>" || return 1
+    -m "Co-Authored-By: ${TRAIN_CO_AUTHOR:-Claude Opus 5 <noreply@anthropic.com>}" || return 1
   run git push -q -u origin "$br" || return 1
   crea_pr_repin "$msg" "$(cuerpo_notas)" || return 1
   fusiona_pr_repin "$PR_REPIN"
