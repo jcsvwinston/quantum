@@ -304,6 +304,12 @@ GUARD_SCAN_EXCLUDE=(
   # `go build`/`go vet` desde la raíz. Emite texto, no tiene veredicto; lo que
   # sí certifica la cobertura del go.work es check_gowork_covers_manifest.sh.
   "scripts/gowork-patterns.sh"
+  # Utillaje de LECTURA del estado: imprime dónde estamos —set, arcos, próxima
+  # sesión, checkout, PRs abiertos y lo que espera al propietario— para arrancar
+  # una sesión. No certifica nada: no tiene veredicto sobre el árbol, sólo lee y
+  # formatea. Lo que sí certifica cada una de esas cosas son los guards que este
+  # script invoca o resume.
+  "scripts/estado.sh"
   # Utillaje de ESCRITURA del manifiesto (capa 1 de automatización de docs):
   # mueve los submódulos al tag y reescribe las 8 versiones, los pins y las
   # tablas del README. No certifica nada — PROPONE el re-pin; quien lo juzga
