@@ -31,8 +31,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
      semanal (§5) ya la corre los lunes.
 3. **Reconcilia** con el §3: ¿qué arco quedó a medias y cuál es el siguiente?
    Los pendientes con destinatario están en el §5.
-4. **Propón el foco** de la sesión (un arco concreto) antes de trabajar, y deja
-   que el responsable lo confirme.
+4. **Abre el plan del arco**: [`docs/planes/`](../../docs/planes/README.md) lleva
+   el contrato de sesión —qué comando responde a cada pregunta, qué NO decide
+   una sesión sola, qué deja escrita al terminar— y, por arco, el troceado en
+   sesiones con su precondición y su criterio de hecho. **Es lo que hace que
+   una sesión pueda trabajar sin recordar la anterior.** El arco siguiente
+   tiene su fichero; los demás se trocean al empezarlos, y siempre por una
+   sesión de medición: las tres veces que se planificó sin medir, la medición
+   corrigió el plan.
+5. **Propón el foco** de la sesión (una sesión concreta del arco, no «el
+   arco») antes de trabajar, y deja que el responsable lo confirme.
 
 ## 2. Reglas duras que NO se rompen (mismas que el brief de Fase 0 y los QADR)
 
