@@ -34,6 +34,20 @@ if [ "$MODE" = write ]; then
   [ "$ok" -eq 1 ] || { echo "sum.golang.org no sirve nucleus $nt / quark $qt tras 30 min; reintenta más tarde" >&2; exit 1; }
 fi
 cd "$Q/../orbit" || exit 1
+# Los módulos de quark que orbit pina (hoy quarkdatasource → drivers/sqlite)
+# tienen SERIE PROPIA: su versión no sale de la de la raíz, así que se lee del
+# checkout de quark, que es quien la tiene, y se le pasa a align_set.sh. No es
+# cosmético: quark v1.13.0 sacó `internal/driverclassify` del módulo raíz y
+# `drivers/sqlite v0.1.0` lo importa, así que el pin viejo contra la raíz nueva
+# NO COMPILA —ahí paró el tren de 1.30.0—.
+qmods=()
+while IFS= read -r sub; do
+  [ -n "$sub" ] || continue
+  qtag=$(git -C "$Q/../quark" tag -l "$sub/v[0-9]*" | grep -E "^$sub/v[0-9]+\.[0-9]+\.[0-9]+$" | sort -V | tail -1)
+  [ -n "$qtag" ] || { echo "sin tag publicado para quark/$sub, que orbit pina" >&2; exit 1; }
+  qmods+=(--quark-module "$sub=${qtag##*/}")
+done < <(grep -rhoE "github\.com/jcsvwinston/quark/[a-z0-9/._-]+" --include=go.mod . | sed 's|github.com/jcsvwinston/quark/||' | sort -u)
+[ ${#qmods[@]} -eq 0 ] || echo "  módulos de quark pinados por orbit: ${qmods[*]}"
 # El check compara contra el árbol del checkout: en main y limpio, se pone al
 # día primero (un main rancio diría que los pines van atrás cuando ya no).
 if [ "$(git branch --show-current)" = main ] && [ -z "$(git status --porcelain)" ]; then
@@ -43,7 +57,7 @@ elif [ "$MODE" = check ]; then
   exit 1
 fi
 if [ "$MODE" = check ]; then
-  bash scripts/release/align_set.sh --nucleus "$nt" --quark "$qt" --check
+  bash scripts/release/align_set.sh --nucleus "$nt" --quark "$qt" ${qmods[@]+"${qmods[@]}"} --check
 else
-  bash scripts/release/align_set.sh --nucleus "$nt" --quark "$qt"
+  bash scripts/release/align_set.sh --nucleus "$nt" --quark "$qt" ${qmods[@]+"${qmods[@]}"}
 fi
