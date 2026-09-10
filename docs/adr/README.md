@@ -21,6 +21,7 @@
 | [QADR-0007](QADR-0007-idioma-del-paraguas.md) | Idioma único del sitio del paraguas — inglés | Accepted | Fase 3 |
 | [QADR-0008](QADR-0008-cadencia-de-certificacion.md) | La certificación de un set va por cadencia, no por arco | Accepted | Auditoría integral (D1) |
 | [QADR-0009](QADR-0009-idioma-por-superficie.md) | Idioma por superficie: los productos en inglés, el paraguas en español | Accepted | Auditoría de madurez (QM-18) |
+| [QADR-0010](QADR-0010-rupturas-agrupadas-en-un-major.md) | Lo rompiente se acumula en un único major al cierre de A12 | Accepted | Plan a 5/5 (A4, A6, A10) |
 
 ## Cómo añadir un QADR nuevo
 

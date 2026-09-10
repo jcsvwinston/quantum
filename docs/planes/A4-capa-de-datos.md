@@ -17,12 +17,13 @@ migraciones leen.
 **Hallazgos que descuenta.** Ninguno del registro: A4 no hereda filas. Su
 cierre depende sólo de su gate.
 
-**Decisión que necesita antes de empezar.** La **ruptura controlada**: A4
-puede exigir un major (semántica de valores cero en `Update`, `pkg/model`
-degradado a sustrato) y en lockstep eso arrastra a los tres pilares
-(QADR-0002). Hay que saber si lo rompiente se agrupa en un único 2.0 al
-cierre de A12 —con guía de migración generada— o si sale cuando toque. **Sin
-esa decisión, S2 y S6 no pueden empezar**; el resto sí.
+**La decisión que lo condicionaba, ya tomada.** [QADR-0010](../adr/QADR-0010-rupturas-agrupadas-en-un-major.md)
+(2026-09-10): lo rompiente se acumula en **un único major al cierre de A12**.
+Hasta entonces, un arco que necesite romper algo entrega la forma nueva junto
+a la vieja y deprecia la vieja con retirada **en ese major**. Con eso `S2` y
+`S6` dejan de estar bloqueadas — y quedan con una condición: si su cambio no
+se puede entregar por adición, la sesión **para y lo dice**, no corta un
+major por su cuenta.
 
 ---
 
@@ -80,18 +81,18 @@ de ruptura.
 
 ## S2 · quark — semántica de valores cero en `Update`
 
-**Precondición**: la decisión de ruptura controlada, tomada y escrita.
-**Sin ella esta sesión no empieza.**
+**Precondición**: QADR-0010, que ya está. Lo que esta sesión sí tiene que
+comprobar antes de empezar es que su cambio **cabe por adición**.
 
 **Alcance**: `quark`. Hoy la semántica es implícita; el objetivo es que sea
 explícita y elegible por llamada.
 
-**Cuidado**: es el candidato más claro a major de todo el arco. Si la
-decisión fue «todo lo rompiente al 2.0 del cierre de A12», esta sesión
-entrega la API nueva **junto a** la vieja, con la vieja marcada según la
-política de deprecación (`docs/gobernanza/POLITICA_DEPRECACION.md`: recambio,
-aviso `DEP-YYYY-NNN` y versión de retirada que aún no ha salido — lo vigila
-`umbrella-deprecations`).
+**Cuidado**: es el candidato más claro a major de todo el arco, y por
+QADR-0010 no lo corta. Entrega la API nueva **junto a** la vieja, con la
+vieja marcada según `docs/gobernanza/POLITICA_DEPRECACION.md` —recambio,
+aviso `DEP-YYYY-NNN` y versión de retirada, que es la del major, no una
+minor— porque `umbrella-deprecations` no deja llegar a un set una marca sin
+fecha o con una versión ya publicada.
 
 **Criterio de hecho**: un test por cada combinación de la tabla de semántica,
 en los seis motores.
@@ -153,8 +154,8 @@ y sirve un endpoint, en el smoke, sin pasos manuales.
 
 ## S6 · nucleus — `pkg/model` a sustrato
 
-**Precondición**: la decisión de ruptura controlada, y S5 hecha.
-**Sin la decisión no empieza.**
+**Precondición**: S5 hecha. QADR-0010 fija cómo: sacarlo de la documentación
+de usuario sí; sacarlo del contrato es la ruptura, y esa va al major.
 
 **Alcance**: `nucleus`. `pkg/model` deja de aparecer en la documentación de
 usuario y pasa a ser sustrato interno del framework.
@@ -222,10 +223,10 @@ Mientras esté vacío, el arco no ha empezado.
 |---|---|---|---|
 | S0 | pendiente | — | — |
 | S1 | pendiente | — | — |
-| S2 | bloqueada por la decisión de ruptura | — | — |
+| S2 | pendiente | — | — |
 | S3 | pendiente | — | — |
 | S4 | pendiente | — | — |
 | S5 | pendiente | — | — |
-| S6 | bloqueada por la decisión de ruptura | — | — |
+| S6 | pendiente | — | — |
 | S7 | pendiente | — | — |
 | S8 | pendiente | — | — |
