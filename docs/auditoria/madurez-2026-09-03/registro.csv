@@ -1,4 +1,4 @@
-# arcos_cerrados: A1 A2
+# arcos_cerrados: A1 A2 A3
 id,sev,repo,arco,estado,evidencia,informe,donde
 QK-1,P0,quark,—,hecho,quark#338,quark.md,"`quarkdriver/known.go:88-98` (`IsRegistered`), usado en `client.go:255-259`"
 QK-2,P1,quark,—,hecho,quark#338,quark.md,"`superapp` (raíz, 42 232 786 B, Mach-O arm64), `.gitignore:5-9`"
@@ -13,7 +13,7 @@ QK-10,P3,quark,—,hecho,quark#338,quark.md,"`zz_drivers_for_test.go:7`, `cmd/qu
 QK-11,P3,quark,—,hecho,quark#338,quark.md,"`README.md` § ""Project Structure"""
 QK-12,P3,quark,—,hecho,quark#338,quark.md,"`TASKS.md` (235 KB, congelado 2026-06-20 según su propio banner), `docs/ANALISIS_MADUREZ.md` (2026-05-10, sin banner), `"
 QK-13,P3,quark,—,hecho,quark#338,quark.md,"`drivers/mysql/CHANGELOG.md`, `drivers/postgres/CHANGELOG.md`"
-QK-14,P3,quark,A3,abierto,documentado en el README de quark (qué lista go.mod vs qué enlaza un binario); sacar los drivers de la raíz exige que cmd/quark sea módulo propio — decisión en A3,quark.md,`go.mod:7-31` (raíz)
+QK-14,P3,quark,A3,hecho,"cmd/quark, examples/superapp e internal/enginesuite salen del módulo raíz (ADR-0024, quark v1.13.0): la build list de un consumidor pasa de 123 a 39 módulos, los requires de driver de 6 a 1 y los de testcontainers de 5 a 0, con el binario enlazando los mismos 11 módulos y 162 paquetes",quark.md,`go.mod:7-31` (raíz)
 QK-15,P3,quark,—,hecho,quark#338,quark.md,"`website/docs/guides/installation.mdx:44-48`, `website/docs/advanced/events.mdx:129-135`"
 QK-16,P2,quark,—,hecho,quark#338,quark.md,"`examples/sqlite/main.go:10`, `examples/postgres/main.go:10`, `examples/mysql/main.go:10`, `examples/mssql/main.go:11`, "
 QK-17,P2,quark,—,hecho,quark#338,quark.md,`query_crud.go:685-696` (godoc de `Update`)
@@ -184,7 +184,7 @@ QM-10,P2,quantum,—,hecho,nucleus#455,suite.md,`nucleus/internal/cli/scaffold/t
 QM-11,P2,quantum,—,hecho,quantum#136,suite.md,`docs/AUDITORIA_CONTINUA.md:33` y tabla siguiente
 QM-12,P2,quantum,—,hecho,quantum#136,suite.md,`versions.yaml:14`; `scripts/print-requires.sh:49`; `docs/AUDITORIA_CONTINUA.md` §1 «Escapes»
 QM-13,P2,quantum,—,hecho,quantum#136,suite.md,"raíz de `quantum/`; `orbit/`; `nucleus/.github`, `orbit/.github`"
-QM-14,P2,quantum,A3,abierto,,suite.md,`nucleus/.goreleaser.yaml:29-31`; `nucleus/.github/workflows/release.yml`; `quark/.github/workflows/ci.yml:199`; `orbit/
+QM-14,P2,quantum,A3,hecho,"los cuatro repos publican con SBOM, firma sin clave y atestación de procedencia; el guard umbrella-supply-chain lo comprueba en el ÁRBOL, porque un release sin firma sale verde",suite.md,`docs/gobernanza/CADENA_DE_SUMINISTRO.md`
 QM-15,P3,quantum,—,hecho,quantum#136,suite.md,"`README.md:64,180,214-221`"
 QM-16,P3,quantum,—,hecho,quantum#136,suite.md,`website/docs/certified-sets.md:19-38`
 QM-17,P3,quantum,—,hecho,quantum#136,suite.md,"`website/docs/install.md:31`, `website/docs/quickstart.md:31`; `.github/workflows/integration.yml:75-100`"

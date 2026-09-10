@@ -11,19 +11,27 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-09-05)
+## Estado real (2026-09-10)
 
-- **Set certificado: Quantum 1.29.0** (2026-09-08) — quark v1.12.0
-  (drivers/{postgres,mysql,sqlite,mssql,oracle} v0.1.3) · nucleus v1.25.0
-  (doce módulos hermanos: cinco drivers, dos exportadores y cuatro providers
-  en v0.1.3, providers/ldap v0.2.7) · orbit v1.9.3 (proto v0.4.4, agent
-  v0.6.17, server v0.11.3, quarkbridge v1.8.21, quarkdatasource v1.8.22).
-  1.29.0 publica el arco A2 (una aplicación de suite a un comando; el
-  quickstart en cinco comandos y cinco conceptos, medidos); minor de suite
-  por las minors de quark y nucleus. Siguiente arco: A3 (cadena de
-  suministro y gobernanza).
+- **Set certificado: Quantum 1.30.0** (2026-09-10) — quark v1.13.0
+  (drivers/{postgres,mysql,sqlite,mssql,oracle} v0.2.0, y el CLI estrenando
+  módulo propio en v1.0.0) ·
+  nucleus v1.26.0 (doce módulos hermanos: once en v0.1.4, providers/ldap
+  v0.2.8) · orbit v1.9.4 (proto v0.4.4, agent v0.6.18, server v0.11.4,
+  quarkbridge v1.8.22, quarkdatasource v1.8.23).
+  1.30.0 publica el arco **A3** (cadena de suministro y gobernanza: firma sin
+  clave, SBOM y atestación de procedencia en los cuatro repos, política de
+  deprecación y de soporte firmadas, guard de pines de Actions en los tres
+  productos) y el troceado del módulo raíz de quark, que estrena el CLI como
+  módulo propio con serie de versiones propia. Minor de suite por las minors
+  de quark y nucleus. **Siguiente arco: A4** (quark como capa de datos de
+  nucleus).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`.
+- **Certificación mecánica:** 47 guards en el registro (41, más los cinco que A3
+  dejó escritos esperando a que el pin los contuviera, más el de suelos de
+  Dependabot de orbit que ese mismo pin destapó), lane semanal + modo
+  `--cierre` ([`AUDITORIA_CONTINUA.md`](AUDITORIA_CONTINUA.md)).
 - **Auditoría de madurez 2026-09-03 sobre 1.26.0: ejecutada, corregida y
   PUBLICADA en 1.26.1.** Cuatro auditores midieron cada pilar contra el
   mercado (147 defectos, 4 P0, todos en la primera hora del evaluador). Los
@@ -33,9 +41,7 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   Plan de trabajo a 5/5 (doce arcos, cada uno con gate mecánico):
   <https://claude.ai/code/artifact/cbd9d082-7404-4989-bd79-7408f9dbaf38>.
   El orden de los frentes de abajo se subordina a ese plan desde este set.
-- **Certificación mecánica:** 41 guards en el registro, lane semanal + modo
-  `--cierre` ([`AUDITORIA_CONTINUA.md`](AUDITORIA_CONTINUA.md)). La 8ª pasada
-  fue la última auditoría manual completa; rige el régimen del §6.
+  La 8ª pasada fue la última auditoría manual completa; rige el régimen del §6.
 - **Auditoría integral 2026-08-30 sobre 1.24.0: ejecutada y PUBLICADA.** 147
   hallazgos, 52 graves, 3 P0 — los tres en el embudo de entrada, no en el
   runtime. 20 PRs fusionados y el set 1.25.0 los lleva al público (verificado

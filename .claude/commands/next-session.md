@@ -210,11 +210,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   suite** (SIGUIENTE) → A3 cadena de suministro (hereda QK-14) → A4 Quark
   como capa de datos → … → A12. El registro de hallazgos y su guard
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
-- **Deuda con fecha de vencimiento**: al re-pinar quark a un tag que
-  contenga `scripts/ci/check_action_pins.sh` (quark#364), el PR del set debe
-  registrar el guard `quark-action-pins` con su fixture, o la lane muere.
-  El parche y la fixture, verificados, están en
-  [`docs/handoff/deuda-registro-quark-action-pins.md`](../../docs/handoff/deuda-registro-quark-action-pins.md).
+- **Deuda con fecha de vencimiento, ya vencida y pagada**: los cinco guards
+  que A3 dejó escritos esperando a que el pin los contuviera
+  (`quark-action-pins`, `nucleus-action-pins`, `orbit-action-pins`,
+  `umbrella-deprecations` y `umbrella-supply-chain`) entraron en el set 1.30.0
+  con sus fixtures, y con ellos entró el guard de suelos de Dependabot que
+  orbit trae en ese mismo pin: el registro pasó de 41 a 47. Sus playbooks de
+  `docs/handoff/` se borraron con ellos: eran instrucciones pendientes, y
+  dejarlas leería como si aún lo estuvieran.
 - **Pendiente de Carlos**: fusionar quantum-app#14 (bump a 1.28.0; sus gates
   ya pasan con los imports de módulos y los doce paquetes clasificados) y
   cerrar quantum-app#13. El paso 2 de QK-8 (quark#352) y la mitad nucleus de

@@ -117,6 +117,17 @@ GUARDS=(
   # Entra con el arco A3; los workflows de los tres productos los fija cada
   # repo en su propio PR (este guard no mira dentro de los submódulos).
   "umbrella-actions-pinned|.|bash scripts/check_actions_pinned.sh"
+  # Toda deprecación escrita a mano en los tres productos nombra su recambio,
+  # su aviso DEP-YYYY-NNN y una versión de retirada que todavía no ha salido
+  # (docs/gobernanza/POLITICA_DEPRECACION.md §5). Entra al set con la release
+  # de quark que trae docs/deprecations/ y las marcas reescritas.
+  "umbrella-deprecations|.|bash scripts/check_deprecations.sh"
+  # Los tres productos siguen publicando con SBOM, firma sin clave y
+  # atestación de procedencia, y el paraguas sigue publicando el set firmado
+  # y atestado, todos con los permisos que esas dos cosas necesitan (QM-14).
+  # Un release sin firma sale VERDE: por eso esto se comprueba en el árbol y
+  # no en la corrida.
+  "umbrella-supply-chain|.|bash scripts/check_supply_chain.sh"
   # Toda lane del paraguas con disparador `schedule:` lleva su job
   # `notify-schedule-failure`: el cron rojo no puede degradar al email por
   # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que
@@ -169,6 +180,10 @@ GUARDS=(
   # Sólo se ve desde fuera. Entra al set con nucleus v1.17.1: el guard se
   # fusionó DESPUÉS del tag v1.17.0, así que hasta este pin no existía.
   "nucleus-versioned-markers|nucleus|bash scripts/ci/check_versioned_docs_markers.sh"
+  # Toda Action de GitHub que corre el CI de nucleus está fijada por SHA de
+  # commit, con su tag escrito al lado. Entra al set con la release de nucleus
+  # que traiga scripts/ci/check_action_pins.sh.
+  "nucleus-action-pins|nucleus|bash scripts/ci/check_action_pins.sh"
   # --- quark (al pin) -------------------------------------------------------
   # La versión del manifiesto mencionada en README/SECURITY/CLAUDE/release-notes
   # + roadmap sin versiones hardcodeadas (H-Q6, QK6-5).
@@ -187,6 +202,11 @@ GUARDS=(
   # El archivo versionado del sitio cubre la minor publicada. Entra al set con
   # quark v1.6.0.
   "quark-docs-archive|quark|bash scripts/ci/check_docs_archive_freshness.sh"
+  # Toda Action de GitHub que corre el CI de quark está fijada por SHA de
+  # commit, con su tag escrito al lado (el comentario es lo que Dependabot
+  # reescribe y lo que hace legible el pin). Entra al set con la release de
+  # quark que traiga scripts/ci/check_action_pins.sh.
+  "quark-action-pins|quark|bash scripts/ci/check_action_pins.sh"
   "quark-pr-title-english|quark|bash scripts/ci/check_pr_title_english.sh \"\${PR_TITLE:-chore(ci): probe title for the umbrella guard lane}\""
 
   # --- orbit (al pin) -------------------------------------------------------
@@ -216,6 +236,18 @@ GUARDS=(
   # nucleus, portado cuando orbit ganó actas retroactivas de las decisiones ya
   # ejecutadas. Entra al set con orbit v1.8.14.
   "orbit-adr-index|orbit|bash scripts/ci/check_adr_index.sh"
+  # Toda Action de GitHub que corre el CI de orbit está fijada por SHA de
+  # commit, con su tag escrito al lado. Entra al set con la release de orbit
+  # que traiga scripts/ci/check_action_pins.sh.
+  "orbit-action-pins|orbit|bash scripts/ci/check_action_pins.sh"
+  # Todo require de la suite que un módulo de orbit declara está ignorado por
+  # la entrada de Dependabot de su directorio. En orbit un require de quark,
+  # nucleus o la raíz es un SUELO que sube el tren al cortar, no un pin que
+  # nadie más pueda mover, y las listas de ignore se escriben a mano: el
+  # patrón `orbit/*` NO casa con la ruta desnuda `github.com/jcsvwinston/orbit`,
+  # así que quarkdatasource se quedó con el suelo de su propio repositorio sin
+  # ignorar. No rompe nada — aparece un PR que sube un suelo que nadie decidió.
+  "orbit-dependabot-floors|orbit|bash scripts/ci/check_dependabot_floors.sh"
   "orbit-pr-title-english|orbit|bash scripts/ci/check_pr_title_english.sh \"\${PR_TITLE:-chore(ci): probe title for the umbrella guard lane}\""
 )
 
@@ -277,25 +309,22 @@ GUARD_SCAN_EXCLUDE=(
   # tablas del README. No certifica nada — PROPONE el re-pin; quien lo juzga
   # es manifest-guard, que corre después sobre lo que este script escribió.
   "scripts/bump-set.sh"
-  # TEMPORAL, con fecha de muerte escrita: el guard de deprecaciones existe,
-  # está verificado y tiene fixture, pero HOY falla al pin con razón — las
-  # cinco marcas `// Deprecated:` de quark v1.12.0 son las viejas (una promete
-  # retirarse en v1.0 con quark en v1.12.0). Registrarlo ahora pondría roja la
-  # certificación por un defecto del PRODUCTO, no de la suite. Sale de esta
-  # lista y entra en GUARDS en el PR de set que re-pine quark por encima del
-  # arreglo: docs/handoff/deuda-registro-umbrella-deprecations.md lleva la
-  # entrada exacta y la comprobación previa.
-  "scripts/check_deprecations.sh"
-  # TEMPORAL, misma razón y mismo desbloqueo que el de arriba: el guard de
-  # cadena de suministro falla al pin de 1.29.0 porque quark y orbit no
-  # tenían .goreleaser.yaml cuando se cortó y el de nucleus no llevaba
-  # sboms: ni signs:. Entra en GUARDS en el PR de set que re-pine los tres
-  # por encima de sus PRs del arco A3 (orbit#445 incluido).
-  "scripts/check_supply_chain.sh"
   # Utillaje de NOTIFICACIÓN de los workflows programados (QM8-1): abre o
   # actualiza el issue del schedule rojo vía gh. No certifica nada del árbol —
   # avisa de que la certificación falló; registrarlo como guard sería circular.
   "scripts/notify_schedule_failure.sh"
+  # ARNESES de fuzzing de los tres productos, no guards: ejecutan `go test
+  # -fuzz` durante unos segundos por objetivo. Su veredicto es el de los tests
+  # que corren, no una afirmación sobre el árbol, y registrarlos obligaría a
+  # una fixture que rompiese un fuzz target para verlo fallar — que es probar
+  # el toolchain de Go, no el guard. Entran con el pin del set 1.30.0.
+  "nucleus/scripts/ci/run_fuzz_targets.sh"
+  "quark/scripts/ci/fuzz-short.sh"
+  "orbit/scripts/ci/fuzz.sh"
+  # ESCRITOR del go.work de quark, no un check: enlaza el CLI y los drivers a
+  # este árbol con replaces versionados para que las lanes no resuelvan el
+  # suelo contra el proxy. Emite un fichero, no un veredicto.
+  "quark/scripts/ci/link_workspace.sh"
   # GENERADOR de nucleus (produce la referencia de config de la web), no un
   # check: no tiene veredicto sobre el árbol — emite ficheros. Su salida la
   # vigilan los guards de docs de nucleus (coverage/bodycheck). Exclusión del
