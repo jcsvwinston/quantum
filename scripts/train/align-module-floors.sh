@@ -78,20 +78,39 @@ fi
 
 # Mismo descubrimiento que manifest-guard: módulos publicables del árbol, sin
 # ejemplos, sitio, benchmarks, bugbash ni internal/*.
-behind=""; total=0
+behind=""; ahead=""; total=0
 while IFS= read -r gm; do
   [ -n "$gm" ] || continue
   rel=${gm#$DIR/}; [ "$rel" = "go.mod" ] && continue
   ver=$(awk -v p="$ROOT_MOD" '$1 == p && $NF != "indirect" {print $2}' "$gm")
   [ -n "$ver" ] || continue
   total=$((total+1))
-  if [ "$ver" != "$TARGET" ]; then
+  if [ "$ver" = "$TARGET" ]; then
+    continue
+  # Un suelo POR DELANTE del último tag publicado no es un suelo atrasado, y
+  # bajarlo sería un error: es lo que hace un módulo que acaba de salir del
+  # módulo raíz. Mientras el directorio siguió dentro de la raíz, cualquier
+  # tag de raíz que lo contenga deja su propio paquete provisto por dos
+  # módulos y Go se planta con «ambiguous import», así que su suelo tiene que
+  # nombrar el tag que el corte crea —que aún no existe cuando esto corre—.
+  # Pasó con cmd/quark en el corte de quark v1.13.0.
+  elif [ "$(printf '%s\n%s\n' "$ver" "$TARGET" | sort -V | tail -1)" = "$ver" ]; then
+    ahead="$ahead ${rel%/go.mod}:$ver"
+  else
     behind="$behind ${rel%/go.mod}:$ver"
   fi
 done < <(find "$DIR" -name go.mod -not -path '*/.git/*' -not -path '*/examples/*' -not -path '*/website/*' -not -path '*/benchmarks/*' -not -path '*/bugbash/*' -not -path '*/internal/*' | sort)
 
+for item in $ahead; do
+  echo "AVISO: ${item%%:*} requiere $ROOT_MOD ${item#*:}, POR DELANTE de $TARGET: se deja como está."
+done
 if [ -z "$(printf '%s' "$behind" | tr -d ' ')" ]; then
-  echo "OK: $REPO — los $total módulos hermanos que requieren $ROOT_MOD lo hacen a $TARGET"
+  n_ahead=$(printf '%s\n' $ahead | grep -c . || true)
+  if [ "${n_ahead:-0}" -gt 0 ]; then
+    echo "OK: $REPO — ningún suelo por detrás de $TARGET ($n_ahead por delante, a propósito)"
+  else
+    echo "OK: $REPO — los $total módulos hermanos que requieren $ROOT_MOD lo hacen a $TARGET"
+  fi
   exit 0
 fi
 n=$(printf '%s\n' $behind | grep -c .)
