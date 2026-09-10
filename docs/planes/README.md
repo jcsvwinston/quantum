@@ -17,12 +17,25 @@ Se corren desde la raíz del paraguas, en este orden, antes de tocar nada.
 Ninguno escribe.
 
 ```bash
+bash scripts/estado.sh          # los cinco de golpe, más los PRs abiertos
+bash scripts/estado.sh --breve  # sólo el titular: set, arco y próxima sesión
+```
+
+`estado.sh` **no escribe nada** y responde en segundos. Por dentro son estos
+cinco, por si hace falta una pieza suelta:
+
+```bash
 sed -n '1,12p' versions.yaml          # 1. el set certificado y su fecha
 bash scripts/check_audit_backlog.sh   # 2. arcos cerrados y hallazgos abiertos por arco
 sed -n '/^## Estado real/,/^- \*\*Auditoría/p' docs/RUMBO.md   # 3. estado en prosa y arco siguiente
 ls docs/planes/                       # 4. qué arcos tienen troceado escrito
 git submodule status                  # 5. si el checkout está en el set o ha derivado
 ```
+
+Dos cosas que `estado.sh` hace y no son ninguno de los cinco, porque una lista
+escrita se queda vieja: deriva el **arco siguiente** de los arcos cerrados del
+registro —no de una lista— y **mide por API** lo que espera al propietario
+(protección de rama, `allow_auto_merge`, licencia) en vez de copiarlo.
 
 El 2 es el que manda sobre «qué arco toca»: imprime `arcos cerrados: …` y los
 hallazgos abiertos por arco. El 3 lo dice en prosa y el guard

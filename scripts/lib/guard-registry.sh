@@ -304,6 +304,12 @@ GUARD_SCAN_EXCLUDE=(
   # `go build`/`go vet` desde la raíz. Emite texto, no tiene veredicto; lo que
   # sí certifica la cobertura del go.work es check_gowork_covers_manifest.sh.
   "scripts/gowork-patterns.sh"
+  # Utillaje de LECTURA del estado: imprime dónde estamos —set, arcos, próxima
+  # sesión, checkout, PRs abiertos y lo que espera al propietario— para arrancar
+  # una sesión. No certifica nada: no tiene veredicto sobre el árbol, sólo lee y
+  # formatea. Lo que sí certifica cada una de esas cosas son los guards que este
+  # script invoca o resume.
+  "scripts/estado.sh"
   # Utillaje de ESCRITURA del manifiesto (capa 1 de automatización de docs):
   # mueve los submódulos al tag y reescribe las 8 versiones, los pins y las
   # tablas del README. No certifica nada — PROPONE el re-pin; quien lo juzga
@@ -313,6 +319,16 @@ GUARD_SCAN_EXCLUDE=(
   # actualiza el issue del schedule rojo vía gh. No certifica nada del árbol —
   # avisa de que la certificación falló; registrarlo como guard sería circular.
   "scripts/notify_schedule_failure.sh"
+  # TEMPORAL, con lo que lo desbloquea escrito: check_release_assets.sh está
+  # escrito y verificado —caza el fallo real de 2026-09-10— pero HOY falla al
+  # pin con razón: nucleus v1.26.0 se publicó con cero activos porque cosign v3
+  # cambió `sign-blob`, y el propietario decidió que recupera activos en su
+  # release siguiente en vez de re-cortar. Registrarlo ahora pondría roja la
+  # certificación por un hecho ya decidido, y un guard rojo por decisión es un
+  # guard que se aprende a ignorar. Entra en GUARDS —con su fixture, que está
+  # en docs/handoff/deuda-registro-release-assets.md— en el PR de set que
+  # re-pine nucleus por encima de una release con activos.
+  "scripts/check_release_assets.sh"
   # ARNESES de fuzzing de los tres productos, no guards: ejecutan `go test
   # -fuzz` durante unos segundos por objetivo. Su veredicto es el de los tests
   # que corren, no una afirmación sobre el árbol, y registrarlos obligaría a
