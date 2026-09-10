@@ -59,5 +59,5 @@ git add -A && git commit -q -m "docs(release): notes for v$ver
 Written by the release train (orbit-align-notes.sh): an alignment release
 with no product change.
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>" || exit 1
+Co-Authored-By: ${TRAIN_CO_AUTHOR:-Claude Opus 5 <noreply@anthropic.com>}" || exit 1
 if [ "$DRY" -eq 1 ]; then echo "  (dry-run) empujaría: docs(release): notes for v$ver"; else git push -q origin "HEAD:$br" || exit 1; echo "  empujado a $br: docs(release): notes for v$ver"; fi

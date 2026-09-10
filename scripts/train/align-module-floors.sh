@@ -159,6 +159,6 @@ umbrella's manifest-guard stops warning about it. fix(deps) on purpose: a
 chore would leave the module changed without a tag, and the next root cut
 would not certify.
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+Co-Authored-By: ${TRAIN_CO_AUTHOR:-Claude Opus 5 <noreply@anthropic.com>}
 MSG
 echo "commit hecho en $DIR ($(git -C "$DIR" rev-parse --short HEAD)): $mods"

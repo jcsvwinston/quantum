@@ -35,7 +35,7 @@ PY
 bash scripts/ci/check_docs_product_voice.sh | tail -1
 git add -A && git commit -qm "fix(deps): move the internal sibling pins to the tags cut in the previous release
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>" && git push -q -u origin "$br" && \
+Co-Authored-By: ${TRAIN_CO_AUTHOR:-Claude Opus 5 <noreply@anthropic.com>}" && git push -q -u origin "$br" && \
 pr=$(gh pr create --title "fix(deps): move the internal sibling pins to the tags cut in the previous release (v$ver)" --body "Convergence cut for the internal pins after the previous release (check_internal_pins.sh fails at the umbrella pin). Written by align_set.sh; v$ver notes in the same commit so the root is cut alongside.
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)" | tail -1 | sed 's|.*/||') && echo "PR #$pr" && git checkout -q main

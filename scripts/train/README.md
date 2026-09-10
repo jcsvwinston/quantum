@@ -611,6 +611,39 @@ release-please@17` y llamar a `parseConventionalCommits` de
 bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
 la línea y la columna.
 
+### Lo que aprendió el tren de 1.30.0 (A3)
+
+- **En squash-only, el título del PR de suelos ES el commit que llega a main.**
+  `sube_suelos` lo tomaba del ÚLTIMO commit, y en nucleus el último es el
+  re-pin de los ejemplos: un `chore`. release-please no vio el `fix(deps)`,
+  no cortó el patch de los doce módulos, y sus `go.mod` quedaron cambiados
+  **sin tag que los cubra**, que es justo lo que manifest-guard §3b rechaza
+  —el set certificaría una raíz con código de módulo que nadie puede
+  `go get`—. No hay commit honesto que dárselo después: un `tidy` fresco es
+  no-op, así que cualquier `fix` sería inventado. Se resolvió devolviendo los
+  doce módulos al árbol de su tag (nucleus#509) y aplazando los suelos al tren
+  siguiente. El driver toma ya el título del commit de suelos, antes de
+  añadir el de los ejemplos.
+
+- **`repin_examples.sh` fallando NO es «los ejemplos quedan por detrás».** El
+  aviso lo decía así y el driver commiteaba igual: `go.mod` nombrando el tag
+  nuevo y `go.sum` con las sumas del viejo, o sea un ejemplo que no compila
+  (`missing go.sum entry`). Ahora PARA. La causa típica se cura sola: el
+  proxy guarda en NEGATIVO lo que el CI le preguntó mientras el tag no
+  existía —hasta media hora— así que el `tidy` de justo después del corte
+  falla aunque el tag ya esté empujado. `@latest` contesta bien mientras
+  `@v/<tag>.info` sigue en 404: esa discrepancia es la señal.
+
+- **Un módulo que sale del módulo raíz tiene que nombrar el tag del corte.**
+  Mientras `cmd/quark` vivió dentro de la raíz, cualquier tag de raíz que lo
+  contenga deja su paquete provisto por dos módulos (`ambiguous import`), así
+  que su suelo no puede ir por detrás como el de un driver. Dos consecuencias:
+  `align-module-floors.sh` compara ya con `sort -V` y avisa en vez de BAJAR un
+  suelo por delante; y el CI tiene que resolver un suelo que nombra un tag sin
+  publicar, lo que un `go work init` NO hace por sí solo —hace falta un
+  `replace` VERSIONADO en el go.work, `módulo@versión => dir`—. Lo que no hace
+  falta es tocar el `go.sum`: `go install pkg@version` no lo lee.
+
 ### Lo que aprendió el tren de 1.29.0 (A2)
 
 - **Un minor de quark deja rojo el CI de nucleus hasta re-pinar sus

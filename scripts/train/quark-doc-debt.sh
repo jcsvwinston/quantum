@@ -49,7 +49,7 @@ if [ -n "$(git status --porcelain)" ]; then
 
 Written by the release train (quark-doc-debt.sh) in the release branch.
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>" || exit 1
+Co-Authored-By: ${TRAIN_CO_AUTHOR:-Claude Opus 5 <noreply@anthropic.com>}" || exit 1
   if [ "$DRY" -eq 1 ]; then echo "  (dry-run) empujaría: $(git log -1 --format=%s)"; else git push -q origin "HEAD:$br" || exit 1; echo "  empujado a $br: $(git log -1 --format=%s)"; fi
 else
   echo "  nada que pagar: la rama ya lleva las notas y las menciones"
