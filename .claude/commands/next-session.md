@@ -20,7 +20,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
    está archivado en `docs/handoff/` y NO se carga: se busca con grep). [`docs/ROADMAP.md`](../../docs/ROADMAP.md)
    guarda las cinco fases, **todas cerradas** desde Quantum 1.0.0: hoy el
    trabajo entra por **arcos**, no por fases.
-2. **Audita el estado real** con bash:
+2. **Audita el estado real.** Lo de abajo lo resume en un comando, que no
+   escribe nada:
+
+   ```
+   bash scripts/estado.sh          # set, arcos, próxima sesión, checkout, PRs
+   bash scripts/estado.sh --breve  # sólo el titular
+   ```
+
+   Lo que hace por dentro, por si hay que mirar una pieza suelta:
    - `git submodule status` — ¿siguen los submódulos en el trío de `versions.yaml`?
    - `git -C quark describe --tags`, idem `nucleus`, `orbit` — ¿coinciden con `workspace_pins`?
    - `go build $(bash scripts/gowork-patterns.sh)` (el root del workspace no es un
@@ -117,10 +125,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
     un «Palabra: texto» en el cuerpo deja a release-please sin ver el feat, y
     **en squash-only el título del PR ES el commit que llega a main** — el
     tren lo aprendió perdiendo un `fix(deps)` y doce tags de módulo.
-- **Deuda viva que conviene no perder**: los guards de cadena de suministro
+- **Deuda viva, con fecha de vencimiento**: los guards de cadena de suministro
   leen el ÁRBOL, así que un release que falla al firmar sale VERDE. Le pasó a
   nucleus v1.26.0, que recupera activos en su release siguiente (decisión del
-  propietario). Comprobarlo de verdad exige mirar los ACTIVOS de la release.
+  propietario). `scripts/check_release_assets.sh` ya lo comprueba mirando los
+  ACTIVOS de la release y hoy caza ese fallo, así que espera fuera del registro
+  hasta que el pin de nucleus traiga una release con activos: la entrada y la
+  fixture están en `docs/handoff/deuda-registro-release-assets.md`.
 - **Dónde está cada cosa**: contrato de sesión y troceado → `docs/planes/`;
   trampas del tren → `scripts/train/README.md` (índice «Trampas
   transversales» + una sección por tren); decisiones → `docs/adr/` y los ADR
