@@ -78,13 +78,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
 - **Trabajo por arcos del plan 5/5**: A1, A2 y **A3 CERRADOS** (1.28.0,
-  1.29.0, 1.30.0) → **A4, quark como capa de datos de nucleus, es el
-  SIGUIENTE**, troceado en nueve sesiones en
-  [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md).
-  Empieza por `S0`, que es medición y cuyo producto es reescribir las demás.
+  1.29.0, 1.30.0) → **A4, quark como capa de datos de nucleus, EN CURSO**.
+  Su `S0` (medición) está **hecha**, y con ella el troceado se reescribió:
+  hoy son diez sesiones (`S0`–`S9`) en
+  [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md),
+  y la siguiente es **`S1`, la whitelist de funciones del AST de quark**, que
+  es la causa mayor del banco. `bash scripts/estado.sh --breve` lo deriva
+  solo; no lo copies de aquí.
   El gate de cada arco es el registro
   `docs/auditoria/madurez-2026-09-03/registro.csv` con su guard
-  `umbrella-audit-backlog` (cero abiertos en un arco cerrado).
+  `umbrella-audit-backlog` (cero abiertos en un arco cerrado). **A4 tiene hoy
+  cinco filas abiertas**, todas abiertas por su propia medición: QK-21 (P1),
+  QK-22, QK-23 y NU-50 (P2), QK-24 (P3).
 - **47 guards en el registro** (41 + los cinco que A3 dejó esperando al pin +
   el de suelos de Dependabot de orbit que ese pin destapó).
 - **Cadencia**: set semanal (QADR-0008); un corte fuera de cadencia lleva la
@@ -140,6 +145,51 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-11 — A4 arranca: la medición de S0, y lo que le cambió al plan
+
+- **Sesión `S0` del arco A4, HECHA** (quark#388, nucleus#518, quantum#181).
+  El set sigue siendo 1.30.0: S0 no corta nada, mide. Precondición
+  comprobada antes de empezar (`arcos cerrados: A1 A2 A3`).
+- **El banco de 60 consultas existe y es ejecutable**: 44 tipadas, 4 que
+  emiten SQL equivocado, 12 sin API. Vive en
+  `quark/internal/enginesuite/querybench_cases_test.go` —módulo que ya enlaza
+  los cinco motores y no se publica— y `TestQueryBench` asserta el VEREDICTO
+  registrado, no el éxito: cerrar un hueco pone la suite roja pidiendo que se
+  actualice el veredicto, en vez de mejorar en silencio. Documento en
+  `quark/docs/query-bench.md`.
+- **El veredicto `wrong-sql` es el hallazgo del método**: cuatro consultas
+  compilan, corren, no devuelven error y emiten SQL que hace otra cosa. Las
+  cuatro salieron de leer el SQL que recibió el driver, no de mirar el error.
+  `GroupBy` sin `Select()` deja `SELECT *` (inválido fuera de SQLite);
+  `With()` declara la CTE y no cambia el `FROM`; `WithRecursive` emite la
+  palabra clave sobre un cuerpo que no puede recurrir. Contarlas como
+  aprobadas es como una matriz de capacidades acaba afirmando lo que no tiene.
+- **Cinco hallazgos nuevos en el registro** (195 filas, 10 abiertos):
+  **QK-21 (P1)** todo entero Go colapsa en `INTEGER` y todo flotante en `REAL`
+  —la PK sale `SERIAL`, no `BIGSERIAL`—, mientras `pkg/model` emite
+  `BIGINT`/`DOUBLE PRECISION`/`BIGSERIAL` para el MISMO modelo; **NU-50 (P2)**
+  las dos gramáticas del tag `db` se contradicen **en silencio y en las dos
+  direcciones** (un modelo estilo nucleus deja a quark creyendo que hay una
+  columna llamada `column:email;unique;not null`, sin PK, sin avisar);
+  **QK-22, QK-23 (P2)** y **QK-24 (P3)**.
+- **El plan cambió, que es el producto de S0.** Las dieciséis consultas que
+  fallan salen de SIETE causas, así que las sesiones van por causa. S1 se
+  partió en tres; la sesión de valores cero en `Update` se **retiró** (ninguna
+  de las 60 la necesita); el linter de tags SUBIÓ a S6 porque NU-50 bloquea a
+  `--data quark`; y los tipos por motor empiezan por arreglar el rango de los
+  enteros que ya existen. La causa mayor —la whitelist de diez funciones del
+  AST, que cuesta cuatro consultas— **no estaba en el plan escrito**.
+- **Lo que S0 NO pudo medir, y lo dice en los documentos**: el comportamiento
+  por motor de QK-21. No había runtime de contenedores en la máquina, así que
+  la matriz se midió llamando al mapeador de tipos, no contra motores vivos.
+  `S4` no empieza sin ellos; es su precondición escrita.
+- **Dos bugs de `scripts/estado.sh`, arreglados de paso**: `read` sin `IFS=`
+  se comía el espacio de la primera columna de `git submodule status`, así que
+  el caso BUENO se imprimía como `?` (se lee como alarma) y sólo la deriva
+  salía bien; y la próxima sesión se derivaba de la primera tabla del fichero
+  del arco cuya celda empezara por `Sn`, que con la tabla nueva de A4 devolvía
+  basura. Ahora lee sólo bajo «## Registro de sesiones».
+
 ### Sesión 2026-09-10 — A3 cerrado y publicado en QUANTUM 1.30.0
 
 - **SET**: quark **v1.13.0** (`cmd/quark` **v1.0.0**, el CLI estrenando módulo
@@ -172,45 +222,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   detecta— y nucleus v1.26.0 sin republicar.
 - **Lo que se estrenó y falló**: la firma. Ver «Deuda viva» arriba.
 
-### Sesión 2026-09-06/08 — A2 entero: starter de suite, CLI sobre el binario real y el quickstart en cinco comandos (QUANTUM 1.29.0)
-
-- **SET**: quark **v1.12.0** (+ drivers v0.1.3) · nucleus **v1.25.0** (+ once
-  módulos v0.1.3, ldap v0.2.7) · orbit **v1.9.3** (agent v0.6.17, server
-  v0.11.3, quarkbridge v1.8.21, quarkdatasource v1.8.22; alineación de
-  pines, sin cambio de producto). Certificado con `suite-integral --cierre`.
-- **Cómo se hizo**: un workflow de mapa (4 lectores + crítico) dejó el plan
-  en 11 PRs; cada PR salió de un implementador en worktree propio con dos
-  revisores adversariales y hasta tres rondas de corrección. Nucleus:
-  #478 (`--help` con gramática, `openapi` con receta), #480 (`routes` y
-  `migrate status` sobre el binario: NUCLEUS_PRINT_ROUTES + ledger), #481
-  (`generate module --mount` + test; `nucleus new` deja go.mod en orden; sin
-  filas /notes), #479 (404 en rutas no registradas: authz y CSRF tras el
-  enrutado; cero WARN; ADR-033), #482 (`nucleus dev` + `completion`), #483
-  (`nucleus new --with … --template suite`; showcase_demo generado de la
-  plantilla con test de identidad), #484 (notas + snapshot 1.25.0), #486
-  (re-pin de ejemplos), #487 (suelos), #488 (tests de cmd con `--offline`).
-  Quark: #355 (`quark init --with nucleus` + ejemplos chi/echo/gin), #356
-  (notas + snapshot 1.12.0), #357 (re-enunciado del feat que release-please
-  no parseó). Paraguas: #155 (lane `quickstart-smoke` + guard
-  `quickstart-cost`), y el PR del set con el quickstart reescrito («lee lo
-  que se generó», 5/5, guard `quickstart-embeds`), los espejos de sidebar y
-  los smokes al showcase nuevo. Registro: NU-16/17/18/48/49 hechos;
-  `arcos_cerrados: A1 A2`; 39 guards.
-- **Lo que mordió y quedó mecanizado**: el cuerpo por defecto del squash
-  dejó a release-please sin ver un `feat` (→ `merge-group.sh` con título y
-  cuerpo controlados); un minor de quark deja rojo el CI de nucleus hasta
-  re-pinar sus ejemplos (→ dentro del PR de suelos); el proxy y sum.golang.org
-  tardan minutos en servir un tag recién cortado (→ `align-orbit-pins.sh`
-  espera a la sumdb); la sección de una release de alineación de orbit (→
-  `orbit-align-notes.sh`); los tests que scaffoldan deben ir `--offline`
-  porque en la rama del release el pin aún no tiene tag (nucleus#488).
-- **Lo que las revisiones dejaron como seguimiento (minors, sin fila)**:
-  `nucleus routes` en modo configuración arranca una app y deja ficheros;
-  `--json` no avisa del fallback; `generate module` acepta `testdata`… todo
-  en los cuerpos de los PRs. El fish de `completion` no se ha ejecutado en
-  ningún entorno (sólo golden).
-- **Siguiente arco: A3** — ver el plan 5/5 y `docs/RUMBO.md`.
-
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -240,10 +251,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 **Trabajo con destinatario (por orden de arranque):**
 
 - **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~ y ~~A3~~ CERRADOS
-  (1.28.0, 1.29.0, 1.30.0) → **A4 Quark como capa de datos** (SIGUIENTE, con
-  su troceado en [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md))
+  (1.28.0, 1.29.0, 1.30.0) → **A4 Quark como capa de datos** (EN CURSO: `S0`
+  hecha el 2026-09-11, siguiente `S1`; troceado en
+  [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md))
   → A5 … → A12. El registro de hallazgos y su guard
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
+- **Lo que A4/S0 dejó pendiente de máquina, no de decisión**: confirmar QK-21
+  contra motores reales. La máquina de la sesión no tenía runtime de
+  contenedores, así que la matriz de tipos se midió llamando al mapeador y no
+  contra PostgreSQL/MySQL/MSSQL vivos. Es la precondición escrita de `S4`, y
+  la primera tarea de esa sesión.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
   proteger `main` en quark, orbit y quantum exigiendo `CI Required Gate`
   (sólo nucleus la tiene); activar `allow_auto_merge` en los cuatro (medido

@@ -50,8 +50,17 @@ for n in $(seq 1 12); do
 done
 plan=$(ls docs/planes/ 2>/dev/null | grep -E "^${siguiente}-" | head -1)
 if [ -n "$plan" ]; then
-  # La primera fila del registro de sesiones que no está hecha.
-  ses=$(awk -F'|' '/^\| S[0-9]+ /{gsub(/ /,"",$2); gsub(/^ +| +$/,"",$3); if ($3 != "hecha") {print $2 " (" $3 ")"; exit}}' "docs/planes/$plan")
+  # La primera fila del registro de sesiones que no está hecha. Se lee SOLO
+  # bajo «## Registro de sesiones»: un fichero de arco puede llevar otras
+  # tablas cuya primera celda también empieza por Sn — la de A4 lleva la de
+  # qué cambió el troceado— y antes se colaba la primera que apareciera.
+  ses=$(awk -F'|' '
+    /^## Registro de sesiones/ {en=1; next}
+    en && /^\| S[0-9]+ /{
+      gsub(/ /,"",$2); gsub(/^ +| +$/,"",$3)
+      sub(/\*\*/,"",$3); sub(/\*\*.*/,"",$3)
+      if ($3 != "hecha") {print $2 " (" $3 ")"; exit}
+    }' "docs/planes/$plan")
   printf 'Siguiente: \033[1m%s\033[0m → docs/planes/%s' "$siguiente" "$plan"
   [ -n "$ses" ] && printf ' · próxima sesión: \033[1m%s\033[0m' "$ses"
   echo
@@ -66,13 +75,11 @@ fi
 #    medición que se haga encima.
 # ---------------------------------------------------------------------------
 tit "checkout"
-deriva=0
-while read -r estado sha ruta _; do
-  case "$estado$sha" in
-    '') continue ;;
-  esac
-done < <(git submodule status 2>/dev/null)
-git submodule status 2>/dev/null | while read -r linea; do
+# `git submodule status` marca el estado en la PRIMERA columna, y para un
+# submódulo que SÍ está en el commit del set esa columna es un espacio. Sin
+# IFS= vacío, `read` se lo come y la marca pasaba a ser el primer dígito del
+# SHA: el caso bueno —el normal— se imprimía como «?», que se lee como alarma.
+git submodule status 2>/dev/null | while IFS= read -r linea; do
   marca=${linea:0:1}
   case "$marca" in
     ' ') printf '  ok   %s\n' "$(echo "$linea" | awk '{print $2, $3}')" ;;
