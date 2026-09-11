@@ -24,8 +24,11 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   flotantes generados dejan de quedarse cortos —un `int64` por encima de 2³¹
   lo rechazaban PostgreSQL, MySQL y SQL Server— y `nucleus generate module`
   construye sobre quark por defecto. Minor de suite por las minors de quark y
-  nucleus. **Siguiente arco: A5** (auth de producto), que puede solaparse con
-  A6.
+  nucleus. **Arco en curso: A5** (auth de producto): su sesión de medición
+  está hecha —el banco de conformidad de `nucleus/internal/authbench` mide
+  **14 de 43** controles presentes, 3 parciales y 26 ausentes— y el arco tiene
+  troceado en [`planes/A5-auth-de-producto.md`](planes/A5-auth-de-producto.md).
+  Puede solaparse con A6.
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la

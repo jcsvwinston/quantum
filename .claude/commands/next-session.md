@@ -79,12 +79,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
 - **Trabajo por arcos del plan 5/5**: A1, A2, A3 y **A4 CERRADOS** (1.28.0,
-  1.29.0, 1.30.0, 1.31.0) → **A5, auth de producto, es el SIGUIENTE**; puede
-  solaparse con A6, que lleva el único P1 abierto del registro. A5 no tiene
-  troceado: se escribe al empezarlo y arranca por una sesión de **medición**,
-  como los cuatro anteriores — y en A4 esa sesión se equivocó en dos de sus
-  cinco hallazgos por fiarse de un comentario del código, así que la regla
-  «mide, no leas» se gana su sitio otra vez.
+  1.29.0, 1.30.0, 1.31.0) → **A5, auth de producto, EN CURSO**: su `S0` está
+  hecha y el arco ya tiene troceado —once sesiones— en
+  [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md);
+  la siguiente es `S1` (correo de producto). Puede solaparse con A6, que lleva
+  el único P1 abierto del registro. El numerador del gate es el banco de
+  `nucleus/internal/authbench` (hoy 14/43).
   Lo que fue A4, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md).
   `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
@@ -148,6 +148,53 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-12 — A5 arranca: la medición de S0, y el troceado que salió de ella
+
+- **Sesión `S0` del arco A5, HECHA** (nucleus#528, quantum#187). El set sigue
+  en 1.31.0: S0 no corta, mide. Precondición comprobada antes de empezar
+  (`arcos cerrados: A1 A2 A3 A4`).
+- **El banco de conformidad de auth existe y es ejecutable**: **14 de 43
+  controles presentes, 3 parciales, 26 ausentes**. Vive en
+  `nucleus/internal/authbench/` —43 probes que arrancan una aplicación por
+  defecto y preguntan a la ruta, llaman a la API o leen el struct de
+  configuración por su tag— y `TestAuthBench` asserta el **veredicto
+  registrado**, no el éxito. Página en `nucleus/docs/auth-bench.md`.
+- **La forma del resultado es el hallazgo**: está el sustrato y no el
+  producto. Sesiones, tokens, hash de contraseñas, motor de políticas y las
+  dos costuras de extensión están y se ejercen; **nada de lo que toca una
+  persona existe** — ninguna ruta inicia sesión, no hay cuenta que verificar
+  ni recuperar, no hay segundo factor, no hay clave con la que llamar a una
+  API. Tres que conviene retener: la costura federada **no tiene ninguna
+  implementación** (el registro está vacío), la identidad lleva **un solo
+  `Role string`** donde un IdP entrega tres grupos, y el modelo de política es
+  `sub, obj, act`, así que «ana puede editar los posts que son suyos» no se
+  puede expresar y cada aplicación reimplementa la propiedad en sus handlers.
+- **Cinco hallazgos nuevos en el registro** (200 filas, 11 abiertos, A5 con 6):
+  **NU-68 (P2)** nada cuenta los intentos fallidos de contraseña —sin bloqueo,
+  sin contador, sin knob—; **NU-69 (P2)** no hay revocación por ningún lado, ni
+  de una sesión ajena (ningún método toma un token, aunque `ActiveSessions` ya
+  enumera y el store ya borra) ni de un JWT emitido (24 h por defecto);
+  **NU-70, NU-71, NU-72 (P3)**.
+- **Una hipótesis propia, corregida por la medición.** KEY-05 se escribió
+  primero como «el limitador va por dirección», leído del NOMBRE de una clave
+  de configuración. El probe que agota el presupuesto de una identidad y
+  pregunta como otra —mismo rol, misma dirección— sale servido: el limitador
+  va por **usuario autenticado**, con el tenant de prefijo. A4 aprendió que un
+  comentario no es una medición; **un nombre tampoco**. Lo que A5 se lleva: el
+  middleware de clave de API tiene que poner la identidad de la clave donde el
+  limitador ya mira.
+- **El troceado salió de la medición, no al revés**: los 26 huecos vienen de
+  **siete causas**, así que las sesiones van por causa y no por producto. El
+  correo sube a `S1` porque bloquea a las cuentas (sin outbox, un correo de
+  verificación se pierde entre el commit y el SMTP); el sustrato de identidad
+  y revocación va antes que todo lo que lo consume; el segundo factor se parte
+  en dos (TOTP y WebAuthn son dos trabajos); y la postura ASVS cierra, porque
+  mide lo que dejaron las demás. Once sesiones en
+  [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md).
+- **Dónde muerde QADR-0010 en este arco, dicho por adelantado**: `User.Role`
+  es un `string` y los proveedores federados entregan listas. Se entrega
+  `Roles []string` **junto** al viejo, nunca en su lugar.
+
 ### Sesión 2026-09-11 (tarde) — A4 CERRADO y publicado en QUANTUM 1.31.0
 
 - **El arco entero en un día**: las diez sesiones (`S0`–`S9`) y **quince PRs
@@ -201,51 +248,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `reference/type-matrix`, que se compara contra el sidebar DEL PIN. Va en el
   commit del set, como los guards que esperan.
 
-### Sesión 2026-09-11 — A4 arranca: la medición de S0, y lo que le cambió al plan
-
-- **Sesión `S0` del arco A4, HECHA** (quark#388, nucleus#518, quantum#181).
-  El set sigue siendo 1.30.0: S0 no corta nada, mide. Precondición
-  comprobada antes de empezar (`arcos cerrados: A1 A2 A3`).
-- **El banco de 60 consultas existe y es ejecutable**: 44 tipadas, 4 que
-  emiten SQL equivocado, 12 sin API. Vive en
-  `quark/internal/enginesuite/querybench_cases_test.go` —módulo que ya enlaza
-  los cinco motores y no se publica— y `TestQueryBench` asserta el VEREDICTO
-  registrado, no el éxito: cerrar un hueco pone la suite roja pidiendo que se
-  actualice el veredicto, en vez de mejorar en silencio. Documento en
-  `quark/docs/query-bench.md`.
-- **El veredicto `wrong-sql` es el hallazgo del método**: cuatro consultas
-  compilan, corren, no devuelven error y emiten SQL que hace otra cosa. Las
-  cuatro salieron de leer el SQL que recibió el driver, no de mirar el error.
-  `GroupBy` sin `Select()` deja `SELECT *` (inválido fuera de SQLite);
-  `With()` declara la CTE y no cambia el `FROM`; `WithRecursive` emite la
-  palabra clave sobre un cuerpo que no puede recurrir. Contarlas como
-  aprobadas es como una matriz de capacidades acaba afirmando lo que no tiene.
-- **Cinco hallazgos nuevos en el registro** (195 filas, 10 abiertos):
-  **QK-21 (P1)** todo entero Go colapsa en `INTEGER` y todo flotante en `REAL`
-  —la PK sale `SERIAL`, no `BIGSERIAL`—, mientras `pkg/model` emite
-  `BIGINT`/`DOUBLE PRECISION`/`BIGSERIAL` para el MISMO modelo; **NU-50 (P2)**
-  las dos gramáticas del tag `db` se contradicen **en silencio y en las dos
-  direcciones** (un modelo estilo nucleus deja a quark creyendo que hay una
-  columna llamada `column:email;unique;not null`, sin PK, sin avisar);
-  **QK-22, QK-23 (P2)** y **QK-24 (P3)**.
-- **El plan cambió, que es el producto de S0.** Las dieciséis consultas que
-  fallan salen de SIETE causas, así que las sesiones van por causa. S1 se
-  partió en tres; la sesión de valores cero en `Update` se **retiró** (ninguna
-  de las 60 la necesita); el linter de tags SUBIÓ a S6 porque NU-50 bloquea a
-  `--data quark`; y los tipos por motor empiezan por arreglar el rango de los
-  enteros que ya existen. La causa mayor —la whitelist de diez funciones del
-  AST, que cuesta cuatro consultas— **no estaba en el plan escrito**.
-- **Lo que S0 NO pudo medir, y lo dice en los documentos**: el comportamiento
-  por motor de QK-21. No había runtime de contenedores en la máquina, así que
-  la matriz se midió llamando al mapeador de tipos, no contra motores vivos.
-  `S4` no empieza sin ellos; es su precondición escrita.
-- **Dos bugs de `scripts/estado.sh`, arreglados de paso**: `read` sin `IFS=`
-  se comía el espacio de la primera columna de `git submodule status`, así que
-  el caso BUENO se imprimía como `?` (se lee como alarma) y sólo la deriva
-  salía bien; y la próxima sesión se derivaba de la primera tabla del fichero
-  del arco cuya celda empezara por `Sn`, que con la tabla nueva de A4 devolvía
-  basura. Ahora lee sólo bajo «## Registro de sesiones».
-
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -275,9 +277,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 **Trabajo con destinatario (por orden de arranque):**
 
 - **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~ y ~~A4~~
-  CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0) → **A5 Auth de producto**
-  (SIGUIENTE, sin troceado: se escribe al empezarlo, por una sesión de
-  medición) → A6 … → A12. El registro de hallazgos y su guard
+  CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0) → **A5 Auth de producto, EN
+  CURSO** (`S0` hecha el 2026-09-12; troceado en `docs/planes/`, siguiente
+  `S1`) → A6 … → A12. El registro de hallazgos y su guard
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
 - **Lo que A4 dejó a deber, con su porqué escrito**: la segunda mitad de su
   `S4` —uuid nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet,
