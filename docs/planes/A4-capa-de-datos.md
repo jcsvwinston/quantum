@@ -341,7 +341,7 @@ Se rellena al terminar cada una: el PR que la cierra y lo que se midió.
 | S4 | **hecha** 2026-09-11 | quark#393 | QK-21 **confirmado** contra motores reales (MySQL: «Out of range value») y arreglado. Destapó que el diff comparaba el tipo de una PK sin pasar por el camino de la PK. Matriz de tipos **generada** y publicada |
 | S5 | **hecha** 2026-09-11 | quark#394 | `Plan.Down`, y el ida y vuelta verificado comparando el **catálogo** en los seis motores. Lo irreversible da error nombrando qué falta, en vez de un rollback que dice que fue bien |
 | S6 | **hecha** 2026-09-11 | quark#395, nucleus#520, quantum#182 | NU-50 cerrado por los dos lados y el guard `umbrella-tag-grammar` con fixture: **48 guards** |
-| S7 | pendiente | — | — |
+| S7 | **hecha** 2026-09-11 | nucleus#522, quantum#183 | La capacidad ya estaba (A2 la adelantó): el generador emite el modelo con la gramática de quark y sirve el endpoint. Lo que faltaba era el gate, y al correrlo cazó dos defectos del código generado — `List()` sin `Limit` (WARN en la primera petición) y un filtro aplicado DESPUÉS de la página |
 | S8 | pendiente | — | — |
 | S9 | pendiente | — | — |
 

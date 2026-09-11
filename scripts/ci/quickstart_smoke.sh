@@ -187,6 +187,58 @@ fi
 [[ -f "$TMP/$PROJECT_NAME/go.mod" ]] || fail "el scaffold no dejó go.mod en $TMP/$PROJECT_NAME"
 T_SCAFFOLD=$(now_ms)
 
+# --- 2b. la primera feature sobre Quark ---------------------------------------
+# Gate del arco A4: el starter se genera con `--data quark` y pasa el smoke.
+# Va ANTES del build para no pagar un segundo build ni un segundo arranque: el
+# binario sale ya con el módulo dentro.
+#
+# --offline es obligatorio aquí por lo mismo que en los tests de scaffold de
+# nucleus: en la rama de un release el pin todavía no tiene tag, y `go mod
+# tidy` saldría a buscarlo. Los hermanos los resuelve el go.work del paso 3.
+echo "== 2b. generate module --data quark (gate A4)"
+QUARK_MODULE=notes
+QUARK_MODULE_READY=0
+# Se genera primero en un proyecto DESECHABLE para mirar lo que sale. Si el
+# pin no sirve para el gate, el proyecto que la lane arranca no llega a
+# tocarse — un módulo a medio quitar es peor que ninguno.
+PROBE="$TMP/probe"
+mkdir -p "$PROBE"
+if "$TMP/nucleus" new probeapp --template api --db sqlite --offline --out "$PROBE" > "$TMP/probe-new.out" 2>&1 \
+   && "$TMP/nucleus" generate module "$QUARK_MODULE" --data quark --offline \
+        --out "$PROBE/probeapp" > "$TMP/generate.out" 2>&1; then
+  model="$PROBE/probeapp/internal/$QUARK_MODULE/$QUARK_MODULE.go"
+  [[ -f "$model" ]] || fail "generate module --data quark no dejó $model"
+  grep -q "model+storage (quark)" "$TMP/generate.out" \
+    || { cat "$TMP/generate.out" >&2; fail "generate module --data quark no dijo que el storage es de Quark"; }
+  # El modelo generado tiene que hablar la gramática de tags de QUARK
+  # (db:"<col>" + pk:"true"), no la de pkg/model. Cruzarlas es NU-50, y un
+  # generador que la equivoque la propaga a cada proyecto nuevo.
+  grep -q 'pk:"true"' "$model" || fail "el modelo generado no usa pk:\"true\" — ¿gramática de pkg/model?"
+  ! grep -q 'db:"column:' "$model" || fail "el modelo generado usa la gramática de pkg/model (db:\"column:…\") en un storage de Quark (NU-50)"
+
+  if grep -q "Limit(" "$model"; then
+    QUARK_MODULE_READY=1
+  else
+    # El pin genera un List() sin Limit, que hace WARN en la primera petición
+    # y el paso 7 exige CERO. La sonda del endpoint se enciende sola cuando
+    # el pin traiga el arreglo, por el mismo criterio con que la lane entera
+    # se enciende al re-pinar `nucleus new --with`.
+    echo "::notice title=gate A4 parcial::el nucleus pinado genera el storage de --data quark sin Limit() explícito, que hace WARN en la primera petición; la sonda del endpoint se salta y se enciende al re-pinar."
+  fi
+else
+  # Un pin anterior al arco A2 no conoce el flag.
+  echo "::notice title=gate A4 inactivo::el nucleus pinado no acepta \`generate module --data quark\`; la sonda se salta y se enciende al re-pinar."
+fi
+rm -rf "$PROBE"
+
+# Sólo cuando el pin sirve para el gate entra el módulo en el proyecto que la
+# lane arranca.
+if [[ "$QUARK_MODULE_READY" == "1" ]]; then
+  "$TMP/nucleus" generate module "$QUARK_MODULE" --mount --data quark --offline \
+    --out "$TMP/$PROJECT_NAME" > "$TMP/generate-mount.out" 2>&1 \
+    || { cat "$TMP/generate-mount.out" >&2; fail "generate module --data quark --mount falló sobre el proyecto de la lane"; }
+fi
+
 # --- 3. hermanos por copia del go.work, build ---------------------------------
 echo "== 3. build del proyecto con los hermanos del go.work (al pin, sin red)"
 sed -e "s#^\([[:space:]]*\)\./#\1$ROOT/#" "$ROOT/go.work" > "$TMP/go.work"
@@ -258,6 +310,16 @@ echo "== 5b. sondas de la lane: /nope, admin, feed en vivo, Data Studio"
 code=$(curl -s -o /dev/null -w '%{http_code}' "$BASE/nope")
 [[ "$code" == "404" ]] || fail "GET /nope devolvió HTTP $code (esperado 404: una ruta que no existe no se esconde tras un 403)"
 echo "   HTTP 404 ← GET /nope"
+
+# El endpoint de la feature generada sobre Quark. Es la mitad del gate de A4
+# que ninguna otra sonda cubre: que el módulo generado no sólo compile, sino
+# que sirva.
+if [[ "${QUARK_MODULE_READY:-0}" == "1" ]]; then
+  code=$(curl -s -o "$BODY" -w '%{http_code}' "$BASE/$QUARK_MODULE")
+  [[ "$code" == "200" ]] || { head -c 600 "$BODY" >&2; echo >&2; fail "GET /$QUARK_MODULE devolvió HTTP $code (esperado 200): el módulo --data quark no sirve"; }
+  grep -q '"data"' "$BODY" || { head -c 600 "$BODY" >&2; echo >&2; fail "GET /$QUARK_MODULE no devuelve el sobre con \"data\""; }
+  echo "   HTTP 200 ← GET /$QUARK_MODULE (módulo --data quark)"
+fi
 
 # El scaffold de suite trae `csrf_enabled: true` con sólo /api/ exento: el
 # POST del formulario de login pasa por la verificación de origen de nucleus
