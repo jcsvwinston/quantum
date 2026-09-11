@@ -128,6 +128,12 @@ GUARDS=(
   # Un release sin firma sale VERDE: por eso esto se comprueba en el árbol y
   # no en la corrida.
   "umbrella-supply-chain|.|bash scripts/check_supply_chain.sh"
+  # Quark y pkg/model de nucleus leen los dos un tag `db` con gramáticas
+  # incompatibles, y cruzarlas no daba error: un modelo estilo nucleus dejaba
+  # a quark creyendo que había una columna llamada `column:email;unique;not
+  # null` (NU-50, A4/S6). Cada producto lo detecta ya al registrar el modelo;
+  # esto lo comprueba en el ÁRBOL, donde vive un modelo que nadie ejecuta.
+  "umbrella-tag-grammar|.|bash scripts/check_tag_grammar.sh"
   # Toda lane del paraguas con disparador `schedule:` lleva su job
   # `notify-schedule-failure`: el cron rojo no puede degradar al email por
   # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que
