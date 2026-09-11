@@ -24,8 +24,12 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   deprecación y de soporte firmadas, guard de pines de Actions en los tres
   productos) y el troceado del módulo raíz de quark, que estrena el CLI como
   módulo propio con serie de versiones propia. Minor de suite por las minors
-  de quark y nucleus. **Siguiente arco: A4** (quark como capa de datos de
-  nucleus).
+  de quark y nucleus. **Arco en curso: A4** (quark como capa de datos de
+  nucleus), con su sesión de medición `S0` hecha el 2026-09-11: el banco de 60
+  consultas existe y es ejecutable (44 tipadas, 4 que emiten SQL equivocado,
+  12 sin API), y con lo medido se reescribió el troceado en diez sesiones.
+  A4 abrió cinco filas del registro con su propia medición — QK-21 (P1),
+  QK-22, QK-23 y NU-50 (P2), QK-24 (P3).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de A4 en
   sesiones, y el contrato que permite trabajarlo sin recordar la sesión

@@ -14,8 +14,9 @@ migraciones leen.
 - el banco de 60 consultas se expresa tipado, sin `RawQuery`;
 - un guard de mapeo de tags corre en quark y en nucleus.
 
-**Hallazgos que descuenta.** Ninguno del registro: A4 no hereda filas. Su
-cierre depende sólo de su gate.
+**Hallazgos que descuenta.** Cinco, todos abiertos por la medición de `S0`:
+QK-21 (P1), QK-22, QK-23 y NU-50 (P2), QK-24 (P3). La versión anterior de esta
+línea decía que A4 no heredaba filas; era verdad hasta que se midió.
 
 **La decisión que lo condicionaba, ya tomada.** [QADR-0010](../adr/QADR-0010-rupturas-agrupadas-en-un-major.md)
 (2026-09-10): lo rompiente se acumula en **un único major al cierre de A12**.
@@ -60,141 +61,241 @@ ls quark/docs/query-bench.md nucleus/docs/pkg-model-vs-quark.md
 sesión de abajo resulta innecesaria o mal dimensionada, se dice y se cambia.
 Las tres veces anteriores la medición corrigió el plan.
 
----
 
-## S1 · quark — los huecos de consulta
+**HECHA el 2026-09-11.** Lo que midió y lo que cambió del plan, abajo.
 
-**Precondición**: S0 hecha; el banco de 60 nombra las consultas que hoy
-exigen `RawQuery`.
+### Lo que S0 midió
 
-**Alcance**: `quark` (repo), API pública. `Raw[T]` y `Select[T]` a DTO,
-`Exists`, `Pluck`, `FirstOrCreate`, preload con condiciones.
+Cuatro cifras, cada una con el comando que la reproduce:
 
-**Cuidado**: la superficie de API de quark está congelada por contract tests.
-Añadir es seguro; cambiar una firma existente no lo es y cae en la decisión
-de ruptura.
+1. **El banco de 60 consultas: 44 tipadas, 4 que emiten SQL equivocado, 12 sin
+   API.** Escrito y ejecutable en
+   `quark/internal/enginesuite/querybench_cases_test.go`; documento en
+   [`quark/docs/query-bench.md`](../../quark/docs/query-bench.md).
+   `cd quark/internal/enginesuite && go test -run TestQueryBench -v .`
+2. **`pkg/model` frente a quark, símbolo a símbolo**: siete capacidades están
+   en `pkg/model` y no en quark, y sólo tres son trabajo de capa de datos.
+   [`nucleus/docs/pkg-model-vs-quark.md`](../../nucleus/docs/pkg-model-vs-quark.md).
+3. **Las gramáticas de tags se contradicen** sobre el mismo tag `db`, en
+   silencio y en las dos direcciones (NU-50).
+4. **Las dos capas generan esquemas distintos para el mismo modelo**, y quark
+   colapsa toda anchura de entero en un `INTEGER` (QK-21).
 
-**Criterio de hecho**: las consultas del banco que S0 marcó como
-«`RawQuery` por falta de API» pasan a tipadas, y el banco lo dice.
+### Lo que eso cambió del troceado
 
----
+El plan escrito de S1 apuntaba a `Raw[T]`, `Select[T]` a DTO, `Exists`,
+`Pluck`, `FirstOrCreate` y preload con condiciones. La medición dice que de
+esos, sólo dos aparecen entre las dieciséis consultas que hoy no se pueden
+escribir: la proyección a DTO y el preload filtrado. `Exists`, `Pluck` y
+`FirstOrCreate` son azúcar —ninguna consulta del banco los necesita para
+dejar de usar `RawQuery`— y la causa mayor, la whitelist de funciones del
+AST, **no estaba en el plan**.
 
-## S2 · quark — semántica de valores cero en `Update`
+Las dieciséis consultas salen de **siete causas**, así que las sesiones van
+por causa y no por consulta. Cinco hallazgos nuevos entraron en el registro:
+QK-21 (P1), QK-22, QK-23, NU-50 (P2) y QK-24 (P3). **A4 sí hereda filas
+ahora**, al contrario de lo que decía la cabecera de este fichero.
 
-**Precondición**: QADR-0010, que ya está. Lo que esta sesión sí tiene que
-comprobar antes de empezar es que su cambio **cabe por adición**.
-
-**Alcance**: `quark`. Hoy la semántica es implícita; el objetivo es que sea
-explícita y elegible por llamada.
-
-**Cuidado**: es el candidato más claro a major de todo el arco, y por
-QADR-0010 no lo corta. Entrega la API nueva **junto a** la vieja, con la
-vieja marcada según `docs/gobernanza/POLITICA_DEPRECACION.md` —recambio,
-aviso `DEP-YYYY-NNN` y versión de retirada, que es la del major, no una
-minor— porque `umbrella-deprecations` no deja llegar a un set una marca sin
-fecha o con una versión ya publicada.
-
-**Criterio de hecho**: un test por cada combinación de la tabla de semántica,
-en los seis motores.
-
----
-
-## S3 · quark — tipos por motor, con matriz publicada
-
-**Precondición**: S0 hecha; la matriz medida existe.
-
-**Alcance**: `quark`. decimal, uuid nativo, enums con CHECK, arrays de
-PostgreSQL, rangos, inet, JSONB con operadores.
-
-**Cuidado**: cada tipo nuevo toca los seis dialectos y las lanes de motor
-real. Un tipo que sólo existe en un motor se declara así en la matriz; no se
-emula en silencio.
-
-**Criterio de hecho**: la matriz publicada en el sitio y una lane que la
-comprueba contra motores reales — que la matriz sea generada, no escrita.
+| antes | ahora | por qué |
+|---|---|---|
+| S1 huecos de consulta | S1, S2, S3 | una sesión no cubre siete causas; se reparten por causa, de mayor a menor rendimiento |
+| S2 valores cero en `Update` | **retirada** | no aparece en el banco: ninguna de las 60 la necesita. Vuelve al backlog hasta que algo la pida |
+| S3 tipos por motor | S4 | primero el rango de los enteros que ya existen (QK-21), y sólo después decimal/uuid/arrays |
+| S4 migraciones | S5 | sin cambio de alcance |
+| S5 `--data quark` | S7 | depende del linter de tags, que sube |
+| S6 `pkg/model` a sustrato | S8 | con la corrección de que el CRUD sin tipos es un requisito, no legado |
+| S7 linter de tags | S6 | sube: NU-50 bloquea a `--data quark`, así que va antes |
+| S8 gate y set | S9 | sin cambio |
 
 ---
 
-## S4 · quark — migraciones generadas desde el modelo
+## S1 · quark — la whitelist de funciones del AST
 
-**Precondición**: S1 y S3 hechas (el generador necesita conocer los tipos).
+**Precondición**
+
+```bash
+cd quark/internal/enginesuite && go test -run TestQueryBench .   # verde con los veredictos de hoy
+```
+
+**Por qué primero.** Es la causa mayor: cuatro de las dieciséis (Q24
+`COUNT(DISTINCT)`, Q25 agregado condicional, Q45 `NTILE`, Q52 proyección
+JSON). `Func` sólo acepta diez nombres —`COUNT, SUM, AVG, MIN, MAX, LOWER,
+UPPER, LENGTH, COALESCE, ABS`— y renderiza el nombre directo al SQL.
+
+**Cuidado.** La whitelist **es una barrera de seguridad**, no un descuido.
+Ampliarla es una decisión sobre esa barrera: o una lista mayor, o un
+constructor tipado por función que no pueda llevar una cadena arbitraria. La
+segunda forma no cabe en la primera; elegir es parte de la sesión, y la
+elección se escribe. Y `CASE` no es una función: necesita forma propia.
+
+**Criterio de hecho**: Q24, Q25, Q45 y Q52 cambian de veredicto y
+`TestQueryBench` lo exige.
+
+---
+
+## S2 · quark — seleccionar de algo que no sea la tabla del modelo
+
+**Precondición**: S1 hecha (comparten el constructor de expresiones).
+
+**Alcance**: `quark`. QK-23 y QK-22 tienen la misma raíz: el `FROM` siempre es
+la tabla de `T`. De ahí salen cuatro consultas —Q33 (tabla derivada), Q44
+(top-N por grupo), Q36 y Q37 (CTE recursiva de verdad)—.
+
+**Cuidado.** Q36 es el caso más engañoso del banco: `WithRecursive` emite la
+palabra clave y el cuerpo no recurre, así que la API afirma hoy una capacidad
+que no tiene. Lo que se entregue tiene que poder ligar término ancla y
+término recursivo en un cuerpo, y referenciar la CTE desde dentro de sí misma.
+
+**Criterio de hecho**: Q33, Q36, Q37 y Q44 cambian de veredicto; QK-22 y QK-23
+pasan a hechos.
+
+---
+
+## S3 · quark — las seis restantes
+
+**Precondición**: S2 hecha.
+
+**Alcance**: `quark`. Lo que queda del banco, que ya no comparte causa:
+
+- **Q17, proyección a DTO** — `For[T]` deriva el `FROM` de `T`, así que un DTO
+  se traduce en `FROM order_emails`. Es lo que obliga a `RawQuery` a toda
+  consulta cuya forma de resultado no sea exactamente un modelo registrado.
+- **Q16, preload filtrado** — y con él la trampa: `Preload` es variádico sobre
+  NOMBRES, así que `Preload("Orders", "status = ?")` compila, y sólo falla
+  cuando la consulta padre devuelve filas.
+- **Q43, frame de ventana** — omitirlo no es una versión menor de la consulta:
+  una media móvil se convierte en acumulada, sin avisar.
+- **Q60, expresión en el `SET`** — `stock = stock - 1`. Leer-modificar-escribir
+  no es equivalente: pierde la atomicidad que es la razón de escribirlo en SQL.
+- **Q14 y Q18** — literal en la cláusula `ON`, y `FULL OUTER`/`CROSS JOIN`.
+- **QK-24** — `GroupBy` sin `Select()` deja `SELECT *`.
+
+**Cuidado**: la superficie pública de quark está congelada por contract tests.
+Añadir es seguro; cambiar una firma existente cae en QADR-0010. `Preload` es
+el caso a vigilar: darle condiciones sin romper la firma variádica actual.
+
+**Criterio de hecho**: `TestQueryBench` dice 60 tipadas, 0 wrong-sql, 0 no-api.
+
+---
+
+## S4 · quark — la anchura de los tipos, y luego la matriz
+
+**Precondición**: un motor real disponible. **S0 no pudo medir contra motores
+reales** (sin runtime de contenedores), y esta sesión no empieza sin ellos.
+
+**Alcance**: `quark`. En dos mitades, y la primera manda:
+
+1. **QK-21, el defecto.** Todo entero Go colapsa en `INTEGER` y todo flotante
+   en `REAL` (PostgreSQL, SQLite); la PK autoincremental sale `SERIAL`. Antes
+   de nada, **confirmar el comportamiento por motor** — PostgreSQL, MySQL en
+   sus dos modos, MSSQL — que S0 dejó sin confirmar a propósito.
+2. **Los tipos nuevos**: decimal, uuid nativo, enums con CHECK, arrays de
+   PostgreSQL, rangos, inet, JSONB con operadores.
+
+**Cuidado.** Cambiar el DDL generado **toca esquemas ya creados**: una tabla
+existente tiene hoy `INTEGER` donde la versión nueva pondría `BIGINT`. Si eso
+no cabe por adición, QADR-0010 dice lo que hay que hacer: **PARAR y decirlo**,
+no cortar un major por cuenta propia.
+
+**Criterio de hecho**: la matriz publicada y **generada**, no escrita, con una
+lane que la comprueba contra motores reales.
+
+---
+
+## S5 · quark — migraciones generadas desde el modelo
+
+**Precondición**: S3 y S4 hechas (el generador necesita conocer los tipos).
 
 **Alcance**: `quark`. Generar la migración desde el modelo, reversible, con
-`down` generado.
+`down` generado. `pkg/model` ya sabe hacerlo para cinco dialectos
+(`BuildXMigrationScaffold`): es una de las tres capacidades que el inventario
+marcó como trabajo de capa de datos que quark hace de otra forma —planifica y
+aplica contra la base viva en vez de emitir ficheros—.
 
-**Cuidado**: NO es el arco de migraciones v2 —diff declarativo, `migrate
-diff` con dry-run, plan hash— que es **A8**. Aquí sólo lo que `generate
-module` necesita para escribir su primera migración.
+**Cuidado**: NO es el arco de migraciones v2 (diff declarativo, `migrate
+diff`, plan hash), que es **A8**.
 
 **Criterio de hecho**: generar, aplicar y revertir sobre los seis motores en
 CI, con el esquema volviendo byte a byte al de partida.
 
 ---
 
-## S5 · nucleus — `generate module --data quark`
+## S6 · el linter de tags común
 
-**Precondición**: S1 y S4 hechas y publicadas en un tag de quark que el
+**Precondición**: S0 hecha. Sube de la posición 7 a la 6 porque NU-50 bloquea
+a `--data quark`: generar modelos antes de arreglar esto es generar modelos
+que una de las dos capas lee mal.
+
+**Alcance**: quark y nucleus. Las dos gramáticas del tag `db` se contradicen
+—coma contra punto y coma, nombre de columna contra directiva— y **ninguna de
+las dos avisa**. La tabla de la contradicción, medida, está en
+`nucleus/docs/pkg-model-vs-quark.md` §2.
+
+**Cuidado**: es un **guard del gate**, así que necesita fixture y entrada en
+`scripts/lib/guard-registry.sh`. Y como comprueba algo de los productos, no se
+puede registrar hasta que el pin lo contenga: se escribe con su fixture, entra
+en `GUARD_SCAN_EXCLUDE` con su porqué, y se registra en el commit del set que
+mueve los gitlinks.
+
+**Criterio de hecho**: la fixture muerde con la causa que declara,
+`guard-of-guards` pasa, y NU-50 pasa a hecho.
+
+---
+
+## S7 · nucleus — `generate module --data quark`
+
+**Precondición**: S3, S5 y S6 hechas y publicadas en un tag de quark que el
 paraguas pueda pinar. **Ojo al borde**: nucleus no puede requerir una versión
-de quark que no exista; si S1–S4 no han salido en release, esta sesión
-espera o el tren corta antes.
+de quark que no exista; si no han salido en release, esta sesión espera o el
+tren corta antes.
 
 **Alcance**: `nucleus`. `generate module --data quark` escribe modelo,
 repositorio tipado, registro en `quarkdatasource`, migración y test.
 
-**Cuidado**: el generador es el embudo de entrada, y su recorrido está
-medido por el quickstart de suite (guards `quickstart-cost` y
-`quickstart-embeds`, lane `quickstart-smoke`). Si el número de conceptos o de
-comandos sube, esos guards lo dicen: es una regresión del arco A2, no un
-efecto colateral aceptable.
+**Cuidado**: el generador es el embudo de entrada, y su recorrido está medido
+por el quickstart de suite (guards `quickstart-cost` y `quickstart-embeds`,
+lane `quickstart-smoke`). Si el número de conceptos o de comandos sube, esos
+guards lo dicen: es una regresión del arco A2, no un efecto colateral
+aceptable.
 
-**Criterio de hecho**: `nucleus new` + `generate module --data quark` arranca
-y sirve un endpoint, en el smoke, sin pasos manuales.
+**Criterio de hecho**: `nucleus new` + `generate module --data quark` arranca y
+sirve un endpoint, en el smoke, sin pasos manuales.
 
 ---
 
-## S6 · nucleus — `pkg/model` a sustrato
+## S8 · nucleus — `pkg/model` a sustrato
 
-**Precondición**: S5 hecha. QADR-0010 fija cómo: sacarlo de la documentación
-de usuario sí; sacarlo del contrato es la ruptura, y esa va al major.
+**Precondición**: S7 hecha.
 
 **Alcance**: `nucleus`. `pkg/model` deja de aparecer en la documentación de
 usuario y pasa a ser sustrato interno del framework.
 
+**Lo que el inventario corrigió.** El plan daba por hecho que `pkg/model` se
+retira en favor de `Query[T]`. **No se puede tal cual**: el panel sirve
+modelos que no puede nombrar en tiempo de compilación, y el CRUD sobre
+`interface{}` es un requisito, no legado. De las siete capacidades exclusivas,
+dos —metadatos de presentación y mutación de metadatos en caliente— deberían
+salir de la capa de datos pase lo que pase con el arco: son vocabulario del
+panel viviendo en el registro de modelos, y son la razón de que las dos capas
+se parezcan más de lo que son.
+
 **Cuidado**: `pkg/model` está en el freeze de contratos
 (`nucleus/scripts/ci/check_contract_freeze.sh`). Sacarlo de la documentación
-no es sacarlo del contrato: lo segundo es la ruptura, y va donde la decisión
-diga.
+no es sacarlo del contrato: lo segundo es la ruptura, y va al major de A12
+(QADR-0010).
 
 **Criterio de hecho**: el guard de cobertura de docs no encuentra `pkg/model`
 en las páginas de usuario, y el freeze sigue en verde.
 
 ---
 
-## S7 · el linter de tags común
+## S9 · el gate, y el set que publica el arco
 
-**Precondición**: S0 hecha (las gramáticas y sus contradicciones, medidas).
-
-**Alcance**: quark y nucleus. Un linter que lee las cuatro gramáticas de tags
-sobre un mismo campo y falla cuando dicen cosas distintas.
-
-**Cuidado**: es un **guard del gate**, así que necesita fixture y entrada en
-`scripts/lib/guard-registry.sh`. Y como comprueba algo de los productos, no
-se puede registrar hasta que el pin lo contenga: se escribe con su fixture,
-entra en `GUARD_SCAN_EXCLUDE` con su porqué, y se registra en el commit del
-set que mueve los gitlinks.
-
-**Criterio de hecho**: la fixture muerde con la causa que declara, y
-`guard-of-guards` pasa.
-
----
-
-## S8 · el gate, y el set que publica el arco
-
-**Precondición**: S1–S7 hechas.
+**Precondición**: S1–S8 hechas.
 
 **Qué hace**
 
-1. Registra el guard del gate (S7) y el del banco de consultas.
+1. Registra el guard del gate (S6) y el del banco de consultas.
 2. Añade `A4` a la primera línea de
    `docs/auditoria/madurez-2026-09-03/registro.csv`.
 3. Corta el set con el tren, con `scripts/train/README.md` delante.
@@ -217,11 +318,10 @@ release que falla al firmar sale verde. Se mira a mano, o se le pone guard.
 ## Registro de sesiones
 
 Se rellena al terminar cada una: el PR que la cierra y lo que se midió.
-Mientras esté vacío, el arco no ha empezado.
 
 | Sesión | Estado | PR | Qué midió o cambió del plan |
 |---|---|---|---|
-| S0 | pendiente | — | — |
+| S0 | **hecha** 2026-09-11 | quark#388, nucleus#518, quantum#181 | 44/60 tipadas; 16 huecos de 7 causas; las dos gramáticas de `db` se contradicen en silencio; las dos capas emiten esquemas distintos. Retiró la sesión de valores cero, partió S1 en tres y subió el linter de tags |
 | S1 | pendiente | — | — |
 | S2 | pendiente | — | — |
 | S3 | pendiente | — | — |
@@ -230,3 +330,4 @@ Mientras esté vacío, el arco no ha empezado.
 | S6 | pendiente | — | — |
 | S7 | pendiente | — | — |
 | S8 | pendiente | — | — |
+| S9 | pendiente | — | — |
