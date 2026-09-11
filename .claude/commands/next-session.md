@@ -78,19 +78,20 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
 - **Trabajo por arcos del plan 5/5**: A1, A2 y **A3 CERRADOS** (1.28.0,
-  1.29.0, 1.30.0) → **A4, quark como capa de datos de nucleus, EN CURSO**.
-  Su `S0` (medición) está **hecha**, y con ella el troceado se reescribió:
-  hoy son diez sesiones (`S0`–`S9`) en
-  [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md),
-  y la siguiente es **`S1`, la whitelist de funciones del AST de quark**, que
-  es la causa mayor del banco. `bash scripts/estado.sh --breve` lo deriva
-  solo; no lo copies de aquí.
-  El gate de cada arco es el registro
+  1.29.0, 1.30.0) → **A4, quark como capa de datos de nucleus, EN CURSO y casi
+  cerrado**. De sus diez sesiones hay **ocho hechas** (`S0`–`S7`) y `S8`
+  parcial; el troceado, con lo que cada una midió, está en
+  [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md).
+  `bash scripts/estado.sh --breve` deriva la siguiente; no la copies de aquí.
+  **A4 ya no tiene hallazgos abiertos**: QK-21, QK-22, QK-23 y NU-50 cerrados,
+  y QK-24 movido a A12 con su porqué.
+  **Lo que queda son dos cosas, y una es tuya**: la decisión de S8 (¿`--data
+  quark` por defecto?) y `S9`, el tren que publica el set.
+  El gate de cada arco sigue siendo el registro
   `docs/auditoria/madurez-2026-09-03/registro.csv` con su guard
-  `umbrella-audit-backlog` (cero abiertos en un arco cerrado). **A4 tiene hoy
-  cinco filas abiertas**, todas abiertas por su propia medición: QK-21 (P1),
-  QK-22, QK-23 y NU-50 (P2), QK-24 (P3).
-- **47 guards en el registro** (41 + los cinco que A3 dejó esperando al pin +
+  `umbrella-audit-backlog` (cero abiertos en un arco cerrado).
+- **48 guards en el registro** (el 48º es `umbrella-tag-grammar`, de A4/S6)
+- Antes eran 47 (41 + los cinco que A3 dejó esperando al pin +
   el de suelos de Dependabot de orbit que ese pin destapó).
 - **Cadencia**: set semanal (QADR-0008); un corte fuera de cadencia lleva la
   razón escrita en `status:` de `versions.yaml`.
@@ -145,6 +146,51 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-11 (tarde) — A4 de S1 a S8: el banco de 44 a 58, QK-21 arreglado y el gate puesto
+
+- **Ocho sesiones del arco en un día** (S0 por la mañana, S1–S8 después), con
+  **doce PRs fusionados**: quark #388/#389/#391/#392/#393/#394/#395, nucleus
+  #518/#520/#522/#523, paraguas #181/#182/#183. **El set sigue en 1.30.0**:
+  falta `S9`, que es el tren.
+- **El banco de consultas va de 44 a 58 de 60 tipadas, y de 16 huecos a 2.**
+  Los dos que quedan son `GROUP BY` sin proyección, que ahora AVISA; hacerlo
+  error rompe a quien depende de SQLite y MySQL permisivo, así que **QK-24 se
+  movió a A12**, donde vive el major de QADR-0010. Con eso **A4 no tiene
+  hallazgos abiertos**.
+- **Dos de los hallazgos de S0 eran errores de la propia medición**, y conviene
+  no olvidarlo: QK-22 (CTE recursiva) y QK-23 (top-N por grupo) ya funcionaban.
+  Lo que S0 leyó fue el **comentario** de `WithRecursive`, que seguía diciendo
+  que la superficie tipada no modelaba `UNION` — una nota que sobrevivió a lo
+  que describía. **Una medición que se fía de un comentario mide el
+  comentario.** Desde S2 cada caso del banco ejecuta contra una base real y
+  comprueba su RESULTADO, no su SQL.
+- **QK-21 (P1) confirmado y arreglado.** S0 lo dejó dicho sin confirmar por no
+  tener contenedores; el CI lo confirmó en cinco de seis motores (MySQL: «Out
+  of range value»). Los enteros mapean ya por anchura y las claves son de 64
+  bits. Destapó un defecto latente: el diff comparaba el tipo desnudo de una
+  PK sin pasar por el camino de la PK, y en SQLite sólo `INTEGER PRIMARY KEY`
+  aliasa el rowid — sin `PKBareColumnType`, cada tabla de SQLite reportaba
+  deriva contra sí misma al crearse. **Nota de migración**: `PlanMigration`
+  propone el ensanchado como `ALTER COLUMN`; no pierde datos, pero en una
+  tabla grande el motor puede reescribirla.
+- **El gate del arco está puesto**: `umbrella-tag-grammar` (48 guards) y la
+  sonda `--data quark` dentro de `quickstart-smoke`. La sonda **se enciende
+  sola** cuando el pin traiga el arreglo del generador; verificado en las dos
+  direcciones. Correr el gate es lo que encontró los dos defectos del código
+  generado que nucleus#522 arregla.
+- **S8 PARA a mitad, y es la decisión que espera a Carlos**: completarla
+  exigiría afirmar que Quark es la capa de datos por defecto, y `--data` sigue
+  por defecto en `sql`. **¿`nucleus generate module` debe pasar a `--data
+  quark` por defecto, con `--data sql` como salida explícita?** Es un cambio
+  en lo que el generador emite para todos: QADR-0010 lo pone en tu mesa.
+- **Lo que NO se hizo, dicho a propósito**: la segunda mitad de S4 —uuid
+  nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet, JSONB— no está
+  en el gate de A4 y lo urgente era el defecto. Encaja en A8, que ya lleva los
+  tipos enterprise.
+- **Lo que espera al pin**: la entrada del sidebar espejo para
+  `reference/type-matrix`, que se compara contra el sidebar DEL PIN. Va en el
+  commit del set, como los guards que esperan.
+
 ### Sesión 2026-09-11 — A4 arranca: la medición de S0, y lo que le cambió al plan
 
 - **Sesión `S0` del arco A4, HECHA** (quark#388, nucleus#518, quantum#181).
@@ -189,38 +235,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   salía bien; y la próxima sesión se derivaba de la primera tabla del fichero
   del arco cuya celda empezara por `Sn`, que con la tabla nueva de A4 devolvía
   basura. Ahora lee sólo bajo «## Registro de sesiones».
-
-### Sesión 2026-09-10 — A3 cerrado y publicado en QUANTUM 1.30.0
-
-- **SET**: quark **v1.13.0** (`cmd/quark` **v1.0.0**, el CLI estrenando módulo
-  propio, y los cinco drivers en v0.2.0) · nucleus **v1.26.0** (doce módulos:
-  once en v0.1.4, `providers/ldap` v0.2.8) · orbit **v1.9.4** (proto v0.4.4,
-  agent v0.6.18, server v0.11.4, quarkbridge v1.8.22, quarkdatasource
-  v1.8.23). `suite-integral --cierre` **47/47**, tag capturando HEAD y paquete
-  del set publicado, firmado y atestado.
-- **QK-14 se cerró haciéndolo**: `cmd/quark`, `examples/superapp` e
-  `internal/enginesuite` salen del módulo raíz. La build list de un consumidor
-  pasa de **123 a 39** módulos con el binario enlazando los mismos 11 y los
-  mismos 162 paquetes. En orbit, el pin nuevo de `drivers/sqlite` se lleva
-  pgx, mysql, mssql y go-ora fuera de `quarkdatasource`.
-- **Lo que costó el corte, y no hay que redescubrir**: el suelo del CLI tiene
-  que nombrar el tag del corte (ambigüedad de proveedor), y eso obliga a un
-  `replace` versionado en el go.work — `go work init` no basta. `go install
-  pkg@version` NO lee el go.sum del módulo (comprobado con proxy local y su
-  control), así que las sumas que faltan no rompen la instalación. Sacar un
-  `internal/` del módulo raíz ROMPE a los hermanos viejos que lo importaban:
-  los drivers v0.1.x de quark no compilan contra v1.13.0. Y el proxy guarda
-  EN NEGATIVO lo que el CI le preguntó mientras el tag no existía, lo que
-  revienta el `tidy` de justo después del corte.
-- **Tres arreglos del propio tren**: el título del PR de suelos sale ya del
-  commit de suelos y no del último; un `repin_examples.sh` que falla PARA en
-  vez de commitear un ejemplo que no compila; y `align_set.sh` de orbit sabe
-  mover los pines de los módulos de quark, que el paraguas le nombra.
-- **Decisiones del propietario, ejecutadas**: QADR-0010 (rupturas al major de
-  A12), cosign retenido en la v3 del instalador con los dos PRs del bump
-  cerrados, los cuatro LICENSE al texto literal de Apache 2.0 —GitHub ya los
-  detecta— y nucleus v1.26.0 sin republicar.
-- **Lo que se estrenó y falló**: la firma. Ver «Deuda viva» arriba.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
