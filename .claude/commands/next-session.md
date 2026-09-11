@@ -68,31 +68,33 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.30.0** (2026-09-10) — quark v1.13.0, nucleus
-  v1.26.0, orbit v1.9.4 y sus módulos, tal como los lista `versions.yaml`
-  (la fuente; no copies números de aquí). `declared_lags` vacío. El tag
-  v1.30.0 publica el paquete del set firmado y atestado.
+- **Set certificado: Quantum 1.31.0** (2026-09-11) — quark v1.14.0, nucleus
+  v1.27.0, orbit v1.9.5 y sus módulos, tal como los lista `versions.yaml`
+  (la fuente; no copies números de aquí). `declared_lags` vacío. **Los cuatro
+  releases salieron con activos firmados**, que es la deuda que 1.30.0 dejó
+  abierta: `scripts/check_release_assets.sh` la vigila.
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
-- **Trabajo por arcos del plan 5/5**: A1, A2 y **A3 CERRADOS** (1.28.0,
-  1.29.0, 1.30.0) → **A4, quark como capa de datos de nucleus, EN CURSO y casi
-  cerrado**. De sus diez sesiones hay **ocho hechas** (`S0`–`S7`) y `S8`
-  parcial; el troceado, con lo que cada una midió, está en
+- **Trabajo por arcos del plan 5/5**: A1, A2, A3 y **A4 CERRADOS** (1.28.0,
+  1.29.0, 1.30.0, 1.31.0) → **A5, auth de producto, es el SIGUIENTE**; puede
+  solaparse con A6, que lleva el único P1 abierto del registro. A5 no tiene
+  troceado: se escribe al empezarlo y arranca por una sesión de **medición**,
+  como los cuatro anteriores — y en A4 esa sesión se equivocó en dos de sus
+  cinco hallazgos por fiarse de un comentario del código, así que la regla
+  «mide, no leas» se gana su sitio otra vez.
+  Lo que fue A4, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md).
-  `bash scripts/estado.sh --breve` deriva la siguiente; no la copies de aquí.
-  **A4 ya no tiene hallazgos abiertos**: QK-21, QK-22, QK-23 y NU-50 cerrados,
-  y QK-24 movido a A12 con su porqué.
-  **Lo que queda son dos cosas, y una es tuya**: la decisión de S8 (¿`--data
-  quark` por defecto?) y `S9`, el tren que publica el set.
+  `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
+  los copies de aquí.
   El gate de cada arco sigue siendo el registro
   `docs/auditoria/madurez-2026-09-03/registro.csv` con su guard
   `umbrella-audit-backlog` (cero abiertos en un arco cerrado).
-- **48 guards en el registro** (el 48º es `umbrella-tag-grammar`, de A4/S6)
-- Antes eran 47 (41 + los cinco que A3 dejó esperando al pin +
-  el de suelos de Dependabot de orbit que ese pin destapó).
+- **48 guards en el registro**: los 47 de 1.30.0 más `umbrella-tag-grammar`,
+  que A4 registró para que ningún modelo escriba el tag `db` en la gramática
+  de la otra capa de datos.
 - **Cadencia**: set semanal (QADR-0008); un corte fuera de cadencia lleva la
   razón escrita en `status:` de `versions.yaml`.
 - **Reglas que ya se decidieron (no reabrir sin motivo nuevo)**:
@@ -146,12 +148,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-11 (tarde) — A4 de S1 a S8: el banco de 44 a 58, QK-21 arreglado y el gate puesto
+### Sesión 2026-09-11 (tarde) — A4 CERRADO y publicado en QUANTUM 1.31.0
 
-- **Ocho sesiones del arco en un día** (S0 por la mañana, S1–S8 después), con
-  **doce PRs fusionados**: quark #388/#389/#391/#392/#393/#394/#395, nucleus
-  #518/#520/#522/#523, paraguas #181/#182/#183. **El set sigue en 1.30.0**:
-  falta `S9`, que es el tren.
+- **El arco entero en un día**: las diez sesiones (`S0`–`S9`) y **quince PRs
+  fusionados** — quark #388/#389/#391/#392/#393/#394/#395/#396, nucleus
+  #518/#520/#522/#523/#524, paraguas #181/#182/#183/#184/#185. **SET
+  CERTIFICADO: Quantum 1.31.0** (quark v1.14.0, nucleus v1.27.0, orbit
+  v1.9.5), 48/48 guards, y **los cuatro releases con activos firmados**, que
+  es la deuda que 1.30.0 dejó abierta.
 - **El banco de consultas va de 44 a 58 de 60 tipadas, y de 16 huecos a 2.**
   Los dos que quedan son `GROUP BY` sin proyección, que ahora AVISA; hacerlo
   error rompe a quien depende de SQLite y MySQL permisivo, así que **QK-24 se
@@ -178,11 +182,17 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   sola** cuando el pin traiga el arreglo del generador; verificado en las dos
   direcciones. Correr el gate es lo que encontró los dos defectos del código
   generado que nucleus#522 arregla.
-- **S8 PARA a mitad, y es la decisión que espera a Carlos**: completarla
-  exigiría afirmar que Quark es la capa de datos por defecto, y `--data` sigue
-  por defecto en `sql`. **¿`nucleus generate module` debe pasar a `--data
-  quark` por defecto, con `--data sql` como salida explícita?** Es un cambio
-  en lo que el generador emite para todos: QADR-0010 lo pone en tu mesa.
+- **S8 paró a mitad y el propietario decidió**: `--data` pasa a `quark` por
+  defecto, con `--data sql` como salida. Se entregó como **minor, no major**:
+  no rompe código ni mueve firmas, y un `!` habría arrastrado a los tres
+  pilares por QADR-0002 — el primer borrador del commit sí lo llevaba.
+- **Trampas del tren, nuevas las dos**: el script de suelos descubre los
+  módulos PUBLICABLES, así que `internal/enginesuite` de quark se quedó
+  declarando el suelo viejo y el CI paró con «updates to go.mod needed» (ya
+  arreglado: los módulos internos con `replace` pasan por el mismo tidy). Y
+  **release-please REGENERA la rama del release PR** cuando se empuja sobre
+  ella: la deuda de doc de nucleus se perdió entera y hubo que rescatarla del
+  reflog. Escribe la prosa, empuja, y comprueba que sigue ahí.
 - **Lo que NO se hizo, dicho a propósito**: la segunda mitad de S4 —uuid
   nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet, JSONB— no está
   en el gate de A4 y lo urgente era el defecto. Encaja en A8, que ya lleva los
@@ -264,17 +274,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~ y ~~A3~~ CERRADOS
-  (1.28.0, 1.29.0, 1.30.0) → **A4 Quark como capa de datos** (EN CURSO: `S0`
-  hecha el 2026-09-11, siguiente `S1`; troceado en
-  [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md))
-  → A5 … → A12. El registro de hallazgos y su guard
+- **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~ y ~~A4~~
+  CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0) → **A5 Auth de producto**
+  (SIGUIENTE, sin troceado: se escribe al empezarlo, por una sesión de
+  medición) → A6 … → A12. El registro de hallazgos y su guard
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
-- **Lo que A4/S0 dejó pendiente de máquina, no de decisión**: confirmar QK-21
-  contra motores reales. La máquina de la sesión no tenía runtime de
-  contenedores, así que la matriz de tipos se midió llamando al mapeador y no
-  contra PostgreSQL/MySQL/MSSQL vivos. Es la precondición escrita de `S4`, y
-  la primera tarea de esa sesión.
+- **Lo que A4 dejó a deber, con su porqué escrito**: la segunda mitad de su
+  `S4` —uuid nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet,
+  JSONB— no está en el gate del arco y encaja en A8, que ya lleva los tipos
+  enterprise. Y **QK-24** (un `GROUP BY` sin proyección deja `SELECT *`,
+  inválido fuera de SQLite y MySQL permisivo) avisa desde quark v1.14.0 pero
+  no es error: convertirlo rompe a quien depende de esos motores, así que se
+  movió a **A12**, donde QADR-0010 acumula lo rompiente.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
   proteger `main` en quark, orbit y quantum exigiendo `CI Required Gate`
   (sólo nucleus la tiene); activar `allow_auto_merge` en los cuatro (medido
