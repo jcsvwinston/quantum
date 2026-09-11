@@ -1,4 +1,4 @@
-# arcos_cerrados: A1 A2 A3
+# arcos_cerrados: A1 A2 A3 A4
 id,sev,repo,arco,estado,evidencia,informe,donde
 QK-1,P0,quark,—,hecho,quark#338,quark.md,"`quarkdriver/known.go:88-98` (`IsRegistered`), usado en `client.go:255-259`"
 QK-2,P1,quark,—,hecho,quark#338,quark.md,"`superapp` (raíz, 42 232 786 B, Mach-O arm64), `.gitignore:5-9`"

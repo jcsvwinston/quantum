@@ -342,8 +342,8 @@ Se rellena al terminar cada una: el PR que la cierra y lo que se midió.
 | S5 | **hecha** 2026-09-11 | quark#394 | `Plan.Down`, y el ida y vuelta verificado comparando el **catálogo** en los seis motores. Lo irreversible da error nombrando qué falta, en vez de un rollback que dice que fue bien |
 | S6 | **hecha** 2026-09-11 | quark#395, nucleus#520, quantum#182 | NU-50 cerrado por los dos lados y el guard `umbrella-tag-grammar` con fixture: **48 guards** |
 | S7 | **hecha** 2026-09-11 | nucleus#522, quantum#183 | La capacidad ya estaba (A2 la adelantó): el generador emite el modelo con la gramática de quark y sirve el endpoint. Lo que faltaba era el gate, y al correrlo cazó dos defectos del código generado — `List()` sin `Limit` (WARN en la primera petición) y un filtro aplicado DESPUÉS de la página |
-| S8 | **parcial** 2026-09-11 | nucleus#523 | La doc de usuario deja de llamar «capa de datos» a `pkg/model` y dice para qué es. **PARA ahí**: completarla exigiría afirmar que Quark es la capa por defecto, y `--data` sigue por defecto en `sql`. Cambiar ese defecto es del propietario (QADR-0010) |
-| S9 | pendiente | — | el gate del arco está puesto (`quickstart-smoke` con la sonda `--data quark`, `umbrella-tag-grammar`); falta el set que lo publica |
+| S8 | **hecha** 2026-09-11 | nucleus#523, nucleus#524 | Paró a mitad —completarla exigía afirmar que Quark es la capa por defecto, y no lo era— y el propietario decidió cambiarlo: `--data` pasa a `quark`, con `--data sql` como salida. Minor, no major: no rompe código ni mueve firmas, y un `!` habría arrastrado a los tres pilares |
+| S9 | **hecha** 2026-09-11 | quantum#185 | **Quantum 1.31.0 certificado**, 48/48 guards, y los cuatro releases con activos firmados — la deuda que 1.30.0 dejó. El tren enseñó dos cosas: el script de suelos no tocaba los módulos internos, y release-please regenera la rama del release PR al empujar sobre ella (la deuda de doc de nucleus se perdió y hubo que rescatarla del reflog) |
 
 ### Lo que estas sesiones dejaron dicho, y no hay que redescubrir
 
