@@ -11,32 +11,27 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-09-10)
+## Estado real (2026-09-11)
 
-- **Set certificado: Quantum 1.30.0** (2026-09-10) — quark v1.13.0
-  (drivers/{postgres,mysql,sqlite,mssql,oracle} v0.2.0, y el CLI estrenando
-  módulo propio en v1.0.0) ·
-  nucleus v1.26.0 (doce módulos hermanos: once en v0.1.4, providers/ldap
-  v0.2.8) · orbit v1.9.4 (proto v0.4.4, agent v0.6.18, server v0.11.4,
-  quarkbridge v1.8.22, quarkdatasource v1.8.23).
-  1.30.0 publica el arco **A3** (cadena de suministro y gobernanza: firma sin
-  clave, SBOM y atestación de procedencia en los cuatro repos, política de
-  deprecación y de soporte firmadas, guard de pines de Actions en los tres
-  productos) y el troceado del módulo raíz de quark, que estrena el CLI como
-  módulo propio con serie de versiones propia. Minor de suite por las minors
-  de quark y nucleus. **Arco en curso: A4** (quark como capa de datos de
-  nucleus), con su sesión de medición `S0` hecha el 2026-09-11: el banco de 60
-  consultas existe y es ejecutable (44 tipadas, 4 que emiten SQL equivocado,
-  12 sin API), y con lo medido se reescribió el troceado en diez sesiones.
-  A4 abrió cinco filas del registro con su propia medición — QK-21 (P1),
-  QK-22, QK-23 y NU-50 (P2), QK-24 (P3).
+- **Set certificado: Quantum 1.31.0** (2026-09-11) — quark v1.14.0
+  (con el CLI en v1.0.1 y los cinco drivers en v0.2.1) · nucleus v1.27.0 (doce
+  módulos hermanos: once en v0.1.5, providers/ldap v0.2.9) · orbit v1.9.5
+  (proto v0.4.4, agent v0.6.19, server v0.11.5, quarkbridge v1.8.23,
+  quarkdatasource v1.8.24).
+  1.31.0 publica el arco **A4** (quark como capa de datos de nucleus): el
+  banco de 60 consultas de quark pasa de 44 a 58 expresables con la API
+  tipada, las migraciones se revierten con `Plan.Down`, los enteros y
+  flotantes generados dejan de quedarse cortos —un `int64` por encima de 2³¹
+  lo rechazaban PostgreSQL, MySQL y SQL Server— y `nucleus generate module`
+  construye sobre quark por defecto. Minor de suite por las minors de quark y
+  nucleus. **Siguiente arco: A5** (auth de producto), que puede solaparse con
+  A6.
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
-  desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de A4 en
-  sesiones, y el contrato que permite trabajarlo sin recordar la sesión
+  desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
+  arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
-- **Certificación mecánica:** 47 guards en el registro (41, más los cinco que A3
-  dejó escritos esperando a que el pin los contuviera, más el de suelos de
-  Dependabot de orbit que ese mismo pin destapó), lane semanal + modo
+- **Certificación mecánica:** 48 guards en el registro (los 47 de 1.30.0 más
+  `umbrella-tag-grammar`, que A4 registró), lane semanal + modo
   `--cierre` ([`AUDITORIA_CONTINUA.md`](AUDITORIA_CONTINUA.md)).
 - **Auditoría de madurez 2026-09-03 sobre 1.26.0: ejecutada, corregida y
   PUBLICADA en 1.26.1.** Cuatro auditores midieron cada pilar contra el

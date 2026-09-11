@@ -6,6 +6,57 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.30.0 — Quantum 1.30.0 publica el arco A3 —cadena de suministro y gobernanza— y el troceado del módulo raíz de quark
+
+Quantum 1.30.0 publica el arco A3 —cadena de suministro y gobernanza— y el
+troceado del módulo raíz de quark. Se mueven quark (v1.12.0 → v1.13.0),
+nucleus (v1.25.0 → v1.26.0) y orbit (v1.9.3 → v1.9.4). Módulos hermanos que
+cambian: quark quark (NUEVO, v1.0.0: el CLI, con serie de versiones propia),
+quark mssql, mysql, oracle, postgres y sqlite (v0.1.3 → v0.2.0), los doce de
+nucleus (once v0.1.3 → v0.1.4, ldap v0.2.7 → v0.2.8) y orbit agent (v0.6.17 →
+v0.6.18), quarkbridge (v1.8.21 → v1.8.22), quarkdatasource (v1.8.22 →
+v1.8.23) y server (v0.11.3 → v0.11.4); proto sin cambio. Minor de suite
+porque lo es la de quark y nucleus (QADR-0002). Corte fuera de la cadencia
+semanal por la razón que QADR-0008 admite: cierra un arco, y A3 no estaba
+cerrado hasta que un set registrara sus cinco guards.
+
+Lo que cambia para quien instala. El CLI de quark pasa a módulo propio:
+`go install github.com/jcsvwinston/quark/cmd/quark@latest` sigue instalando
+el mismo programa, pero resuelve ya la serie `cmd/quark/vX.Y.Z` y estrena
+v1.0.0, así que `quark version` dice otro número para el mismo binario. Un
+selector que nombre una versión de la RAÍZ deja de servir a partir de aquí:
+`@v1.13.0` falla y `@v1.12.0` sigue funcionando, lo que se lee como
+intermitente. Y quien use los módulos de driver de quark tiene que subirlos
+con la biblioteca: `internal/driverclassify` salió del módulo raíz, y mssql,
+mysql, oracle y sqlite en v0.1.x lo importan, así que la combinación vieja no
+compila. A cambio, el grafo adelgaza: la build list de un consumidor de quark
+pasa de 123 a 39 módulos con el binario intacto, y en orbit el pin nuevo de
+drivers/sqlite se lleva pgx, mysql, mssql y go-ora fuera de quarkdatasource.
+Nucleus genera Dockerfile en el scaffold y lo juzga con `nucleus doctor
+--check image`, y sus cabeceras de reenvío sólo honran ya entradas que son
+direcciones IP. En orbit, la tabla del Data Studio rechaza una columna oculta
+como clave de orden, una clase de estado no numérica y un número más ancho de
+lo que su columna declara. Los tres arreglos salieron de la ola de fuzzing
+que abrió A3.
+
+Lo que aprendió el tren, que fue mucho. Un módulo que SALE del módulo raíz no
+puede llevar el suelo por detrás como un driver: cualquier tag de raíz que
+todavía lo contenga deja su paquete provisto por dos módulos y Go se planta
+con «ambiguous import», así que su suelo tiene que nombrar el tag que el
+corte crea —y eso obliga a que el CI resuelva un tag sin publicar, cosa que
+`go work init` no hace solo: hace falta un `replace` VERSIONADO en el
+go.work—. El `go.sum` no hay que tocarlo: `go install pkg@version` no lo lee,
+comprobado contra un proxy local y con su control. En squash-only, el título
+del PR de suelos ES el commit que llega a main, y el tren lo tomaba del
+último: un `chore` dejó a release-please sin ver el `fix(deps)` y doce
+módulos de nucleus quedaron cambiados sin tag, que es justo lo que
+manifest-guard §3b rechaza. Un `repin_examples.sh` que falla no deja «los
+ejemplos por detrás»: deja un go.mod nombrando el tag nuevo y un go.sum con
+las sumas del viejo, y falla porque el proxy guarda EN NEGATIVO lo que el CI
+le preguntó mientras el tag no existía. Y el align_set.sh de orbit sólo sabía
+mover los pines de raíz, no los de los módulos de quark: hoy los nombra el
+paraguas, que es quien tiene el checkout.
+
 ## Quantum 1.29.0 — La minor que publica el arco A2
 
 Quantum 1.29.0 — la minor que publica el arco A2: una aplicación de suite

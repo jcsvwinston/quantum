@@ -108,6 +108,7 @@ const sidebars: SidebarsConfig = {
         'reference/comparison',
         'reference/configuration',
         'reference/dialects',
+        'reference/type-matrix',
         'reference/benchmarks',
         'reference/architecture',
         'reference/roadmap',
