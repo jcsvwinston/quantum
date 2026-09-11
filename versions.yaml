@@ -4,8 +4,8 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.30.0"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-09-10
+quantum: "1.31.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-09-11
 status: certified           # Minor de suite por la minor de quark y nucleus (QADR-0002); escrito por bump-set, revisar al certificar
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
@@ -18,9 +18,9 @@ status: certified           # Minor de suite por la minor de quark y nucleus (QA
 # minor topológicamente forzado, tolerado por el guard extendido, ceñido al
 # único borde root↔quarkdatasource por MAQ-3.
 modules:
-  quark:   "v1.13.0"
-  nucleus: "v1.26.0"
-  orbit:   "v1.9.4"
+  quark:   "v1.14.0"
+  nucleus: "v1.27.0"
+  orbit:   "v1.9.5"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -31,18 +31,18 @@ modules:
 # DESPUÉS del de la raíz no es certificable. Los bumps de módulo van dentro
 # de la release de la raíz, no detrás.
 nucleus_modules:
-  mssql:         "v0.1.4"
-  mysql:         "v0.1.4"
-  oracle:        "v0.1.4"
-  postgres:      "v0.1.4"
-  sqlite:        "v0.1.4"
-  otlp:          "v0.1.4"
-  prometheus:    "v0.1.4"
-  ldap:          "v0.2.8"
-  secrets-aws:   "v0.1.4"
-  storage-azure: "v0.1.4"
-  storage-gcs:   "v0.1.4"
-  storage-s3:    "v0.1.4"
+  mssql:         "v0.1.5"
+  mysql:         "v0.1.5"
+  oracle:        "v0.1.5"
+  postgres:      "v0.1.5"
+  sqlite:        "v0.1.5"
+  otlp:          "v0.1.5"
+  prometheus:    "v0.1.5"
+  ldap:          "v0.2.9"
+  secrets-aws:   "v0.1.5"
+  storage-azure: "v0.1.5"
+  storage-gcs:   "v0.1.5"
+  storage-s3:    "v0.1.5"
 
 # La clave de cada módulo es el ÚLTIMO segmento de su ruta, que es como la
 # deriva manifest-guard. Para `cmd/quark` eso da `quark`: la entrada `quark`
@@ -55,28 +55,28 @@ nucleus_modules:
 # biblioteca no cargue los tipos de error de cinco motores. Verificados por
 # manifest-guard §3b igual que los de nucleus y orbit.
 quark_modules:
-  quark:    "v1.0.0"
-  mssql:    "v0.2.0"
-  mysql:    "v0.2.0"
-  oracle:   "v0.2.0"
-  postgres: "v0.2.0"
-  sqlite:   "v0.2.0"
+  quark:    "v1.0.1"
+  mssql:    "v0.2.1"
+  mysql:    "v0.2.1"
+  oracle:   "v0.2.1"
+  postgres: "v0.2.1"
+  sqlite:   "v0.2.1"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.4"
-  agent:           "v0.6.18"
-  server:          "v0.11.4"
-  quarkbridge:     "v1.8.22"
-  quarkdatasource: "v1.8.23"
+  agent:           "v0.6.19"
+  server:          "v0.11.5"
+  quarkbridge:     "v1.8.23"
+  quarkdatasource: "v1.8.24"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
-  quark:   "60008687"                                # = v1.13.0 exacto (contiene cmd/quark/v1.0.0, drivers/mssql/v0.2.0, drivers/mysql/v0.2.0, drivers/oracle/v0.2.0, drivers/postgres/v0.2.0, drivers/sqlite/v0.2.0 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  nucleus: "9983473f"                                # = v1.26.0 exacto (contiene drivers/mssql/v0.1.4, drivers/mysql/v0.1.4, drivers/oracle/v0.1.4, drivers/postgres/v0.1.4, drivers/sqlite/v0.1.4, exporters/otlp/v0.1.4, exporters/prometheus/v0.1.4, providers/ldap/v0.2.8, providers/secrets-aws/v0.1.4, providers/storage-azure/v0.1.4, providers/storage-gcs/v0.1.4, providers/storage-s3/v0.1.4 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  orbit:   "d96d79f5"                                # = v1.9.4 exacto (contiene agent/v0.6.18, proto/v0.4.4, quarkbridge/v1.8.22, quarkdatasource/v1.8.23, server/v0.11.4 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  quark:   "1d13cf24"                                # = v1.14.0 exacto (contiene cmd/quark/v1.0.1, drivers/mssql/v0.2.1, drivers/mysql/v0.2.1, drivers/oracle/v0.2.1, drivers/postgres/v0.2.1, drivers/sqlite/v0.2.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  nucleus: "a39e6973"                                # = v1.27.0 exacto (contiene drivers/mssql/v0.1.5, drivers/mysql/v0.1.5, drivers/oracle/v0.1.5, drivers/postgres/v0.1.5, drivers/sqlite/v0.1.5, exporters/otlp/v0.1.5, exporters/prometheus/v0.1.5, providers/ldap/v0.2.9, providers/secrets-aws/v0.1.5, providers/storage-azure/v0.1.5, providers/storage-gcs/v0.1.5, providers/storage-s3/v0.1.5 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  orbit:   "76485881"                                # = v1.9.5 exacto (contiene agent/v0.6.19, proto/v0.4.4, quarkbridge/v1.8.23, quarkdatasource/v1.8.24, server/v0.11.5 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -90,51 +90,50 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.30.0 publica el arco A3 —cadena de suministro y gobernanza— y el
-  troceado del módulo raíz de quark. Se mueven quark (v1.12.0 → v1.13.0),
-  nucleus (v1.25.0 → v1.26.0) y orbit (v1.9.3 → v1.9.4). Módulos hermanos que
-  cambian: quark quark (NUEVO, v1.0.0: el CLI, con serie de versiones propia),
-  quark mssql, mysql, oracle, postgres y sqlite (v0.1.3 → v0.2.0), los doce de
-  nucleus (once v0.1.3 → v0.1.4, ldap v0.2.7 → v0.2.8) y orbit agent (v0.6.17 →
-  v0.6.18), quarkbridge (v1.8.21 → v1.8.22), quarkdatasource (v1.8.22 →
-  v1.8.23) y server (v0.11.3 → v0.11.4); proto sin cambio. Minor de suite
+  Quantum 1.31.0 publica el arco A4 —quark como capa de datos de nucleus— y
+  con él dos cosas que se notan desde fuera: lo que la API tipada de quark
+  puede expresar, y la anchura de las columnas que genera. Se mueven quark
+  (v1.13.0 → v1.14.0), nucleus (v1.26.0 → v1.27.0) y orbit (v1.9.4 →
+  v1.9.5). Módulos hermanos que cambian: los seis de quark (cmd/quark v1.0.0
+  → v1.0.1 y los cinco drivers v0.2.0 → v0.2.1), los doce de nucleus (once
+  v0.1.4 → v0.1.5, ldap v0.2.8 → v0.2.9) y cuatro de orbit (agent v0.6.18 →
+  v0.6.19, quarkbridge v1.8.22 → v1.8.23, quarkdatasource v1.8.23 →
+  v1.8.24, server v0.11.4 → v0.11.5); proto sin cambio. Minor de suite
   porque lo es la de quark y nucleus (QADR-0002). Corte fuera de la cadencia
-  semanal por la razón que QADR-0008 admite: cierra un arco, y A3 no estaba
-  cerrado hasta que un set registrara sus cinco guards.
+  semanal por la razón que QADR-0008 admite: cierra un arco.
 
-  Lo que cambia para quien instala. El CLI de quark pasa a módulo propio:
-  `go install github.com/jcsvwinston/quark/cmd/quark@latest` sigue instalando
-  el mismo programa, pero resuelve ya la serie `cmd/quark/vX.Y.Z` y estrena
-  v1.0.0, así que `quark version` dice otro número para el mismo binario. Un
-  selector que nombre una versión de la RAÍZ deja de servir a partir de aquí:
-  `@v1.13.0` falla y `@v1.12.0` sigue funcionando, lo que se lee como
-  intermitente. Y quien use los módulos de driver de quark tiene que subirlos
-  con la biblioteca: `internal/driverclassify` salió del módulo raíz, y mssql,
-  mysql, oracle y sqlite en v0.1.x lo importan, así que la combinación vieja no
-  compila. A cambio, el grafo adelgaza: la build list de un consumidor de quark
-  pasa de 123 a 39 módulos con el binario intacto, y en orbit el pin nuevo de
-  drivers/sqlite se lleva pgx, mysql, mssql y go-ora fuera de quarkdatasource.
-  Nucleus genera Dockerfile en el scaffold y lo juzga con `nucleus doctor
-  --check image`, y sus cabeceras de reenvío sólo honran ya entradas que son
-  direcciones IP. En orbit, la tabla del Data Studio rechaza una columna oculta
-  como clave de orden, una clase de estado no numérica y un número más ancho de
-  lo que su columna declara. Los tres arreglos salieron de la ola de fuzzing
-  que abrió A3.
+  Lo que cambia para quien instala. El banco de 60 consultas de quark pasa de
+  44 a 58 expresables con la API tipada: entran COUNT(DISTINCT), el CASE de
+  un agregado condicional, la proyección de un miembro JSON, seis funciones
+  de ventana con su frame, leer de una CTE o de una tabla que no es la del
+  modelo, filtrar lo que carga un preload, la aritmética en el SET de un
+  UPDATE y los joins que faltaban. Las migraciones se pueden revertir con
+  Plan.Down, que da error en vez de un rollback a medias cuando el plan no
+  guarda la forma de lo que se borró. Y `nucleus generate module` construye
+  ya sobre quark por defecto: `--data sql` devuelve la salida anterior.
 
-  Lo que aprendió el tren, que fue mucho. Un módulo que SALE del módulo raíz no
-  puede llevar el suelo por detrás como un driver: cualquier tag de raíz que
-  todavía lo contenga deja su paquete provisto por dos módulos y Go se planta
-  con «ambiguous import», así que su suelo tiene que nombrar el tag que el
-  corte crea —y eso obliga a que el CI resuelva un tag sin publicar, cosa que
-  `go work init` no hace solo: hace falta un `replace` VERSIONADO en el
-  go.work—. El `go.sum` no hay que tocarlo: `go install pkg@version` no lo lee,
-  comprobado contra un proxy local y con su control. En squash-only, el título
-  del PR de suelos ES el commit que llega a main, y el tren lo tomaba del
-  último: un `chore` dejó a release-please sin ver el `fix(deps)` y doce
-  módulos de nucleus quedaron cambiados sin tag, que es justo lo que
-  manifest-guard §3b rechaza. Un `repin_examples.sh` que falla no deja «los
-  ejemplos por detrás»: deja un go.mod nombrando el tag nuevo y un go.sum con
-  las sumas del viejo, y falla porque el proxy guarda EN NEGATIVO lo que el CI
-  le preguntó mientras el tag no existía. Y el align_set.sh de orbit sólo sabía
-  mover los pines de raíz, no los de los módulos de quark: hoy los nombra el
-  paraguas, que es quien tiene el checkout.
+  Lo que corrige, y conviene leer si tienes tablas creadas por una versión
+  anterior. Todo entero de Go se mapeaba a un solo INTEGER, que son cuatro
+  bytes en PostgreSQL, MySQL y SQL Server: un int64 por encima de 2^31 lo
+  rechazaban esos motores mientras en SQLite parecía correcto, y las claves
+  autoincrementales se agotaban a los 2.147.483.647 registros. Los flotantes
+  iban a REAL, precisión simple en PostgreSQL. Ahora los enteros mapean por
+  anchura, los flotantes toman el tipo de doble precisión de cada motor y las
+  claves son de 64 bits; la matriz completa se publica GENERADA desde el
+  propio mapeador. Para una tabla que ya existe, PlanMigration propone el
+  ensanchado como ALTER COLUMN: aplicarlo no pierde datos, pero en una tabla
+  grande el motor puede reescribirla, así que hazlo cuando una reescritura
+  sea aceptable. Lo creado de aquí en adelante no necesita nada.
+
+  Lo que aprendió el tren. Dos de los hallazgos que abrió la sesión de
+  medición del arco no eran defectos: la CTE recursiva ya funcionaba, y lo
+  que la medición leyó fue un COMENTARIO del código que seguía diciendo que
+  la superficie tipada no modelaba UNION —una nota que sobrevivió a lo que
+  describía—. Una medición que se fía de un comentario mide el comentario, y
+  desde entonces cada caso del banco se ejecuta contra una base real y
+  comprueba su resultado. Del corte en sí: el script de suelos descubre los
+  módulos publicables del árbol, así que las suites por motor de quark
+  quedaron declarando el suelo viejo y el CI paró con «updates to go.mod
+  needed» — ya pasan por el mismo tidy que los ejemplos. Y release-please
+  regenera la rama del release PR al empujar sobre ella: la deuda de doc de
+  nucleus se perdió una vez y hubo que rescatarla del reflog.

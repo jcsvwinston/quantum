@@ -129,9 +129,10 @@ for item in $behind; do
   touched="$touched $mod/go.mod"
   [ -f "$DIR/$mod/go.sum" ] && touched="$touched $mod/go.sum"
 done
-# Los ejemplos que sustituyen (`replace`) los módulos del árbol por la copia
-# local ven moverse el suelo por MVS y `go build` con GOWORK=off exige que
-# su go.mod lo diga (quark#348 salió rojo por esto): tidy en cada uno.
+# Los ejemplos —y los módulos internos no publicables— que sustituyen
+# (`replace`) los módulos del árbol por la copia local ven moverse el suelo por
+# MVS, y `go build` con GOWORK=off exige que su go.mod lo diga (quark#348 salió
+# rojo por esto): tidy en cada uno.
 while IFS= read -r ex; do
   [ -n "$ex" ] || continue
   exdir=$(dirname "$ex")
@@ -143,7 +144,16 @@ while IFS= read -r ex; do
     rel=${exdir#$DIR/}; echo "  → $rel: go mod tidy (sigue el suelo por replace)"
     touched="$touched $rel/go.mod"; [ -f "$exdir/go.sum" ] && touched="$touched $rel/go.sum"
   fi
-done < <(find "$DIR/examples" -mindepth 2 -maxdepth 2 -name go.mod 2>/dev/null | sort)
+done < <({
+  find "$DIR/examples" -mindepth 2 -maxdepth 2 -name go.mod 2>/dev/null
+  # Los módulos INTERNOS no publicables (internal/enginesuite) juegan igual:
+  # sustituyen la raíz por la copia local, declaran su suelo y quedan rancios
+  # al subir el de los hermanos. No entran en el descubrimiento de arriba
+  # —ese sólo mira lo PUBLICABLE— y el tren de 1.31.0 salió rojo por esto:
+  # «updates to go.mod needed» en las suites por motor, con los suelos ya
+  # subidos en todo lo demás.
+  find "$DIR/internal" -mindepth 2 -maxdepth 2 -name go.mod 2>/dev/null
+} | sort)
 if [ "$COMMIT" -eq 0 ]; then echo "cambios en el árbol sin commit (--no-commit):$touched"; exit 0; fi
 mods=$(printf '%s\n' $behind | sed 's/:.*//' | tr '\n' ' ' | sed 's/ $//')
 git -C "$DIR" add $touched
