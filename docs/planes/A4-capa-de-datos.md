@@ -242,6 +242,19 @@ mueve los gitlinks.
 
 ---
 
+## Deuda con destinatario: el espejo del sidebar
+
+`S4` publicó `website/docs/reference/type-matrix.mdx` en quark, y el paraguas
+sirve la navegación desde un espejo (`website/sidebarsQuark.ts`) que se
+compara contra el sidebar **del pin**. Añadir la entrada ahora deja
+`umbrella-sidebar-sync` en rojo: apunta a una página que el pin todavía no
+tiene.
+
+Es la misma mecánica que la de los guards que esperan al pin, y la entrada va
+en el commit del set, junto a los gitlinks. `S9` la incluye.
+
+---
+
 ## S7 · nucleus — `generate module --data quark`
 
 **Precondición**: S3, S5 y S6 hechas y publicadas en un tag de quark que el
@@ -322,12 +335,33 @@ Se rellena al terminar cada una: el PR que la cierra y lo que se midió.
 | Sesión | Estado | PR | Qué midió o cambió del plan |
 |---|---|---|---|
 | S0 | **hecha** 2026-09-11 | quark#388, nucleus#518, quantum#181 | 44/60 tipadas; 16 huecos de 7 causas; las dos gramáticas de `db` se contradicen en silencio; las dos capas emiten esquemas distintos. Retiró la sesión de valores cero, partió S1 en tres y subió el linter de tags |
-| S1 | pendiente | — | — |
-| S2 | pendiente | — | — |
-| S3 | pendiente | — | — |
-| S4 | pendiente | — | — |
-| S5 | pendiente | — | — |
-| S6 | pendiente | — | — |
+| S1 | **hecha** 2026-09-11 | quark#389 | 44 → **48**. La whitelist NO se amplió: ninguno de los cuatro casos pedía más nombres, sino formas propias (`CountDistinct`, `Case`, `JSONExtract`, seis leaves de ventana). Los motores reales destaparon tres límites que SQLite no ve |
+| S2 | **hecha** 2026-09-11 | quark#391 | 48 → **52**, y sólo uno de los cuatro casos necesitaba código: `FromCTE`. **QK-22 y QK-23 eran errores de medición** — la CTE recursiva ya funcionaba, y lo que S0 leyó fue un comentario fósil. Una medición que se fía de un comentario mide el comentario |
+| S3 | **hecha** 2026-09-11 | quark#392 | 52 → **58**, y cero casos sin API. Los seis one-offs: `FromTable`, `PreloadWhere`, frames de ventana, aritmética en el `SET`, `OnExpr`, `FullJoin`/`CrossJoin` |
+| S4 | **hecha** 2026-09-11 | quark#393 | QK-21 **confirmado** contra motores reales (MySQL: «Out of range value») y arreglado. Destapó que el diff comparaba el tipo de una PK sin pasar por el camino de la PK. Matriz de tipos **generada** y publicada |
+| S5 | **hecha** 2026-09-11 | quark#394 | `Plan.Down`, y el ida y vuelta verificado comparando el **catálogo** en los seis motores. Lo irreversible da error nombrando qué falta, en vez de un rollback que dice que fue bien |
+| S6 | **hecha** 2026-09-11 | quark#395, nucleus#520, quantum#182 | NU-50 cerrado por los dos lados y el guard `umbrella-tag-grammar` con fixture: **48 guards** |
 | S7 | pendiente | — | — |
 | S8 | pendiente | — | — |
 | S9 | pendiente | — | — |
+
+### Lo que estas sesiones dejaron dicho, y no hay que redescubrir
+
+- **Una medición que se fía de un comentario mide el comentario.** Dos de los
+  hallazgos de `S0` (QK-22, QK-23) no eran defectos: la capacidad existía y lo
+  que estaba desfasado era la nota que decía que no. Desde `S2` cada caso del
+  banco ejecuta contra una base real y comprueba su RESULTADO, no su SQL.
+- **Compilar no basta, y no fallar tampoco.** Cuatro consultas pasaban
+  emitiendo SQL que hacía otra cosa. Se cazaron leyendo lo que recibió el
+  driver.
+- **El banco corre sobre SQLite para ser barato como gate, y eso tiene precio.**
+  Los tres límites de portabilidad de `S1` y el defecto de anchura de `S4` sólo
+  aparecen con motores reales. El arnés del superapp es donde se ejercen los
+  seis; todo símbolo nuevo pasa por ahí.
+- **QK-24 se movió a A12**: `GroupBy` sin `Select()` deja `SELECT *`, y
+  convertirlo en error rompe a quien depende de los motores permisivos. Avisa
+  desde `S3`; su arreglo pertenece al major que QADR-0010 acumula.
+- **La segunda mitad de `S4` —tipos nuevos: uuid nativo, enums con CHECK,
+  arrays de PostgreSQL, rangos, inet, JSONB— NO se hizo.** No está en el gate
+  del arco, y lo urgente era el defecto. Queda para A8, que ya lleva los tipos
+  enterprise.
