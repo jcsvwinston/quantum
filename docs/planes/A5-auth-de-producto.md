@@ -236,16 +236,16 @@ Se rellena al terminar cada una: el PR que la cierra y lo que se midió.
 | Sesión | Estado | PR | Qué midió o cambió del plan |
 |---|---|---|---|
 | S0 | **hecha** 2026-09-12 | nucleus#528, quantum#187 | 14/43 controles presentes, 3 parciales, 26 ausentes. Está el sustrato y no el producto. Los 26 huecos salen de SIETE causas, así que las sesiones van por causa: el correo sube a la primera porque bloquea a las cuentas, el segundo factor se parte en dos y la postura cierra. Y una hipótesis propia corregida: el limitador va por identidad, no por dirección |
-| S1 | pendiente | — | — |
-| S2 | pendiente | — | — |
-| S3 | pendiente | — | — |
-| S4 | pendiente | — | — |
-| S5 | pendiente | — | — |
-| S6 | pendiente | — | — |
-| S7 | pendiente | — | — |
-| S8 | pendiente | — | — |
-| S9 | pendiente | — | — |
-| S10 | pendiente | — | — |
+| S1 | **hecha** 2026-09-12 | nucleus#529 | 14 → **18**. HTML/multipart con el texto PRIMERO (RFC 2046), adjuntos base64 en líneas de 76, plantillas con `html/template` sólo para el HTML, y `EnqueueTx` dentro de la transacción del llamante. Un mensaje sólo-texto sale byte a byte igual que antes |
+| S2 | **hecha** 2026-09-12 | nucleus#530 | 18 → **22**. `Roles []string` por adición, `Revoke`/`RevokeWhere` sobre el store que ya sabía borrar, denylist de `jti` opt-in en el store de SESIONES (así un despliegue con Redis la tiene en todas las réplicas), y el agente de usuario en los metadatos |
+| S3 | **hecha** 2026-09-12 | nucleus#531 | 22 → **28**, el hueco mayor del arco. `pkg/accounts` con registro, verificación, login, reset, cambio, enlace mágico y lockout. Un defecto de diseño cazado por el test HTTP: el servicio con un gestor de sesiones distinto del montado escribe donde nadie lee (500 al iniciar sesión) — el módulo toma el de la aplicación |
+| S4 | **hecha** 2026-09-12 | nucleus#532 | 28 → **31**. TOTP contra los vectores del RFC 6238, secretos cifrados con AES-GCM (sin clave, el enrolamiento se RECHAZA), códigos de recuperación de un solo uso y step-up de 15 minutos. Encontró un pánico: pedir la sesión fuera de su middleware reventaba desde dentro de la librería → `SessionManager.HasSession` |
+| S5 | **diferida con razón** | — | WebAuthn necesita CBOR/COSE, así que su empaquetado correcto es un módulo hermano — y un módulo hermano pina la ÚLTIMA release de nucleus, que no contendrá `accounts.MFAStore` hasta que salga este set. No se puede entregar en el mismo corte, y a mano en el core sería exactamente donde un fallo de seguridad es silencioso |
+| S6 | **hecha** 2026-09-12 | nucleus#533 | 31 → **36**. `pkg/auth/apikeys` con prefijo reconocible, hash SHA-256, scopes, rotación con periodo de gracia y CLI. El middleware pone al dueño donde el limitador YA mira (lo que midió S0). Defecto intermitente cazado: base64url contiene `_`, el separador — una clave de cada diez se rechazaba |
+| S7 | **hecha** 2026-09-12 | nucleus#535 | 39. Proveedor OIDC con PKCE siempre, discovery, JWKS con refetch limitado y verificación de audiencia, emisor, expiración y nonce; sólo algoritmos asimétricos. En el módulo raíz porque NO añade dependencias: la razón de ADR-030/031 no aplica. Cierra NU-43 |
+| S8 | **hecha** 2026-09-12 | nucleus#534 | 36 → **38**. `ObjectEnforcer` (ABAC de Casbin) y los helpers del `Context`: `Claims`, `UserID`, `HasRole`, `Can`, `CanObject`. Todos CERRADOS sin middleware montado |
+| S9 | **hecha** 2026-09-12 | nucleus#536 | 40. `contracts/baseline/asvs_l2.txt`: 25 requisitos de ASVS 4.0.3 L2 medidos — 22 met, 2 de la aplicación, 1 not-met con su razón. Un probe se equivocó ANTES que el código (V3.2.1, el mismo error que SES-02). `doctor security` nombra ya el timeout de inactividad |
+| S10 | pendiente | — | Gate, guard y set |
 
 ### Lo que estas sesiones dejaron dicho, y no hay que redescubrir
 
@@ -257,3 +257,17 @@ Se rellena al terminar cada una: el PR que la cierra y lo que se midió.
   son 404 de una aplicación arrancada, un registro de proveedores vacío y un
   struct de configuración sin la clave. Un grep vacío dice que no encontró;
   un 404 dice lo que recibe quien lo usa.
+- **Un test que mide una propiedad de seguridad caza defectos de diseño, no
+  sólo de código.** El 500 al iniciar sesión de `S3` (dos gestores de sesión)
+  y el pánico de `S4` (sesión fuera de su middleware) los encontró el arnés
+  HTTP, no la lectura. Y el formato de clave de `S6` fallaba una vez de cada
+  diez: el test que emite cien claves lo vio a la primera.
+- **Una medición puede equivocarse hacia la alarma.** El probe de ASVS V3.2.1
+  dijo que la sesión no rota al autenticar; rotaba, y lo que fallaba era
+  preguntar el token dentro de una sola petición anónima, donde está vacío en
+  los dos lados. Mismo error que `SES-02` en el banco.
+- **Lo que NO se entrega se dice y se razona**: WebAuthn (empaquetado
+  imposible en este corte), SAML (otro cuerpo de trabajo sobre la misma
+  costura) y el timeout de inactividad por defecto (caduca sesiones ajenas al
+  actualizar → QADR-0010). Los tres con su fila y su porqué, no como huecos
+  en silencio.

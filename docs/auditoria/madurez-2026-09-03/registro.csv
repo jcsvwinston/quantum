@@ -62,7 +62,7 @@ NU-39,P3,nucleus,—,hecho,nucleus#472,nucleus.md,`pkg/model/meta.go:278-292`
 NU-40,P3,nucleus,—,hecho,nucleus#455,nucleus.md,"`contracts/security_posture_test.go:207` ; `internal/cli/common.go:42,82` ; `pkg/app/config.go:594`"
 NU-41,P3,nucleus,A10,abierto,,nucleus.md,"`pkg/nucleus/context.go:76` vs `pkg/router/context.go:398` ; `pkg/authz/enforcer.go`, `pkg/router/router.go`, `pkg/db/db"
 NU-42,P3,nucleus,—,hecho,nucleus#472,nucleus.md,`pkg/auth/session_cache.go:30-37`
-NU-43,P3,nucleus,A5,abierto,la costura federada gana sus proveedores en A5 (OIDC/SAML),nucleus.md,`pkg/app/app.go:1708-1740` ; `providers/`
+NU-43,P3,nucleus,A5,hecho,nucleus#535,nucleus.md,"`pkg/auth/federated/oidc` — proveedor OIDC con PKCE, discovery y JWKS; SAML diferido con razón escrita"
 NU-44,P3,nucleus,A10,abierto,,nucleus.md,`pkg/nucleus/nucleus.go:826-836` ; `pkg/db/migrate.go:687-692`
 NU-45,P3,nucleus,—,hecho,nucleus#455,nucleus.md,`internal/cli/generatemodule.go:368-371`
 NU-46,P3,nucleus,—,hecho,nucleus#455,nucleus.md,"`internal/cli/add.go:43-54` ; `root.go:141-152,47,200`"
@@ -195,8 +195,8 @@ QK-22,P2,quark,A4,hecho,"NO ERA UN DEFECTO: la CTE recursiva funciona desde que 
 QK-23,P2,quark,A4,hecho,"Medido de más: unir la CTE ya funcionaba, y el top-N por grupo con ella también. Lo que faltaba de verdad era leer DE la CTE cuando las filas derivadas SON la consulta, que es FromCTE (quark#391). El soft-delete se desengancha bajo FromCTE —filtraba una columna que la CTE no tiene por qué llevar— y el de tenant no, porque quitarlo convertiría una columna ausente en lecturas cruzadas",quark.md,`internal/enginesuite/querybench_cases_test.go` Q33/Q44
 QK-24,P3,quark,A12,abierto,"GroupBy sin Select() deja la proyección en SELECT *, inválido con GROUP BY en todo motor salvo SQLite y MySQL permisivo: pasa en el banco y fallaría en producción sobre PostgreSQL. Desde quark#392 AVISA nombrando el arreglo; convertirlo en ERROR rompe a quien depende de los motores permisivos, así que espera al major que QADR-0010 acumula",quark.md,`internal/enginesuite/querybench_cases_test.go` Q22/Q23
 NU-50,P2,nucleus,A4,hecho,"quark#395 RECHAZA un tag db cuyo nombre de columna no puede ser un identificador y nombra la otra gramática; nucleus#520 nombra la de quark cuando sus tokens llegan sin reconocer; el guard umbrella-tag-grammar lo comprueba en el árbol. Antes: pkg/model y quark leían ambos un tag db con gramáticas incompatibles y ninguno avisaba: un modelo estilo nucleus deja a quark creyendo que hay una columna llamada column:email;unique;not null y sin clave primaria; al revés se pierden size= y pk: con sólo un WARN de arranque",nucleus.md,"`pkg/model/meta.go:427-509` frente a `quark/internal/schema/schema.go:337-378`"
-NU-68,P2,nucleus,A5,abierto,,nucleus.md,"`pkg/auth/backend_registry.go` ; `internal/authbench` CRED-03"
-NU-69,P2,nucleus,A5,abierto,,nucleus.md,"`pkg/auth/session.go` ; `pkg/auth/jwt.go` ; `internal/authbench` SES-04/TOK-03"
-NU-70,P3,nucleus,A5,abierto,,nucleus.md,`pkg/auth/backend/backend.go` (`User.Role`)
-NU-71,P3,nucleus,A5,abierto,,nucleus.md,`pkg/mail/message.go` ; `pkg/outbox/`
-NU-72,P3,nucleus,A5,abierto,,nucleus.md,`pkg/app/config.go` (`session_idle_timeout`)
+NU-68,P2,nucleus,A5,hecho,nucleus#531,nucleus.md,"`pkg/accounts` — lockout progresivo, 429 también con la contraseña correcta"
+NU-69,P2,nucleus,A5,hecho,nucleus#530,nucleus.md,"`SessionManager.Revoke`/`RevokeWhere` y denylist de jti opt-in"
+NU-70,P3,nucleus,A5,hecho,nucleus#530,nucleus.md,"`User.Roles`/`Claims.Roles` por adición; el proveedor OIDC los puebla"
+NU-71,P3,nucleus,A5,hecho,nucleus#529,nucleus.md,"HTML/multipart, adjuntos, plantillas y `mail.EnqueueTx` por el outbox"
+NU-72,P3,nucleus,A12,abierto,,nucleus.md,"diferido con razón: encender `session_idle_timeout` caduca sesiones en todo despliegue que actualice (QADR-0010). Visible desde 1.32.0 en `doctor security` y en el baseline ASVS (V3.3.2)"
