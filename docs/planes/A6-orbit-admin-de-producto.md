@@ -62,7 +62,7 @@ ejecutable, con el veredicto de cada uno medido, no leído.
 cd orbit && go test ./internal/adminbench/ -run TestAdminBench -v
 ```
 
-**HECHA el 2026-09-12** (orbit#467). Lo que midió y lo que cambió del plan,
+**HECHA el 2026-09-12** (orbit#467, quantum#189). Lo que midió y lo que cambió del plan,
 abajo.
 
 ### Lo que S0 midió

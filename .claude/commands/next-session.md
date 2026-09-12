@@ -152,7 +152,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ### Sesión 2026-09-12 (noche) — A6 arranca: 32 de 59 controles, y un defecto que ninguna suite veía
 
-- **Sesión `S0` del arco A6, HECHA** (orbit#467, quantum#PENDIENTE). El set
+- **Sesión `S0` del arco A6, HECHA** (orbit#467, quantum#189). El set
   sigue en 1.32.0: `S0` no corta, mide. Precondición comprobada antes de
   empezar (`arcos cerrados: A1 A2 A3 A4 A5`).
 - **El banco de admin existe y es ejecutable**: **32 de 59 controles
