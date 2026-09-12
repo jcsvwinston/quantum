@@ -196,6 +196,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   va temprano por una razón mecánica: **un arreglo de nucleus no llega a orbit
   hasta que sube el pin**, así que si entra tarde su release no lo contiene y
   la mitad de orbit no se puede verificar en el mismo set.
+- **Esa mitad ya está hecha, en la misma sesión** (nucleus#540): `Hijack` por
+  `http.ResponseController`, con dos tests que fallan sin el arreglo — el
+  unitario y uno de contrato **por la pila por defecto**, que es lo que no
+  existía. Verificado en el workspace: con él, la sonda OPS-06 del banco abre
+  el stream. **El veredicto del banco sigue en `absent`** hasta que el
+  `require` de orbit traiga la release que lo contiene; cambiarlo antes sería
+  publicar como cierto algo que el pin no respalda. NU-73 se marca hecho en el
+  registro cuando esa release exista.
 
 ### Sesión 2026-09-12 (tarde) — A5 entregado: nueve sesiones y 40 de 43 controles
 

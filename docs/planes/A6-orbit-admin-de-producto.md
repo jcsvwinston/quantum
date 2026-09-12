@@ -231,9 +231,16 @@ orbit empieza cuando `orbit/go.mod` requiere la versión que lo contiene.
 
 **Qué produce.**
 
-1. *(nucleus)* `flashSweepWriter` implementa `Hijack` (y `Push`) delegando en
-   el envuelto, con un test que hace el upgrade **a través de la pila por
-   defecto** — que es lo que faltaba.
+1. *(nucleus)* **HECHA el 2026-09-12** (nucleus#540): `flashSweepWriter`
+   implementa `Hijack` delegando por `http.ResponseController` —que recorre la
+   cadena de `Unwrap` y pasa por encima del envoltorio de scs, que tampoco lo
+   implementa—, con dos tests que fallan sin el arreglo: el unitario por la
+   aserción de tipo y el de contrato **a través de la pila por defecto**, que
+   es lo que nadie cubría. Verificado de punta a punta en el workspace de la
+   suite: con el arreglo, la sonda OPS-06 del banco abre el stream y recibe
+   `stream.ready`. **El veredicto del banco sigue en `absent` a propósito**:
+   no cambia hasta que el `require` de orbit traiga la release que lo
+   contiene, que es la mitad de abajo.
 2. *(orbit)* La fila de sesión dice de quién es (**OR-46**) y con qué
    dispositivo, y el panel gasta la revocación masiva que el framework ya
    tiene. Controles OPS-16, OPS-02, OPS-04 y OPS-06.
