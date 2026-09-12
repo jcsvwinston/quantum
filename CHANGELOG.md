@@ -6,6 +6,56 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.31.0 — Quantum 1.31.0 publica el arco A4 —quark como capa de datos de nucleus— y con él dos cosas que se notan desde fuera: lo que la API tipada de quark puede expresar, y la anchura de las columnas que genera
+
+Quantum 1.31.0 publica el arco A4 —quark como capa de datos de nucleus— y
+con él dos cosas que se notan desde fuera: lo que la API tipada de quark
+puede expresar, y la anchura de las columnas que genera. Se mueven quark
+(v1.13.0 → v1.14.0), nucleus (v1.26.0 → v1.27.0) y orbit (v1.9.4 →
+v1.9.5). Módulos hermanos que cambian: los seis de quark (cmd/quark v1.0.0
+→ v1.0.1 y los cinco drivers v0.2.0 → v0.2.1), los doce de nucleus (once
+v0.1.4 → v0.1.5, ldap v0.2.8 → v0.2.9) y cuatro de orbit (agent v0.6.18 →
+v0.6.19, quarkbridge v1.8.22 → v1.8.23, quarkdatasource v1.8.23 →
+v1.8.24, server v0.11.4 → v0.11.5); proto sin cambio. Minor de suite
+porque lo es la de quark y nucleus (QADR-0002). Corte fuera de la cadencia
+semanal por la razón que QADR-0008 admite: cierra un arco.
+
+Lo que cambia para quien instala. El banco de 60 consultas de quark pasa de
+44 a 58 expresables con la API tipada: entran COUNT(DISTINCT), el CASE de
+un agregado condicional, la proyección de un miembro JSON, seis funciones
+de ventana con su frame, leer de una CTE o de una tabla que no es la del
+modelo, filtrar lo que carga un preload, la aritmética en el SET de un
+UPDATE y los joins que faltaban. Las migraciones se pueden revertir con
+Plan.Down, que da error en vez de un rollback a medias cuando el plan no
+guarda la forma de lo que se borró. Y `nucleus generate module` construye
+ya sobre quark por defecto: `--data sql` devuelve la salida anterior.
+
+Lo que corrige, y conviene leer si tienes tablas creadas por una versión
+anterior. Todo entero de Go se mapeaba a un solo INTEGER, que son cuatro
+bytes en PostgreSQL, MySQL y SQL Server: un int64 por encima de 2^31 lo
+rechazaban esos motores mientras en SQLite parecía correcto, y las claves
+autoincrementales se agotaban a los 2.147.483.647 registros. Los flotantes
+iban a REAL, precisión simple en PostgreSQL. Ahora los enteros mapean por
+anchura, los flotantes toman el tipo de doble precisión de cada motor y las
+claves son de 64 bits; la matriz completa se publica GENERADA desde el
+propio mapeador. Para una tabla que ya existe, PlanMigration propone el
+ensanchado como ALTER COLUMN: aplicarlo no pierde datos, pero en una tabla
+grande el motor puede reescribirla, así que hazlo cuando una reescritura
+sea aceptable. Lo creado de aquí en adelante no necesita nada.
+
+Lo que aprendió el tren. Dos de los hallazgos que abrió la sesión de
+medición del arco no eran defectos: la CTE recursiva ya funcionaba, y lo
+que la medición leyó fue un COMENTARIO del código que seguía diciendo que
+la superficie tipada no modelaba UNION —una nota que sobrevivió a lo que
+describía—. Una medición que se fía de un comentario mide el comentario, y
+desde entonces cada caso del banco se ejecuta contra una base real y
+comprueba su resultado. Del corte en sí: el script de suelos descubre los
+módulos publicables del árbol, así que las suites por motor de quark
+quedaron declarando el suelo viejo y el CI paró con «updates to go.mod
+needed» — ya pasan por el mismo tidy que los ejemplos. Y release-please
+regenera la rama del release PR al empujar sobre ella: la deuda de doc de
+nucleus se perdió una vez y hubo que rescatarla del reflog.
+
 ## Quantum 1.30.0 — Quantum 1.30.0 publica el arco A3 —cadena de suministro y gobernanza— y el troceado del módulo raíz de quark
 
 Quantum 1.30.0 publica el arco A3 —cadena de suministro y gobernanza— y el

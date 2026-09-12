@@ -23,7 +23,13 @@ ROOT=$(pwd)
 fx_copy_tree "$ROOT/nucleus" "$TREE"
 
 # Víctima: el primer fichero con marcador de cualquier snapshot versionado.
-victim=$(grep -rl "x-release-please-version" "$TREE"/website/versioned_docs/version-* 2>/dev/null | head -1)
+# `grep -rl … | head -1` bajo `set -euo pipefail` es una carrera: cuando hay
+# suficientes ficheros, head cierra la tubería antes de que grep termine, grep
+# muere con SIGPIPE y pipefail convierte eso en un fallo de la fixture — sin
+# mensaje, porque muere en una sustitución de comandos. Pasó al añadir un
+# snapshot más (1.28.0) y no antes, que es lo que hace tan cara esta clase de
+# bug: el harness informó de "fixture rota" y el árbol estaba bien.
+victim=$(grep -rl "x-release-please-version" "$TREE"/website/versioned_docs/version-* 2>/dev/null | head -1 || true)
 [ -n "$victim" ] || { echo "fixture: ningún snapshot lleva el marcador — ¿cambió el árbol?" >&2; exit 1; }
 
 before=$(grep "x-release-please-version" "$victim" | head -1)
