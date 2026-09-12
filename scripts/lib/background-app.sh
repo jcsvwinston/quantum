@@ -4,7 +4,6 @@
 #
 # Lo usan las dos lanes que arrancan una app y la matan en su trap EXIT:
 #
-#   - scripts/ci/showcase_smoke.sh    — showcase_demo compilado al pin.
 #   - scripts/ci/quickstart_smoke.sh  — el proyecto que genera `nucleus new`.
 #
 # La trampa que este fichero cierra: `(cd "$dir" && ./app > app.log 2>&1) &`

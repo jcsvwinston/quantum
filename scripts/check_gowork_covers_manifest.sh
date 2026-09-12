@@ -12,17 +12,15 @@
 # Qué exige (go.work ⊇ módulos publicables):
 #   1. La raíz de cada repo (./quark ./nucleus ./orbit) está en `use`.
 #   2. Cada módulo DESCUBIERTO en el árbol (todo go.mod salvo examples/,
-#      website/, benchmarks/ y bugbash/ — el mismo filtro que manifest-guard
+#      website/, benchmarks/, bugbash/ y acceptance/ — el mismo filtro que manifest-guard
 #      §3b) está en `use`.
 #   3. Cada clave de quark_modules/nucleus_modules/orbit_modules resuelve a un
 #      módulo del árbol (scripts/lib/manifest-modules.sh) y ese módulo está en
 #      `use` — el manifiesto no puede certificar lo que el workspace no compila.
 #   4. Cada entrada de `use` apunta a un directorio con go.mod (una entrada
 #      colgante rompe el workspace entero).
-# Lo que el go.work lleva DE MÁS (showcase_demo, la única app de ejemplo que la
-# lane showcase-smoke arranca en modo workspace) no es fallo: se exige
-# cobertura, no igualdad. Las exclusiones y su porqué están en el propio
-# go.work.
+# Se exige cobertura, no igualdad: lo que el go.work lleve de más no es fallo.
+# Las exclusiones y su porqué están en el propio go.work.
 set -uo pipefail
 
 cd "$(dirname "$0")/.."
@@ -85,7 +83,7 @@ done
 
 if [[ $status -ne 0 ]]; then
   echo >&2
-  echo "check_gowork_covers_manifest: FALLO — el go.work no cubre todos los módulos publicables (ver arriba). Regla: go.work ⊇ {raíz de cada repo} ∪ {todo go.mod del árbol salvo examples/benchmarks/bugbash} ∪ {claves del manifiesto}." >&2
+  echo "check_gowork_covers_manifest: FALLO — el go.work no cubre todos los módulos publicables (ver arriba). Regla: go.work ⊇ {raíz de cada repo} ∪ {todo go.mod del árbol salvo examples/benchmarks/bugbash/acceptance} ∪ {claves del manifiesto}." >&2
   exit 1
 fi
 echo "check_gowork_covers_manifest: OK — el go.work ($(grep -c . <<<"$uses") entradas) cubre la raíz de los tres repos, todo módulo publicable del árbol y toda clave de *_modules del manifiesto"

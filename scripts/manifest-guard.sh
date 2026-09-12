@@ -177,7 +177,7 @@ quark_pin=$(yaml_value workspace_pins quark)
 discover_modules() {
   local repo=$1
   (cd "$repo" && find . -name go.mod -not -path './examples/*' -not -path './website/*' \
-      -not -path './benchmarks/*' -not -path './bugbash/*' -not -path './internal/*' -not -path './.git/*' \
+      -not -path './benchmarks/*' -not -path './bugbash/*' -not -path './acceptance/*' -not -path './internal/*' -not -path './.git/*' \
     | sed 's|/go.mod$||; s|^\./||' | grep -v '^\.$' | sort)
 }
 
@@ -275,7 +275,7 @@ done
 #
 # So this is an AVISO, and it carries what makes it actionable: how long the
 # floor has gone unrevised, and the version that would clear it.
-for gomod in $(find nucleus quark orbit -name go.mod -not -path '*/examples/*' -not -path '*/website/*' -not -path '*/benchmarks/*' -not -path '*/bugbash/*' -not -path '*/internal/*' 2>/dev/null | grep -vE '^(nucleus|quark|orbit)/go.mod$'); do
+for gomod in $(find nucleus quark orbit -name go.mod -not -path '*/examples/*' -not -path '*/website/*' -not -path '*/benchmarks/*' -not -path '*/bugbash/*' -not -path '*/acceptance/*' -not -path '*/internal/*' 2>/dev/null | grep -vE '^(nucleus|quark|orbit)/go.mod$'); do
   repo=${gomod%%/*}
   case "$repo" in
     nucleus) parent="github.com/jcsvwinston/nucleus" ;;

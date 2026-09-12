@@ -39,7 +39,7 @@ hermanos (drivers, exportadores, providers, puentes) que se instalan aparte
 — [§Lo que se instala aparte](#lo-que-se-instala-aparte-desde-quantum-1260)
 y, para orbit, la tabla de [§Orbit](#orbit--admin--submódulo-orbit-multi-módulo).
 
-**¿Por dónde empiezo?** Solo la capa de datos → Quark. Una aplicación → Nucleus (Quark opcional dentro). Los tres juntos → el [ejemplo integrador `showcase_demo`](https://github.com/jcsvwinston/nucleus/tree/main/examples/showcase_demo) los cablea de punta a punta en ~30 minutos, `curl`s incluidos. Orbit siempre requiere Nucleus.
+**¿Por dónde empiezo?** Solo la capa de datos → Quark. Una aplicación → Nucleus (Quark opcional dentro). Los tres juntos → el [quickstart de la suite](https://jcsvwinston.github.io/quantum/start/quickstart): `nucleus new --template suite` los cablea de punta a punta, `curl`s incluidos. Orbit siempre requiere Nucleus.
 
 Los nombres vienen de la **física de partículas**: **Nucleus** es el **núcleo** (el
 framework anfitrión); **Quark**, la **partícula fundamental** (la capa de datos,
@@ -241,9 +241,9 @@ go build $(bash scripts/gowork-patterns.sh)
 El `go.work` enlaza **todo módulo publicable** del árbol (la raíz de cada repo
 y los módulos hermanos que `versions.yaml` certifica); lo exige
 `scripts/check_gowork_covers_manifest.sh`. Quedan fuera, con su porqué en el
-propio fichero, los laboratorios de quark (`benchmarks/`, `bugbash/`) y las
-aplicaciones de ejemplo — salvo `showcase_demo`, que la lane de integración
-arranca en modo workspace.
+propio fichero, los laboratorios de quark (`benchmarks/`, `bugbash/`,
+`acceptance/`). Los tres repos dejaron de llevar aplicaciones de ejemplo el
+2026-09-12, hasta que la suite cierre su plan.
 
 El `go.work` es una conveniencia de desarrollo: **no se publica** como dependencia
 y no tiene equivalente `replace` en los `go.mod` de los productos. En release,

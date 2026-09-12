@@ -153,14 +153,17 @@ printf -- 'sin front matter\n' > "$TMP/nofm.md"
 check "qs_front_matter_list sin front matter" "" "$(qs_front_matter_list "$TMP/nofm.md" concepts)"
 
 # 3. Identificadores: sin repetir, sin rutas de import, sin minúsculas tras el
-#    punto, con los de las fences go incluidos (están en la FUENTE).
+#    punto y SIN los de las fences de código — el techo mide lo que la página
+#    EXPLICA, y un listado es «lee lo que se generó». Hasta el 2026-09-12 esto
+#    salía gratis (los listados entraban en build por fences `file=`, así que
+#    no estaban en la fuente); al mudarse a la página hizo falta decirlo.
 want_ids='nucleus.New
 orbit.Config
 quarkbridge.New
 quark.For
-quarkdatasource.Register
-nucleus.Run'
+quarkdatasource.Register'
 check "qs_identifiers" "$want_ids" "$(qs_identifiers "$PAGE")"
+check "qs_identifiers ignora el contenido de las fences" "" "$(qs_identifiers "$PAGE" | grep 'nucleus.Run' || true)"
 
 # 4. Página sin fences: cero comandos (el guard decide qué hacer con eso).
 check "qs_commands vacío" "" "$(qs_commands "$TMP/nofm.md")"

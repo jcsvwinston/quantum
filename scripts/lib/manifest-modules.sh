@@ -13,7 +13,7 @@
 #
 # El filtro de descubrimiento es el MISMO que aplica manifest-guard §3b (y
 # scripts/check_gowork_covers_manifest.sh): todo go.mod del repo salvo los de
-# examples/, website/, benchmarks/ y bugbash/ es un módulo del que el set
+# examples/, website/, benchmarks/, bugbash/ y acceptance/ es un módulo del que el set
 # responde. Si ese filtro cambia, cambia en los dos sitios.
 #
 # Compatibilidad: bash 3.2 (macOS) — sin arrays asociativos.
@@ -45,7 +45,7 @@ mm_discover() {
   local repo=$1
   (cd "$repo" && find . -name go.mod \
       -not -path './examples/*' -not -path './website/*' \
-      -not -path './benchmarks/*' -not -path './bugbash/*' -not -path './.git/*' \
+      -not -path './benchmarks/*' -not -path './bugbash/*' -not -path './acceptance/*' -not -path './.git/*' \
     | sed 's|/go.mod$||; s|^\./||' | grep -v '^\.$' | sort)
 }
 

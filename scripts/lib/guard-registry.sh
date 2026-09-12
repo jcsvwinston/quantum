@@ -96,18 +96,6 @@ GUARDS=(
   # pin lo traiga, exige. No un número de versión: un patch sin --with no
   # debe encender uno de los dos gates y el otro no.
   "umbrella-quickstart-cost|.|bash scripts/check_quickstart_cost.sh website/docs/quickstart.md"
-  # Lo que el quickstart de la suite EMBEBE (fences ```go file=<rootDir>/…```
-  # que remark-code-import resuelve contra el submódulo nucleus) existe al pin
-  # y dice lo que la prosa explica: cada fence resuelta con las reglas del
-  # plugin (ruta, #Lx-Ly, sangría común) y contrastada con el `embeds:` del
-  # front matter (primera/última línea y subcadenas obligatorias) y con la
-  # regex de jerga de check_served_jargon.sh. Caza el pin POR DETRÁS de la
-  # página: el ejemplo existe con el mismo nombre en el pin anterior, el build
-  # sale verde y built-codeblocks no lo ve (el bloque no está vacío) — se
-  # publicaría el `Module` sin `Policies`/`CSRFExempt` bajo el párrafo que los
-  # explica. Sin transición: rojo al pin viejo ES la información (la página
-  # del arco A2 sólo se fusiona en el PR del set que re-pina nucleus).
-  "umbrella-quickstart-embeds|.|bash scripts/check_quickstart_embeds.sh website/docs/quickstart.md"
   # Toda referencia `uses:` de los workflows del PARAGUAS está fijada por SHA
   # de commit y lleva su tag en el comentario. Un tag es un puntero móvil en
   # un repositorio ajeno: quien controle esa cuenta reapunta `v7` y ese commit
@@ -318,6 +306,15 @@ GUARD_SCAN_EXCLUDE=(
   # `go build`/`go vet` desde la raíz. Emite texto, no tiene veredicto; lo que
   # sí certifica la cobertura del go.work es check_gowork_covers_manifest.sh.
   "scripts/gowork-patterns.sh"
+  # Comprobación de los LISTADOS del quickstart: exige el proyecto que
+  # `nucleus new --template suite` acaba de escribir, así que no puede
+  # correrse sobre el árbol como los demás — vive en la lane que ya lo genera
+  # (scripts/ci/quickstart_smoke.sh la invoca tras el scaffold). Sustituye al
+  # retirado umbrella-quickstart-embeds, que resolvía fences `file=` contra
+  # `nucleus/examples/showcase_demo`: con los ejemplos fuera del árbol
+  # (2026-09-12) no queda árbol contra el que resolver, y comparar con lo
+  # recién generado es la comprobación fuerte, no una sustituta.
+  "scripts/ci/check_quickstart_listings.sh"
   # Utillaje de LECTURA del estado: imprime dónde estamos —set, arcos, próxima
   # sesión, checkout, PRs abiertos y lo que espera al propietario— para arrancar
   # una sesión. No certifica nada: no tiene veredicto sobre el árbol, sólo lee y
