@@ -291,6 +291,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   inválido fuera de SQLite y MySQL permisivo) avisa desde quark v1.14.0 pero
   no es error: convertirlo rompe a quien depende de esos motores, así que se
   movió a **A12**, donde QADR-0010 acumula lo rompiente.
+- **URGENTE, y desatasca a todo el mundo**: **el `main` de nucleus está rojo**
+  desde la release de v1.28.0 — los dos ejemplos (`examples/mvc_api`,
+  `examples/showcase_demo`) siguen pinando v1.26.0 y el guard del showcase
+  falla, lo que tumba el `CI Required Gate` de **cualquier PR abierto** del
+  repo, incluidos los que no lo tocan. El arreglo existe y está verde:
+  **nucleus#527** (re-pin a v1.28.0), MERGEABLE. Fusionarlo primero.
+- **Los tres PRs de la sesión S0 de A6, abiertos y a la espera**: orbit#467
+  (el banco), quantum#189 (plan, registro y handoff) y **nucleus#540** (el
+  arreglo de NU-73, bloqueado sólo por el rojo de arriba). Orden de fusión:
+  nucleus#527 → nucleus#540 → orbit#467 → quantum#189.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
   proteger `main` en quark, orbit y quantum exigiendo `CI Required Gate`
   (sólo nucleus la tiene); activar `allow_auto_merge` en los cuatro (medido
