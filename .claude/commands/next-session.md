@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-10, QUANTUM 1.30.0 — A3 cerrado, en la puerta de A4)
+## 3. Estado al cierre (2026-09-12, QUANTUM 1.32.0 — A5 cerrado, A6 arrancado por su medición)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -79,15 +79,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   él, una sesión no necesita reconstruir contexto con criterio propio.
 - **Trabajo por arcos del plan 5/5**: A1, A2, A3, A4 y **A5 CERRADOS**
   (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0) → **A6, Orbit como admin de
-  producto, es el SIGUIENTE**: lleva el único P1 abierto del registro (OR-4,
-  usuarios y roles desde el panel) y hereda de A5 la pantalla de sesiones por
-  dispositivo, cuya capacidad ya existe (`ActiveSessions`, `Revoke`,
-  `RevokeWhere`, metadatos con agente de usuario). A6 no tiene troceado: se
-  escribe al empezarlo, por una sesión de medición — en A5 esa sesión midió
-  14/43 y acabó en 40/43, y dos de sus cinco primeras conclusiones fueron
-  errores de la propia medición.
-  Lo que fue A4, sesión a sesión y con lo que cada una midió, está en
-  [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md).
+  producto, EN CURSO**: su `S0` (medición) está hecha y el troceado en once
+  sesiones vive en
+  [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md).
+  **Siguiente sesión: `S1`** (operadores desde el panel), que es la que cierra
+  el P1 heredado OR-4. A6 lleva ahora **dos P1**: OR-4 y **NU-73**, que abrió
+  su propia medición.
+  Lo que fue A4 y A5, sesión a sesión y con lo que cada una midió, está en
+  [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md) y
+  [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md).
   `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
   los copies de aquí.
   El gate de cada arco sigue siendo el registro
@@ -150,6 +150,61 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-12 (noche) — A6 arranca: 32 de 59 controles, y un defecto que ninguna suite veía
+
+- **Sesión `S0` del arco A6, HECHA** (orbit#467, quantum#189). El set
+  sigue en 1.32.0: `S0` no corta, mide. Precondición comprobada antes de
+  empezar (`arcos cerrados: A1 A2 A3 A4 A5`).
+- **El banco de admin existe y es ejecutable**: **32 de 59 controles
+  presentes, 9 parciales, 18 ausentes**. Vive en
+  `orbit/internal/adminbench/` —cada sonda arranca una aplicación Nucleus con
+  `orbit.Module(...)` montado, inicia sesión como el admin de arranque y le
+  pregunta al panel por su propia API— y `TestAdminBench` asserta el
+  **veredicto registrado**, no el éxito. Página en `orbit/docs/admin-bench.md`.
+- **La forma del resultado es el hallazgo**: el panel **navega y opera bien, y
+  administra mal**. Los datos (CRUD con validación, búsqueda, orden servidor,
+  lotes, import/export, fixtures, multi-tenant, datasource ajeno) y la
+  aplicación (feed en vivo, pulso, flags, migraciones, storage, exports
+  asíncronos) están; **lo que un operador le hace a otros operadores falta
+  entero** — ninguna ruta crea un admin, le cambia la contraseña ni lo
+  desactiva. Tres para retener: la política es `(sujeto, modelo, acción)`, así
+  que ni campo ni fila caben; lo que una pantalla carga no lleva pistas de
+  capacidad, así que la UI descubre los permisos **siendo rechazada**; y el
+  rastro de auditoría cubre todo y **no sobrevive al proceso**.
+- **NU-73 (P1), el hallazgo caro**: el middleware de sesión de nucleus envuelve
+  el `ResponseWriter` en `auth.flashSweepWriter`, que implementa `Flush` y
+  `Unwrap` pero **no `Hijack`** → **cualquier websocket de cualquier
+  aplicación** revienta al hacer el upgrade y responde 500. El feed en vivo del
+  panel —su capacidad diferencial— **nunca conecta** en un despliegue real; su
+  snapshot sí. Los tests del panel lo cablean sin esa pila, por eso pasaban.
+  El router ya implementa `Hijack` en sus otros dos envoltorios: falta en ése.
+- **Seis hallazgos más en el registro** (207 filas, 13 abiertos, A6 con 8):
+  **OR-45** (P2) ninguna lista tiene total (`total:-1`, `is_estimated:true`,
+  con cinco filas); **OR-46** (P2) la fila de sesión nunca dice de quién es;
+  **OR-47**, **OR-48** (el fallback de la SPA tapa los 404 de `/api/*`),
+  **OR-49** y **OR-50** (P3).
+- **Cuatro lecturas del primer pase medían el banco, no el producto**, y las
+  cuatro se leían como defectos: el fallback de la SPA, un helper de logs que
+  **truncaba** el cuerpo que la sonda examinaba, un operador compartido cuyos
+  permisos se **acumulaban** entre sondas, y un modelo del banco con una clave
+  foránea sin declarar. A4 aprendió que un comentario no es una medición y A5
+  que un nombre tampoco; **una sonda tampoco, hasta que se comprueba contra qué
+  mide**. Está escrito en la página del banco, no sólo aquí.
+- **El troceado salió de la medición**: los 27 huecos vienen de **nueve
+  causas**, así que las once sesiones van por causa. `S1` (operadores desde el
+  panel) cierra OR-4 y va primero; la mitad **nucleus** de `S6` (el `Hijack`)
+  va temprano por una razón mecánica: **un arreglo de nucleus no llega a orbit
+  hasta que sube el pin**, así que si entra tarde su release no lo contiene y
+  la mitad de orbit no se puede verificar en el mismo set.
+- **Esa mitad ya está hecha, en la misma sesión** (nucleus#540): `Hijack` por
+  `http.ResponseController`, con dos tests que fallan sin el arreglo — el
+  unitario y uno de contrato **por la pila por defecto**, que es lo que no
+  existía. Verificado en el workspace: con él, la sonda OPS-06 del banco abre
+  el stream. **El veredicto del banco sigue en `absent`** hasta que el
+  `require` de orbit traiga la release que lo contiene; cambiarlo antes sería
+  publicar como cierto algo que el pin no respalda. NU-73 se marca hecho en el
+  registro cuando esa release exista.
+
 ### Sesión 2026-09-12 (tarde) — A5 entregado: nueve sesiones y 40 de 43 controles
 
 - **El arco A5 en un día**: `S0`–`S9` hechas, **diez PRs en nucleus**
@@ -195,53 +250,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   se puede reabrir ni reapuntar. Reapunta la pila entera a `main` ANTES de
   fusionar el primero.
 
-### Sesión 2026-09-12 — A5 arranca: la medición de S0, y el troceado que salió de ella
-
-- **Sesión `S0` del arco A5, HECHA** (nucleus#528, quantum#187). El set sigue
-  en 1.31.0: S0 no corta, mide. Precondición comprobada antes de empezar
-  (`arcos cerrados: A1 A2 A3 A4`).
-- **El banco de conformidad de auth existe y es ejecutable**: **14 de 43
-  controles presentes, 3 parciales, 26 ausentes**. Vive en
-  `nucleus/internal/authbench/` —43 probes que arrancan una aplicación por
-  defecto y preguntan a la ruta, llaman a la API o leen el struct de
-  configuración por su tag— y `TestAuthBench` asserta el **veredicto
-  registrado**, no el éxito. Página en `nucleus/docs/auth-bench.md`.
-- **La forma del resultado es el hallazgo**: está el sustrato y no el
-  producto. Sesiones, tokens, hash de contraseñas, motor de políticas y las
-  dos costuras de extensión están y se ejercen; **nada de lo que toca una
-  persona existe** — ninguna ruta inicia sesión, no hay cuenta que verificar
-  ni recuperar, no hay segundo factor, no hay clave con la que llamar a una
-  API. Tres que conviene retener: la costura federada **no tiene ninguna
-  implementación** (el registro está vacío), la identidad lleva **un solo
-  `Role string`** donde un IdP entrega tres grupos, y el modelo de política es
-  `sub, obj, act`, así que «ana puede editar los posts que son suyos» no se
-  puede expresar y cada aplicación reimplementa la propiedad en sus handlers.
-- **Cinco hallazgos nuevos en el registro** (200 filas, 11 abiertos, A5 con 6):
-  **NU-68 (P2)** nada cuenta los intentos fallidos de contraseña —sin bloqueo,
-  sin contador, sin knob—; **NU-69 (P2)** no hay revocación por ningún lado, ni
-  de una sesión ajena (ningún método toma un token, aunque `ActiveSessions` ya
-  enumera y el store ya borra) ni de un JWT emitido (24 h por defecto);
-  **NU-70, NU-71, NU-72 (P3)**.
-- **Una hipótesis propia, corregida por la medición.** KEY-05 se escribió
-  primero como «el limitador va por dirección», leído del NOMBRE de una clave
-  de configuración. El probe que agota el presupuesto de una identidad y
-  pregunta como otra —mismo rol, misma dirección— sale servido: el limitador
-  va por **usuario autenticado**, con el tenant de prefijo. A4 aprendió que un
-  comentario no es una medición; **un nombre tampoco**. Lo que A5 se lleva: el
-  middleware de clave de API tiene que poner la identidad de la clave donde el
-  limitador ya mira.
-- **El troceado salió de la medición, no al revés**: los 26 huecos vienen de
-  **siete causas**, así que las sesiones van por causa y no por producto. El
-  correo sube a `S1` porque bloquea a las cuentas (sin outbox, un correo de
-  verificación se pierde entre el commit y el SMTP); el sustrato de identidad
-  y revocación va antes que todo lo que lo consume; el segundo factor se parte
-  en dos (TOTP y WebAuthn son dos trabajos); y la postura ASVS cierra, porque
-  mide lo que dejaron las demás. Once sesiones en
-  [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md).
-- **Dónde muerde QADR-0010 en este arco, dicho por adelantado**: `User.Role`
-  es un `string` y los proveedores federados entregan listas. Se entrega
-  `Roles []string` **junto** al viejo, nunca en su lugar.
-
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -270,10 +278,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~ y ~~A4~~
-  CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0) → **A5 Auth de producto, EN
-  CURSO** (`S0` hecha el 2026-09-12; troceado en `docs/planes/`, siguiente
-  `S1`) → A6 … → A12. El registro de hallazgos y su guard
+- **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~, ~~A4~~ y ~~A5~~
+  CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0) → **A6 Orbit como admin de
+  producto, EN CURSO** (`S0` hecha el 2026-09-12; troceado de once sesiones en
+  [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md),
+  siguiente `S1`) → A7 … → A12. El registro de hallazgos y su guard
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
 - **Lo que A4 dejó a deber, con su porqué escrito**: la segunda mitad de su
   `S4` —uuid nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet,
@@ -282,6 +291,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   inválido fuera de SQLite y MySQL permisivo) avisa desde quark v1.14.0 pero
   no es error: convertirlo rompe a quien depende de esos motores, así que se
   movió a **A12**, donde QADR-0010 acumula lo rompiente.
+- **URGENTE, y desatasca a todo el mundo**: **el `main` de nucleus está rojo**
+  desde la release de v1.28.0 — los dos ejemplos (`examples/mvc_api`,
+  `examples/showcase_demo`) siguen pinando v1.26.0 y el guard del showcase
+  falla, lo que tumba el `CI Required Gate` de **cualquier PR abierto** del
+  repo, incluidos los que no lo tocan. El arreglo existe y está verde:
+  **nucleus#527** (re-pin a v1.28.0), MERGEABLE. Fusionarlo primero.
+- **Los tres PRs de la sesión S0 de A6, abiertos y a la espera**: orbit#467
+  (el banco), quantum#189 (plan, registro y handoff) y **nucleus#540** (el
+  arreglo de NU-73, bloqueado sólo por el rojo de arriba). Orden de fusión:
+  nucleus#527 → nucleus#540 → orbit#467 → quantum#189.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
   proteger `main` en quark, orbit y quantum exigiendo `CI Required Gate`
   (sólo nucleus la tiene); activar `allow_auto_merge` en los cuatro (medido
