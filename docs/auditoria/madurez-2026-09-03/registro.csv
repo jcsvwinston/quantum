@@ -200,3 +200,10 @@ NU-69,P2,nucleus,A5,hecho,nucleus#530,nucleus.md,"`SessionManager.Revoke`/`Revok
 NU-70,P3,nucleus,A5,hecho,nucleus#530,nucleus.md,"`User.Roles`/`Claims.Roles` por adición; el proveedor OIDC los puebla"
 NU-71,P3,nucleus,A5,hecho,nucleus#529,nucleus.md,"HTML/multipart, adjuntos, plantillas y `mail.EnqueueTx` por el outbox"
 NU-72,P3,nucleus,A12,abierto,,nucleus.md,"diferido con razón: encender `session_idle_timeout` caduca sesiones en todo despliegue que actualice (QADR-0010). Visible desde 1.32.0 en `doctor security` y en el baseline ASVS (V3.3.2)"
+OR-45,P2,orbit,A6,abierto,,orbit.md,"`internal/admin/datastudio.go` ; banco DS-04: total -1 / is_estimated true en toda lista"
+OR-46,P2,orbit,A6,abierto,,orbit.md,"`internal/admin/sessions.go:58-70` ; banco OPS-16: la fila de sesión nunca nombra a su operador"
+OR-47,P3,orbit,A6,abierto,,orbit.md,`internal/admin/management_migrations.go` ; banco OPS-17
+OR-48,P3,orbit,A6,abierto,,orbit.md,`internal/admin/panel.go:444,460` (el fallback de la SPA tapa los 404 de /api)
+OR-49,P3,orbit,A6,abierto,,orbit.md,`internal/admin/runtime_cache.go` ; banco OPS-11
+OR-50,P3,orbit,A6,abierto,,orbit.md,`internal/admin/runtime_email.go:20-65` ; banco OPS-13
+NU-73,P1,nucleus,A6,abierto,"lo descubrió el banco de admin de orbit; sin esto el stream del panel no conecta en ningún despliegue",nucleus.md,"`pkg/auth/session.go:120,129-160` — flashSweepWriter sin Hijack: todo websocket de toda aplicación revienta"

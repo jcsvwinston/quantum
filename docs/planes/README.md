@@ -131,8 +131,8 @@ que una sesión necesita para orientarse.
 | Arco | Qué entrega | Depende de | Troceado |
 |---|---|---|---|
 | **A4** | Quark como capa de datos de nucleus | decisión de ruptura controlada | [`A4-capa-de-datos.md`](A4-capa-de-datos.md) |
-| A5 | Auth de producto (OIDC, API keys, accounts, MFA) | — (puede solaparse con A4: repos distintos) | al empezarlo |
-| A6 | Orbit como admin de producto | decisión del contrato datasource | al empezarlo |
+| A5 | Auth de producto (OIDC, API keys, accounts, MFA) | — (puede solaparse con A4: repos distintos) | [`A5-auth-de-producto.md`](A5-auth-de-producto.md) |
+| A6 | Orbit como admin de producto | decisión del contrato datasource | [`A6-orbit-admin-de-producto.md`](A6-orbit-admin-de-producto.md) |
 | A7 | Jobs, eventos y tiempo real | A6 para el panel de colas | al empezarlo |
 | A8 | Quark enterprise (migraciones v2, RLS en tres motores) | A4 | al empezarlo |
 | A9 | Fleet unificado y una sola SPA | A6 | al empezarlo |

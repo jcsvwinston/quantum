@@ -26,8 +26,13 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   estaba vacía desde v1.15.0, permisos por objeto, y la postura mapeada a
   ASVS 4.0.3 L2 con 27 requisitos medidos. El banco de conformidad de auth
   pasa de **14 a 40 de 43** controles. Minor de suite por la minor de
-  nucleus. **Siguiente arco: A6** (Orbit como admin de producto), que lleva
-  el único P1 abierto del registro.
+  nucleus. **Arco en curso: A6** (Orbit como admin de producto), cuya sesión
+  de medición dejó el banco de admin de orbit en **32 de 59 controles** y
+  encontró **NU-73**: el envoltorio de respuesta del gestor de sesiones no
+  implementa `Hijack`, así que ningún websocket de ninguna aplicación
+  completa el upgrade y el feed en vivo del panel no conecta en un
+  despliegue real. A6 lleva dos P1 abiertos (OR-4 y NU-73); su troceado está
+  en [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
