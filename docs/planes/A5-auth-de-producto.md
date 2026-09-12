@@ -10,15 +10,22 @@ inicie sesión a nadie. La dimensión más baja del pilar (auth/authz, 2 de 5)
 sube copiando lo que Laravel Fortify/Sanctum, Django allauth, Spring Security
 y el generador de Rails 8 ya resolvieron.
 
-**Gate del arco** (se registra como guard cuando el pin lo contenga, igual que
-los demás):
+**Gate del arco** (registrado como guard `umbrella-auth-posture` con su
+fixture; 49 guards):
 
-- el banco de conformidad de auth —`nucleus/internal/authbench`— con **cero
-  controles ausentes** en las familias que el arco toca;
-- la suite de conformidad corriendo contra un IdP real en CI (OIDC) y contra
-  los cinco motores para lo que toca base de datos;
-- baseline ASVS L2 congelado, con cada control atado a su requisito;
-- Orbit muestra las sesiones por dispositivo.
+- el banco de conformidad de auth —`nucleus/internal/authbench`— sin ningún
+  control ausente **sin razón escrita**;
+- la conformidad del proveedor OIDC corriendo en CI contra un IdP con claves
+  reales, incluidas las falsificaciones que debe rechazar;
+- baseline ASVS L2 congelado, con cada requisito atado a su veredicto;
+- lo publicado y lo medido, comprobados el uno contra el otro.
+
+**Ajuste del gate, con su razón.** El enunciado original pedía además que
+«Orbit muestre las sesiones por dispositivo». Eso es superficie de panel y
+pertenece a **A6**: A5 entrega la capacidad —`ActiveSessions`, `Revoke`,
+`RevokeWhere` y los metadatos de dispositivo, con el agente de usuario que
+faltaba— y A6 la enseña. Mover el criterio es más honesto que declararlo
+cumplido desde el repo que no lo dibuja.
 
 **Hallazgos que descuenta.** Seis: NU-43 (P3, heredado: la costura federada
 sin proveedores) y los cinco que abrió la medición de `S0` — **NU-68** y
@@ -223,6 +230,13 @@ el baseline, que es donde se revisa.
 **Qué hace.** Registra el gate del arco como guard con su fixture, corre
 `suite-integral.sh --cierre` y corta el set que lo publica, con
 `scripts/train/README.md` delante.
+
+El guard es `umbrella-auth-posture` y vigila una frontera concreta: la que
+hay entre lo que el banco MIDE y lo que la página PUBLICA. Los dos
+documentos de A5 siguen siendo ficheros de texto —nada impide editar la
+cifra, borrar la nota de un hueco o añadir una fila ASVS sin veredicto— y
+ninguna suite se pondría roja por ello. Lo que ejecuta los probes es el CI
+de nucleus; esto comprueba que lo publicado sea lo medido.
 
 **Criterio de hecho.** `bash scripts/check_audit_backlog.sh` con A5 en la
 primera línea del registro.

@@ -79,12 +79,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
 - **Trabajo por arcos del plan 5/5**: A1, A2, A3 y **A4 CERRADOS** (1.28.0,
-  1.29.0, 1.30.0, 1.31.0) → **A5, auth de producto, EN CURSO**: su `S0` está
-  hecha y el arco ya tiene troceado —once sesiones— en
-  [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md);
-  la siguiente es `S1` (correo de producto). Puede solaparse con A6, que lleva
-  el único P1 abierto del registro. El numerador del gate es el banco de
-  `nucleus/internal/authbench` (hoy 14/43).
+  1.29.0, 1.30.0, 1.31.0) → **A5, auth de producto, ENTREGADO y sin
+  publicar**: `S0`–`S9` hechas (banco de auth **40/43**, cero hallazgos
+  abiertos de A5 en el registro) y falta `S10` — fusionar la pila de PRs de
+  nucleus, cortar el set y registrar el guard `umbrella-auth-posture`, que
+  espera al pin. Troceado y razones en
+  [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md).
+  Después: **A6** (Orbit como admin de producto), que lleva el único P1
+  abierto y hereda de A5 la pantalla de sesiones por dispositivo.
   Lo que fue A4, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md).
   `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
@@ -148,6 +150,51 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-12 (tarde) — A5 entregado: nueve sesiones y 40 de 43 controles
+
+- **El arco A5 en un día**: `S0`–`S9` hechas, **diez PRs en nucleus**
+  (#528…#537) y el paraguas (#187). **El banco de conformidad de auth pasa
+  de 14 a 40 de 43 controles presentes**; `S10` (gate, guard y set) es lo que
+  queda, y su guard —`umbrella-auth-posture`, el 49º— ya está escrito con su
+  fixture, esperando a que el pin lo contenga.
+- **Lo que ahora existe y no existía**: correo de producto (HTML/multipart,
+  adjuntos, plantillas y `EnqueueTx` dentro de la transacción del llamante);
+  `Roles []string` por adición y revocación de sesiones y de tokens;
+  **`pkg/accounts`** con registro, verificación, login, reset, cambio, enlace
+  mágico y lockout; TOTP con códigos de recuperación y step-up;
+  **`pkg/auth/apikeys`** con scopes, rotación y CLI; permisos por OBJETO con
+  helpers en el `Context`; **proveedor OIDC** con PKCE, discovery y JWKS; y
+  la postura mapeada a **ASVS 4.0.3 L2**, 25 requisitos medidos (22 met, 2 de
+  la aplicación, 1 not-met con su razón).
+- **Cinco defectos los encontró el arnés, no la lectura**, y conviene
+  retenerlo: un 500 al iniciar sesión porque el servicio llevaba un gestor de
+  sesiones distinto del montado (el módulo toma ya el de la aplicación); un
+  **pánico** al pedir la sesión fuera de su middleware (`HasSession`); un
+  formato de clave de API que fallaba **una de cada diez** porque base64url
+  contiene el separador `_`; y dos mediciones equivocadas — KEY-05 leyó el
+  NOMBRE de una clave de configuración y ASVS V3.2.1 preguntó el token dentro
+  de una petición anónima, donde está vacío en los dos lados.
+- **Lo que NO se entrega, con su razón escrita en tres sitios** (banco, plan y
+  registro): **WebAuthn** —su empaquetado correcto es un módulo hermano, y un
+  módulo hermano pina la ÚLTIMA release publicada, que no contiene
+  `accounts.MFAStore` hasta que salga este set; a mano en el core sería donde
+  un fallo de seguridad es silencioso—; **SAML** —otro cuerpo de trabajo sobre
+  la misma costura—; y el **timeout de inactividad por defecto**, que caduca
+  sesiones en todo despliegue que actualice (QADR-0010): NU-72 se movió a A12
+  y desde este arco `doctor security` lo nombra.
+- **El gate se ajustó con su porqué**: «Orbit muestra las sesiones por
+  dispositivo» pasa a **A6**. A5 entrega la capacidad (`ActiveSessions`,
+  `Revoke`, `RevokeWhere`, metadatos con agente de usuario); dibujarla es del
+  repo que tiene el panel.
+- **Una trampa de CI, ajena al arco, que bloqueaba todo**: la imagen
+  `minio/minio` dejó de servirse en Docker Hub («pull access denied … does not
+  exist»), así que la lane de storage y con ella el gate obligatorio salían
+  rojos en **cualquier** PR. Arreglado apuntando a `quay.io/minio/minio`.
+- **Y una del flujo de PRs apilados**: fusionar el primero con `--delete-branch`
+  **cierra automáticamente** los PRs cuya base era esa rama, y un PR cerrado no
+  se puede reabrir ni reapuntar. Reapunta la pila entera a `main` ANTES de
+  fusionar el primero.
+
 ### Sesión 2026-09-12 — A5 arranca: la medición de S0, y el troceado que salió de ella
 
 - **Sesión `S0` del arco A5, HECHA** (nucleus#528, quantum#187). El set sigue
@@ -194,59 +241,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 - **Dónde muerde QADR-0010 en este arco, dicho por adelantado**: `User.Role`
   es un `string` y los proveedores federados entregan listas. Se entrega
   `Roles []string` **junto** al viejo, nunca en su lugar.
-
-### Sesión 2026-09-11 (tarde) — A4 CERRADO y publicado en QUANTUM 1.31.0
-
-- **El arco entero en un día**: las diez sesiones (`S0`–`S9`) y **quince PRs
-  fusionados** — quark #388/#389/#391/#392/#393/#394/#395/#396, nucleus
-  #518/#520/#522/#523/#524, paraguas #181/#182/#183/#184/#185. **SET
-  CERTIFICADO: Quantum 1.31.0** (quark v1.14.0, nucleus v1.27.0, orbit
-  v1.9.5), 48/48 guards, y **los cuatro releases con activos firmados**, que
-  es la deuda que 1.30.0 dejó abierta.
-- **El banco de consultas va de 44 a 58 de 60 tipadas, y de 16 huecos a 2.**
-  Los dos que quedan son `GROUP BY` sin proyección, que ahora AVISA; hacerlo
-  error rompe a quien depende de SQLite y MySQL permisivo, así que **QK-24 se
-  movió a A12**, donde vive el major de QADR-0010. Con eso **A4 no tiene
-  hallazgos abiertos**.
-- **Dos de los hallazgos de S0 eran errores de la propia medición**, y conviene
-  no olvidarlo: QK-22 (CTE recursiva) y QK-23 (top-N por grupo) ya funcionaban.
-  Lo que S0 leyó fue el **comentario** de `WithRecursive`, que seguía diciendo
-  que la superficie tipada no modelaba `UNION` — una nota que sobrevivió a lo
-  que describía. **Una medición que se fía de un comentario mide el
-  comentario.** Desde S2 cada caso del banco ejecuta contra una base real y
-  comprueba su RESULTADO, no su SQL.
-- **QK-21 (P1) confirmado y arreglado.** S0 lo dejó dicho sin confirmar por no
-  tener contenedores; el CI lo confirmó en cinco de seis motores (MySQL: «Out
-  of range value»). Los enteros mapean ya por anchura y las claves son de 64
-  bits. Destapó un defecto latente: el diff comparaba el tipo desnudo de una
-  PK sin pasar por el camino de la PK, y en SQLite sólo `INTEGER PRIMARY KEY`
-  aliasa el rowid — sin `PKBareColumnType`, cada tabla de SQLite reportaba
-  deriva contra sí misma al crearse. **Nota de migración**: `PlanMigration`
-  propone el ensanchado como `ALTER COLUMN`; no pierde datos, pero en una
-  tabla grande el motor puede reescribirla.
-- **El gate del arco está puesto**: `umbrella-tag-grammar` (48 guards) y la
-  sonda `--data quark` dentro de `quickstart-smoke`. La sonda **se enciende
-  sola** cuando el pin traiga el arreglo del generador; verificado en las dos
-  direcciones. Correr el gate es lo que encontró los dos defectos del código
-  generado que nucleus#522 arregla.
-- **S8 paró a mitad y el propietario decidió**: `--data` pasa a `quark` por
-  defecto, con `--data sql` como salida. Se entregó como **minor, no major**:
-  no rompe código ni mueve firmas, y un `!` habría arrastrado a los tres
-  pilares por QADR-0002 — el primer borrador del commit sí lo llevaba.
-- **Trampas del tren, nuevas las dos**: el script de suelos descubre los
-  módulos PUBLICABLES, así que `internal/enginesuite` de quark se quedó
-  declarando el suelo viejo y el CI paró con «updates to go.mod needed» (ya
-  arreglado: los módulos internos con `replace` pasan por el mismo tidy). Y
-  **release-please REGENERA la rama del release PR** cuando se empuja sobre
-  ella: la deuda de doc de nucleus se perdió entera y hubo que rescatarla del
-  reflog. Escribe la prosa, empuja, y comprueba que sigue ahí.
-- **Lo que NO se hizo, dicho a propósito**: la segunda mitad de S4 —uuid
-  nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet, JSONB— no está
-  en el gate de A4 y lo urgente era el defecto. Encaja en A8, que ya lleva los
-  tipos enterprise.
-- **Lo que espera al pin**: la entrada del sidebar espejo para
-  `reference/type-matrix`, que se compara contra el sidebar DEL PIN. Va en el
-  commit del set, como los guards que esperan.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
