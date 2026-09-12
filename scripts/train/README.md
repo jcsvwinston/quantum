@@ -622,17 +622,7 @@ la línea y la columna.
   `go get`—. No hay commit honesto que dárselo después: un `tidy` fresco es
   no-op, así que cualquier `fix` sería inventado. Se resolvió devolviendo los
   doce módulos al árbol de su tag (nucleus#509) y aplazando los suelos al tren
-  siguiente. El driver toma ya el título del commit de suelos, antes de
-  añadir el de los ejemplos.
-
-- **`repin_examples.sh` fallando NO es «los ejemplos quedan por detrás».** El
-  aviso lo decía así y el driver commiteaba igual: `go.mod` nombrando el tag
-  nuevo y `go.sum` con las sumas del viejo, o sea un ejemplo que no compila
-  (`missing go.sum entry`). Ahora PARA. La causa típica se cura sola: el
-  proxy guarda en NEGATIVO lo que el CI le preguntó mientras el tag no
-  existía —hasta media hora— así que el `tidy` de justo después del corte
-  falla aunque el tag ya esté empujado. `@latest` contesta bien mientras
-  `@v/<tag>.info` sigue en 404: esa discrepancia es la señal.
+  siguiente. El driver toma ya el título del commit de suelos.
 
 - **Un módulo que sale del módulo raíz tiene que nombrar el tag del corte.**
   Mientras `cmd/quark` vivió dentro de la raíz, cualquier tag de raíz que lo
@@ -646,15 +636,6 @@ la línea y la columna.
 
 ### Lo que aprendió el tren de 1.29.0 (A2)
 
-- **Un minor de quark deja rojo el CI de nucleus hasta re-pinar sus
-  ejemplos.** `check_example_pins.sh` (lane Showcase Example Smoke) exige
-  que `examples/*/go.mod` pinen el último tag de cada hermano con una minor
-  de tolerancia: cortado quark v1.12.0, el showcase (quark v1.10.1) quedó a
-  dos y el PR de suelos de nucleus (#485) no pudo fusionarse. `Repin
-  Showcase` sólo corre tras las releases de nucleus, no de quark. Remedio:
-  `bash scripts/release/repin_examples.sh` en nucleus (PR `chore(examples)`,
-  nucleus#486) ANTES de su fase; desde este tren `sube_suelos` de nucleus
-  lo hace en el mismo PR de suelos (segundo commit `chore(examples)`).
 - **El proxy de Go va unos minutos por detrás del tag.** Recién cortados
   quark v1.12.0 y nucleus v1.25.0, el `go mod tidy` de `align_set.sh`
   murió con «sum.golang.org … 404 … unknown revision v1.25.0».
@@ -830,9 +811,9 @@ la línea y la columna.
   sobre el repo equivocado.** En un worktree nuevo, `git submodule update
   --init --recursive` ANTES de `bump-set.sh`: sin él, un `git -C orbit fetch`
   cae al repo padre y los tags que ves son los del paraguas.
-- **El árbol tiene que estar limpio de verdad para `--cierre`.** Un
-  `showcase_demo.db` sin trackear —artefacto de haber corrido la demo— basta
-  para que la certificación se niegue (QM8-5). El escape `QUANTUM_ALLOW_DIRTY`
+- **El árbol tiene que estar limpio de verdad para `--cierre`.** Un fichero
+  `.db` sin trackear —artefacto de haber arrancado algo a mano— basta para
+  que la certificación se niegue (QM8-5). El escape `QUANTUM_ALLOW_DIRTY`
   no existe en modo cierre, y hace bien.
 - **Un guard nuevo en un producto bloquea la certificación hasta registrarlo.**
   Al re-pinar orbit entró `check_adr_index.sh` y la aserción anti-fósil se negó

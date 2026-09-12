@@ -3,7 +3,8 @@
 # de verdad contra el set pinado, con presupuesto de tiempo.
 #
 # Hasta esta lane, el paraguas sólo COMPILABA y arrancaba una app ya escrita
-# (showcase_smoke.sh). Aquí se hace lo que el lector del quickstart hace:
+# (la retirada showcase_smoke.sh). Aquí se hace lo que el lector del
+# quickstart hace:
 #
 #   1. `nucleus new blog --template suite --with orbit,quark,quarkbridge,
 #      quarkdatasource --db sqlite --offline` con el CLI compilado del
@@ -14,7 +15,10 @@
 #      `nucleus new --with orbit` al tag vN resuelve por el proxy el orbit del
 #      set anterior hasta que orbit re-pina; la lane enmascara ese lag a
 #      propósito resolviendo por go.work (certifica el set pinado, que es lo
-#      que el paraguas publica). El lag lo vigila manifest-guard §5.
+#      que el paraguas publica). El lag lo vigila manifest-guard §5. Desde el
+#      2026-09-12 esta lane es también la ÚNICA que ejerce los tres productos
+#      juntos: la app que lo hacía vivía en nucleus/examples/showcase_demo y
+#      el árbol ya no lleva ejemplos.
 #   3. arranque, y los `curl` EXTRAÍDOS de website/docs/quickstart.md con el
 #      parser compartido con el guard umbrella-quickstart-cost
 #      (scripts/lib/quickstart-fences.sh): página y lane no pueden divergir —
@@ -159,7 +163,7 @@ if [[ -z "$REHEARSAL" ]]; then
   fi
 fi
 
-# Puerto libre para no chocar con otros jobs del runner (como showcase_smoke).
+# Puerto libre para no chocar con otros jobs del runner.
 PORT=$(python3 - <<'EOF'
 import socket
 s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()
@@ -186,6 +190,17 @@ else
 fi
 [[ -f "$TMP/$PROJECT_NAME/go.mod" ]] || fail "el scaffold no dejó go.mod en $TMP/$PROJECT_NAME"
 T_SCAFFOLD=$(now_ms)
+
+# --- 2a. los listados de la página son lo que el scaffold acaba de escribir ---
+# La página mostraba su código con fences `file=` resueltas contra
+# `nucleus/examples/showcase_demo`; con los ejemplos fuera del árbol
+# (2026-09-12) los listados viven EN la página, y esto es lo que impide que
+# envejezcan: se comparan con el proyecto recién generado, no con un fichero
+# comiteado que alguien tenía que regenerar. Va aquí porque aquí ya hay un
+# scaffold; el guard estático que lo hacía antes se retiró con su porqué.
+echo "== 2a. los listados del quickstart == lo que el scaffold escribe"
+bash scripts/ci/check_quickstart_listings.sh "$TMP/$PROJECT_NAME" "$PAGE" \
+  || fail "los listados de $PAGE no son lo que \`nucleus new --template suite\` escribe"
 
 # --- 2b. la primera feature sobre Quark ---------------------------------------
 # Gate del arco A4: el starter se genera con `--data quark` y pasa el smoke.

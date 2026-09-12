@@ -125,17 +125,39 @@ qs_commands() {
 
 # qs_identifiers <page.md> — identificadores cualificados de la suite
 # (`nucleus.New`, `orbit.Config`, `quarkdatasource.Register`…) que la página
-# nombra en su FUENTE — prosa, código inline o fences —, sin repetir y en
-# orden de aparición. Las rutas de import (`…/orbit/quarkdatasource`) no
-# cuentan: el carácter anterior no puede ser `/`, `.`, letra, dígito ni `_`.
-# Lo que una fence `file=…` importa en build NO está en la fuente y por tanto
-# no se cuenta: eso es «leer lo que se generó», no un concepto que la página
-# explique.
+# EXPLICA: prosa y código inline entre backticks, NO lo que muestran sus
+# bloques de código. Sin repetir y en orden de aparición. Las rutas de import
+# (`…/orbit/quarkdatasource`) no cuentan: el carácter anterior no puede ser
+# `/`, `.`, letra, dígito ni `_`.
+#
+# Por qué los bloques no cuentan: el techo del arco A2 mide lo que el lector
+# tiene que ENTENDER, y un listado es «lee lo que se generó», no un concepto
+# que la página enseñe. Hasta el 2026-09-12 esto salía gratis —los listados
+# entraban en build por fences `file=`, así que no estaban en la fuente—; al
+# retirarse los ejemplos del árbol pasaron a vivir en la página, y sin este
+# filtro el mismo texto pasaba de 5 conceptos a 12 sin haber explicado uno más.
 qs_identifiers() {
   qs_body "$1" \
+    | qs_strip_fences \
     | grep -oE '(^|[^A-Za-z0-9_./])(nucleus|orbit|quark|quarkbridge|quarkdatasource)\.[A-Z][A-Za-z0-9]*' \
     | sed -E 's/^[^A-Za-z]//' \
     | awk '!seen[$0]++'
+}
+
+# qs_strip_fences — filtro: quita el CONTENIDO de las fences de bloque (y sus
+# delimitadores), dejando la prosa. Mismas reglas de cierre que qs_commands:
+# cada fence se cierra sólo con su marcador, así que un ``` dentro de un
+# bloque ~~~ es contenido.
+qs_strip_fences() {
+  awk '
+    function close_re_of(open,    m) {
+      m = open; sub(/^[[:space:]]*/, "", m)
+      return (substr(m, 1, 1) == "~") ? "^[[:space:]]*~~~+[[:space:]]*$" : "^[[:space:]]*```+[[:space:]]*$"
+    }
+    !infence && $0 ~ /^[[:space:]]*(```+|~~~+)/ { infence = 1; close_re = close_re_of($0); next }
+    infence && $0 ~ close_re { infence = 0; next }
+    !infence { print }
+  '
 }
 
 # qs_embeds <page.md> — las fences que IMPORTAN código en build: una línea por

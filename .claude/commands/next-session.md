@@ -93,10 +93,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   El gate de cada arco sigue siendo el registro
   `docs/auditoria/madurez-2026-09-03/registro.csv` con su guard
   `umbrella-audit-backlog` (cero abiertos en un arco cerrado).
-- **49 guards en el registro**: los 48 de 1.31.0 más `umbrella-auth-posture`,
-  que A5 registró para vigilar la frontera entre lo que el banco de auth MIDE
-  y lo que la página PUBLICA — los dos documentos de A5 siguen siendo ficheros
-  de texto, y editar una cifra no pone roja ninguna suite.
+- **48 guards en el registro**: los 49 de 1.32.0 menos
+  `umbrella-quickstart-embeds`, retirado al salir los ejemplos del árbol
+  (2026-09-12): resolvía fences `file=` contra `nucleus/examples/showcase_demo`
+  y ya no hay árbol contra el que resolver. Lo que comprueba ahora que los
+  listados del quickstart sean lo que el scaffold escribe es
+  `scripts/ci/check_quickstart_listings.sh`, dentro de la lane que genera el
+  proyecto — comparación más fuerte que la anterior, pero en lane, no en el
+  registro. `umbrella-auth-posture` (A5) sigue.
 - **Cadencia**: set semanal (QADR-0008); un corte fuera de cadencia lleva la
   razón escrita en `status:` de `versions.yaml`.
 - **Reglas que ya se decidieron (no reabrir sin motivo nuevo)**:
@@ -205,6 +209,39 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   publicar como cierto algo que el pin no respalda. NU-73 se marca hecho en el
   registro cuando esa release exista.
 
+**Y, en la misma sesión, la suite se quedó sin `examples/`** (decisión del
+propietario: nada de ejemplos ni apps nuevas hasta cerrar el plan 5/5).
+Cuatro PRs: quark#398, orbit#468, nucleus#541 y el del paraguas.
+
+- **Lo que se fue**: los once ejemplos runnable de quark, `examples/minimal` y
+  `agent/examples/fleet-app` de orbit, y `examples/mvc_api` y
+  `examples/showcase_demo` de nucleus — con sus lanes, sus entradas en los
+  gates requeridos, el workflow `repin-showcase`, cuatro scripts de nucleus,
+  el paso `repin_examples` del tren y dos de sus trampas, la lane
+  `showcase-smoke` del paraguas y el guard `umbrella-quickstart-embeds`
+  (**48 guards**, no 49).
+- **Lo que NO era un ejemplo y se movió en vez de morir**:
+  `quark/examples/superapp` es el arnés de aceptación cross-engine (51
+  ficheros Go, seis motores, gate por manifiesto de API). Ahora es
+  **`quark/acceptance/`**, con su module path, sus `replace`, el Makefile,
+  Dependabot y `release-please-config.json` detrás; los filtros de módulos
+  del paraguas (`manifest-modules.sh`, `manifest-guard.sh`,
+  `check_gowork_covers_manifest.sh`) lo excluyen como a `benchmarks/` y
+  `bugbash/`.
+- **Dos mediciones se sustituyeron por otras mejores**: el perfil `mvc-api`
+  del arnés de compatibilidad de nucleus pasa a `scaffold-mvc` (genera con
+  `nucleus new` y compila contra el árbol, en vez de compilar una copia
+  comiteada), y los listados del quickstart de la suite —que la página
+  embebía del ejemplo con fences `file=`— ahora viven EN la página y
+  `scripts/ci/check_quickstart_listings.sh` los compara, dentro de la lane
+  del quickstart, con **lo que el scaffold acaba de escribir**.
+- **Dos se perdieron y están en el registro** (NU-74, NU-75, P3, arco A10):
+  nada prueba ya que el quickstart de nucleus sea copiable, ni que la página
+  «minimal API» liste los 20 símbolos que una app usa.
+- **Efecto colateral que conviene saber**: el rojo de `main` en nucleus era
+  exactamente el guard de pines de los ejemplos, así que el borrado lo cura
+  de raíz y **nucleus#527 (el re-pin) sobra**.
+
 ### Sesión 2026-09-12 (tarde) — A5 entregado: nueve sesiones y 40 de 43 controles
 
 - **El arco A5 en un día**: `S0`–`S9` hechas, **diez PRs en nucleus**
@@ -291,16 +328,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   inválido fuera de SQLite y MySQL permisivo) avisa desde quark v1.14.0 pero
   no es error: convertirlo rompe a quien depende de esos motores, así que se
   movió a **A12**, donde QADR-0010 acumula lo rompiente.
-- **URGENTE, y desatasca a todo el mundo**: **el `main` de nucleus está rojo**
-  desde la release de v1.28.0 — los dos ejemplos (`examples/mvc_api`,
-  `examples/showcase_demo`) siguen pinando v1.26.0 y el guard del showcase
-  falla, lo que tumba el `CI Required Gate` de **cualquier PR abierto** del
-  repo, incluidos los que no lo tocan. El arreglo existe y está verde:
-  **nucleus#527** (re-pin a v1.28.0), MERGEABLE. Fusionarlo primero.
-- **Los tres PRs de la sesión S0 de A6, abiertos y a la espera**: orbit#467
-  (el banco), quantum#189 (plan, registro y handoff) y **nucleus#540** (el
-  arreglo de NU-73, bloqueado sólo por el rojo de arriba). Orden de fusión:
-  nucleus#527 → nucleus#540 → orbit#467 → quantum#189.
+- **Fusionado el 2026-09-12**: nucleus#527 (re-pin que desatascó el `main`
+  rojo), **nucleus#540** (NU-73, el `Hijack`), **orbit#467** (el banco de
+  admin) y **quantum#189** (el plan de A6). Con NU-73 en `main`, la sonda
+  OPS-06 del banco pasará a `present` **cuando el `require` de orbit traiga
+  la release de nucleus que lo contiene**, no antes: hasta entonces su
+  veredicto registrado sigue siendo `absent` a propósito.
+- **Abiertos, verdes y a la espera — el borrado de `examples/`**: quark#398
+  (once ejemplos fuera y el arnés a `acceptance/`), orbit#468, nucleus#541 y
+  quantum#190. Sin dependencias de orden entre ellos: los guards del paraguas
+  leen el árbol AL PIN, que todavía lleva los ejemplos.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
   proteger `main` en quark, orbit y quantum exigiendo `CI Required Gate`
   (sólo nucleus la tiene); activar `allow_auto_merge` en los cuatro (medido
@@ -390,8 +427,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   pre-check exige árbol limpio (`QUANTUM_ALLOW_DIRTY=1` solo para iterar en
   local).
 - Al cerrar un arco, el snapshot de docs se corta **el último** de los cambios
-  de la ronda, y el re-pin de `examples/showcase_demo` (nucleus) va **después**
-  de todos los tags del set.
+  de la ronda. El re-pin del showcase ya no existe: los ejemplos salieron del
+  árbol el 2026-09-12 y con ellos el paso del tren que los re-pinaba.
 
 ## 6. Cómo cerrar la sesión
 

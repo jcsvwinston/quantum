@@ -22,10 +22,6 @@ toolchain go1.26.6
 //     `replace ../` y pines propios (quark v0.10.0, go 1.25.7); no se
 //     publican, no están en su manifiesto de release y sus dependencias no
 //     forman parte del set.
-//   - nucleus/examples/*: aplicaciones de ejemplo, no módulos que nadie
-//     instala. La ÚNICA excepción es showcase_demo, que sigue aquí porque la
-//     lane showcase-smoke de integration.yml la compila y arranca en modo
-//     workspace (scripts/ci/showcase_smoke.sh) contra el set pinado.
 //
 // Los patrones de build por módulo salen de esta lista:
 //   go build $(bash scripts/gowork-patterns.sh)
@@ -36,7 +32,6 @@ use (
 	./nucleus/drivers/oracle
 	./nucleus/drivers/postgres
 	./nucleus/drivers/sqlite
-	./nucleus/examples/showcase_demo
 	./nucleus/exporters/otlp
 	./nucleus/exporters/prometheus
 	./nucleus/providers/ldap

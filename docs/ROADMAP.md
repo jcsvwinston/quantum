@@ -191,6 +191,9 @@ No toca el código de ningún producto.
 
 ### Fase 4 — Integración demostrada
 - Reponer un ejemplo real Nucleus + Quark + Orbit (el `showcase_demo` se había eliminado) como prueba viva de la suite.
+  <!-- El ejemplo cumplió esto y se retiró el 2026-09-12 con los demás: hoy la
+  prueba viva la ESCRIBE `nucleus new --template suite` en la lane del
+  quickstart, que además la arranca y le pregunta por HTTP. -->
 - Extender la superapp cross-engine para cubrir el montaje conjunto en el CI de integración.
 - **Hecho cuando:** hay un ejemplo ejecutable y un CI que ejerce los tres juntos.
 

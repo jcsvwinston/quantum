@@ -357,13 +357,15 @@ const config: Config = {
         // path es relativo al sitio (docs/…), a diferencia de las instancias
         // de producto (../<producto>/…), que necesitan la forma función.
         editUrl: 'https://github.com/jcsvwinston/quantum/edit/main/website/',
-        // remark-code-import también aquí: el quickstart de la suite (arco
-        // A2, «lee lo que se generó») embebe con fences
-        // ```go file=<rootDir>/examples/showcase_demo/…``` los ficheros que
-        // `nucleus new --template suite` escribe, y el ejemplo vive en el
-        // submódulo PINADO de nucleus (el mismo rootDir que la instancia de
-        // nucleus, arriba). Sin este espejo los bloques se publicarían
-        // VACÍOS con build verde (SD-01; lo vigila check_built_codeblocks.sh).
+        // remark-code-import queda cableado aquí por simetría con la
+        // instancia de nucleus, pero el quickstart de la suite ya NO embebe
+        // del árbol: sus listados viven en la página desde que los ejemplos
+        // salieron de los repos (2026-09-12), y quien los compara con lo que
+        // `nucleus new --template suite` escribe es
+        // scripts/ci/check_quickstart_listings.sh, dentro de la lane del
+        // quickstart. Si una página vuelve a usar `file=`, el espejo de
+        // rootDir evita que se publique VACÍA con build verde (SD-01, que
+        // vigila check_built_codeblocks.sh).
         remarkPlugins: [
           [codeImport, {
             rootDir: path.resolve(__dirname, '../nucleus'),

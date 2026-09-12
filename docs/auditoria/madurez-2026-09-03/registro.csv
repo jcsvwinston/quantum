@@ -207,3 +207,5 @@ OR-48,P3,orbit,A6,abierto,,orbit.md,`internal/admin/panel.go:444,460` (el fallba
 OR-49,P3,orbit,A6,abierto,,orbit.md,`internal/admin/runtime_cache.go` ; banco OPS-11
 OR-50,P3,orbit,A6,abierto,,orbit.md,`internal/admin/runtime_email.go:20-65` ; banco OPS-13
 NU-73,P1,nucleus,A6,abierto,"lo descubrió el banco de admin de orbit; sin esto el stream del panel no conecta en ningún despliegue",nucleus.md,"`pkg/auth/session.go:120,129-160` — flashSweepWriter sin Hijack: todo websocket de toda aplicación revienta"
+NU-74,P3,nucleus,A10,abierto,"la medición se fue con los ejemplos (decisión de producto 2026-09-12)",nucleus.md,`internal/cli/quickstart_cliff_test.go` — nada prueba que el quickstart sea copiable
+NU-75,P3,nucleus,A10,abierto,"la medición se fue con los ejemplos (decisión de producto 2026-09-12)",nucleus.md,`website/docs/getting-started/minimal-api.md` — los 20 símbolos ya no los cuenta nadie
