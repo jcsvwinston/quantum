@@ -328,15 +328,16 @@ Cuatro PRs: quark#398, orbit#468, nucleus#541 y el del paraguas.
   inválido fuera de SQLite y MySQL permisivo) avisa desde quark v1.14.0 pero
   no es error: convertirlo rompe a quien depende de esos motores, así que se
   movió a **A12**, donde QADR-0010 acumula lo rompiente.
-- **El `main` de nucleus está rojo** desde la release de v1.28.0 (los
-  ejemplos pinaban v1.26.0 y el guard de pines tumba el `CI Required Gate` de
-  **cualquier** PR abierto). **nucleus#541 lo cura de raíz** al llevarse los
-  ejemplos; nucleus#527 (el re-pin) sobra y se puede cerrar.
-- **Siete PRs abiertos de esta sesión, en este orden**: nucleus#541 (borrado,
-  desatasca el repo) → nucleus#540 (NU-73) → orbit#467 (el banco) →
-  orbit#468 (borrado) → quark#398 (borrado + `acceptance/`) → quantum#189
-  (plan de A6) → el PR del paraguas con el borrado. Los dos del paraguas
-  tocan ficheros comunes: fusiona el de A6 primero.
+- **Fusionado el 2026-09-12**: nucleus#527 (re-pin que desatascó el `main`
+  rojo), **nucleus#540** (NU-73, el `Hijack`), **orbit#467** (el banco de
+  admin) y **quantum#189** (el plan de A6). Con NU-73 en `main`, la sonda
+  OPS-06 del banco pasará a `present` **cuando el `require` de orbit traiga
+  la release de nucleus que lo contiene**, no antes: hasta entonces su
+  veredicto registrado sigue siendo `absent` a propósito.
+- **Abiertos, verdes y a la espera — el borrado de `examples/`**: quark#398
+  (once ejemplos fuera y el arnés a `acceptance/`), orbit#468, nucleus#541 y
+  quantum#190. Sin dependencias de orden entre ellos: los guards del paraguas
+  leen el árbol AL PIN, que todavía lleva los ejemplos.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
   proteger `main` en quark, orbit y quantum exigiendo `CI Required Gate`
   (sólo nucleus la tiene); activar `allow_auto_merge` en los cuatro (medido
