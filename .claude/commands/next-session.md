@@ -68,25 +68,24 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.31.0** (2026-09-11) — quark v1.14.0, nucleus
-  v1.27.0, orbit v1.9.5 y sus módulos, tal como los lista `versions.yaml`
-  (la fuente; no copies números de aquí). `declared_lags` vacío. **Los cuatro
-  releases salieron con activos firmados**, que es la deuda que 1.30.0 dejó
-  abierta: `scripts/check_release_assets.sh` la vigila.
+- **Set certificado: Quantum 1.32.0** (2026-09-12) — quark v1.14.0 (sin
+  cambio), nucleus v1.28.0, orbit v1.9.6 y sus módulos, tal como los lista
+  `versions.yaml` (la fuente; no copies números de aquí). `declared_lags`
+  vacío. Publica el arco **A5**.
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
-- **Trabajo por arcos del plan 5/5**: A1, A2, A3 y **A4 CERRADOS** (1.28.0,
-  1.29.0, 1.30.0, 1.31.0) → **A5, auth de producto, ENTREGADO y sin
-  publicar**: `S0`–`S9` hechas (banco de auth **40/43**, cero hallazgos
-  abiertos de A5 en el registro) y falta `S10` — fusionar la pila de PRs de
-  nucleus, cortar el set y registrar el guard `umbrella-auth-posture`, que
-  espera al pin. Troceado y razones en
-  [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md).
-  Después: **A6** (Orbit como admin de producto), que lleva el único P1
-  abierto y hereda de A5 la pantalla de sesiones por dispositivo.
+- **Trabajo por arcos del plan 5/5**: A1, A2, A3, A4 y **A5 CERRADOS**
+  (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0) → **A6, Orbit como admin de
+  producto, es el SIGUIENTE**: lleva el único P1 abierto del registro (OR-4,
+  usuarios y roles desde el panel) y hereda de A5 la pantalla de sesiones por
+  dispositivo, cuya capacidad ya existe (`ActiveSessions`, `Revoke`,
+  `RevokeWhere`, metadatos con agente de usuario). A6 no tiene troceado: se
+  escribe al empezarlo, por una sesión de medición — en A5 esa sesión midió
+  14/43 y acabó en 40/43, y dos de sus cinco primeras conclusiones fueron
+  errores de la propia medición.
   Lo que fue A4, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md).
   `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no

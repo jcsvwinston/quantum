@@ -259,7 +259,7 @@ Se rellena al terminar cada una: el PR que la cierra y lo que se midió.
 | S7 | **hecha** 2026-09-12 | nucleus#535 | 39. Proveedor OIDC con PKCE siempre, discovery, JWKS con refetch limitado y verificación de audiencia, emisor, expiración y nonce; sólo algoritmos asimétricos. En el módulo raíz porque NO añade dependencias: la razón de ADR-030/031 no aplica. Cierra NU-43 |
 | S8 | **hecha** 2026-09-12 | nucleus#534 | 36 → **38**. `ObjectEnforcer` (ABAC de Casbin) y los helpers del `Context`: `Claims`, `UserID`, `HasRole`, `Can`, `CanObject`. Todos CERRADOS sin middleware montado |
 | S9 | **hecha** 2026-09-12 | nucleus#536 | 40. `contracts/baseline/asvs_l2.txt`: 25 requisitos de ASVS 4.0.3 L2 medidos — 22 met, 2 de la aplicación, 1 not-met con su razón. Un probe se equivocó ANTES que el código (V3.2.1, el mismo error que SES-02). `doctor security` nombra ya el timeout de inactividad |
-| S10 | pendiente | — | Gate, guard y set |
+| S10 | **hecha** 2026-09-12 | quantum#188 | **Quantum 1.32.0 certificado** (nucleus v1.28.0, orbit v1.9.6 de alineación), 49 guards con `umbrella-auth-posture` registrado, y A5 en `arcos_cerrados`. El tren enseñó dos cosas ajenas al arco: la imagen de MinIO dejó de servirse en Docker Hub y ponía rojo el gate obligatorio de CUALQUIER PR, y fusionar el primero de una pila borrando su rama cierra los PRs que la tenían por base — sin poder reabrirlos |
 
 ### Lo que estas sesiones dejaron dicho, y no hay que redescubrir
 
@@ -280,6 +280,12 @@ Se rellena al terminar cada una: el PR que la cierra y lo que se midió.
   dijo que la sesión no rota al autenticar; rotaba, y lo que fallaba era
   preguntar el token dentro de una sola petición anónima, donde está vacío en
   los dos lados. Mismo error que `SES-02` en el banco.
+- **Una prueba contra el motor encontró lo que SQLite no podía enseñar.** El
+  store de cuentas emitía `CREATE INDEX IF NOT EXISTS`, que MySQL no tiene:
+  `NewSQLStore` fallaba al construirse contra ese motor y con él todos los
+  flujos. Las pruebas unitarias corren sobre SQLite, donde la sentencia es
+  válida. Lo vio la primera corrida del test multi-motor que este mismo arco
+  añadió, un commit después de añadirlo.
 - **Lo que NO se entrega se dice y se razona**: WebAuthn (empaquetado
   imposible en este corte), SAML (otro cuerpo de trabajo sobre la misma
   costura) y el timeout de inactividad por defecto (caduca sesiones ajenas al

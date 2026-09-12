@@ -11,24 +11,23 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-09-11)
+## Estado real (2026-09-12)
 
-- **Set certificado: Quantum 1.31.0** (2026-09-11) — quark v1.14.0
-  (con el CLI en v1.0.1 y los cinco drivers en v0.2.1) · nucleus v1.27.0 (doce
-  módulos hermanos: once en v0.1.5, providers/ldap v0.2.9) · orbit v1.9.5
-  (proto v0.4.4, agent v0.6.19, server v0.11.5, quarkbridge v1.8.23,
-  quarkdatasource v1.8.24).
-  1.31.0 publica el arco **A4** (quark como capa de datos de nucleus): el
-  banco de 60 consultas de quark pasa de 44 a 58 expresables con la API
-  tipada, las migraciones se revierten con `Plan.Down`, los enteros y
-  flotantes generados dejan de quedarse cortos —un `int64` por encima de 2³¹
-  lo rechazaban PostgreSQL, MySQL y SQL Server— y `nucleus generate module`
-  construye sobre quark por defecto. Minor de suite por las minors de quark y
-  nucleus. **Arco en curso: A5** (auth de producto): su sesión de medición
-  está hecha —el banco de conformidad de `nucleus/internal/authbench` mide
-  **14 de 43** controles presentes, 3 parciales y 26 ausentes— y el arco tiene
-  troceado en [`planes/A5-auth-de-producto.md`](planes/A5-auth-de-producto.md).
-  Puede solaparse con A6.
+- **Set certificado: Quantum 1.32.0** (2026-09-12) — quark v1.14.0 (con el
+  CLI en v1.0.1 y los cinco drivers en v0.2.1) · nucleus v1.28.0 (doce
+  módulos hermanos) · orbit v1.9.6 (proto v0.4.4, agent v0.6.20, server
+  v0.11.6, quarkbridge v1.8.24, quarkdatasource v1.8.25).
+  1.32.0 publica el arco **A5** (auth de producto): nucleus tenía el sustrato
+  —sesiones, tokens, hash de contraseñas, motor de políticas y dos costuras
+  de extensión— y ninguna ruta que iniciara sesión a nadie. Ahora hay
+  `pkg/accounts` (registro, verificación, login, reset, enlace mágico,
+  bloqueo progresivo), segundo factor TOTP con códigos de recuperación,
+  `pkg/auth/apikeys`, un proveedor OIDC que llena la costura federada que
+  estaba vacía desde v1.15.0, permisos por objeto, y la postura mapeada a
+  ASVS 4.0.3 L2 con 27 requisitos medidos. El banco de conformidad de auth
+  pasa de **14 a 40 de 43** controles. Minor de suite por la minor de
+  nucleus. **Siguiente arco: A6** (Orbit como admin de producto), que lleva
+  el único P1 abierto del registro.
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
