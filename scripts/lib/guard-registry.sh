@@ -134,6 +134,14 @@ GUARDS=(
   # null` (NU-50, A4/S6). Cada producto lo detecta ya al registrar el modelo;
   # esto lo comprueba en el ÁRBOL, donde vive un modelo que nadie ejecuta.
   "umbrella-tag-grammar|.|bash scripts/check_tag_grammar.sh"
+  # El gate del arco A5: lo que la suite AFIRMA sobre su autenticación es lo
+  # que sus propias medidas dicen. A5 dejó un banco de 43 controles con su
+  # probe (`nucleus/internal/authbench`) y una matriz de 25 requisitos ASVS
+  # 4.0.3 L2 (`contracts/baseline/asvs_l2.txt`), los dos medidos; este guard
+  # vigila la frontera entre lo medido y lo PUBLICADO — la cifra de la página,
+  # la nota de cada hueco, el veredicto de cada fila—, que es donde una
+  # medición se vuelve mentira sin que ninguna suite se ponga roja.
+  "umbrella-auth-posture|.|bash scripts/check_auth_posture.sh"
   # Toda lane del paraguas con disparador `schedule:` lleva su job
   # `notify-schedule-failure`: el cron rojo no puede degradar al email por
   # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que

@@ -94,9 +94,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   El gate de cada arco sigue siendo el registro
   `docs/auditoria/madurez-2026-09-03/registro.csv` con su guard
   `umbrella-audit-backlog` (cero abiertos en un arco cerrado).
-- **48 guards en el registro**: los 47 de 1.30.0 más `umbrella-tag-grammar`,
-  que A4 registró para que ningún modelo escriba el tag `db` en la gramática
-  de la otra capa de datos.
+- **49 guards en el registro**: los 48 de 1.31.0 más `umbrella-auth-posture`,
+  que A5 registró para vigilar la frontera entre lo que el banco de auth MIDE
+  y lo que la página PUBLICA — los dos documentos de A5 siguen siendo ficheros
+  de texto, y editar una cifra no pone roja ninguna suite.
 - **Cadencia**: set semanal (QADR-0008); un corte fuera de cadencia lleva la
   razón escrita en `status:` de `versions.yaml`.
 - **Reglas que ya se decidieron (no reabrir sin motivo nuevo)**:

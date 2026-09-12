@@ -33,9 +33,10 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
-- **Certificación mecánica:** 48 guards en el registro (los 47 de 1.30.0 más
-  `umbrella-tag-grammar`, que A4 registró), lane semanal + modo
-  `--cierre` ([`AUDITORIA_CONTINUA.md`](AUDITORIA_CONTINUA.md)).
+- **Certificación mecánica:** 49 guards en el registro (los 48 de 1.31.0 más
+  `umbrella-auth-posture`, que A5 registró: vigila que lo que la suite
+  AFIRMA sobre su autenticación sea lo que sus propias medidas dicen), lane
+  semanal + modo `--cierre` ([`AUDITORIA_CONTINUA.md`](AUDITORIA_CONTINUA.md)).
 - **Auditoría de madurez 2026-09-03 sobre 1.26.0: ejecutada, corregida y
   PUBLICADA en 1.26.1.** Cuatro auditores midieron cada pilar contra el
   mercado (147 defectos, 4 P0, todos en la primera hora del evaluador). Los
