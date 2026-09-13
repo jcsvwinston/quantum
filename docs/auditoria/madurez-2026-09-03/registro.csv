@@ -90,7 +90,7 @@ NU-67,P3,nucleus,—,hecho,nucleus#473,nucleus.md,`SPEC.md:234` ; `pkg/app/jwt_s
 OR-1,P0,orbit,—,hecho,orbit#380,orbit.md,"`server/server.go:256,263,490`; `:421` (F1)"
 OR-2,P1,orbit,—,hecho,orbit#380,orbit.md,"`internal/datasource/nucleus/store.go:91-102`, `reflect.go:38-140`"
 OR-3,P1,orbit,—,hecho,orbit#380,orbit.md,"`internal/admin/system.go:99-165,414-452`"
-OR-4,P1,orbit,A6,abierto,usuarios y roles desde el panel: A6,orbit.md,"`internal/admin/panel.go:441-517` (rutas), `default_auth.go`"
+OR-4,P1,orbit,A6,hecho,orbit#471 (rutas + pantalla Operators; desactivar revoca en la petición siguiente),orbit.md,"`internal/admin/panel.go:441-517` (rutas), `default_auth.go`"
 OR-5,P1,orbit,—,hecho,orbit#380,orbit.md,"`examples/minimal/main.go:19-27`, `README.md:96-104`, `.github/workflows/ci.yml`"
 OR-6,P1,orbit,—,hecho,orbit#380,orbit.md,"`agent/agent.go:238-242`, `agent/connection/connection.go:289-306` (F2)"
 OR-7,P1,orbit,—,hecho,orbit#380,orbit.md,"`server/cmd/admin-server/main.go:176-188`, `server/config.go:24`, `server/README.md:55`, `auth/auth.go:3` (F3)"

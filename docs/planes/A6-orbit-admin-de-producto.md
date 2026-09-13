@@ -23,9 +23,10 @@ fixture; sería el 50º):
 - lo publicado y lo medido, comprobados el uno contra el otro (la página
   `orbit/docs/admin-bench.md` contra lo que cuentan los casos).
 
-**Hallazgos que descuenta.** Ocho: **OR-4** (P1, heredado) y los siete que
-abrió la medición de `S0` — **NU-73** (P1, en nucleus), **OR-45** y **OR-46**
-(P2), **OR-47**, **OR-48**, **OR-49** y **OR-50** (P3).
+**Hallazgos que descuenta.** Ocho: **OR-4** (P1, heredado — **cerrado en
+`S1`**, orbit#471) y los siete que abrió la medición de `S0`: **NU-73** (P1,
+en nucleus; arreglado y esperando a que el pin de orbit lo traiga), **OR-45**
+y **OR-46** (P2), **OR-47**, **OR-48**, **OR-49** y **OR-50** (P3).
 
 **La regla que lo condiciona.**
 [QADR-0010](../adr/QADR-0010-rupturas-agrupadas-en-un-major.md): lo rompiente
@@ -160,6 +161,33 @@ PERM-02 y PERM-03.
 ```bash
 cd orbit && go test ./internal/adminbench/ -run 'TestAdminBench/PERM-0[23]' -v
 ```
+
+**HECHA el 2026-09-13** (orbit#471). **OR-4 cerrado**; el banco pasa de 32 a
+**34 de 59** y la familia de permisos de 4 presentes a 6.
+
+### Lo que S1 entregó, y las dos decisiones que conviene no reabrir
+
+- **Diez rutas bajo `/admin/api/admin-users`** —listar con roles, crear,
+  editar, contraseña, desactivar/reactivar, rol, borrar— con **auditoría por
+  ruta** (las ocho mutantes tienen su sonda en `audit_coverage_test.go`, que
+  además asserta que la contraseña NO entra en el rastro) y una **pantalla
+  Operators** en el panel que las gasta.
+- **Desactivar ≠ borrar.** El proveedor re-lee la cuenta en CADA petición, así
+  que un operador desactivado deja de serlo en su petición siguiente —sin
+  perseguir su sesión— y la cuenta, con el nombre que llevan sus entradas de
+  auditoría, se queda. Eso pidió columna: `is_active`, en el CREATE para
+  bases nuevas y por un **ALTER idempotente** para las que ya existen, en los
+  cinco dialectos, con test de que el operador existente no vuelve
+  desactivado.
+- **Dos negativas viven en el handler, no en la UI**, porque la UI no es el
+  único cliente: no puedes desactivar, borrar ni degradar tu PROPIA cuenta, y
+  nadie puede hacérselo al ÚLTIMO superusuario activo. Las dos contestan 409
+  con la razón, y la pantalla enseña ese mensaje en vez de uno genérico.
+- **Un panel cuya autenticación no es esta tabla contesta 501** (ADR-004): no
+  se inventa un almacén de cuentas que la aplicación no pidió.
+- **Las sondas miden por EFECTO**: la cuenta creada inicia sesión, la
+  contraseña nueva funciona y la vieja no, la cuenta desactivada ya no entra.
+  Un 200 del endpoint no habría probado ninguna de las tres.
 
 ## S2 · Permisos que llegan al campo y a la fila
 

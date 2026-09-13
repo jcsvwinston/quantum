@@ -31,8 +31,11 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   encontró **NU-73**: el envoltorio de respuesta del gestor de sesiones no
   implementa `Hijack`, así que ningún websocket de ninguna aplicación
   completa el upgrade y el feed en vivo del panel no conecta en un
-  despliegue real. A6 lleva dos P1 abiertos (OR-4 y NU-73); su troceado está
-  en [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md).
+  despliegue real. Su `S1` **cerró OR-4** —el P1 más viejo del registro, de la
+  auditoría de madurez—: los operadores se crean, se gradúan y se revocan
+  desde el panel, y el banco va por **34 de 59**. Queda NU-73, arreglado en
+  nucleus y a la espera del pin. El troceado está en
+  [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
