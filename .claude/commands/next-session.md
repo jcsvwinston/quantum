@@ -82,9 +82,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   producto, EN CURSO**: su `S0` (medición) está hecha y el troceado en once
   sesiones vive en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md).
-  **Siguiente sesión: `S1`** (operadores desde el panel), que es la que cierra
-  el P1 heredado OR-4. A6 lleva ahora **dos P1**: OR-4 y **NU-73**, que abrió
-  su propia medición.
+  **`S1` hecha el 2026-09-13** (orbit#471): OR-4 cerrado y el banco en 34/59.
+  **Siguiente sesión: `S2`** (permisos por campo y por fila). De los dos P1
+  que A6 llevaba queda **NU-73**, ya arreglado en nucleus y a la espera de que
+  el pin de orbit traiga su release.
   Lo que fue A4 y A5, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md) y
   [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md).
@@ -153,6 +154,32 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `docs/handoff/sesiones-2026-07-12_a_2026-09-02.md` (grep, no cargar);
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
+
+### Sesión 2026-09-13 — A6 `S1`: el panel administra a las personas, no sólo a las políticas
+
+- **`S1` HECHA** (orbit#471) y **OR-4 CERRADO** — el P1 más viejo del
+  registro, abierto desde la auditoría de madurez. El banco de admin pasa de
+  **32 a 34 de 59**; la familia de permisos, de 4 presentes a 6.
+- **Lo que ahora existe**: diez rutas bajo `/admin/api/admin-users` (listar
+  con roles, crear, editar, contraseña, desactivar/reactivar, rol, borrar),
+  una **pantalla Operators** en el panel, y auditoría por ruta — las ocho
+  mutantes tienen sonda en `audit_coverage_test.go`, que además asserta que
+  **la contraseña no entra en el rastro**.
+- **Desactivar ≠ borrar, y eso decidió el diseño**: el proveedor re-lee la
+  cuenta en CADA petición, así que un operador desactivado deja de serlo en su
+  petición siguiente —sin perseguir su sesión— y la cuenta, con el nombre que
+  llevan sus entradas de auditoría, se queda. Pidió columna: `is_active`, en
+  el CREATE y por **ALTER idempotente** para bases existentes, en los cinco
+  dialectos.
+- **Dos negativas en el handler, no en la UI** (la UI no es el único cliente):
+  nadie desactiva, borra ni degrada su PROPIA cuenta, ni la del ÚLTIMO
+  superusuario activo. 409 con la razón, y la pantalla enseña ESE mensaje.
+- **Las sondas miden por efecto**, no por status: la cuenta creada inicia
+  sesión, la contraseña nueva funciona y la vieja no, la desactivada ya no
+  entra. Es la lección de AUD-05 aplicada antes de tropezar.
+- **Siguiente: `S2`** (permisos que llegan al campo y a la fila). Lee QADR-0010
+  antes: `datasource.Query` y `orbit.Config` están congelados y lo nuevo entra
+  por adición.
 
 ### Sesión 2026-09-12 (noche) — A6 arranca: 32 de 59 controles, y un defecto que ninguna suite veía
 
@@ -241,51 +268,6 @@ Cuatro PRs: quark#398, orbit#468, nucleus#541 y el del paraguas.
 - **Efecto colateral que conviene saber**: el rojo de `main` en nucleus era
   exactamente el guard de pines de los ejemplos, así que el borrado lo cura
   de raíz y **nucleus#527 (el re-pin) sobra**.
-
-### Sesión 2026-09-12 (tarde) — A5 entregado: nueve sesiones y 40 de 43 controles
-
-- **El arco A5 en un día**: `S0`–`S9` hechas, **diez PRs en nucleus**
-  (#528…#537) y el paraguas (#187). **El banco de conformidad de auth pasa
-  de 14 a 40 de 43 controles presentes**; `S10` (gate, guard y set) es lo que
-  queda, y su guard —`umbrella-auth-posture`, el 49º— ya está escrito con su
-  fixture, esperando a que el pin lo contenga.
-- **Lo que ahora existe y no existía**: correo de producto (HTML/multipart,
-  adjuntos, plantillas y `EnqueueTx` dentro de la transacción del llamante);
-  `Roles []string` por adición y revocación de sesiones y de tokens;
-  **`pkg/accounts`** con registro, verificación, login, reset, cambio, enlace
-  mágico y lockout; TOTP con códigos de recuperación y step-up;
-  **`pkg/auth/apikeys`** con scopes, rotación y CLI; permisos por OBJETO con
-  helpers en el `Context`; **proveedor OIDC** con PKCE, discovery y JWKS; y
-  la postura mapeada a **ASVS 4.0.3 L2**, 25 requisitos medidos (22 met, 2 de
-  la aplicación, 1 not-met con su razón).
-- **Cinco defectos los encontró el arnés, no la lectura**, y conviene
-  retenerlo: un 500 al iniciar sesión porque el servicio llevaba un gestor de
-  sesiones distinto del montado (el módulo toma ya el de la aplicación); un
-  **pánico** al pedir la sesión fuera de su middleware (`HasSession`); un
-  formato de clave de API que fallaba **una de cada diez** porque base64url
-  contiene el separador `_`; y dos mediciones equivocadas — KEY-05 leyó el
-  NOMBRE de una clave de configuración y ASVS V3.2.1 preguntó el token dentro
-  de una petición anónima, donde está vacío en los dos lados.
-- **Lo que NO se entrega, con su razón escrita en tres sitios** (banco, plan y
-  registro): **WebAuthn** —su empaquetado correcto es un módulo hermano, y un
-  módulo hermano pina la ÚLTIMA release publicada, que no contiene
-  `accounts.MFAStore` hasta que salga este set; a mano en el core sería donde
-  un fallo de seguridad es silencioso—; **SAML** —otro cuerpo de trabajo sobre
-  la misma costura—; y el **timeout de inactividad por defecto**, que caduca
-  sesiones en todo despliegue que actualice (QADR-0010): NU-72 se movió a A12
-  y desde este arco `doctor security` lo nombra.
-- **El gate se ajustó con su porqué**: «Orbit muestra las sesiones por
-  dispositivo» pasa a **A6**. A5 entrega la capacidad (`ActiveSessions`,
-  `Revoke`, `RevokeWhere`, metadatos con agente de usuario); dibujarla es del
-  repo que tiene el panel.
-- **Una trampa de CI, ajena al arco, que bloqueaba todo**: la imagen
-  `minio/minio` dejó de servirse en Docker Hub («pull access denied … does not
-  exist»), así que la lane de storage y con ella el gate obligatorio salían
-  rojos en **cualquier** PR. Arreglado apuntando a `quay.io/minio/minio`.
-- **Y una del flujo de PRs apilados**: fusionar el primero con `--delete-branch`
-  **cierra automáticamente** los PRs cuya base era esa rama, y un PR cerrado no
-  se puede reabrir ni reapuntar. Reapunta la pila entera a `main` ANTES de
-  fusionar el primero.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
