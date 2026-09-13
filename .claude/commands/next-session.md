@@ -328,16 +328,24 @@ Cuatro PRs: quark#398, orbit#468, nucleus#541 y el del paraguas.
   inválido fuera de SQLite y MySQL permisivo) avisa desde quark v1.14.0 pero
   no es error: convertirlo rompe a quien depende de esos motores, así que se
   movió a **A12**, donde QADR-0010 acumula lo rompiente.
-- **Fusionado el 2026-09-12**: nucleus#527 (re-pin que desatascó el `main`
-  rojo), **nucleus#540** (NU-73, el `Hijack`), **orbit#467** (el banco de
-  admin) y **quantum#189** (el plan de A6). Con NU-73 en `main`, la sonda
-  OPS-06 del banco pasará a `present` **cuando el `require` de orbit traiga
-  la release de nucleus que lo contiene**, no antes: hasta entonces su
-  veredicto registrado sigue siendo `absent` a propósito.
-- **Abiertos, verdes y a la espera — el borrado de `examples/`**: quark#398
-  (once ejemplos fuera y el arnés a `acceptance/`), orbit#468, nucleus#541 y
-  quantum#190. Sin dependencias de orden entre ellos: los guards del paraguas
-  leen el árbol AL PIN, que todavía lleva los ejemplos.
+- **Todo lo de esta sesión está FUSIONADO y `main` verde en los cuatro
+  repos** (nueve PRs, 2026-09-12/13): nucleus#527 (re-pin que desatascó el
+  `main` rojo), **nucleus#540** (NU-73, el `Hijack`), **orbit#467** (el banco
+  de admin), **quantum#189** (el plan de A6), los cuatro del borrado de
+  ejemplos (quark#398, orbit#468, nucleus#541, quantum#190) y **orbit#469**
+  (el arreglo de AUD-05, abajo).
+- **NU-73 está en `main` de nucleus, y la sonda OPS-06 del banco sigue en
+  `absent` a propósito**: el veredicto sólo puede moverse cuando el `require`
+  de orbit traiga la release de nucleus que contiene el arreglo. Quien suba
+  ese pin, actualiza el veredicto en el mismo PR — y marca NU-73 como hecho
+  en el registro.
+- **La trampa que se coló hasta `main`**: la sonda AUD-05 preguntaba si el id
+  del registro aparecía **en cualquier parte** del payload de auditoría. Un id
+  es un número corto y casa con un timestamp: pasó en el PR y tumbó el CI de
+  `main` al fusionar, con los ids ya distintos. En este banco, `Contains`
+  sobre un payload no es una medición — se busca LA entrada (acción, modelo,
+  record_id). Está escrito en `orbit/docs/admin-bench.md` con las otras
+  cuatro.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
   proteger `main` en quark, orbit y quantum exigiendo `CI Required Gate`
   (sólo nucleus la tiene); activar `allow_auto_merge` en los cuatro (medido
