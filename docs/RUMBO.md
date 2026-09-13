@@ -33,7 +33,12 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   completa el upgrade y el feed en vivo del panel no conecta en un
   despliegue real. Su `S1` **cerró OR-4** —el P1 más viejo del registro, de la
   auditoría de madurez—: los operadores se crean, se gradúan y se revocan
-  desde el panel, y el banco va por **34 de 59**. Queda NU-73, arreglado en
+  desde el panel, y el banco va por **34 de 59**. Su `S2` llevó los permisos
+  **al campo y a la fila** por adición a la gramática de políticas
+  (`admin:Post.title`, `admin:Post#own`) y puso en lo que una pantalla carga
+  las capacidades del operador, así que la UI apaga lo que no puede hacer en
+  vez de descubrirlo con un 403: el banco va por **37 de 59** y la familia de
+  permisos queda completa. Queda NU-73, arreglado en
   nucleus y a la espera del pin. El troceado está en
   [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y

@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-12, QUANTUM 1.32.0 — A5 cerrado, A6 arrancado por su medición)
+## 3. Estado al cierre (2026-09-13, QUANTUM 1.32.0 — A6 en curso: S1 y S2 hechas)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -82,10 +82,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   producto, EN CURSO**: su `S0` (medición) está hecha y el troceado en once
   sesiones vive en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md).
-  **`S1` hecha el 2026-09-13** (orbit#471): OR-4 cerrado y el banco en 34/59.
-  **Siguiente sesión: `S2`** (permisos por campo y por fila). De los dos P1
-  que A6 llevaba queda **NU-73**, ya arreglado en nucleus y a la espera de que
-  el pin de orbit traiga su release.
+  **`S1` y `S2` hechas el 2026-09-13** (orbit#471, orbit#472): OR-4 cerrado y
+  el banco en **37/59**, con la familia de permisos completa.
+  **Siguiente sesión: `S3`** (el rastro de auditoría deja de ser un buffer;
+  sin precondición). De los dos P1 que A6 llevaba queda **NU-73**, ya
+  arreglado en nucleus y a la espera de que el pin de orbit traiga su
+  release.
   Lo que fue A4 y A5, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md) y
   [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md).
@@ -155,6 +157,48 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-13 (tarde) — A6 `S2`: la política deja de pararse en el borde del modelo
+
+- **`S2` HECHA** (orbit#472). Los tres controles que llevaba —**PERM-06**,
+  **PERM-07** y **PERM-09**— miden `present`: el banco pasa de **34 a 37 de
+  59** y la familia de permisos queda **completa** (9/9), la primera que lo
+  está. El set sigue en 1.32.0: S2 no corta.
+- **El objeto de una política admite dos formas más, por adición**:
+  `admin:Post#own` (el mismo verbo sobre las filas del operador) y
+  `admin:Post.title` (un campo). Quien no escribe ninguna se comporta igual
+  que antes, y dos tests lo fijan. QADR-0010 respetado: no se renombra ni se
+  quita nada; `datasource.Query` sigue intacto —el filtro de propiedad es
+  igualdad, que es lo que `Filters` ya sabía hacer—.
+- **Dos decisiones que conviene no reabrir**: un `#own` sobre un modelo del
+  que la aplicación no declaró columna de dueño se **RECHAZA** con 403 (una
+  regla de propiedad que degrada en silencio a «todo» sería invisible, y es
+  justo el fallo que el mecanismo existe para impedir); y una escritura sobre
+  un campo prohibido es un **403 que NOMBRA el campo**, no un descarte
+  silencioso — un formulario que cree haber guardado lo que no guardó es peor
+  que uno al que se le dice que no puede.
+- **La fila ajena contesta 404**, no 403: la misma respuesta que una fila que
+  no existe, para no revelar el espacio de ids. Es la elección que ya hacía
+  el confinamiento por tenant, y ahora comparten mecanismo
+  (`columnScopeOwns`) incluida su parte difícil — un registro que no trae la
+  columna se confirma contra el almacén.
+- **Las pistas de capacidad son ayuda de render, no la puerta**: viajan en lo
+  que la pantalla ya cargaba (`permissions`, `can_create/update/delete`,
+  `row_scope`, y `can_edit` por campo), la UI las gasta para apagar botones e
+  inputs, y todo se vuelve a comprobar en la petición siguiente.
+- **Lo que NO cubre está escrito** (ADR-007 de orbit, y la doc pública): los
+  verbos globales de export/import —que se autorizan sobre `admin:*` y son el
+  rodeo de quien los concede—, los valores del propio rastro de auditoría, y
+  el feed en vivo.
+- **Las dos familias de tests se verificaron mutando el código que cubren**
+  antes de darlas por buenas; y las sondas miden por efecto en los dos
+  sentidos (la de campo relee el valor tras el 403 **y** comprueba que un
+  campo permitido sigue siendo escribible — un panel que rechazara todo
+  habría pasado una sonda de un solo sentido).
+- **Adición al contrato congelado**: dos campos en `orbit.Config`
+  (`RowOwnerFields`, `RowOwnerSubject`); baseline regenerada en el mismo PR.
+- **Siguiente: `S3`** (la auditoría a la base, con retención y export;
+  AUD-05/06/07 y DS-16). Sin precondición.
+
 ### Sesión 2026-09-13 — A6 `S1`: el panel administra a las personas, no sólo a las políticas
 
 - **`S1` HECHA** (orbit#471) y **OR-4 CERRADO** — el P1 más viejo del
@@ -180,94 +224,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 - **Siguiente: `S2`** (permisos que llegan al campo y a la fila). Lee QADR-0010
   antes: `datasource.Query` y `orbit.Config` están congelados y lo nuevo entra
   por adición.
-
-### Sesión 2026-09-12 (noche) — A6 arranca: 32 de 59 controles, y un defecto que ninguna suite veía
-
-- **Sesión `S0` del arco A6, HECHA** (orbit#467, quantum#189). El set
-  sigue en 1.32.0: `S0` no corta, mide. Precondición comprobada antes de
-  empezar (`arcos cerrados: A1 A2 A3 A4 A5`).
-- **El banco de admin existe y es ejecutable**: **32 de 59 controles
-  presentes, 9 parciales, 18 ausentes**. Vive en
-  `orbit/internal/adminbench/` —cada sonda arranca una aplicación Nucleus con
-  `orbit.Module(...)` montado, inicia sesión como el admin de arranque y le
-  pregunta al panel por su propia API— y `TestAdminBench` asserta el
-  **veredicto registrado**, no el éxito. Página en `orbit/docs/admin-bench.md`.
-- **La forma del resultado es el hallazgo**: el panel **navega y opera bien, y
-  administra mal**. Los datos (CRUD con validación, búsqueda, orden servidor,
-  lotes, import/export, fixtures, multi-tenant, datasource ajeno) y la
-  aplicación (feed en vivo, pulso, flags, migraciones, storage, exports
-  asíncronos) están; **lo que un operador le hace a otros operadores falta
-  entero** — ninguna ruta crea un admin, le cambia la contraseña ni lo
-  desactiva. Tres para retener: la política es `(sujeto, modelo, acción)`, así
-  que ni campo ni fila caben; lo que una pantalla carga no lleva pistas de
-  capacidad, así que la UI descubre los permisos **siendo rechazada**; y el
-  rastro de auditoría cubre todo y **no sobrevive al proceso**.
-- **NU-73 (P1), el hallazgo caro**: el middleware de sesión de nucleus envuelve
-  el `ResponseWriter` en `auth.flashSweepWriter`, que implementa `Flush` y
-  `Unwrap` pero **no `Hijack`** → **cualquier websocket de cualquier
-  aplicación** revienta al hacer el upgrade y responde 500. El feed en vivo del
-  panel —su capacidad diferencial— **nunca conecta** en un despliegue real; su
-  snapshot sí. Los tests del panel lo cablean sin esa pila, por eso pasaban.
-  El router ya implementa `Hijack` en sus otros dos envoltorios: falta en ése.
-- **Seis hallazgos más en el registro** (207 filas, 13 abiertos, A6 con 8):
-  **OR-45** (P2) ninguna lista tiene total (`total:-1`, `is_estimated:true`,
-  con cinco filas); **OR-46** (P2) la fila de sesión nunca dice de quién es;
-  **OR-47**, **OR-48** (el fallback de la SPA tapa los 404 de `/api/*`),
-  **OR-49** y **OR-50** (P3).
-- **Cuatro lecturas del primer pase medían el banco, no el producto**, y las
-  cuatro se leían como defectos: el fallback de la SPA, un helper de logs que
-  **truncaba** el cuerpo que la sonda examinaba, un operador compartido cuyos
-  permisos se **acumulaban** entre sondas, y un modelo del banco con una clave
-  foránea sin declarar. A4 aprendió que un comentario no es una medición y A5
-  que un nombre tampoco; **una sonda tampoco, hasta que se comprueba contra qué
-  mide**. Está escrito en la página del banco, no sólo aquí.
-- **El troceado salió de la medición**: los 27 huecos vienen de **nueve
-  causas**, así que las once sesiones van por causa. `S1` (operadores desde el
-  panel) cierra OR-4 y va primero; la mitad **nucleus** de `S6` (el `Hijack`)
-  va temprano por una razón mecánica: **un arreglo de nucleus no llega a orbit
-  hasta que sube el pin**, así que si entra tarde su release no lo contiene y
-  la mitad de orbit no se puede verificar en el mismo set.
-- **Esa mitad ya está hecha, en la misma sesión** (nucleus#540): `Hijack` por
-  `http.ResponseController`, con dos tests que fallan sin el arreglo — el
-  unitario y uno de contrato **por la pila por defecto**, que es lo que no
-  existía. Verificado en el workspace: con él, la sonda OPS-06 del banco abre
-  el stream. **El veredicto del banco sigue en `absent`** hasta que el
-  `require` de orbit traiga la release que lo contiene; cambiarlo antes sería
-  publicar como cierto algo que el pin no respalda. NU-73 se marca hecho en el
-  registro cuando esa release exista.
-
-**Y, en la misma sesión, la suite se quedó sin `examples/`** (decisión del
-propietario: nada de ejemplos ni apps nuevas hasta cerrar el plan 5/5).
-Cuatro PRs: quark#398, orbit#468, nucleus#541 y el del paraguas.
-
-- **Lo que se fue**: los once ejemplos runnable de quark, `examples/minimal` y
-  `agent/examples/fleet-app` de orbit, y `examples/mvc_api` y
-  `examples/showcase_demo` de nucleus — con sus lanes, sus entradas en los
-  gates requeridos, el workflow `repin-showcase`, cuatro scripts de nucleus,
-  el paso `repin_examples` del tren y dos de sus trampas, la lane
-  `showcase-smoke` del paraguas y el guard `umbrella-quickstart-embeds`
-  (**48 guards**, no 49).
-- **Lo que NO era un ejemplo y se movió en vez de morir**:
-  `quark/examples/superapp` es el arnés de aceptación cross-engine (51
-  ficheros Go, seis motores, gate por manifiesto de API). Ahora es
-  **`quark/acceptance/`**, con su module path, sus `replace`, el Makefile,
-  Dependabot y `release-please-config.json` detrás; los filtros de módulos
-  del paraguas (`manifest-modules.sh`, `manifest-guard.sh`,
-  `check_gowork_covers_manifest.sh`) lo excluyen como a `benchmarks/` y
-  `bugbash/`.
-- **Dos mediciones se sustituyeron por otras mejores**: el perfil `mvc-api`
-  del arnés de compatibilidad de nucleus pasa a `scaffold-mvc` (genera con
-  `nucleus new` y compila contra el árbol, en vez de compilar una copia
-  comiteada), y los listados del quickstart de la suite —que la página
-  embebía del ejemplo con fences `file=`— ahora viven EN la página y
-  `scripts/ci/check_quickstart_listings.sh` los compara, dentro de la lane
-  del quickstart, con **lo que el scaffold acaba de escribir**.
-- **Dos se perdieron y están en el registro** (NU-74, NU-75, P3, arco A10):
-  nada prueba ya que el quickstart de nucleus sea copiable, ni que la página
-  «minimal API» liste los 20 símbolos que una app usa.
-- **Efecto colateral que conviene saber**: el rojo de `main` en nucleus era
-  exactamente el guard de pines de los ejemplos, así que el borrado lo cura
-  de raíz y **nucleus#527 (el re-pin) sobra**.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -299,9 +255,9 @@ Cuatro PRs: quark#398, orbit#468, nucleus#541 y el del paraguas.
 
 - **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~, ~~A4~~ y ~~A5~~
   CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0) → **A6 Orbit como admin de
-  producto, EN CURSO** (`S0` hecha el 2026-09-12; troceado de once sesiones en
+  producto, EN CURSO** (`S0`, `S1` y `S2` hechas; troceado de once sesiones en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md),
-  siguiente `S1`) → A7 … → A12. El registro de hallazgos y su guard
+  siguiente `S3`) → A7 … → A12. El registro de hallazgos y su guard
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
 - **Lo que A4 dejó a deber, con su porqué escrito**: la segunda mitad de su
   `S4` —uuid nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet,
@@ -310,17 +266,25 @@ Cuatro PRs: quark#398, orbit#468, nucleus#541 y el del paraguas.
   inválido fuera de SQLite y MySQL permisivo) avisa desde quark v1.14.0 pero
   no es error: convertirlo rompe a quien depende de esos motores, así que se
   movió a **A12**, donde QADR-0010 acumula lo rompiente.
-- **Todo lo de esta sesión está FUSIONADO y `main` verde en los cuatro
-  repos** (nueve PRs, 2026-09-12/13): nucleus#527 (re-pin que desatascó el
-  `main` rojo), **nucleus#540** (NU-73, el `Hijack`), **orbit#467** (el banco
-  de admin), **quantum#189** (el plan de A6), los cuatro del borrado de
-  ejemplos (quark#398, orbit#468, nucleus#541, quantum#190) y **orbit#469**
-  (el arreglo de AUD-05, abajo).
+- **Abierto ahora mismo**: **orbit#472** (`S2`: permisos por campo y por
+  fila, y las pistas de capacidad) y el PR de documentación del paraguas que
+  lo acompaña. Lo anterior del arco está fusionado con `main` verde en los
+  cuatro repos: **orbit#467** (el banco), **orbit#471** (`S1`, OR-4),
+  **nucleus#540** (NU-73, el `Hijack`), **orbit#469** (AUD-05) y los cuatro
+  del borrado de ejemplos.
 - **NU-73 está en `main` de nucleus, y la sonda OPS-06 del banco sigue en
   `absent` a propósito**: el veredicto sólo puede moverse cuando el `require`
   de orbit traiga la release de nucleus que contiene el arreglo. Quien suba
   ese pin, actualiza el veredicto en el mismo PR — y marca NU-73 como hecho
   en el registro.
+- **Lo que `S2` deja dicho y ninguna sesión debe reabrir sin motivo nuevo**:
+  los verbos globales `export_data` / `import_data` (sobre `admin:*`) **no**
+  llevan alcance de fila ni de campo — conceder uno a un operador confinado
+  es darle el rodeo, y quien lo concede lo decide—; el rastro de auditoría
+  guarda los valores con sus propias reglas de redacción, así que un campo
+  prohibido por política puede seguir siendo legible para quien tenga
+  `audit_view`; y el feed en vivo no filtra por estas políticas. Está en el
+  ADR-007 de orbit y en la doc pública, no sólo aquí.
 - **La trampa que se coló hasta `main`**: la sonda AUD-05 preguntaba si el id
   del registro aparecía **en cualquier parte** del payload de auditoría. Un id
   es un número corto y casa con un timestamp: pasó en el PR y tumbó el CI de

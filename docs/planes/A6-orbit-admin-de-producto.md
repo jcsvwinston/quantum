@@ -206,6 +206,52 @@ cd orbit && go test ./internal/adminbench/ -run 'TestAdminBench/PERM-0[679]' -v
 cd orbit && go test ./contracts/... -count=1     # las superficies congeladas siguen congeladas
 ```
 
+**HECHA el 2026-09-13** (orbit#472). Los tres controles miden `present`: el
+banco pasa de **34 a 37 de 59** y la familia de permisos queda **completa**
+(9 presentes, 0 parciales, 0 ausentes) — la primera que lo está.
+
+### Lo que S2 entregó, y las decisiones que conviene no reabrir
+
+- **El objeto de una política admite dos formas más**, y el que no escribe
+  ninguna se comporta igual que antes (dos tests lo fijan):
+  `admin:Post` (el modelo, lo de siempre), `admin:Post#own` (el mismo verbo
+  sobre las filas del operador) y `admin:Post.title` (un campo).
+- **Por fila**: la lista se filtra, la fila ajena contesta **404** en los
+  endpoints de registro —la misma respuesta que una que no existe, para no
+  revelar el espacio de ids—, el create **estampa** al dueño y el update no
+  puede entregar la fila a otro. Cubre list, retrieve, create, update,
+  delete, export_csv y bulk_delete.
+- **Qué columna dice de quién es una fila lo declara la aplicación**
+  (`row_owner_fields`, con `"*"` como defecto; `row_owner_subject` elige
+  entre username e id). Y **un `#own` que el panel no puede honrar se
+  RECHAZA** con un 403 que dice por qué: una regla de propiedad que degrada
+  en silencio a «todo» sería invisible, que es justo lo que este mecanismo
+  existe para impedir.
+- **Por campo, en las dos formas que un admin necesita**: `deny` nombra la
+  excepción, y `read`/`create`/`update`/`write` nombran el conjunto permitido
+  entero. La escritura prohibida es un **403 que NOMBRA el campo**, no un
+  descarte silencioso —un formulario que cree haber guardado lo que no guardó
+  es peor—, y el campo que no se puede leer sale del registro, de la lista,
+  del CSV y del esquema.
+- **Las pistas son ayuda de render, no la puerta**: `permissions`,
+  `can_create/update/delete`, `row_scope` y `can_edit` por campo viajan en lo
+  que la pantalla ya cargaba, la UI los gasta, y todo se vuelve a comprobar
+  en la petición siguiente.
+- **Adición al contrato congelado**: dos campos nuevos en `orbit.Config`
+  (QADR-0010 lo permite: no se renombra ni se quita nada). La baseline se
+  regeneró en el mismo PR y **ADR-007** de orbit registra la decisión, con lo
+  que deliberadamente NO cubre: los verbos globales de export/import, los
+  valores del propio rastro de auditoría y el feed en vivo.
+- **El confinamiento por fila comparte mecanismo con el de tenant**
+  (`columnScopeOwns`), incluida la parte difícil: un registro que no trae la
+  columna se confirma contra el almacén.
+- **Las sondas miden por efecto**, y en los dos sentidos: la de fila crea la
+  propia **a través del panel** y la ajena como superusuario; la de campo
+  **relee el valor** tras el 403 y comprueba que un campo permitido sigue
+  siendo escribible; la de pistas contrasta cada pista con la respuesta que
+  el panel da de verdad. Las dos familias de tests se verificaron **mutando
+  el código que cubren**.
+
 ## S3 · El rastro deja de ser un buffer
 
 **Precondición.** Ninguna.
