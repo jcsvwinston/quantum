@@ -51,10 +51,14 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   dentro (`?views__gt=100`, `?status__in=…`, `?archived_at__isnull=true`) y
   devuelve un total que un paginador puede dividir —**OR-45**—, y ese pin trajo
   **NU-73**, verificado desde fuera: el stream del feed abre y contesta
-  `stream.ready`. El banco queda en **48 de 59**, y el contrato gana una
-  interfaz opcional para que un origen de datos que NO aplique esos operadores
-  no pueda callarse: el panel pregunta antes de mandar y rechaza la consulta
-  en vez de contestarla sin filtrar. El troceado está en
+  `stream.ready`. El contrato gana una interfaz opcional para que un origen
+  de datos que NO aplique esos operadores no pueda callarse: el panel
+  pregunta antes de mandar y rechaza la consulta en vez de contestarla sin
+  filtrar. Su `S6` puso en la fila de sesión de quién es y desde qué
+  dispositivo —el visor leía las claves de una aplicación y nunca las del
+  propio panel, así que revocaba a ciegas (**OR-46**)— y una llamada que
+  revoca todas las de una cuenta sin revocarse a sí misma: el banco queda en
+  **51 de 59**. El troceado está en
   [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada

@@ -201,7 +201,7 @@ NU-70,P3,nucleus,A5,hecho,nucleus#530,nucleus.md,"`User.Roles`/`Claims.Roles` po
 NU-71,P3,nucleus,A5,hecho,nucleus#529,nucleus.md,"HTML/multipart, adjuntos, plantillas y `mail.EnqueueTx` por el outbox"
 NU-72,P3,nucleus,A12,abierto,,nucleus.md,"diferido con razón: encender `session_idle_timeout` caduca sesiones en todo despliegue que actualice (QADR-0010). Visible desde 1.32.0 en `doctor security` y en el baseline ASVS (V3.3.2)"
 OR-45,P2,orbit,A6,hecho,"arreglado de raíz en nucleus#545 (QueryOpts.ExactTotal cuenta las filas de ESA consulta) y gastado por el listado del panel en orbit#482; banco DS-04 present",orbit.md,"`internal/admin/datastudio.go` ; banco DS-04: total -1 / is_estimated true en toda lista"
-OR-46,P2,orbit,A6,abierto,,orbit.md,"`internal/admin/sessions.go:58-70` ; banco OPS-16: la fila de sesión nunca nombra a su operador"
+OR-46,P2,orbit,A6,hecho,"orbit#483: el visor lee primero las claves del proveedor de auth del propio panel (username, email, id) y después las genéricas de aplicación; la fila lleva user, user_agent, device y current, y una llamada revoca todas las de una cuenta sin revocarse a sí misma; banco OPS-16 present (y OPS-02, OPS-04 con él)",orbit.md,"`internal/admin/sessions.go:58-70` ; banco OPS-16: la fila de sesión nunca nombra a su operador"
 OR-47,P3,orbit,A6,abierto,,orbit.md,`internal/admin/management_migrations.go` ; banco OPS-17
 OR-48,P3,orbit,A6,abierto,,orbit.md,`internal/admin/panel.go:444,460` (el fallback de la SPA tapa los 404 de /api)
 OR-49,P3,orbit,A6,abierto,,orbit.md,`internal/admin/runtime_cache.go` ; banco OPS-11
