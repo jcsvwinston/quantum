@@ -395,6 +395,19 @@ permiso. `--sin-esperar` recupera el comportamiento antiguo para ensayos.
   determinista es el **push humano de commit vacío** (release-please los
   filtra: no ensucian el changelog); close/reopen a veces no dispara y hay
   sospecha de que dejó a release-please sin poder etiquetar una vez.
+- **Un test que construye contra la versión que el repo está a punto de
+  publicar NO puede pasar en la rama del release.** release-please sube el
+  marcador de versión (en nucleus, `defaultPinnedFrameworkVersion` de
+  `internal/cli/new.go`) al número que aún no tiene tag, así que cualquier
+  cosa que resuelva ese módulo por el proxy muere con `unknown revision` — y
+  el fallo llega en la última vuelta, justo antes de fusionar. Un `use` de
+  go.work dice dónde está el CÓDIGO, no qué versión resuelve el grafo: hace
+  falta un **`replace` VERSIONADO** (`replace <mod> <ver> => <dir>`; uno sin
+  versión lo rechaza Go para un módulo del workspace). Le pasó al perfil
+  `scaffold-mvc` del arnés de compatibilidad de nucleus en el corte de
+  v1.29.0, el primero que lo corrió — arreglado en nucleus#546. Si añades un
+  test así a cualquiera de los tres repos, pruébalo poniendo el marcador a
+  mano en la versión siguiente: en `main` siempre pasa.
 - **Merges estrictamente seriales** donde main exige ramas al día (nucleus):
   cada merge deja al resto en BEHIND → `update-branch` + otra vuelta de
   checks. El driver lo hace; no intentes paralelizar.

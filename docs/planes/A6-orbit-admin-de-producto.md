@@ -383,7 +383,8 @@ cd orbit && go test ./internal/adminbench/ -run 'TestAdminBench/DS-0[45]|TestAdm
 cd orbit && go test ./contracts/... -count=1
 ```
 
-**A MEDIAS el 2026-09-14, y la mitad que falta espera al pin.**
+**HECHA el 2026-09-15** (orbit#475 y orbit#482). La primera mitad entró
+el 14 y la segunda esperó a que el pin de nucleus la trajera.
 
 - **DS-17 HECHO** (orbit#475): las vistas guardadas existen — nombre, modelo y
   el query string que la rejilla enseñaba, en una tabla del panel. El banco
@@ -399,12 +400,36 @@ cd orbit && go test ./contracts/... -count=1
   en `LIKE` y un `IN` vacío que **no** casa nada) y `ExactTotal`, que cuenta
   las filas de la consulta — **OR-45 arreglado de raíz**. Las dos son
   adiciones y hay test de que quien no las usa se comporta igual.
-- **Lo que falta, y por qué**: la mitad de orbit —traducir `campo__op=valor` a
-  `Where`, pedir `ExactTotal` desde el listado y mover los veredictos de
-  DS-04/DS-05— **no puede verificarse hasta que el `require` de orbit traiga
-  una release de nucleus que lo contenga**. Es la misma dependencia de pin que
-  **NU-73** lleva esperando. Quien suba ese pin cierra las dos cosas en el
-  mismo PR.
+- **La mitad de orbit, hecha al subir el pin** (orbit#482, sobre nucleus
+  **v1.29.0**): la gramatía es `?campo__op=valor`, con la clave ENTERA ganando
+  si nombra una columna real — un campo llamado `views__gt` sigue
+  resolviéndose — y un operador desconocido **rechazado**, no leído como
+  igualdad. El listado pide `ExactTotal`; los que recorren todas las páginas
+  (exports, imports, fixtures, lookups de relación) no, así que la cuenta de
+  más la paga la pantalla que dibuja un paginador. **DS-04 y DS-05 pasan a
+  `present`** y con ellos **OPS-06**, que es NU-73 llegando por fin: el stream
+  abre y contesta `stream.ready`.
+- **La exposición real del cambio, y cómo se cierra**: un origen de datos
+  escrito ANTES de que `Where` existiera compila igual e **ignora el campo**,
+  así que su lista contestaría todas las filas pareciendo filtrada. Por eso el
+  contrato gana `OperatorFilterSource` (opcional): el panel **pregunta antes de
+  mandar** y **rechaza** la consulta contra un origen que no declare que los
+  aplica, en vez de contestarla sin filtrar. `ExactTotal` no necesita esa
+  promesa — quien lo ignora ya lo dice en el sobre (`total: -1`,
+  `is_estimated: true`).
+- **`quarkdatasource` los declina HOY, y eso es OR-51**: su go.mod pina la
+  raíz de orbit y el CI lo construye con `GOWORK=off`, así que no puede nombrar
+  un símbolo que ese tag no publica. Entra en cuanto esta raíz tenga release.
+  El parche está escrito y medido (doce operadores, `in` vacío, comodín), con
+  el detalle de QK-25 dentro.
+- **QK-25, hallazgo nuevo (P2, A8)**: el builder de quark no puede emitir
+  `LIKE … ESCAPE` y SQLite y Oracle no tienen escape por defecto, así que un
+  `%` en el valor ensancha. `quarkdatasource` **rechaza** esa consulta en esos
+  motores en vez de contestarla mal. Por la ruta de nucleus el escape sí
+  funciona, y el banco lo comprueba.
+- **Lo que NO entra**: la fila de filtros de la rejilla sigue mandando
+  igualdad. Los operadores se escriben en la URL y una vista guardada los
+  conserva; cablear AG Grid a la gramática nueva es trabajo de SPA.
 
 ## S6 · Sesiones, y el stream que no conecta
 
