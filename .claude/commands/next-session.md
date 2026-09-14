@@ -148,13 +148,19 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
     un «Palabra: texto» en el cuerpo deja a release-please sin ver el feat, y
     **en squash-only el título del PR ES el commit que llega a main** — el
     tren lo aprendió perdiendo un `fix(deps)` y doce tags de módulo.
-- **Deuda viva, con fecha de vencimiento**: los guards de cadena de suministro
-  leen el ÁRBOL, así que un release que falla al firmar sale VERDE. Le pasó a
-  nucleus v1.26.0, que recupera activos en su release siguiente (decisión del
-  propietario). `scripts/check_release_assets.sh` ya lo comprueba mirando los
-  ACTIVOS de la release y hoy caza ese fallo, así que espera fuera del registro
-  hasta que el pin de nucleus traiga una release con activos: la entrada y la
-  fixture están en `docs/handoff/deuda-registro-release-assets.md`.
+- **Deuda viva que YA VENCIÓ y nadie lo notó**: los guards de cadena de
+  suministro leen el ÁRBOL, así que un release que falla al firmar sale VERDE.
+  Le pasó a nucleus v1.26.0, y `scripts/check_release_assets.sh` —escrito,
+  verificado y **fuera** del registro— esperaba a que el pin de nucleus trajera
+  una release con activos. **Ya la trae**: corrido contra el set 1.32.0 sale
+  **EXIT=0** con los cuatro (nucleus v1.28.0 lleva 15 activos), así que la
+  condición se cumplió el 2026-09-12 y la entrada sigue sin registrarse. Lo que
+  falta es registrarla con su fixture, que es lo único que `guard-of-guards`
+  exige; la receta está en `docs/handoff/deuda-registro-release-assets.md` y
+  hay que quitarla de `GUARD_SCAN_EXCLUDE` al hacerlo. **Tarea corta y
+  discreta, buen arranque para la próxima sesión antes de S6 o S9.** (Y nucleus
+  v1.29.0, cortada hoy, publica sus 15 activos: la regresión de cosign no ha
+  vuelto.)
 - **Dónde está cada cosa**: contrato de sesión y troceado → `docs/planes/`;
   trampas del tren → `scripts/train/README.md` (índice «Trampas
   transversales» + una sección por tren); decisiones → `docs/adr/` y los ADR
