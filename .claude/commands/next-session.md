@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-14, QUANTUM 1.32.0 — A6: S1–S4 hechas y S5 a medias, banco 45/59)
+## 3. Estado al cierre (2026-09-15, QUANTUM 1.32.0 — A6: S1–S6 hechas, banco 51/59)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -82,18 +82,20 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   producto, EN CURSO**: su `S0` (medición) está hecha y el troceado en once
   sesiones vive en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md).
-  **`S1`–`S5` hechas y FUSIONADAS** (orbit#471, #472, #473, #474, #475 y
-  #482): el banco está en **48/59**, con las familias de **permisos y
-  auditoría completas** y la de **data studio a un solo control** de estarlo.
+  **`S1`–`S6` hechas y FUSIONADAS** (orbit#471, #472, #473, #474, #475,
+  #482 y #483): el banco está en **51/59**, con las familias de **permisos y
+  auditoría completas**, la de **data studio a un solo control** de estarlo
+  y la de **operación a los tres de `S9`** (OPS-11, OPS-13 parciales y
+  OPS-17 ausente).
   **El pin de nucleus, que era el cuello de botella del arco, está subido**:
   nucleus **v1.29.0** cortado y el `require` de orbit con él, lo que cerró de
   una vez **NU-73** (OPS-06 verificado: el stream abre y contesta
   `stream.ready`), **OR-45** y los veredictos de **DS-04 + DS-05**. El set de
   suite sigue en 1.32.0 — esto fue un corte de pilar, no de suite.
-  **Siguiente sesión: `S6`** (la mitad de orbit: la fila de sesión que dice
-  de quién es y con qué dispositivo —OR-46— y la revocación masiva; su mitad
-  de nucleus está hecha Y PUBLICADA, así que su precondición se cumple) o
-  **`S9`** (las vistas de operación que callan), las dos sin precondición.
+  **Siguiente sesión: `S9`** (las vistas de operación que callan: OR-47,
+  OR-48, OR-49 y OR-50) o **`S7`** (acciones y puntos de extensión), las dos
+  sin precondición; `S8` espera a `S7` y `S10` (el instrumento del
+  navegador) no espera a nadie.
   Lo que fue A4 y A5, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md) y
   [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md).
@@ -169,6 +171,54 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-15 — A6 `S6` hecha: la fila de sesión dice de quién es y desde qué dispositivo, y una llamada revoca todas las de una cuenta
+
+- **OPS-02, OPS-04 y OPS-16 en `present`** (orbit#483): el banco pasa de
+  **48 a 51 de 59** y **OR-46 queda cerrado**. La familia de operación queda
+  en 14 presentes, 2 parciales (OPS-11, OPS-13) y 1 ausente (OPS-17), los
+  tres de `S9`.
+- **OR-46 era una clave, no una ausencia**: el visor leía las claves
+  genéricas que una aplicación PODRÍA guardar (`user_id`, `email`…) y nunca
+  las que escribe el proveedor de auth del PROPIO panel
+  (`__nucleus_admin_username`), así que cada operador que el panel firmaba
+  salía como nadie. Ahora las propias van primero y las genéricas quedan de
+  reserva, con test de que una clave de aplicación no tapa al operador.
+- **El dispositivo lo estampa el panel, bajo la clave del framework**: el
+  middleware de runtime de nucleus escribe el user agent como mucho cada
+  30 s y el `touchAdminSession` de orbit refresca `last_seen` en CADA
+  petición, así que el de nucleus casi nunca volvía a escribir — un visor
+  alimentado sólo por él nombraría el dispositivo de la sesión recién firmada
+  y nada de la que lleva abierta toda la mañana. Misma sanitización
+  (caracteres de control fuera, 256 bytes) y un clasificador pequeño
+  (`Firefox on Linux`, `Safari on iOS`, `Go-http-client`) con el agente crudo
+  al lado.
+- **Tres decisiones que no conviene reabrir**: (1) la revocación masiva casa
+  con LA MISMA cadena que la fila muestra (`user`), no con un id de cuenta —
+  vale también para sesiones de aplicación, y lo que se lee es exactamente
+  lo que se revoca; (2) **la petición que revoca nunca se revoca a sí
+  misma**: revocar tu propia cuenta cierra los OTROS dispositivos
+  (`kept_current: true`), porque «cerrar en todas partes menos aquí» es lo
+  que se quiere y una llamada que se cerrara a sí misma dejaría una pantalla
+  sin nadie detrás; (3) cero revocadas es un 200 honesto, no un 404 — el
+  resultado pedido, que no quede otra sesión abierta, ya se cumple. Auditado
+  como `session.revoke_all` con el usuario de record y el recuento, complete
+  o no la llamada.
+- **La fila marca `current`** (ésta es la tuya) y la SPA lo dibuja («you»),
+  con el botón de revocar todas por fila y un diálogo que dice que la propia
+  se conserva. Dist reconstruido.
+- **Lección nueva del banco, la sexta de «la sonda mide el banco»**: OPS-02
+  contaba filas de la lista COMPARTIDA y su veredicto dependía del filtro
+  `-run`: `partial` en la corrida completa (sondas anteriores habían paseado
+  la sesión del superusuario por el panel) y `absent` a solas. Y el panel
+  estampa una sesión en las peticiones que pasan POR él, y el store lo ve al
+  comprometer la respuesta: un login solo no deja nada que leer. Las tres
+  sondas de sesión leen ahora SU fila, tras una petición propia por el panel.
+  Escrito en `orbit/docs/admin-bench.md` con las otras.
+- **Siguiente: `S9`** (las vistas de operación que callan —OR-47, OR-48,
+  OR-49, OR-50— y con ellas OPS-11, OPS-13 y OPS-17) o **`S7`** (acciones y
+  puntos de extensión), las dos sin precondición. La deuda corta del guard
+  `check_release_assets.sh` (§Estado vigente) sigue sin registrar.
+
 ### Sesión 2026-09-15 — A6 `S5` cerrada: el pin de nucleus, y un arnés que no podía pasar en una rama de release
 
 - **nucleus v1.29.0 CORTADO** (nucleus#543) y **el `require` de orbit subido**
@@ -235,33 +285,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   nucleus está hecha y AHORA PUBLICADA, así que su precondición se cumple) o
   **`S9`** (las vistas de operación que callan), las dos sin precondición.
 
-### Sesión 2026-09-14 (noche) — A6 `S5`: media sesión entregada, y la otra media esperando un pin
-
-- **DS-17 HECHO** (orbit#475): las vistas guardadas existen y el banco llega a
-  **45 de 59**. **DS-04 y DS-05 arreglados en NUCLEUS** (nucleus#545,
-  fusionado) y **sin poder verificarse en orbit hasta que suba el pin**.
-- **La consulta de una vista se guarda como TEXTO** y no se valida contra el
-  esquema de hoy: una vista es un atajo a una URL, así que la que deja de
-  tener sentido falla en el listado con el mensaje de ese endpoint, en vez de
-  descartarse en un sitio donde el operador no lo ve.
-- **Una vista no tiene permiso propio**: crearla exige el `list` del modelo al
-  que apunta, y una del modelo que el operador no puede listar **no se le
-  enseña** — la fila revelaría que ese modelo existe y por qué lo filtra
-  alguien. Lo cazó la pasada de mutación: ningún test cubría ese filtrado.
-- **OR-45 estaba en nucleus, no en orbit**: `FindAll` contestaba `-1` con
-  `IsEstimated` en cuanto había filtro, porque contar se consideraba caro. Se
-  arregla con `ExactTotal` (cuenta las filas de ESA consulta) y `Where` trae
-  doce operadores. Ambas por adición, con test de que quien no las usa se
-  comporta igual.
-- **Dos decisiones de los operadores que conviene retener**: el `LIKE` lleva
-  **`ESCAPE` explícito** —sólo MySQL asume la barra, así que sin él un valor
-  con `%` casaría de más y un `%` suelto casaría con todo pareciendo un
-  filtro—; y un `IN` **vacío no casa nada** en vez de descartarse, porque un
-  filtro que en silencio significa «sin filtro» devuelve todas las filas y
-  parece un resultado.
-- **El pin es ahora el cuello de botella del arco**: NU-73/OPS-06 y
-  DS-04/DS-05 están los tres en `main` de nucleus esperando lo mismo.
-
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -292,9 +315,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 - **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~, ~~A4~~ y ~~A5~~
   CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0) → **A6 Orbit como admin de
-  producto, EN CURSO** (`S0`–`S5` hechas; troceado de once sesiones en
+  producto, EN CURSO** (`S0`–`S6` hechas; troceado de once sesiones en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md),
-  siguiente `S6` o `S9`) → A7 … → A12. El registro de hallazgos y su guard
+  siguiente `S9` o `S7`) → A7 … → A12. El registro de hallazgos y su guard
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
 - **Lo que A4 dejó a deber, con su porqué escrito**: la segunda mitad de su
   `S4` —uuid nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet,
@@ -308,9 +331,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   (`S3`), **orbit#474** (`S4`), **orbit#475** (vistas guardadas de `S5`),
   **nucleus#540** (NU-73) y **nucleus#545** (operadores y total de `S5`),
   **nucleus#546** (el arnés que no pasaba en una rama de release),
-  **orbit#482** (el pin y la mitad de panel de `S5`), **orbit#469** (AUD-05)
-  y los cuatro del borrado de ejemplos; en el paraguas,
-  **quantum#189/#192/#193/#196/#197/#198** y el de esta sesión.
+  **orbit#482** (el pin y la mitad de panel de `S5`), **orbit#483** (`S6`:
+  dueño, dispositivo y revocación masiva), **orbit#469** (AUD-05) y los
+  cuatro del borrado de ejemplos; en el paraguas,
+  **quantum#189/#192/#193/#196/#197/#198/#199** y el de esta sesión.
 - **El pin, que era el cuello de botella del arco, ESTÁ SUBIDO**: nucleus
   **v1.29.0** cortado y el `require` de orbit con él (orbit#482), lo que
   cerró **NU-73**, **OR-45** y los veredictos de **DS-04** y **DS-05** en un

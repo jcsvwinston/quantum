@@ -25,8 +25,11 @@ fixture; sería el 50º):
 
 **Hallazgos que descuenta.** Ocho: **OR-4** (P1, heredado — **cerrado en
 `S1`**, orbit#471) y los siete que abrió la medición de `S0`: **NU-73** (P1,
-en nucleus; arreglado y esperando a que el pin de orbit lo traiga), **OR-45**
-y **OR-46** (P2), **OR-47**, **OR-48**, **OR-49** y **OR-50** (P3).
+en nucleus — **cerrado** al subir el pin en orbit#482), **OR-45** (P2,
+**cerrado en `S5`**), **OR-46** (P2, **cerrado en `S6`**, orbit#483), y
+**OR-47**, **OR-48**, **OR-49** y **OR-50** (P3, los cuatro de `S9`). Nacido
+en `S5` y también de este arco: **OR-51** (P3), que espera a la release de
+la raíz de orbit.
 
 **La regla que lo condiciona.**
 [QADR-0010](../adr/QADR-0010-rupturas-agrupadas-en-un-major.md): lo rompiente
@@ -459,6 +462,49 @@ orbit empieza cuando `orbit/go.mod` requiere la versión que lo contiene.
 cd nucleus && go test ./pkg/auth/ -run Hijack -v
 cd orbit && go test ./internal/adminbench/ -run 'TestAdminBench/OPS-(02|04|06|16)' -v
 ```
+
+**HECHA el 2026-09-15** (orbit#483; la mitad de nucleus, nucleus#540, ya
+había llegado con el pin en orbit#482). Los cuatro controles miden
+`present`: el banco pasa de **48 a 51 de 59** y **OR-46 queda cerrado**.
+
+### Lo que S6 entregó, y las decisiones que conviene no reabrir
+
+- **OR-46 era una clave, no una ausencia.** El visor leía las claves
+  genéricas que una aplicación podría guardar en su sesión y nunca las que
+  escribe el proveedor de autenticación del propio panel, así que cada
+  operador que el panel firmaba salía como nadie. Las propias van primero;
+  las genéricas quedan de reserva para las sesiones de aplicación.
+- **La fila dice desde qué** (`user_agent` y una etiqueta `device` corta:
+  «Firefox on Linux», «Safari on iOS», «Go-http-client») **y cuál es la
+  tuya** (`current`). El agente lo estampa el panel en cada petición que pasa
+  por él, bajo la clave del framework y con su misma sanitización: el
+  middleware de runtime de nucleus escribe como mucho cada treinta segundos
+  y el panel refresca la sesión en cada petición, así que un visor
+  alimentado sólo por el framework nombraría el dispositivo de la sesión
+  recién firmada y nada de la que lleva abierta toda la mañana.
+- **La revocación masiva casa con la misma cadena que la fila muestra.**
+  `POST /admin/api/sessions/revoke-all` toma el `user` de la fila, no un id
+  de cuenta: vale también para sesiones de aplicación, y lo que el operador
+  lee es exactamente lo que revoca.
+- **La petición que revoca nunca se revoca a sí misma.** Revocar tu propia
+  cuenta cierra los OTROS dispositivos y lo dice (`kept_current: true`):
+  «cerrar en todas partes menos aquí» es lo que se quiere, y una llamada que
+  se cerrara a sí misma dejaría una pantalla sin nadie detrás. Cero
+  revocadas es un 200 honesto. Auditado como `session.revoke_all` con el
+  usuario de record y el recuento, complete o no la llamada.
+- **Las sondas miden por efecto** y leen SU fila: la misma cuenta firmada
+  desde dos clientes, los dos fuera tras una llamada, el superusuario que la
+  hizo dentro — y ese superusuario revocando su propia cuenta y siguiendo
+  dentro. Lo que destapó: OPS-02 contaba filas de la lista COMPARTIDA y su
+  veredicto dependía de qué sondas habían corrido antes (`partial` en la
+  corrida completa, `absent` a solas). Y un login solo no deja nada que leer:
+  el panel estampa la sesión en las peticiones que pasan por él y el store
+  lo ve al comprometer la respuesta. Está en `orbit/docs/admin-bench.md`.
+- **Lo que NO entra**: la revocación masiva desde la pantalla de operadores
+  (S1) — el botón vive en el visor de sesiones, que es donde se ve a quién
+  se revoca; y ninguna revocación al desactivar una cuenta, porque el
+  proveedor re-lee la cuenta en cada petición y la sesión de un desactivado
+  ya no entra (decisión de S1).
 
 ## S7 · Acciones y puntos de extensión
 
