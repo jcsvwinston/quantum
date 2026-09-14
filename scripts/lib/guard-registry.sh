@@ -116,6 +116,15 @@ GUARDS=(
   # Un release sin firma sale VERDE: por eso esto se comprueba en el árbol y
   # no en la corrida.
   "umbrella-supply-chain|.|bash scripts/check_supply_chain.sh"
+  # La release del tag que el set pina publicó DE VERDAD lo que el árbol
+  # promete firmar: checksums.txt, su firma y su certificado, en los tres
+  # pilares y en el paraguas. Es el complemento de umbrella-supply-chain, que
+  # mira la configuración: aquella dice que se promete firmar, esta que la
+  # corrida cumplió — nucleus v1.26.0 salió con cero activos y los 47 guards
+  # de entonces en verde. Único guard del registro que pregunta a la red; si
+  # no puede preguntar, FALLA. Registrado el 2026-09-15, cuando el pin de
+  # nucleus (v1.28.0) volvió a traer una release con activos.
+  "umbrella-release-assets|.|bash scripts/check_release_assets.sh"
   # Quark y pkg/model de nucleus leen los dos un tag `db` con gramáticas
   # incompatibles, y cruzarlas no daba error: un modelo estilo nucleus dejaba
   # a quark creyendo que había una columna llamada `column:email;unique;not
@@ -330,16 +339,6 @@ GUARD_SCAN_EXCLUDE=(
   # actualiza el issue del schedule rojo vía gh. No certifica nada del árbol —
   # avisa de que la certificación falló; registrarlo como guard sería circular.
   "scripts/notify_schedule_failure.sh"
-  # TEMPORAL, con lo que lo desbloquea escrito: check_release_assets.sh está
-  # escrito y verificado —caza el fallo real de 2026-09-10— pero HOY falla al
-  # pin con razón: nucleus v1.26.0 se publicó con cero activos porque cosign v3
-  # cambió `sign-blob`, y el propietario decidió que recupera activos en su
-  # release siguiente en vez de re-cortar. Registrarlo ahora pondría roja la
-  # certificación por un hecho ya decidido, y un guard rojo por decisión es un
-  # guard que se aprende a ignorar. Entra en GUARDS —con su fixture, que está
-  # en docs/handoff/deuda-registro-release-assets.md— en el PR de set que
-  # re-pine nucleus por encima de una release con activos.
-  "scripts/check_release_assets.sh"
   # ARNESES de fuzzing de los tres productos, no guards: ejecutan `go test
   # -fuzz` durante unos segundos por objetivo. Su veredicto es el de los tests
   # que corren, no una afirmación sobre el árbol, y registrarlos obligaría a

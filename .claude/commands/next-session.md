@@ -104,14 +104,19 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   El gate de cada arco sigue siendo el registro
   `docs/auditoria/madurez-2026-09-03/registro.csv` con su guard
   `umbrella-audit-backlog` (cero abiertos en un arco cerrado).
-- **48 guards en el registro**: los 49 de 1.32.0 menos
+- **49 guards en el registro**: los 49 de 1.32.0 menos
   `umbrella-quickstart-embeds`, retirado al salir los ejemplos del árbol
   (2026-09-12): resolvía fences `file=` contra `nucleus/examples/showcase_demo`
   y ya no hay árbol contra el que resolver. Lo que comprueba ahora que los
   listados del quickstart sean lo que el scaffold escribe es
   `scripts/ci/check_quickstart_listings.sh`, dentro de la lane que genera el
   proyecto — comparación más fuerte que la anterior, pero en lane, no en el
-  registro. `umbrella-auth-posture` (A5) sigue.
+  registro. Y más **`umbrella-release-assets`**, registrado el 2026-09-15 con
+  su fixture: la release de cada tag que el set pina publica DE VERDAD su
+  `checksums.txt` firmado (los otros 48 leen el árbol, y un release que falla
+  al firmar salía verde — nucleus v1.26.0). Es el único guard que pregunta a
+  la red, así que la lane le da `GH_TOKEN`; sin poder preguntar, FALLA.
+  `umbrella-auth-posture` (A5) sigue.
 - **Cadencia**: set semanal (QADR-0008); un corte fuera de cadencia lleva la
   razón escrita en `status:` de `versions.yaml`.
 - **Reglas que ya se decidieron (no reabrir sin motivo nuevo)**:
@@ -150,19 +155,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
     un «Palabra: texto» en el cuerpo deja a release-please sin ver el feat, y
     **en squash-only el título del PR ES el commit que llega a main** — el
     tren lo aprendió perdiendo un `fix(deps)` y doce tags de módulo.
-- **Deuda viva que YA VENCIÓ y nadie lo notó**: los guards de cadena de
-  suministro leen el ÁRBOL, así que un release que falla al firmar sale VERDE.
-  Le pasó a nucleus v1.26.0, y `scripts/check_release_assets.sh` —escrito,
-  verificado y **fuera** del registro— esperaba a que el pin de nucleus trajera
-  una release con activos. **Ya la trae**: corrido contra el set 1.32.0 sale
-  **EXIT=0** con los cuatro (nucleus v1.28.0 lleva 15 activos), así que la
-  condición se cumplió el 2026-09-12 y la entrada sigue sin registrarse. Lo que
-  falta es registrarla con su fixture, que es lo único que `guard-of-guards`
-  exige; la receta está en `docs/handoff/deuda-registro-release-assets.md` y
-  hay que quitarla de `GUARD_SCAN_EXCLUDE` al hacerlo. **Tarea corta y
-  discreta, buen arranque para la próxima sesión antes de S6 o S9.** (Y nucleus
-  v1.29.0, cortada hoy, publica sus 15 activos: la regresión de cosign no ha
-  vuelto.)
 - **Dónde está cada cosa**: contrato de sesión y troceado → `docs/planes/`;
   trampas del tren → `scripts/train/README.md` (índice «Trampas
   transversales» + una sección por tren); decisiones → `docs/adr/` y los ADR

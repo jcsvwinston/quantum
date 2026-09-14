@@ -85,8 +85,14 @@ jobs:
 
       # Sin escape de declared_lags desde Quantum 1.8.0: el tren de la 7ª
       # vació la sección y la lane exige el estado certificable (lags a cero).
+      # GH_TOKEN: umbrella-release-assets es el único guard que pregunta a la
+      # red (`gh release view` de los cuatro tags del set), y `gh` en Actions
+      # no contesta sin token — sin él el guard FALLA por no poder preguntar,
+      # que es lo que debe hacer, pero por la causa equivocada.
       - name: Certificación mecánica (todos los guards del registro)
         run: bash scripts/suite-integral.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   guard-of-guards:
     name: guard-of-guards (los guards muerden)

@@ -64,13 +64,17 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
-- **Certificación mecánica:** 48 guards en el registro — los 49 de 1.32.0
+- **Certificación mecánica:** 49 guards en el registro — los 49 de 1.32.0
   menos `umbrella-quickstart-embeds`, que resolvía las fences `file=` del
   quickstart contra `nucleus/examples/showcase_demo`: **la suite retiró los
   ejemplos del árbol el 2026-09-12** hasta cerrar el plan 5/5, así que los
   listados viven en la página y quien los compara con lo que el scaffold
   escribe es `scripts/ci/check_quickstart_listings.sh`, dentro de la lane
-  que ya genera el proyecto. Lane semanal + modo `--cierre`
+  que ya genera el proyecto; más `umbrella-release-assets`, registrado el
+  2026-09-15: la release de cada tag que el set pina publica DE VERDAD su
+  `checksums.txt` firmado — los otros 48 leen el árbol, y un release que
+  falla al firmar salía verde (nucleus v1.26.0). Es el único guard que
+  pregunta a la red. Lane semanal + modo `--cierre`
   ([`AUDITORIA_CONTINUA.md`](AUDITORIA_CONTINUA.md)).
 - **Auditoría de madurez 2026-09-03 sobre 1.26.0: ejecutada, corregida y
   PUBLICADA en 1.26.1.** Cuatro auditores midieron cada pilar contra el
