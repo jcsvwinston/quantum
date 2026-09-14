@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-13, QUANTUM 1.32.0 — A6 en curso: S1 y S2 hechas)
+## 3. Estado al cierre (2026-09-14, QUANTUM 1.32.0 — A6 en curso: S1, S2 y S3 hechas)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -82,11 +82,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   producto, EN CURSO**: su `S0` (medición) está hecha y el troceado en once
   sesiones vive en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md).
-  **`S1` y `S2` hechas el 2026-09-13** (orbit#471, orbit#472): OR-4 cerrado y
-  el banco en **37/59**, con la familia de permisos completa.
-  **Siguiente sesión: `S3`** (el rastro de auditoría deja de ser un buffer;
-  sin precondición). De los dos P1 que A6 llevaba queda **NU-73**, ya
-  arreglado en nucleus y a la espera de que el pin de orbit traiga su
+  **`S1`, `S2` y `S3` hechas** (orbit#471, orbit#472, orbit#473): OR-4
+  cerrado y el banco en **41/59**, con las familias de **permisos y auditoría
+  completas**. **Siguiente sesión: `S4`** (formularios: relaciones, edición
+  anidada y tipos ricos; DS-10/11/12, sin precondición) — o `S5`/`S9`, que
+  tampoco tienen precondición. De los dos P1 que A6 llevaba queda **NU-73**,
+  ya arreglado en nucleus y a la espera de que el pin de orbit traiga su
   release.
   Lo que fue A4 y A5, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md) y
@@ -157,6 +158,47 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-14 — A6 `S3`: el rastro deja de empezar cuando empieza el proceso
+
+- **`S3` HECHA** (orbit#473). **AUD-05**, **AUD-06**, **AUD-07** y **DS-16**
+  en `present`: el banco pasa de **37 a 41 de 59** y la familia de auditoría
+  queda **completa** (7/7), la segunda tras permisos. El set sigue en 1.32.0.
+- **Lo que estaba mal no era la pérdida, era el silencio**: el panel enseñaba
+  un rastro que simplemente empezaba cuando empezaba el proceso, y nada en la
+  pantalla distinguía «no pasó nada» de «esto arrancó hace diez minutos». Y
+  detrás de eso, tres controles inalcanzables: no se exporta un buffer, no se
+  retiene un buffer, y no se saca de un buffer el historial de una fila.
+- **Ahora es una tabla que el panel crea y posee**, en la base contra la que
+  ya autentica, y **por defecto**: un rastro que hay que encender es un
+  rastro que nadie tiene el día que lo necesita (y el panel ya creaba
+  `nucleus_admin_users` sin pedir permiso). `audit_store: memory` vuelve al
+  anillo; sin handle, o si la tabla no se puede crear, **degrada avisando en
+  vez de no arrancar**.
+- **Una escritura de auditoría nunca tumba la operación que documenta**: el
+  INSERT que falla se registra y la entrada queda en un anillo pequeño, para
+  que un rastro degradado se VEA en vez de callar.
+- **La retención es un PERÍODO**, que es lo que es una ventana de
+  cumplimiento (`audit_max_size` es un recuento y acota sólo el anillo). Se
+  aplica al montar y como mucho una vez por hora **en la ruta de escritura**:
+  sin barredor que arrancar, parar o perder. El operador puede cambiar la
+  ventana desde el panel, y el payload dice a qué valor vuelve un reinicio.
+- **El historial de un registro lo gobierna el permiso del REGISTRO**, no
+  `audit_view`, así que hereda el alcance por fila y los permisos por campo
+  de `S2`. Si no, sería el rodeo de los dos.
+- **La prosa que FUE verdad**: la doc decía «no se persiste», cierto cuando se
+  escribió. Corregida en el mismo PR (features, configuration, intro, README).
+  Es la vigilancia que el §5 lleva anotada y que ningún guard caza.
+- **CodeQL destapó un defecto real**: marcó dos asignaciones dimensionadas con
+  el tamaño de página del cliente —acotado tres funciones más allá— y al
+  mirarlo apareció que **el export pedía páginas de 500 donde el listado capa
+  a 200**, leía la página corta como la última y se paraba en el tope, en
+  silencio. Con test que falla contra la constante vieja. Lección: un `min()`
+  no es una cota para el escáner, y una constante repetida a distancia no es
+  una cota para nadie.
+- **Siguiente: `S4`** (formularios: la clave foránea que hoy enseña un id
+  crudo, edición anidada, tipos documento/fichero/texto rico). Sin
+  precondición, igual que `S5` y `S9`.
+
 ### Sesión 2026-09-13 (tarde) — A6 `S2`: la política deja de pararse en el borde del modelo
 
 - **`S2` HECHA** (orbit#472). Los tres controles que llevaba —**PERM-06**,
@@ -199,32 +241,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 - **Siguiente: `S3`** (la auditoría a la base, con retención y export;
   AUD-05/06/07 y DS-16). Sin precondición.
 
-### Sesión 2026-09-13 — A6 `S1`: el panel administra a las personas, no sólo a las políticas
-
-- **`S1` HECHA** (orbit#471) y **OR-4 CERRADO** — el P1 más viejo del
-  registro, abierto desde la auditoría de madurez. El banco de admin pasa de
-  **32 a 34 de 59**; la familia de permisos, de 4 presentes a 6.
-- **Lo que ahora existe**: diez rutas bajo `/admin/api/admin-users` (listar
-  con roles, crear, editar, contraseña, desactivar/reactivar, rol, borrar),
-  una **pantalla Operators** en el panel, y auditoría por ruta — las ocho
-  mutantes tienen sonda en `audit_coverage_test.go`, que además asserta que
-  **la contraseña no entra en el rastro**.
-- **Desactivar ≠ borrar, y eso decidió el diseño**: el proveedor re-lee la
-  cuenta en CADA petición, así que un operador desactivado deja de serlo en su
-  petición siguiente —sin perseguir su sesión— y la cuenta, con el nombre que
-  llevan sus entradas de auditoría, se queda. Pidió columna: `is_active`, en
-  el CREATE y por **ALTER idempotente** para bases existentes, en los cinco
-  dialectos.
-- **Dos negativas en el handler, no en la UI** (la UI no es el único cliente):
-  nadie desactiva, borra ni degrada su PROPIA cuenta, ni la del ÚLTIMO
-  superusuario activo. 409 con la razón, y la pantalla enseña ESE mensaje.
-- **Las sondas miden por efecto**, no por status: la cuenta creada inicia
-  sesión, la contraseña nueva funciona y la vieja no, la desactivada ya no
-  entra. Es la lección de AUD-05 aplicada antes de tropezar.
-- **Siguiente: `S2`** (permisos que llegan al campo y a la fila). Lee QADR-0010
-  antes: `datasource.Query` y `orbit.Config` están congelados y lo nuevo entra
-  por adición.
-
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -266,12 +282,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   inválido fuera de SQLite y MySQL permisivo) avisa desde quark v1.14.0 pero
   no es error: convertirlo rompe a quien depende de esos motores, así que se
   movió a **A12**, donde QADR-0010 acumula lo rompiente.
-- **Abierto ahora mismo**: **orbit#472** (`S2`: permisos por campo y por
-  fila, y las pistas de capacidad) y el PR de documentación del paraguas que
-  lo acompaña. Lo anterior del arco está fusionado con `main` verde en los
-  cuatro repos: **orbit#467** (el banco), **orbit#471** (`S1`, OR-4),
-  **nucleus#540** (NU-73, el `Hijack`), **orbit#469** (AUD-05) y los cuatro
-  del borrado de ejemplos.
+- **Abierto ahora mismo**: **orbit#473** (`S3`: el rastro de auditoría en la
+  base, con retención, export e historial por registro) y el PR de
+  documentación del paraguas que lo acompaña. Lo anterior del arco está
+  fusionado con `main` verde: **orbit#467** (el banco), **orbit#471** (`S1`,
+  OR-4), **orbit#472** (`S2`), **nucleus#540** (NU-73, el `Hijack`),
+  **orbit#469** (AUD-05) y los cuatro del borrado de ejemplos.
 - **NU-73 está en `main` de nucleus, y la sonda OPS-06 del banco sigue en
   `absent` a propósito**: el veredicto sólo puede moverse cuando el `require`
   de orbit traiga la release de nucleus que contiene el arreglo. Quien suba

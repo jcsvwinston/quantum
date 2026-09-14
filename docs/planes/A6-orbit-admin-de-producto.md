@@ -266,6 +266,56 @@ Controles AUD-05, AUD-06, AUD-07 y DS-16.
 cd orbit && go test ./internal/adminbench/ -run 'TestAdminBench/(AUD-0[567]|DS-16)' -v
 ```
 
+**HECHA el 2026-09-14** (orbit#473). Los cuatro controles miden `present`: el
+banco pasa de **37 a 41 de 59** y la familia de auditoría queda **completa**
+(7/7), la segunda que lo está.
+
+### Lo que S3 entregó, y las decisiones que conviene no reabrir
+
+- **El rastro vive en una tabla que el panel crea y posee**
+  (`nucleus_admin_audit`), en la base contra la que ya autentica, y es el
+  comportamiento **por defecto** cuando la aplicación tiene base. Un rastro
+  que hay que encender es un rastro que nadie tiene el día que lo necesita, y
+  el precedente ya existía: el panel crea `nucleus_admin_users` sin pedir
+  permiso. `audit_store: memory` vuelve al anillo.
+- **Degradar antes que no arrancar**: sin handle, o si la tabla no se puede
+  crear, avisa y sigue con el anillo. Y **una escritura de auditoría nunca
+  tumba la operación que documenta**: el INSERT que falla se registra y la
+  entrada queda en un anillo pequeño, para que el rastro degradado se **vea**
+  en vez de callar.
+- **La retención es un PERÍODO** (`audit_retention_days`), que es lo que es
+  una ventana de cumplimiento; `audit_max_size` es un recuento y acota sólo
+  el anillo. Se aplica al montar y como mucho una vez por hora **en la ruta
+  de escritura**: sin barredor en segundo plano que arrancar, parar o perder.
+  Un operador puede cambiar la ventana en efecto desde el panel, y el payload
+  dice a qué valor vuelve un reinicio (`configured_retention_days`), en vez
+  de dejarle creer que el cambio es durable.
+- **El export es un fichero** (`?format=csv`) con los filtros del listado, y
+  **queda auditado** (`audit.export`): quién se llevó una copia del log es
+  justo para lo que existe el log.
+- **El historial de un registro es el mismo rastro leído por fila**, y lo
+  gobierna el permiso del REGISTRO, no `audit_view` — así el alcance por fila
+  y los permisos por campo de `S2` se aplican también ahí; si no, el
+  historial sería el rodeo de los dos.
+- **El panel dice lo que sirve** (`persistent`, `retention_days`), para que un
+  hueco se lea como una ventana de retención y no como silencio.
+- **La prosa que FUE verdad, corregida en el mismo PR**: la doc pública decía
+  que el rastro «no se persiste». Era cierto cuando se escribió. Es la clase
+  de hallazgo que ningún guard caza y que el §5 del handoff lleva anotada
+  como vigilancia.
+- **Adición al contrato congelado**: dos campos más en `orbit.Config`;
+  baseline regenerada. **ADR-008** registra la decisión y su límite: la
+  entrada se escribe DESPUÉS del cambio y en su propia transacción, así que
+  un rastro transaccional sigue siendo cosa de la capa de datos (el
+  `quark_audit` de Quark) — dicho en la doc, no supuesto.
+- **Lo que encontró el propio arreglo**: CodeQL marcó dos asignaciones
+  dimensionadas con un tamaño de página del cliente. Estaban acotadas tres
+  funciones más allá, y al mirarlo apareció un defecto de verdad: **el export
+  pedía páginas de 500 donde el listado capa a 200**, leía la página corta
+  como la última y se paraba en el tope —en silencio, que es la peor forma de
+  que un export de cumplimiento esté mal—. Tiene test que falla con la
+  constante vieja.
+
 ## S4 · Formularios que sostienen una relación y un documento
 
 **Precondición.** Ninguna.
