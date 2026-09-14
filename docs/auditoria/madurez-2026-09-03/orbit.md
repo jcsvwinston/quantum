@@ -158,6 +158,8 @@ Severidad: P0 seguridad/pérdida de datos en producción · P1 grave (seguridad,
 | OR-49 | P3 | `internal/admin/runtime_cache.go` ; `internal/adminbench` OPS-11 | El botón de vaciar caché responde 400 «redis url is not configured» en una aplicación cuya caché es en proceso, que es la de por defecto | Vaciar la caché que la aplicación tiene; si no hay ninguna, decirlo en la vista y no ofrecer el botón |
 | OR-50 | P3 | `internal/admin/runtime_email.go:20-65` ; `internal/adminbench` OPS-13 | La vista de correo informa del driver y de si está configurado, nunca de la entrega: sin cola, sin fallos, sin outbox — y el framework tiene outbox desde nucleus v1.28.0 | Leer el outbox: pendientes, fallidos y último error, que es lo que se mira cuando un correo no llega |
 
+| OR-51 | P3 | `quarkdatasource/store.go` | `quarkdatasource` no implementa `datasource.OperatorFilterSource`, así que una aplicación que monta el panel sobre Quark no puede usar los filtros con operador. No es descuido: su `go.mod` pina la RAÍZ de orbit y el CI construye cada módulo con `GOWORK=off`, de modo que no puede nombrar `datasource.Filter` hasta que la raíz que lo publica tenga tag — la misma dependencia topológica que `check_internal_pins.sh` ya tolera en ese borde. Mientras tanto el panel **rechaza** esas consultas en vez de contestarlas sin filtrar, que es para lo que existe la interfaz. | Implementarlo tras la release de la raíz que trae el contrato (parche escrito y medido: doce operadores, `in` vacío que no casa nada, y el rechazo de QK-25 donde el comodín no se puede escapar). |
+
 ## 6. Resultados de ejecución
 
 | Paso | Resultado |

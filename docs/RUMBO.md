@@ -44,10 +44,17 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   familia de auditoría también completa; su `S4` puso en los formularios lo
   que una tabla de escalares no tiene —la relación resuelta por nombre, los
   hijos editados con el padre y los tipos documento/fichero/texto rico—, y el
-  banco va por **45 de 59** con las vistas guardadas de su `S5`; la otra mitad
-  de esa sesión —filtros con operadores y el total que **OR-45** pide— está
-  arreglada en nucleus y espera al pin, como NU-73. Queda NU-73, arreglado en
-  nucleus y a la espera del pin. El troceado está en
+  banco va por **45 de 59** con las vistas guardadas de su `S5`. La otra mitad
+  de `S5` cerró al **cortar la minor siguiente de nucleus y subir el `require`
+  de orbit** — un corte de pilar, todavía por delante del set certificado, que
+  el próximo tren recogerá. Una lista acepta ahora una pregunta con operador
+  dentro (`?views__gt=100`, `?status__in=…`, `?archived_at__isnull=true`) y
+  devuelve un total que un paginador puede dividir —**OR-45**—, y ese pin trajo
+  **NU-73**, verificado desde fuera: el stream del feed abre y contesta
+  `stream.ready`. El banco queda en **48 de 59**, y el contrato gana una
+  interfaz opcional para que un origen de datos que NO aplique esos operadores
+  no pueda callarse: el panel pregunta antes de mandar y rechaza la consulta
+  en vez de contestarla sin filtrar. El troceado está en
   [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
