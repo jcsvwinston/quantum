@@ -383,6 +383,29 @@ cd orbit && go test ./internal/adminbench/ -run 'TestAdminBench/DS-0[45]|TestAdm
 cd orbit && go test ./contracts/... -count=1
 ```
 
+**A MEDIAS el 2026-09-14, y la mitad que falta espera al pin.**
+
+- **DS-17 HECHO** (orbit#475): las vistas guardadas existen — nombre, modelo y
+  el query string que la rejilla enseñaba, en una tabla del panel. El banco
+  pasa de **44 a 45 de 59**. Decisiones: la consulta se guarda como **texto**
+  y no se valida contra el esquema de hoy (una vista es un atajo a una URL, y
+  la que deja de tener sentido falla en el listado con el mensaje de ese
+  endpoint); una vista es de quien la guarda y `is_shared` la hace visible;
+  **no tiene permiso propio** — crearla exige el `list` del modelo al que
+  apunta, y una vista de un modelo que el operador no puede listar **no se le
+  enseña** (la fila revelaría el modelo y por qué filtra alguien).
+- **DS-04 y DS-05 arreglados en NUCLEUS** (nucleus#545, fusionado):
+  `QueryOpts` gana `Where []Filter` (doce operadores, con `ESCAPE` explícito
+  en `LIKE` y un `IN` vacío que **no** casa nada) y `ExactTotal`, que cuenta
+  las filas de la consulta — **OR-45 arreglado de raíz**. Las dos son
+  adiciones y hay test de que quien no las usa se comporta igual.
+- **Lo que falta, y por qué**: la mitad de orbit —traducir `campo__op=valor` a
+  `Where`, pedir `ExactTotal` desde el listado y mover los veredictos de
+  DS-04/DS-05— **no puede verificarse hasta que el `require` de orbit traiga
+  una release de nucleus que lo contenga**. Es la misma dependencia de pin que
+  **NU-73** lleva esperando. Quien suba ese pin cierra las dos cosas en el
+  mismo PR.
+
 ## S6 · Sesiones, y el stream que no conecta
 
 **Precondición.** La mitad de nucleus **primero**: NU-73 es un PR de nucleus y
