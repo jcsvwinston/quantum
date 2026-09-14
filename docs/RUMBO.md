@@ -44,7 +44,9 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   familia de auditoría también completa; su `S4` puso en los formularios lo
   que una tabla de escalares no tiene —la relación resuelta por nombre, los
   hijos editados con el padre y los tipos documento/fichero/texto rico—, y el
-  banco va por **44 de 59**. Queda NU-73, arreglado en
+  banco va por **45 de 59** con las vistas guardadas de su `S5`; la otra mitad
+  de esa sesión —filtros con operadores y el total que **OR-45** pide— está
+  arreglada en nucleus y espera al pin, como NU-73. Queda NU-73, arreglado en
   nucleus y a la espera del pin. El troceado está en
   [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
