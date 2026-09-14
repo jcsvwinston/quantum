@@ -38,7 +38,10 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   (`admin:Post.title`, `admin:Post#own`) y puso en lo que una pantalla carga
   las capacidades del operador, así que la UI apaga lo que no puede hacer en
   vez de descubrirlo con un 403: el banco va por **37 de 59** y la familia de
-  permisos queda completa. Queda NU-73, arreglado en
+  permisos queda completa. Su `S3` sacó el rastro de auditoría del
+  proceso: vive en una tabla del panel, con retención por período, export a
+  fichero e historial por registro, y el banco va por **41 de 59** con la
+  familia de auditoría también completa. Queda NU-73, arreglado en
   nucleus y a la espera del pin. El troceado está en
   [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
