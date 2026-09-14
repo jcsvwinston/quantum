@@ -331,6 +331,42 @@ texto rico. Controles DS-10, DS-11 y DS-12.
 cd orbit && go test ./internal/adminbench/ -run 'TestAdminBench/DS-1[012]' -v
 ```
 
+**HECHA el 2026-09-14** (orbit#474). Los tres controles miden `present`: el
+banco pasa de **41 a 44 de 59**.
+
+### Lo que S4 entregó, y las decisiones que conviene no reabrir
+
+- **La relación se resuelve** con dos endpoints (`/options` de un modelo y de
+  un campo), con `value` + `label` legible, por la misma maquinaria que una
+  lista (búsqueda, tenant, alcance por fila). **El permiso es el del
+  DESTINO**: quien puede editar el registro y no navegar el destino recibe
+  403 y el formulario cae al id crudo — el panel no ensancha una concesión
+  para dibujar un widget más bonito.
+- **Los hijos viajan en el payload del padre.** Con id es edición, sin id es
+  alta, y el que debe irse **lo dice**: la ausencia **nunca** borra (un
+  formulario que cargó dos de cinco líneas borraría las tres que no enseñó).
+  La clave al padre la estampa el panel, y los permisos del modelo HIJO se
+  comprueban **antes** de escribir el padre — sin transacción, un rechazo
+  descubierto después dejaría el padre guardado y un «prohibido» sobre el que
+  nadie puede actuar.
+- **No es transaccional y no se finge**: cada hijo se reporta por separado.
+  Quien necesite todo-o-nada necesita antes un origen de datos transaccional,
+  y la doc pública lo dice.
+- **El vocabulario de widgets crece** (json, richtext, file, image): el
+  documento se infiere del tipo; «esto es HTML» y «esto es una clave de
+  storage» los declara la aplicación (`field_widgets`), como la columna de
+  propiedad de A6 `S2`. Un campo de fichero guarda una CLAVE y hay ruta de
+  subida que la produce (32 MB, sólo el nombre base, auditada).
+- **Sin editor WYSIWYG**: el texto rico se edita como marcado — un editor que
+  reescribe lo que no entiende es peor que un área de texto que no lo toca.
+  Y la many-to-many pura sigue fuera (ADR-009).
+- **Dos cosas que destapó el trabajo**: una sonda que casaba el substring
+  «widget» en los NOMBRES de la config movió CUST-03 sin que nada cambiara
+  (corregida, y escrita en la página del banco junto a las otras cuatro); y
+  un update cuyo payload sólo trae hijos es un update legítimo — ahora
+  escribe los hijos sin escribir, ni auditar, un cambio del padre que no
+  ocurrió.
+
 ## S5 · Listas a las que se puede preguntar de verdad
 
 **Precondición.** Ninguna, pero **lee QADR-0010 antes**: `datasource.Query`
