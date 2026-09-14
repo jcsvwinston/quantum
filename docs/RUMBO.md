@@ -41,7 +41,10 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   permisos queda completa. Su `S3` sacó el rastro de auditoría del
   proceso: vive en una tabla del panel, con retención por período, export a
   fichero e historial por registro, y el banco va por **41 de 59** con la
-  familia de auditoría también completa. Queda NU-73, arreglado en
+  familia de auditoría también completa; su `S4` puso en los formularios lo
+  que una tabla de escalares no tiene —la relación resuelta por nombre, los
+  hijos editados con el padre y los tipos documento/fichero/texto rico—, y el
+  banco va por **44 de 59**. Queda NU-73, arreglado en
   nucleus y a la espera del pin. El troceado está en
   [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y

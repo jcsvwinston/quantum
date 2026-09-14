@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-14, QUANTUM 1.32.0 — A6 en curso: S1, S2 y S3 hechas)
+## 3. Estado al cierre (2026-09-14, QUANTUM 1.32.0 — A6 en curso: S1–S4 hechas, banco 44/59)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -82,11 +82,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   producto, EN CURSO**: su `S0` (medición) está hecha y el troceado en once
   sesiones vive en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md).
-  **`S1`, `S2` y `S3` hechas** (orbit#471, orbit#472, orbit#473): OR-4
-  cerrado y el banco en **41/59**, con las familias de **permisos y auditoría
-  completas**. **Siguiente sesión: `S4`** (formularios: relaciones, edición
-  anidada y tipos ricos; DS-10/11/12, sin precondición) — o `S5`/`S9`, que
-  tampoco tienen precondición. De los dos P1 que A6 llevaba queda **NU-73**,
+  **`S1`–`S4` hechas y FUSIONADAS** (orbit#471, #472, #473, #474): OR-4
+  cerrado y el banco en **44/59**, con las familias de **permisos y auditoría
+  completas**. **Siguiente sesión: `S5`** (listas: filtros con operadores, el
+  total que hoy no existe —**OR-45**— y vistas guardadas; DS-04/05/17, sin
+  precondición pero **lee QADR-0010 antes**: `datasource.Query` está
+  congelado y el operador de filtro entra como campo nuevo) — o `S9`, que
+  tampoco tiene precondición. De los dos P1 que A6 llevaba queda **NU-73**,
   ya arreglado en nucleus y a la espera de que el pin de orbit traiga su
   release.
   Lo que fue A4 y A5, sesión a sesión y con lo que cada una midió, está en
@@ -158,6 +160,42 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-14 (tarde) — A6 `S4`: un formulario que sostiene una relación, sus hijos y un fichero
+
+- **`S4` HECHA** (orbit#474). **DS-10**, **DS-11** y **DS-12** en `present`:
+  el banco pasa de **41 a 44 de 59**. El set sigue en 1.32.0.
+- **Lo que el panel no podía hacer**: una clave foránea era un número que la
+  persona tenía que saberse; «un pedido con sus líneas» eran dos pantallas y
+  un id cargado en la cabeza; y un payload anidado **no se rechazaba, se
+  descartaba** —peor, porque el formulario parecía haber guardado—.
+- **El permiso del lookup es el del DESTINO**: resolver qué significa un id de
+  Author es leer Authors. Quien puede editar el registro y no navegar el
+  destino recibe 403 y el formulario cae al id crudo. El panel **no ensancha
+  una concesión** para dibujar un widget más bonito.
+- **La ausencia nunca borra**: un hijo se elimina sólo si lo dice
+  (`_delete`), porque un formulario que cargó dos de cinco líneas borraría las
+  tres que no enseñó. Y la clave al padre **la estampa el panel**.
+- **Los permisos del hijo se comprueban ANTES de escribir el padre**: sin
+  transacción, un rechazo descubierto después dejaría el padre guardado y un
+  «prohibido» sobre el que nadie puede actuar. Y **no se finge la
+  transacción**: cada hijo se reporta por separado, y la doc lo dice.
+- **Lo que el tipo puede decir se infiere; lo que no, se declara**: un mapa o
+  un slice es un documento (json); «esto es HTML» y «esto es una clave de
+  storage» los declara la aplicación (`field_widgets`). Un campo de fichero
+  guarda una CLAVE y la subida la produce (32 MB, sólo el nombre base,
+  auditada). **Sin editor WYSIWYG**: reescribe lo que no entiende.
+- **Un config key no es una capacidad**: la sonda de CUST-03 casaba el
+  substring «widget» en los NOMBRES de la config, así que añadir
+  `field_widgets` la movió de `absent` a `partial` sin que nada cambiara.
+  Corregida, y escrita en la página del banco junto a las otras cuatro
+  trampas. Es la misma lección de S0 en una variante nueva.
+- **Un update que sólo trae hijos es un update legítimo**: ahora escribe los
+  hijos sin escribir —ni auditar— un cambio del padre que no ocurrió.
+- **Siguiente: `S5`** (filtros con operadores, el total que falta —OR-45— y
+  vistas guardadas). **Lee QADR-0010 antes**: `datasource.Query` está
+  congelado y el operador de filtro entra **como campo nuevo**, junto al
+  `Filters` de siempre.
+
 ### Sesión 2026-09-14 — A6 `S3`: el rastro deja de empezar cuando empieza el proceso
 
 - **`S3` HECHA** (orbit#473). **AUD-05**, **AUD-06**, **AUD-07** y **DS-16**
@@ -198,48 +236,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 - **Siguiente: `S4`** (formularios: la clave foránea que hoy enseña un id
   crudo, edición anidada, tipos documento/fichero/texto rico). Sin
   precondición, igual que `S5` y `S9`.
-
-### Sesión 2026-09-13 (tarde) — A6 `S2`: la política deja de pararse en el borde del modelo
-
-- **`S2` HECHA** (orbit#472). Los tres controles que llevaba —**PERM-06**,
-  **PERM-07** y **PERM-09**— miden `present`: el banco pasa de **34 a 37 de
-  59** y la familia de permisos queda **completa** (9/9), la primera que lo
-  está. El set sigue en 1.32.0: S2 no corta.
-- **El objeto de una política admite dos formas más, por adición**:
-  `admin:Post#own` (el mismo verbo sobre las filas del operador) y
-  `admin:Post.title` (un campo). Quien no escribe ninguna se comporta igual
-  que antes, y dos tests lo fijan. QADR-0010 respetado: no se renombra ni se
-  quita nada; `datasource.Query` sigue intacto —el filtro de propiedad es
-  igualdad, que es lo que `Filters` ya sabía hacer—.
-- **Dos decisiones que conviene no reabrir**: un `#own` sobre un modelo del
-  que la aplicación no declaró columna de dueño se **RECHAZA** con 403 (una
-  regla de propiedad que degrada en silencio a «todo» sería invisible, y es
-  justo el fallo que el mecanismo existe para impedir); y una escritura sobre
-  un campo prohibido es un **403 que NOMBRA el campo**, no un descarte
-  silencioso — un formulario que cree haber guardado lo que no guardó es peor
-  que uno al que se le dice que no puede.
-- **La fila ajena contesta 404**, no 403: la misma respuesta que una fila que
-  no existe, para no revelar el espacio de ids. Es la elección que ya hacía
-  el confinamiento por tenant, y ahora comparten mecanismo
-  (`columnScopeOwns`) incluida su parte difícil — un registro que no trae la
-  columna se confirma contra el almacén.
-- **Las pistas de capacidad son ayuda de render, no la puerta**: viajan en lo
-  que la pantalla ya cargaba (`permissions`, `can_create/update/delete`,
-  `row_scope`, y `can_edit` por campo), la UI las gasta para apagar botones e
-  inputs, y todo se vuelve a comprobar en la petición siguiente.
-- **Lo que NO cubre está escrito** (ADR-007 de orbit, y la doc pública): los
-  verbos globales de export/import —que se autorizan sobre `admin:*` y son el
-  rodeo de quien los concede—, los valores del propio rastro de auditoría, y
-  el feed en vivo.
-- **Las dos familias de tests se verificaron mutando el código que cubren**
-  antes de darlas por buenas; y las sondas miden por efecto en los dos
-  sentidos (la de campo relee el valor tras el 403 **y** comprueba que un
-  campo permitido sigue siendo escribible — un panel que rechazara todo
-  habría pasado una sonda de un solo sentido).
-- **Adición al contrato congelado**: dos campos en `orbit.Config`
-  (`RowOwnerFields`, `RowOwnerSubject`); baseline regenerada en el mismo PR.
-- **Siguiente: `S3`** (la auditoría a la base, con retención y export;
-  AUD-05/06/07 y DS-16). Sin precondición.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -282,12 +278,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   inválido fuera de SQLite y MySQL permisivo) avisa desde quark v1.14.0 pero
   no es error: convertirlo rompe a quien depende de esos motores, así que se
   movió a **A12**, donde QADR-0010 acumula lo rompiente.
-- **Abierto ahora mismo**: **orbit#473** (`S3`: el rastro de auditoría en la
-  base, con retención, export e historial por registro) y el PR de
-  documentación del paraguas que lo acompaña. Lo anterior del arco está
-  fusionado con `main` verde: **orbit#467** (el banco), **orbit#471** (`S1`,
-  OR-4), **orbit#472** (`S2`), **nucleus#540** (NU-73, el `Hijack`),
-  **orbit#469** (AUD-05) y los cuatro del borrado de ejemplos.
+- **Todo lo del arco está FUSIONADO y `main` verde**: **orbit#467** (el
+  banco), **orbit#471** (`S1`, OR-4), **orbit#472** (`S2`), **orbit#473**
+  (`S3`), **orbit#474** (`S4`), **nucleus#540** (NU-73, el `Hijack`),
+  **orbit#469** (AUD-05) y los cuatro del borrado de ejemplos; en el paraguas,
+  **quantum#189/#192/#193/#196** y el de esta sesión.
 - **NU-73 está en `main` de nucleus, y la sonda OPS-06 del banco sigue en
   `absent` a propósito**: el veredicto sólo puede moverse cuando el `require`
   de orbit traiga la release de nucleus que contiene el arreglo. Quien suba
