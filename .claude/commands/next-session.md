@@ -372,22 +372,28 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   no comprueba unicidad de id — añadirla es de una línea. Renumerar uno de
   los dos toca los informes que lo citan, así que la decisión (cuál se
   renumera, o si se deja con una nota) no la toma una sesión de arco sola.
-- **`umbrella-built-links` lleva ROJO desde el 2026-09-12 y no es contenido
-  equivocado, es el guard midiendo contra el árbol de hoy** (visto el
-  2026-09-17 al correrlo; falla igual con y sin los cambios de la sesión, y
-  la lane semanal debería estar avisándolo). Los dos enlaces rotos —
-  `examples/mvc_api` desde `/nucleus/1.15.0/getting-started/project-structure/`
-  y `examples/showcase_demo` desde el `intro` de `/orbit/1.9.0/` — viven los
-  dos en **doc ARCHIVADA** (`website/versioned_docs/version-…`), y cuando se
-  cortó cada snapshot esas rutas existían: los ejemplos salieron del árbol
-  después. Arreglarlos sería reescribir un archivo que existe precisamente
-  para no reescribirse (la regla está en el `CLAUDE.md` de orbit y en el
-  hueco declarado de 1.6.7), y silenciar el guard perdería los enlaces rotos
-  de la doc VIVA, que es lo que sí hay que cazar. **La decisión pendiente es
-  del guard**: excluir los enlaces que nacen bajo `versioned_docs/`, o
-  resolverlos contra el tag del snapshot en vez de contra `main`. Cualquiera
-  de las dos es un cambio pequeño; elegir cuál no lo decide una sesión de
-  arco sola.
+- **`umbrella-built-links` se pondrá ROJO EN EL PRÓXIMO TREN, no antes**
+  (medido el 2026-09-17, y conviene no confundirlo con un rojo de hoy). El
+  guard resuelve los enlaces a repos propios **contra el checkout de los
+  submódulos**, y en CI ese checkout es el PIN DEL SET: en `nucleus
+  v1.28.0` el directorio `examples/` **todavía existe**, así que la lane
+  pasa. En `v1.29.0` ya no está — se borró el 2026-09-12, después de cortar
+  v1.28.0 —, de modo que **en cuanto un set pine v1.29.0 la lane se pone
+  roja** por dos enlaces: `examples/mvc_api` desde
+  `/nucleus/1.15.0/getting-started/project-structure/` y
+  `examples/showcase_demo` desde el `intro` de `/orbit/1.9.0/`. En un
+  checkout local con los submódulos por delante del set (como el de esta
+  sesión) ya falla, y ese es el aviso.
+  **Y los dos viven en doc ARCHIVADA** (`website/versioned_docs/version-…`),
+  donde cuando se cortó cada snapshot la ruta existía: arreglarlos sería
+  reescribir un archivo que existe precisamente para no reescribirse (regla
+  en el `CLAUDE.md` de orbit y en el hueco declarado de 1.6.7), y silenciar
+  el guard perdería los enlaces rotos de la doc VIVA, que es lo que sí hay
+  que cazar. **La decisión es del guard**: excluir los enlaces que nacen
+  bajo `versioned_docs/`, o resolverlos contra el tag del snapshot en vez de
+  contra el pin. Cualquiera de las dos es un cambio pequeño, pero elegir
+  cuál no lo decide una sesión de arco sola — y hacerlo ANTES del tren
+  ahorra un rojo a mitad de corte.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
   proteger `main` en quark, orbit y quantum exigiendo `CI Required Gate`
   (sólo nucleus la tiene); activar `allow_auto_merge` en los cuatro (medido
