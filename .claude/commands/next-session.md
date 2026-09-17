@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-15, QUANTUM 1.32.0 — A6: S1–S6 hechas, banco 51/59)
+## 3. Estado al cierre (2026-09-17, QUANTUM 1.32.0 — A6: S1–S6 y S9 hechas, banco 54/59)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -82,20 +82,21 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   producto, EN CURSO**: su `S0` (medición) está hecha y el troceado en once
   sesiones vive en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md).
-  **`S1`–`S6` hechas y FUSIONADAS** (orbit#471, #472, #473, #474, #475,
-  #482 y #483): el banco está en **51/59**, con las familias de **permisos y
-  auditoría completas**, la de **data studio a un solo control** de estarlo
-  y la de **operación a los tres de `S9`** (OPS-11, OPS-13 parciales y
-  OPS-17 ausente).
+  **`S1`–`S6` fusionadas** (orbit#471, #472, #473, #474, #475, #482 y #483)
+  y **`S9` en revisión** (orbit#484): el banco está en **54/59**, con las
+  familias de **permisos, auditoría y operación COMPLETAS** y la de data
+  studio a un solo control de estarlo. Lo único ausente son las **cuatro de
+  personalización** (`S7` y `S8`) y ese control de data studio.
   **El pin de nucleus, que era el cuello de botella del arco, está subido**:
   nucleus **v1.29.0** cortado y el `require` de orbit con él, lo que cerró de
   una vez **NU-73** (OPS-06 verificado: el stream abre y contesta
   `stream.ready`), **OR-45** y los veredictos de **DS-04 + DS-05**. El set de
   suite sigue en 1.32.0 — esto fue un corte de pilar, no de suite.
-  **Siguiente sesión: `S9`** (las vistas de operación que callan: OR-47,
-  OR-48, OR-49 y OR-50) o **`S7`** (acciones y puntos de extensión), las dos
-  sin precondición; `S8` espera a `S7` y `S10` (el instrumento del
-  navegador) no espera a nadie.
+  **A6 tiene UN solo hallazgo abierto: OR-51**, que espera a que la raíz de
+  orbit tenga release (orbit#470, el release PR de 1.10.0, está listo y sin
+  conflictos). Su gate exige cero abiertos, así que ese es el último paso.
+  **Siguiente sesión: `S7`** (acciones y puntos de extensión) o **`S10`** (el
+  instrumento del navegador), las dos sin precondición; `S8` espera a `S7`.
   Lo que fue A4 y A5, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md) y
   [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md).
@@ -163,6 +164,58 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-17 — A6 `S9` hecha: las vistas de operación dicen qué pasa, no cómo están configuradas, y el banco llega a 54 de 59
+
+- **OR-47, OR-48, OR-49 y OR-50 cerrados** (orbit#484): el banco pasa de
+  **51 a 54 de 59** y **operación es la primera familia completa** (17
+  presentes, 0 parciales, 0 ausentes). A6 queda con **UN solo hallazgo
+  abierto**: OR-51, el que espera a la release de la raíz de orbit.
+- **La caché no se podía descubrir, así que se declara.** `pkg/cache` de
+  nucleus es una BIBLIOTECA con la que una aplicación construye, no un
+  servicio que el framework cablee: fuera del CLI (`createcachetable`) nadie
+  lo usa y `app.App` no tiene campo de caché. La nota del hallazgo —«una
+  aplicación cuya caché es en proceso, que es la de por defecto»— acertaba
+  el síntoma y erraba la causa, y eso quedó corregido en el informe.
+  `orbit.Config.Cache` (aditivo, tres métodos) es el contrato; la vista
+  tiene tres posturas (`declared`/`redis`/`none`) y `can_flush`, así que
+  **donde no hay nada que vaciar se retira el botón** en vez de ofrecerlo y
+  rechazar con «redis url is not configured». El panel NO lee ni escribe
+  entradas por ahí: uno que pudiera leerlas pondría lo cacheado tras un
+  permiso de panel que nunca se pensó para eso.
+- **El correo enseña entrega**: `health` (el chequeo del propio emisor,
+  acotado a 2 s — un host SMTP bien escrito puede rechazar toda conexión) y
+  `delivery` (encolados, fallidos, el más antiguo pendiente). Sin outbox
+  dice que no hay cola **y por qué**, en vez de ceros que se leen como «nada
+  pendiente». El alcance va en el payload porque el recuento es de TODOS los
+  topics → **NU-76** (P3, A7): no hay forma pública de contar uno solo.
+- **El 405 se conserva a propósito, y está medido**: un catch-all bajo
+  `/api/` registrado para todos los métodos convierte TODO 405 en 404, que
+  afirma que un endpoint no existe cuando existe. El handler consulta antes
+  el mapa de rutas del propio panel.
+- **La trampa gorda de la sesión, y la sexta lección del banco**: cerrar
+  OR-48 destapó que **OPS-15 llevaba desde `S0` registrado `present`
+  leyendo la página HTML del fallback**. El id de un export es su clave de
+  almacenamiento, que lleva barra, así que `GET /api/exports/{id}` —un solo
+  segmento— nunca casó con los ids que el panel emite. Es **OR-52**, nacido
+  y cerrado aquí. Generalizado en la página del banco: **en este panel un
+  200 no es evidencia hasta que algo del cuerpo lo es.**
+- **Otras tres que el banco aprendió de sí mismo**: buscar una PALABRA en el
+  payload no mide nada (la sonda vieja de correo buscaba «queue»/«outbox»);
+  una aserción sobre una cola no debe correr contra el dispatcher (se mide
+  el TOTAL, no el pendiente, o se pierde la carrera al azar); y una segunda
+  aplicación pertenece a la sonda que la arranca — cachearla en el `env`
+  falla dos veces, porque el servidor muere con su subprueba y porque una
+  caché compartida deja que el flush de una sonda decida el recuento de
+  otra.
+- **Lo que NO entra**: las tres pantallas. La SPA embebida no tiene vista de
+  caché, correo ni migraciones —son API sin interfaz—, así que no hubo que
+  reconstruir `dist`; cablearlas es trabajo de interfaz, como `S5` dejó
+  dicho de la rejilla de filtros.
+- **Siguiente: `S7`** (acciones y puntos de extensión, sin precondición) o
+  **`S10`** (el instrumento del navegador, tampoco); `S8` espera a `S7`.
+  Con `S7`+`S8` cae lo único que queda ausente además de un control de data
+  studio: las cuatro de personalización.
+
 ### Sesión 2026-09-15 — A6 `S6` hecha: la fila de sesión dice de quién es y desde qué dispositivo, y una llamada revoca todas las de una cuenta
 
 - **OPS-02, OPS-04 y OPS-16 en `present`** (orbit#483): el banco pasa de
@@ -211,72 +264,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   puntos de extensión), las dos sin precondición. La deuda corta del guard
   `check_release_assets.sh` (§Estado vigente) sigue sin registrar.
 
-### Sesión 2026-09-15 — A6 `S5` cerrada: el pin de nucleus, y un arnés que no podía pasar en una rama de release
-
-- **nucleus v1.29.0 CORTADO** (nucleus#543) y **el `require` de orbit subido**
-  (orbit#482): con eso se cierran de golpe **NU-73** (OPS-06 abre el stream
-  y recibe `stream.ready`, verificado, no leído), **OR-45** y la mitad de
-  panel de **DS-04/DS-05**. El banco pasa de **45 a 48 de 59**, y `S5` queda
-  HECHA. El set sigue en 1.32.0: esto es un corte de pilar, no de suite.
-- **La trampa del corte, nueva y cara de encontrar**: el perfil
-  `scaffold-mvc` del arnés de compatibilidad de nucleus **no puede pasar en
-  NINGUNA rama de release-please**. El scaffold pina el framework a la
-  versión que declara el CLI, y en esa rama release-please ya la subió a un
-  tag que todavía no existe: el build se la pide al proxy y muere con
-  `unknown revision`. Un `use` del workspace dice dónde está el CÓDIGO, no
-  qué versión resuelve el grafo, así que listar la raíz nunca iba a
-  arreglarlo. Lo arregla un `replace` **VERSIONADO** (uno sin versión lo
-  rechaza Go para un módulo del workspace) — nucleus#546. Ese perfil
-  sustituyó a los de ejemplos el 2026-09-12, así que v1.29.0 fue el primer
-  release que lo corrió.
-- **nucleus#542 cerrado** por huérfano: re-pinaba `examples/showcase_demo`,
-  que #541 borró del árbol. Un PR de Dependabot sobre un directorio que ya no
-  existe no se fusiona, se cierra.
-- **La gramática del filtro es `?campo__op=valor`**, y la clave ENTERA gana si
-  nombra una columna real: un campo llamado `views__gt` sigue resolviéndose.
-  Un operador que nadie conoce **se rechaza**; caer a igualdad listaría todas
-  las filas pareciendo un filtro.
-- **Lo más expuesto del cambio, y cómo quedó cerrado**: un origen de datos
-  escrito ANTES de que `Where` existiera compila igual e **ignora el campo**,
-  así que contestaría todas las filas pareciendo filtrado. El contrato gana
-  `OperatorFilterSource` (opcional): el panel **pregunta antes de mandar** y
-  **rechaza** la consulta contra quien no declare que los aplica.
-  `ExactTotal` no necesita esa promesa — quien lo ignora ya lo dice en el
-  sobre (`total: -1`, `is_estimated: true`).
-- **`quarkdatasource` los declina hoy, y es OR-51 (P3, A6)**: pina la RAÍZ de
-  orbit y el CI lo construye con `GOWORK=off`, así que **no puede nombrar un
-  símbolo que el tag que pina no publica**. Su parche está escrito y medido
-  (doce operadores, `in` vacío, comodín) y entra en cuanto la raíz tenga
-  release — antes de cerrar A6, que su gate lo exige. **Es la trampa de
-  secuenciación a recordar**: en orbit, un módulo hermano no puede usar una
-  adición de la raíz en el MISMO PR que la añade.
-- **QK-25, hallazgo nuevo (P2, arco A8)**: el builder de quark **no puede
-  emitir `LIKE … ESCAPE`** —no está en su whitelist de operadores ni hay
-  `Expr` que lo produzca— y SQLite y Oracle no tienen escape por defecto, así
-  que un `%` en el valor ensancha la coincidencia. Lo cazó el test del
-  arnés (`contains "%"` devolvía las tres filas). En vez de publicar un filtro
-  que miente, `quarkdatasource` **RECHAZA** esa consulta en esos dos motores
-  nombrando el motivo; los valores sin comodín no cambian. **La caja de
-  búsqueda arrastra el mismo defecto desde antes y NO se tocó**: cambiarla
-  altera el comportamiento de una función publicada. Por la ruta de nucleus
-  el escape sí funciona y el banco lo comprueba.
-- **Dos cosas que el banco aprendió sobre sí mismo**, ambas escritas en su
-  página: un modelo con UNA sola columna filtrable mide el lenguaje de
-  filtros por una mirilla —cada operador volvía rechazado por el CAMPO, no
-  por el operador—, y **el banco comparte UNA aplicación entre todas las
-  sondas**, así que una aserción sobre un listado tiene que acotarse a las
-  filas que esa sonda creó (la primera versión de DS-05 leyó los restos de la
-  sonda de paginación como un filtro roto).
-- **Lo que NO entra y hay que saberlo**: la fila de filtros de la rejilla
-  sigue mandando igualdad. Los operadores se escriben en la URL y **una vista
-  guardada los conserva**, que es lo que suele ser una consulta a la que un
-  operador vuelve cada mañana. Cablear AG Grid a la gramática nueva es
-  trabajo de SPA y pertenece a una sesión de interfaz.
-- **Siguiente: `S6`** (la mitad de orbit: la fila de sesión que dice de quién
-  es y con qué dispositivo —OR-46— y la revocación masiva; su mitad de
-  nucleus está hecha y AHORA PUBLICADA, así que su precondición se cumple) o
-  **`S9`** (las vistas de operación que callan), las dos sin precondición.
-
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -307,9 +294,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 - **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~, ~~A4~~ y ~~A5~~
   CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0) → **A6 Orbit como admin de
-  producto, EN CURSO** (`S0`–`S6` hechas; troceado de once sesiones en
+  producto, EN CURSO** (`S0`–`S6` y `S9` hechas; troceado de once sesiones en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md),
-  siguiente `S9` o `S7`) → A7 … → A12. El registro de hallazgos y su guard
+  siguiente `S7` o `S10`) → A7 … → A12. El registro de hallazgos y su guard
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
 - **Lo que A4 dejó a deber, con su porqué escrito**: la segunda mitad de su
   `S4` —uuid nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet,
@@ -318,29 +305,44 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   inválido fuera de SQLite y MySQL permisivo) avisa desde quark v1.14.0 pero
   no es error: convertirlo rompe a quien depende de esos motores, así que se
   movió a **A12**, donde QADR-0010 acumula lo rompiente.
-- **Todo lo del arco está FUSIONADO y `main` verde**: **orbit#467** (el
-  banco), **orbit#471** (`S1`, OR-4), **orbit#472** (`S2`), **orbit#473**
-  (`S3`), **orbit#474** (`S4`), **orbit#475** (vistas guardadas de `S5`),
-  **nucleus#540** (NU-73) y **nucleus#545** (operadores y total de `S5`),
-  **nucleus#546** (el arnés que no pasaba en una rama de release),
-  **orbit#482** (el pin y la mitad de panel de `S5`), **orbit#483** (`S6`:
-  dueño, dispositivo y revocación masiva), **orbit#469** (AUD-05) y los
-  cuatro del borrado de ejemplos; en el paraguas,
-  **quantum#189/#192/#193/#196/#197/#198/#199** y el de esta sesión.
+- **Todo lo del arco está FUSIONADO y `main` verde**, salvo el de esta
+  sesión: **orbit#467** (el banco), **orbit#471** (`S1`, OR-4),
+  **orbit#472** (`S2`), **orbit#473** (`S3`), **orbit#474** (`S4`),
+  **orbit#475** (vistas guardadas de `S5`), **nucleus#540** (NU-73) y
+  **nucleus#545** (operadores y total de `S5`), **nucleus#546** (el arnés
+  que no pasaba en una rama de release), **orbit#482** (el pin y la mitad de
+  panel de `S5`), **orbit#483** (`S6`: dueño, dispositivo y revocación
+  masiva), **orbit#469** (AUD-05) y los cuatro del borrado de ejemplos; en
+  el paraguas, **quantum#189/#192/#193/#196/#197/#198/#199/#200/#201**.
+  **En revisión: orbit#484** (`S9`) y el del paraguas de esta sesión.
 - **El pin, que era el cuello de botella del arco, ESTÁ SUBIDO**: nucleus
   **v1.29.0** cortado y el `require` de orbit con él (orbit#482), lo que
   cerró **NU-73**, **OR-45** y los veredictos de **DS-04** y **DS-05** en un
   solo paso. Lo que aprendió el corte está en el §3 y en
   `scripts/train/README.md`: el perfil `scaffold-mvc` del arnés de nucleus no
   podía pasar en NINGUNA rama de release-please hasta nucleus#546.
-- **OR-51, nacido esta sesión (P3, A6)**: `quarkdatasource` no implementa
+- **OR-51, nacido en `S5` (P3, A6) — el ÚNICO abierto de A6**: `quarkdatasource` no implementa
   todavía `datasource.OperatorFilterSource`, así que el panel montado sobre
   Quark **rechaza** los filtros con operador en vez de contestarlos sin
   filtrar. No es descuido sino dependencia topológica: el CI construye cada
   módulo con `GOWORK=off` contra el tag de raíz que pina, y ese tag no publica
   aún `datasource.Filter`. Entra tras la release de la raíz y **antes de
   cerrar A6**, cuyo gate exige cero abiertos.
-- **QK-25, nacido esta sesión (P2, A8)**: el builder de quark no puede emitir
+- **OR-52, nacido y CERRADO en `S9`**: el id de un export es su clave de
+  almacenamiento, que lleva barra, así que `GET /api/exports/{id}` —un solo
+  segmento— nunca casó con los ids que el propio panel emite; caía al
+  fallback de la SPA y volvía como `200 text/html`, y por eso **el banco
+  daba OPS-15 por bueno desde `S0` leyendo una página web**. Sólo se ve al
+  cerrar OR-48. La ruta toma `{id...}`. La lección quedó escrita en
+  `orbit/docs/admin-bench.md`: en ese panel un 200 no es evidencia hasta que
+  algo del cuerpo lo es.
+- **NU-76, nacido en `S9` (P3, arco A7)**: `outbox.InspectRuntime` cuenta
+  TODOS los topics a la vez y no hay forma pública de contar uno solo (ni de
+  leer el último error de entrega), así que la vista de correo del panel
+  **declara su alcance** en el payload en vez de fingir uno más estrecho.
+  Replicarlo dentro de orbit duplicaría el quoting por dialecto del
+  framework. Va a A7 (jobs, eventos y tiempo real), NO al gate de A6.
+- **QK-25, nacido en `S5` (P2, A8)**: el builder de quark no puede emitir
   `LIKE … ESCAPE`, y SQLite y Oracle no tienen escape por defecto, así que un
   `%` en el valor ensancha. `quarkdatasource` rechaza esa consulta en esos dos
   motores en vez de contestarla mal; **la caja de búsqueda arrastra el mismo
@@ -361,6 +363,31 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   sobre un payload no es una medición — se busca LA entrada (acción, modelo,
   record_id). Está escrito en `orbit/docs/admin-bench.md` con las otras
   cuatro.
+- **`NU-50` nombra DOS hallazgos distintos en el registro** (visto el
+  2026-09-17): uno P3 sin arco sobre `internal/cli/configcommands.go` y otro
+  P2 de A4 sobre `pkg/model/meta.go` frente al esquema de quark. Los dos
+  están `hecho`, así que hoy no falsea ningún recuento de abiertos, pero el
+  registro es la fuente de verdad del gate de cada arco y un id que nombra
+  dos cosas hace ambigua cualquier evidencia que lo cite. `umbrella-audit-backlog`
+  no comprueba unicidad de id — añadirla es de una línea. Renumerar uno de
+  los dos toca los informes que lo citan, así que la decisión (cuál se
+  renumera, o si se deja con una nota) no la toma una sesión de arco sola.
+- **`umbrella-built-links` lleva ROJO desde el 2026-09-12 y no es contenido
+  equivocado, es el guard midiendo contra el árbol de hoy** (visto el
+  2026-09-17 al correrlo; falla igual con y sin los cambios de la sesión, y
+  la lane semanal debería estar avisándolo). Los dos enlaces rotos —
+  `examples/mvc_api` desde `/nucleus/1.15.0/getting-started/project-structure/`
+  y `examples/showcase_demo` desde el `intro` de `/orbit/1.9.0/` — viven los
+  dos en **doc ARCHIVADA** (`website/versioned_docs/version-…`), y cuando se
+  cortó cada snapshot esas rutas existían: los ejemplos salieron del árbol
+  después. Arreglarlos sería reescribir un archivo que existe precisamente
+  para no reescribirse (la regla está en el `CLAUDE.md` de orbit y en el
+  hueco declarado de 1.6.7), y silenciar el guard perdería los enlaces rotos
+  de la doc VIVA, que es lo que sí hay que cazar. **La decisión pendiente es
+  del guard**: excluir los enlaces que nacen bajo `versioned_docs/`, o
+  resolverlos contra el tag del snapshot en vez de contra `main`. Cualquiera
+  de las dos es un cambio pequeño; elegir cuál no lo decide una sesión de
+  arco sola.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
   proteger `main` en quark, orbit y quantum exigiendo `CI Required Gate`
   (sólo nucleus la tiene); activar `allow_auto_merge` en los cuatro (medido
