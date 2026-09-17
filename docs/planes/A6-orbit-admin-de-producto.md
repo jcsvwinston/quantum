@@ -27,9 +27,11 @@ fixture; sería el 50º):
 `S1`**, orbit#471) y los siete que abrió la medición de `S0`: **NU-73** (P1,
 en nucleus — **cerrado** al subir el pin en orbit#482), **OR-45** (P2,
 **cerrado en `S5`**), **OR-46** (P2, **cerrado en `S6`**, orbit#483), y
-**OR-47**, **OR-48**, **OR-49** y **OR-50** (P3, los cuatro de `S9`). Nacido
-en `S5` y también de este arco: **OR-51** (P3), que espera a la release de
-la raíz de orbit.
+**OR-47**, **OR-48**, **OR-49** y **OR-50** (P3, **los cuatro cerrados en
+`S9`**, orbit#484). Nacidos dentro del arco: **OR-51** (P3, en `S5`), que
+espera a la release de la raíz de orbit y es **el único abierto de A6**;
+**OR-52** (P3, nacido y cerrado en `S9`); y **NU-76** (P3, nacido en `S9`,
+asignado a **A7**, así que no está en este gate).
 
 **La regla que lo condiciona.**
 [QADR-0010](../adr/QADR-0010-rupturas-agrupadas-en-un-major.md): lo rompiente
@@ -550,6 +552,37 @@ OPS-13 y OPS-17.
 ```bash
 cd orbit && go test ./internal/adminbench/ -run 'TestAdminBench/OPS-(11|13|17)' -v
 ```
+
+**HECHA el 2026-09-17** (orbit#484). El banco pasa de **51 a 54 de 59** y la
+familia de **operación queda completa** (17 presentes, 0 parciales, 0
+ausentes). Los cuatro hallazgos cerrados; nacen dos.
+
+- **La caché no se podía descubrir, así que se declara.** `pkg/cache` de
+  nucleus es una BIBLIOTECA con la que una aplicación construye, no un
+  servicio que el framework cablee: fuera del CLI (`createcachetable`) nadie
+  lo usa, y `app.App` no tiene caché. La nota del hallazgo («una aplicación
+  cuya caché es en proceso, que es la de por defecto») acertaba el síntoma y
+  erraba la causa. El contrato nuevo es `orbit.Config.Cache` —nombre,
+  recuento, vaciado— y la vista tiene tres posturas (`declared`, `redis`,
+  `none`) con `can_flush`: donde no hay nada que vaciar **se retira el
+  botón** en vez de ofrecerlo y rechazar. El panel no lee ni escribe
+  entradas por ese contrato: contar y vaciar es todo lo que un operador
+  hace a una caché desde una pantalla, y uno que pudiera leerlas pondría lo
+  cacheado tras un permiso de panel que nunca se pensó para eso.
+- **El 405 se conserva a propósito.** Un catch-all bajo `/api/` registrado
+  para todos los métodos convierte TODO 405 en 404 —medido, no supuesto—, y
+  eso afirma que un endpoint no existe cuando existe. El handler consulta
+  antes el mapa de rutas del propio panel.
+- **OR-52, nacido y cerrado aquí**: cerrar OR-48 destapó que
+  `GET /api/exports/{id}` nunca casó con los ids que el panel emite (llevan
+  barra), y que el banco daba **OPS-15 por `present` leyendo la página HTML
+  del fallback** desde `S0`. La ruta toma `{id...}`.
+- **NU-76, nacido aquí (P3, A7)**: `outbox.InspectRuntime` cuenta todos los
+  topics a la vez y no hay forma pública de contar uno. La vista de correo
+  **declara su alcance** en el payload en vez de fingir uno más estrecho.
+- **Lo que NO entra**: las tres pantallas. La SPA embebida no tiene vista de
+  caché, correo ni migraciones —son API sin interfaz—, y cablearlas es
+  trabajo de interfaz, como `S5` dejó dicho de la rejilla de filtros.
 
 ## S10 · El instrumento del navegador
 

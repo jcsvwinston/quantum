@@ -58,7 +58,18 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   dispositivo —el visor leía las claves de una aplicación y nunca las del
   propio panel, así que revocaba a ciegas (**OR-46**)— y una llamada que
   revoca todas las de una cuenta sin revocarse a sí misma: el banco queda en
-  **51 de 59**. El troceado está en
+  **51 de 59**. Su `S9` cerró las tres vistas de operación que informaban de
+  su **configuración** en vez de su estado y el 404 que la SPA se comía
+  (**OR-47**, **OR-48**, **OR-49**, **OR-50**): la caché que el panel enseña
+  y vacía es la que la aplicación declara —nada en el framework cablea una,
+  así que no había ninguna que descubrir—, el correo enseña entrega (salud
+  del emisor y cola del outbox) y no driver, las migraciones degradan con el
+  motivo, y `/api/*` contesta 404 JSON conservando el 405. El banco queda en
+  **54 de 59** y la familia de **operación, completa**. Cerrar el fallback
+  destapó que **OPS-15 llevaba desde `S0` dado por bueno leyendo la página
+  HTML** que la SPA servía a una ruta de export que nunca casó (**OR-52**,
+  cerrado); queda **OR-51** como único hallazgo abierto de A6. El troceado
+  está en
   [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
