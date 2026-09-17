@@ -211,6 +211,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   caché, correo ni migraciones —son API sin interfaz—, así que no hubo que
   reconstruir `dist`; cablearlas es trabajo de interfaz, como `S5` dejó
   dicho de la rejilla de filtros.
+- **Y `S9` tumbó `main` al fusionar, por lo que no medía el banco**: la app
+  con outbox que añade es la primera del arnés con DOS escritores sobre el
+  mismo SQLite, y el arranque falla con `SQLITE_BUSY` en una máquina lenta
+  (verde en local y en el PR, rojo en el runner). Arreglado en **orbit#485**
+  con `busy_timeout` en el DSN del banco —una espera, no un reintento— y el
+  defecto de framework queda registrado como **NU-77**, sin esconderlo en el
+  arnés. Dos lecciones: **un flake que no reproduce en tu máquina no es un
+  flake ajeno** (macOS/APFS gana la carrera que el runner pierde), y **el
+  comentario que escribí sobre la sonda era falso** — con
+  `MissingRouteIgnore` el mensaje NO se queda pendiente, el dispatcher lo
+  marca *delivered* en ~2 s; la sonda medía el total por la razón correcta,
+  descrita mal.
 - **Siguiente: `S7`** (acciones y puntos de extensión, sin precondición) o
   **`S10`** (el instrumento del navegador, tampoco); `S8` espera a `S7`.
   Con `S7`+`S8` cae lo único que queda ausente además de un control de data
@@ -336,6 +348,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   cerrar OR-48. La ruta toma `{id...}`. La lección quedó escrita en
   `orbit/docs/admin-bench.md`: en ese panel un 200 no es evidencia hasta que
   algo del cuerpo lo es.
+- **NU-77, nacido el 2026-09-17 (P2, arco A7) — y tumbó `main` de orbit**:
+  una aplicación que arranca un **outbox sobre SQLite puede fallar el
+  arranque**. `app.New` lanza el dispatcher (primera pasada **inmediata**,
+  poll de 1 s) ANTES del `OnStart` de los módulos, que es donde se hace
+  `AutoMigrate`; y como el DSN de sqlite se pasa pelado, `busy_timeout` queda
+  en **0**, así que la contención no espera: falla con `SQLITE_BUSY`. Lo
+  destapó el banco de admin al fusionar `S9` (orbit#484), **no un test de
+  nucleus — nada en nucleus cubre outbox + SQLite**. No reproduce en macOS
+  (0/12 bajo carga, 0/6 con `GOWORK=off`); sí en el runner Linux. El arnés lo
+  esquiva pidiendo `busy_timeout` en su DSN (orbit#485), que es el arnés
+  haciendo usable SQLite con dos escritores — **el defecto de producto sigue
+  abierto**.
 - **NU-76, nacido en `S9` (P3, arco A7)**: `outbox.InspectRuntime` cuenta
   TODOS los topics a la vez y no hay forma pública de contar uno solo (ni de
   leer el último error de entrega), así que la vista de correo del panel
