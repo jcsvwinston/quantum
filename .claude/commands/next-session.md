@@ -64,50 +64,42 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-17, QUANTUM 1.32.0 — A6: S1–S6 y S9 hechas, banco 54/59)
+## 3. Estado al cierre (2026-09-18, QUANTUM 1.33.0 — A6 CERRADO, banco 59/59 + instrumento de navegador)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.32.0** (2026-09-12) — quark v1.14.0 (sin
-  cambio), nucleus v1.28.0, orbit v1.9.6 y sus módulos, tal como los lista
+- **Set certificado: Quantum 1.33.0** (2026-09-18) — quark v1.14.0 (sin
+  cambio), nucleus v1.29.0, orbit v1.10.1 y sus módulos, tal como los lista
   `versions.yaml` (la fuente; no copies números de aquí). `declared_lags`
-  vacío. Publica el arco **A5**.
+  vacío. Publica el arco **A6**.
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
-- **Trabajo por arcos del plan 5/5**: A1, A2, A3, A4 y **A5 CERRADOS**
-  (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0) → **A6, Orbit como admin de
-  producto, EN CURSO**: su `S0` (medición) está hecha y el troceado en once
-  sesiones vive en
-  [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md).
-  **`S1`–`S6` y `S9` fusionadas** (orbit#471, #472, #473, #474, #475, #482,
-  #483, #484 y #485) y **`S7` en revisión** (orbit#486): el banco está en
-  **56/59**, con las familias de **permisos, auditoría, operación y data
-  studio COMPLETAS**. Lo único ausente son **tres de personalización**
-  (marca, tablero declarable e idioma), que son `S8`.
-  **El pin de nucleus, que era el cuello de botella del arco, está subido**:
-  nucleus **v1.29.0** cortado y el `require` de orbit con él, lo que cerró de
-  una vez **NU-73** (OPS-06 verificado: el stream abre y contesta
-  `stream.ready`), **OR-45** y los veredictos de **DS-04 + DS-05**. El set de
-  suite sigue en 1.32.0 — esto fue un corte de pilar, no de suite.
-  **A6 tiene UN solo hallazgo abierto: OR-51**, que espera a que la raíz de
-  orbit tenga release (orbit#470, el release PR de 1.10.0, está listo y sin
-  conflictos). Su gate exige cero abiertos, así que ese es el último paso.
-  **Siguiente sesión: `S8`** (la ropa del producto: marca, tablero de widgets
-  e idioma — su precondición, `S7`, ya está) o **`S10`** (el instrumento del
-  navegador, sin precondición). Con `S8` cae lo único ausente del banco, y
-  después sólo queda `S11`: el guard del gate, OR-51 y el set.
-  Lo que fue A4 y A5, sesión a sesión y con lo que cada una midió, está en
-  [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md) y
-  [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md).
+- **Trabajo por arcos del plan 5/5**: A1, A2, A3, A4, A5 y **A6 CERRADOS**
+  (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0, 1.33.0) → **siguiente: A7** (jobs,
+  eventos y tiempo real), que aún **no tiene troceado**: se escribe al
+  empezarlo y **por una sesión de medición** —las tres veces que se planificó
+  sin medir, la medición corrigió el plan—. A7 hereda dos hallazgos de A6:
+  **NU-77** (P2: una aplicación con outbox sobre SQLite puede fallar el
+  arranque) y **NU-76** (P3: `outbox.InspectRuntime` no sabe contar un topic).
+  Lo que fue A6, sesión a sesión y con lo que cada una midió, está en
+  [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md);
+  A4 y A5, en sus ficheros.
   `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
   los copies de aquí.
   El gate de cada arco sigue siendo el registro
   `docs/auditoria/madurez-2026-09-03/registro.csv` con su guard
   `umbrella-audit-backlog` (cero abiertos en un arco cerrado).
-- **49 guards en el registro**: los 49 de 1.32.0 menos
+- **50 guards en el registro**: los 49 de 1.32.0 más
+  **`umbrella-admin-posture`**, el gate de A6 (2026-09-18): la cifra que
+  publica `orbit/docs/admin-bench.md` es la que cuenta la tabla del banco,
+  ningún control ausente se queda sin razón escrita, el instrumento de
+  navegador está EN EL PIN y el CI de orbit lo corre con
+  `ORBIT_BENCH_BROWSER=required` — sin eso la lane se pone verde cuando el
+  navegador falta, que es decir que se midió lo que nadie midió. Los 49
+  anteriores eran los de 1.31.0 menos
   `umbrella-quickstart-embeds`, retirado al salir los ejemplos del árbol
   (2026-09-12): resolvía fences `file=` contra `nucleus/examples/showcase_demo`
   y ya no hay árbol contra el que resolver. Lo que comprueba ahora que los
@@ -166,125 +158,83 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-18 — A6 `S7` hecha: la aplicación declara sus propios verbos y sus propias pantallas, y el banco llega a 56 de 59
+### Sesión 2026-09-18 — **A6 CERRADO**: el banco llega a 59/59, nace el instrumento de navegador y el set 1.33.0 lo publica
 
-- **DS-09 y CUST-04 en `present`** (orbit#486): el banco pasa de **54 a 56 de
-  59** y **data studio queda completa** (17/0/0), como operación. Sin
-  hallazgos nuevos: A6 sigue con **UN solo abierto, OR-51**. Lo único ausente
-  del banco son las **tres de personalización** — `S8`.
-- **Dos contratos por adición, sólo desde Go** (llevan funciones, así que no
-  hay nada que `nucleus.yml` pueda enlazar): `orbit.Config.Actions` declara
-  un verbo, su etiqueta y la función que lo ejecuta sobre la selección —la
-  rejilla lo dibuja al lado de Borrar, sobre el MISMO endpoint de bulk—, y
-  `orbit.Config.Pages` monta un `http.Handler` corriente bajo el prefijo del
-  panel, tras su sesión, autorizado como `view` sobre `admin:page:<id>` y
-  listado en su navegación, con el operador en el contexto. Las decisiones
-  están en el **ADR-010 de orbit**, no sólo aquí.
-- **El verbo ES el permiso, y por eso la acción hereda el confinamiento.**
-  `publish` sobre `admin:Post` se autoriza con la misma máquina que `delete`,
-  y un `#own` la confina igual: los ids que recibe la función de la
-  aplicación son los que ese operador puede tocar, y los de fuera vuelven
-  como fallos por id. **Ése es el motivo de que la acción pase por el panel**
-  en vez de ser un endpoint de la aplicación — una que lo saltara sería el
-  rodeo de todas las políticas de fila que el panel defiende.
-- **Una selección rechazada entera NO llega a la función** (`ran: false`):
-  entregarle una lista vacía la haría indistinguible de una invocada sobre la
-  tabla entera, que es lo que `AllowEmptySelection` declara aparte. Y la
-  llamada **queda auditada como `action.<verbo>` haya terminado o no**: una
-  acción que falla a medias ya tocó filas.
-- **Lo que el panel no puede honrar impide arrancar**: modelo inexistente,
-  verbo duplicado, verbo propio del panel, `Run` nulo, página sin handler, id
-  con barra. Cada uno sería, si no, un control que nunca aparece sin que nada
-  diga por qué — la degradación silenciosa que este arco lleva encontrando.
-- **La pantalla es un ENLACE, no un marco, y está medido por qué**: el panel
-  manda `X-Frame-Options: DENY` y `frame-ancestors 'none'` en TODA respuesta,
-  así que embeberla en la SPA la bloquearía el navegador **mientras cada test
-  en Go seguiría leyendo un 200**; relajar esa cabecera en todo el panel para
-  embeber una pantalla cambiaría una defensa contra clickjacking por una
-  maquetación. Su CSP también alcanza a la página: scripts en ficheros, no en
-  línea.
-- **Las dos sondas miden por efecto**, que es la lección que `S9` dejó
-  escrita: DS-09 ejecuta la acción y **relee la fila cambiada** (y comprueba
-  que al Run se le dijo quién llama y sobre qué), y CUST-04 pide las tres
-  cosas que hacen de una pantalla parte del panel: que la navegación la
-  liste, que se sirva bajo el prefijo y que sepa quién la lee. Aparte, tests
-  de unidad en `internal/admin` para lo que el banco no aísla: la tabla de
-  validación, el 403 que **no** llama a la función, el confinamiento de fila,
-  la entrada de auditoría en éxito y en error, y que el fallback de la SPA
-  siga ganando donde debe.
-- **Trampa nueva, y tumbó el arranque entero**: una ruta SIN método al lado
-  del catch-all `GET /{path...}` de la SPA es **ambigua** para el `ServeMux`
-  de Go, que se niega a construir el router — la aplicación no arrancaba
-  (fallo ruidoso e inmediato, que es el caso bueno). Las rutas de página
-  declaran sus métodos uno a uno. Escrito en `orbit/docs/admin-bench.md`.
-- **Siguiente: `S8`** (marca, tablero de widgets declarables e idioma: las
-  tres ausentes), cuya precondición ya se cumple, o **`S10`** (el instrumento
-  del navegador). Después sólo queda `S11`: el guard del gate, **OR-51** —que
-  sigue esperando a la release de la raíz de orbit— y el set.
-
-### Sesión 2026-09-17 — A6 `S9` hecha: las vistas de operación dicen qué pasa, no cómo están configuradas, y el banco llega a 54 de 59
-
-- **OR-47, OR-48, OR-49 y OR-50 cerrados** (orbit#484): el banco pasa de
-  **51 a 54 de 59** y **operación es la primera familia completa** (17
-  presentes, 0 parciales, 0 ausentes). A6 queda con **UN solo hallazgo
-  abierto**: OR-51, el que espera a la release de la raíz de orbit.
-- **La caché no se podía descubrir, así que se declara.** `pkg/cache` de
-  nucleus es una BIBLIOTECA con la que una aplicación construye, no un
-  servicio que el framework cablee: fuera del CLI (`createcachetable`) nadie
-  lo usa y `app.App` no tiene campo de caché. La nota del hallazgo —«una
-  aplicación cuya caché es en proceso, que es la de por defecto»— acertaba
-  el síntoma y erraba la causa, y eso quedó corregido en el informe.
-  `orbit.Config.Cache` (aditivo, tres métodos) es el contrato; la vista
-  tiene tres posturas (`declared`/`redis`/`none`) y `can_flush`, así que
-  **donde no hay nada que vaciar se retira el botón** en vez de ofrecerlo y
-  rechazar con «redis url is not configured». El panel NO lee ni escribe
-  entradas por ahí: uno que pudiera leerlas pondría lo cacheado tras un
-  permiso de panel que nunca se pensó para eso.
-- **El correo enseña entrega**: `health` (el chequeo del propio emisor,
-  acotado a 2 s — un host SMTP bien escrito puede rechazar toda conexión) y
-  `delivery` (encolados, fallidos, el más antiguo pendiente). Sin outbox
-  dice que no hay cola **y por qué**, en vez de ceros que se leen como «nada
-  pendiente». El alcance va en el payload porque el recuento es de TODOS los
-  topics → **NU-76** (P3, A7): no hay forma pública de contar uno solo.
-- **El 405 se conserva a propósito, y está medido**: un catch-all bajo
-  `/api/` registrado para todos los métodos convierte TODO 405 en 404, que
-  afirma que un endpoint no existe cuando existe. El handler consulta antes
-  el mapa de rutas del propio panel.
-- **La trampa gorda de la sesión, y la sexta lección del banco**: cerrar
-  OR-48 destapó que **OPS-15 llevaba desde `S0` registrado `present`
-  leyendo la página HTML del fallback**. El id de un export es su clave de
-  almacenamiento, que lleva barra, así que `GET /api/exports/{id}` —un solo
-  segmento— nunca casó con los ids que el panel emite. Es **OR-52**, nacido
-  y cerrado aquí. Generalizado en la página del banco: **en este panel un
-  200 no es evidencia hasta que algo del cuerpo lo es.**
-- **Otras tres que el banco aprendió de sí mismo**: buscar una PALABRA en el
-  payload no mide nada (la sonda vieja de correo buscaba «queue»/«outbox»);
-  una aserción sobre una cola no debe correr contra el dispatcher (se mide
-  el TOTAL, no el pendiente, o se pierde la carrera al azar); y una segunda
-  aplicación pertenece a la sonda que la arranca — cachearla en el `env`
-  falla dos veces, porque el servidor muere con su subprueba y porque una
-  caché compartida deja que el flush de una sonda decida el recuento de
-  otra.
-- **Lo que NO entra**: las tres pantallas. La SPA embebida no tiene vista de
-  caché, correo ni migraciones —son API sin interfaz—, así que no hubo que
-  reconstruir `dist`; cablearlas es trabajo de interfaz, como `S5` dejó
-  dicho de la rejilla de filtros.
-- **Y `S9` tumbó `main` al fusionar, por lo que no medía el banco**: la app
-  con outbox que añade es la primera del arnés con DOS escritores sobre el
-  mismo SQLite, y el arranque falla con `SQLITE_BUSY` en una máquina lenta
-  (verde en local y en el PR, rojo en el runner). Arreglado en **orbit#485**
-  con `busy_timeout` en el DSN del banco —una espera, no un reintento— y el
-  defecto de framework queda registrado como **NU-77**, sin esconderlo en el
-  arnés. Dos lecciones: **un flake que no reproduce en tu máquina no es un
-  flake ajeno** (macOS/APFS gana la carrera que el runner pierde), y **el
-  comentario que escribí sobre la sonda era falso** — con
-  `MissingRouteIgnore` el mensaje NO se queda pendiente, el dispatcher lo
-  marca *delivered* en ~2 s; la sonda medía el total por la razón correcta,
-  descrita mal.
-- **Siguiente: `S7`** (acciones y puntos de extensión, sin precondición) o
-  **`S10`** (el instrumento del navegador, tampoco); `S8` espera a `S7`.
-  Con `S7`+`S8` cae lo único que queda ausente además de un control de data
-  studio: las cuatro de personalización.
+- **Cuatro sesiones y el tren en una ronda**: `S7` (orbit#486), `S8`
+  (orbit#488), `S10` (orbit#489) y `S11` (guard + registro + set), más
+  **OR-51** (orbit#490) y las dos releases de orbit que hicieron falta. El
+  banco de admin pasa de **54 a 59 de 59, todas las familias completas**, y
+  **A6 queda CERRADO** en `registro.csv` con su guard.
+- **`S7` — la aplicación declara sus propios verbos y sus propias pantallas**
+  (ADR-010 de orbit). `Config.Actions` es un verbo sobre un modelo propio,
+  dibujado en la rejilla y despachado por el MISMO endpoint de bulk;
+  `Config.Pages` monta un `http.Handler` corriente dentro del panel (su
+  prefijo, su sesión, `view` sobre `admin:page:<id>`, su navegación, el
+  operador en el contexto). **El verbo ES el permiso**, y por eso la acción
+  hereda el confinamiento por tenant y por fila: los ids que recibe la
+  función son los que ese operador puede tocar — si lo saltara, sería el
+  rodeo de todas las políticas de fila. Una selección rechazada entera **no
+  llega a la función** (`ran: false`). **La pantalla es un ENLACE, no un
+  marco**: el panel manda `X-Frame-Options: DENY` y `frame-ancestors 'none'`,
+  así que un `iframe` lo bloquearía el navegador **mientras cada test en Go
+  seguiría leyendo un 200**.
+- **`S8` — la ropa del producto** (ADR-011 de orbit): marca (logo, favicon,
+  color) por metas del documento, así que están **en el login**; tarjetas
+  declarables en el resumen con permiso por tarjeta sobre `admin:dashboard`,
+  tres segundos de límite y **una tarjeta que falla se dibuja diciéndolo**; e
+  idioma del cromo con catálogos que **se funden** (una clave sin traducir se
+  lee en inglés, no como `nav.audit`) servido **sin sesión**, porque el login
+  se dibuja antes de que la haya. Dos decisiones que no conviene reabrir: los
+  valores de marca **se validan, no se escapan** (un logo `javascript:` sería
+  ejecución de script concedida por una línea de YAML), y **el color de marca
+  decide el texto que va encima**, calculado desde su luminosidad.
+- **`S10` — el instrumento que un arnés en Go no puede ser**: Playwright +
+  axe-core en `orbit/internal/adminbench/browser`, conducido desde Go para
+  que mida **la misma aplicación**. Siete controles, los siete `present`, y
+  con ellos queda respondida **mirando** la afirmación de la auditoría de
+  2026-09-03 sobre esta interfaz (0 `aria-*`, contrastes de 1,9–2,3:1): no es
+  verdad de este build. **UIX-00 mide el INSTRUMENTO** —planta una violación
+  y falla si el motor no la caza—, porque un motor mal configurado informa de
+  cero violaciones y todo lo demás pasa midiendo nada; se comprobó
+  rompiéndolo. Se **salta** si no hay navegador y el CI **se niega a
+  saltárselo** (`ORBIT_BENCH_BROWSER=required`).
+- **`S11` — el gate**: `scripts/check_admin_posture.sh` es el **guard 50º**
+  con su fixture; comprueba que la cifra publicada sea la que la tabla
+  cuenta, que ningún control ausente se quede sin razón, que el instrumento
+  esté en el pin y que el CI lo EXIJA. **OR-51 cerrado** (los doce operadores
+  sobre el origen de datos de Quark, `in` vacío que no casa nada, y el
+  rechazo de QK-25 donde el comodín no se puede escapar).
+- **Dos sondas del propio banco estaban mal, y el cambio las destapó**:
+  `UI-01` medía contra el helper que **trunca** para los logs (el `head`
+  creció con tres metas y el marcador se salió del corte), y el módulo que
+  capturaba el handle de base de datos se montaba en TODAS las aplicaciones
+  que arranca el banco, así que una sonda con app propia dejaba a la
+  compartida leyendo «database is closed». Las dos quedan escritas en
+  `orbit/docs/admin-bench.md` con las anteriores.
+- **Y una cuarta, que parece un guard muerto y no lo es**: entre el PR del
+  snapshot de docs y el tag, la fixture de `orbit-docs-archive` **no muerde**
+  — el snapshot se corta ANTES de la release, así que en esa ventana el árbol
+  pinado lleva un snapshot que su manifiesto aún no declara y quitarlo deja
+  el archivo coherente. En cuanto el pin avanza al tag vuelve a morder.
+  Escrito en `scripts/train/README.md`.
+- **Tres trampas del tren, nuevas o confirmadas**: (1) **la rama de un
+  release PR no se regenera** con un commit que release-please no considera
+  publicable (el `test(...)` de `S10`), así que el tag se habría cortado sin
+  el instrumento dentro — `gh pr update-branch` la pone al día **y dispara el
+  CI que esa rama no dispara nunca**; (2) **un fix de un módulo hermano saca
+  su tag DESPUÉS del de la raíz** y deja al módulo por delante del set sin
+  forma de certificarlo: hubo que usar la salida documentada —un cambio del
+  paquete raíz más `Release-As:`—, y por eso hay **dos releases de orbit**
+  (v1.10.0 y v1.10.1); (3) **la deuda de doc de una minor se paga EN la rama
+  del release**: release-please sube el marcador de versión de la doc y la
+  sección de las notas la escribe una persona.
+- **Set: Quantum 1.33.0** — nucleus v1.29.0, orbit v1.10.1 (+ agent v0.7.0,
+  server v0.12.0, quarkbridge v1.9.0, quarkdatasource v1.9.1), quark v1.14.0
+  sin cambio.
+- **Siguiente: A7** (jobs, eventos y tiempo real), que hereda **NU-76** y
+  **NU-77** de este arco. El troceado se escribe al empezarlo, y **por una
+  sesión de medición**: las tres veces que se planificó sin medir, la
+  medición corrigió el plan.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -314,12 +264,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~, ~~A4~~ y ~~A5~~
-  CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0) → **A6 Orbit como admin de
-  producto, EN CURSO** (`S0`–`S7` y `S9` hechas; troceado de once sesiones en
-  [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md),
-  siguiente `S8` o `S10`) → A7 … → A12. El registro de hallazgos y su guard
-  (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
+- **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~, ~~A4~~, ~~A5~~ y
+  ~~A6~~ CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0, 1.33.0) → **A7
+  (jobs, eventos y tiempo real), SIN TROCEAR**: se escribe al empezarlo y por
+  una sesión de MEDICIÓN → A8 … → A12. El registro de hallazgos y su guard
+  (`umbrella-audit-backlog`) siguen siendo el gate de cada arco; A6 lo cerró
+  con el suyo propio, `umbrella-admin-posture`.
 - **Lo que A4 dejó a deber, con su porqué escrito**: la segunda mitad de su
   `S4` —uuid nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet,
   JSONB— no está en el gate del arco y encaja en A8, que ya lleva los tipos
@@ -327,32 +277,27 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   inválido fuera de SQLite y MySQL permisivo) avisa desde quark v1.14.0 pero
   no es error: convertirlo rompe a quien depende de esos motores, así que se
   movió a **A12**, donde QADR-0010 acumula lo rompiente.
-- **Todo lo del arco está FUSIONADO y `main` verde**, salvo el de esta
-  sesión: **orbit#467** (el banco), **orbit#471** (`S1`, OR-4),
-  **orbit#472** (`S2`), **orbit#473** (`S3`), **orbit#474** (`S4`),
-  **orbit#475** (vistas guardadas de `S5`), **nucleus#540** (NU-73) y
-  **nucleus#545** (operadores y total de `S5`), **nucleus#546** (el arnés
-  que no pasaba en una rama de release), **orbit#482** (el pin y la mitad de
-  panel de `S5`), **orbit#483** (`S6`: dueño, dispositivo y revocación
-  masiva), **orbit#469** (AUD-05) y los cuatro del borrado de ejemplos; en
-  el paraguas, **quantum#189/#192/#193/#196/#197/#198/#199/#200/#201**.
-  **orbit#484** (`S9`) y **orbit#485** (el `busy_timeout` del banco) también
-  fusionados. **En revisión: orbit#486** (`S7`: acciones y pantallas que
-  declara la aplicación, con el ADR-010 de orbit) y el del paraguas de esta
-  sesión.
-- **El pin, que era el cuello de botella del arco, ESTÁ SUBIDO**: nucleus
-  **v1.29.0** cortado y el `require` de orbit con él (orbit#482), lo que
-  cerró **NU-73**, **OR-45** y los veredictos de **DS-04** y **DS-05** en un
-  solo paso. Lo que aprendió el corte está en el §3 y en
+- **Todo A6 está FUSIONADO y publicado**: del banco (orbit#467) al gate, con
+  las once sesiones y sus dos releases de orbit (**v1.10.0**, que publica el
+  arco, y **v1.10.1**, que publica OR-51 y existe porque un fix de módulo
+  hermano no puede salir por delante de la raíz). Los PRs, por sesión, están
+  en el plan del arco; los del paraguas van de **quantum#189** a
+  **quantum#205**.
+- **Lo que aprendió el tren de A6** está en el §3 y en
   `scripts/train/README.md`: el perfil `scaffold-mvc` del arnés de nucleus no
-  podía pasar en NINGUNA rama de release-please hasta nucleus#546.
-- **OR-51, nacido en `S5` (P3, A6) — el ÚNICO abierto de A6**: `quarkdatasource` no implementa
-  todavía `datasource.OperatorFilterSource`, así que el panel montado sobre
-  Quark **rechaza** los filtros con operador en vez de contestarlos sin
-  filtrar. No es descuido sino dependencia topológica: el CI construye cada
-  módulo con `GOWORK=off` contra el tag de raíz que pina, y ese tag no publica
-  aún `datasource.Filter`. Entra tras la release de la raíz y **antes de
-  cerrar A6**, cuyo gate exige cero abiertos.
+  podía pasar en NINGUNA rama de release-please hasta nucleus#546; la rama de
+  un release PR no se regenera con un commit que release-please no considera
+  publicable (y `gh pr update-branch` es además el disparador de su CI); y un
+  fix de módulo hermano necesita un cambio del paquete raíz con `Release-As:`
+  para no quedar por delante del set.
+- **OR-51 CERRADO** (orbit#490, publicado en `quarkdatasource v1.9.1`):
+  implementa `datasource.OperatorFilterSource`, así que el panel montado
+  sobre Quark contesta los filtros con operador en vez de rechazarlos. Entró
+  **tras** la release v1.10.0 de la raíz, que es la que publica
+  `datasource.Filter` — la dependencia topológica que el hallazgo describía.
+  Dos refusals que se quedan: un operador no expresable se rechaza por su
+  nombre, y un comodín en `contains`/`startswith`/`endswith` se rechaza en
+  SQLite y Oracle (QK-25) en vez de ensanchar la búsqueda.
 - **OR-52, nacido y CERRADO en `S9`**: el id de un export es su clave de
   almacenamiento, que lleva barra, así que `GET /api/exports/{id}` —un solo
   segmento— nunca casó con los ids que el propio panel emite; caía al

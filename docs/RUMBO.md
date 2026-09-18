@@ -11,71 +11,37 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-09-12)
+## Estado real (2026-09-18)
 
-- **Set certificado: Quantum 1.32.0** (2026-09-12) — quark v1.14.0 (con el
-  CLI en v1.0.1 y los cinco drivers en v0.2.1) · nucleus v1.28.0 (doce
-  módulos hermanos) · orbit v1.9.6 (proto v0.4.4, agent v0.6.20, server
-  v0.11.6, quarkbridge v1.8.24, quarkdatasource v1.8.25).
-  1.32.0 publica el arco **A5** (auth de producto): nucleus tenía el sustrato
-  —sesiones, tokens, hash de contraseñas, motor de políticas y dos costuras
-  de extensión— y ninguna ruta que iniciara sesión a nadie. Ahora hay
-  `pkg/accounts` (registro, verificación, login, reset, enlace mágico,
-  bloqueo progresivo), segundo factor TOTP con códigos de recuperación,
-  `pkg/auth/apikeys`, un proveedor OIDC que llena la costura federada que
-  estaba vacía desde v1.15.0, permisos por objeto, y la postura mapeada a
-  ASVS 4.0.3 L2 con 27 requisitos medidos. El banco de conformidad de auth
-  pasa de **14 a 40 de 43** controles. Minor de suite por la minor de
-  nucleus. **Arco en curso: A6** (Orbit como admin de producto), cuya sesión
-  de medición dejó el banco de admin de orbit en **32 de 59 controles** y
-  encontró **NU-73**: el envoltorio de respuesta del gestor de sesiones no
-  implementa `Hijack`, así que ningún websocket de ninguna aplicación
-  completa el upgrade y el feed en vivo del panel no conecta en un
-  despliegue real. Su `S1` **cerró OR-4** —el P1 más viejo del registro, de la
-  auditoría de madurez—: los operadores se crean, se gradúan y se revocan
-  desde el panel, y el banco va por **34 de 59**. Su `S2` llevó los permisos
-  **al campo y a la fila** por adición a la gramática de políticas
-  (`admin:Post.title`, `admin:Post#own`) y puso en lo que una pantalla carga
-  las capacidades del operador, así que la UI apaga lo que no puede hacer en
-  vez de descubrirlo con un 403: el banco va por **37 de 59** y la familia de
-  permisos queda completa. Su `S3` sacó el rastro de auditoría del
-  proceso: vive en una tabla del panel, con retención por período, export a
-  fichero e historial por registro, y el banco va por **41 de 59** con la
-  familia de auditoría también completa; su `S4` puso en los formularios lo
-  que una tabla de escalares no tiene —la relación resuelta por nombre, los
-  hijos editados con el padre y los tipos documento/fichero/texto rico—, y el
-  banco va por **45 de 59** con las vistas guardadas de su `S5`. La otra mitad
-  de `S5` cerró al **cortar la minor siguiente de nucleus y subir el `require`
-  de orbit** — un corte de pilar, todavía por delante del set certificado, que
-  el próximo tren recogerá. Una lista acepta ahora una pregunta con operador
-  dentro (`?views__gt=100`, `?status__in=…`, `?archived_at__isnull=true`) y
-  devuelve un total que un paginador puede dividir —**OR-45**—, y ese pin trajo
-  **NU-73**, verificado desde fuera: el stream del feed abre y contesta
-  `stream.ready`. El contrato gana una interfaz opcional para que un origen
-  de datos que NO aplique esos operadores no pueda callarse: el panel
-  pregunta antes de mandar y rechaza la consulta en vez de contestarla sin
-  filtrar. Su `S6` puso en la fila de sesión de quién es y desde qué
-  dispositivo —el visor leía las claves de una aplicación y nunca las del
-  propio panel, así que revocaba a ciegas (**OR-46**)— y una llamada que
-  revoca todas las de una cuenta sin revocarse a sí misma: el banco queda en
-  **51 de 59**. Su `S9` cerró las tres vistas de operación que informaban de
-  su **configuración** en vez de su estado y el 404 que la SPA se comía
-  (**OR-47**, **OR-48**, **OR-49**, **OR-50**): la caché que el panel enseña
-  y vacía es la que la aplicación declara —nada en el framework cablea una,
-  así que no había ninguna que descubrir—, el correo enseña entrega (salud
-  del emisor y cola del outbox) y no driver, las migraciones degradan con el
-  motivo, y `/api/*` contesta 404 JSON conservando el 405. El banco queda en
-  **54 de 59** y la familia de **operación, completa**. Cerrar el fallback
-  destapó que **OPS-15 llevaba desde `S0` dado por bueno leyendo la página
-  HTML** que la SPA servía a una ruta de export que nunca casó (**OR-52**,
-  cerrado); queda **OR-51** como único hallazgo abierto de A6. El troceado
-  está en
-  [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md).
+- **Set certificado: Quantum 1.33.0** (2026-09-18) — quark v1.14.0 (con el
+  CLI en v1.0.1 y los cinco drivers en v0.2.1) · nucleus v1.29.0 (doce
+  módulos hermanos) · orbit v1.10.1 (proto v0.4.4, agent v0.7.0, server
+  v0.12.0, quarkbridge v1.9.0, quarkdatasource v1.9.1).
+  1.33.0 publica el arco **A6** (Orbit como admin de producto): el panel deja
+  de ser uno de observabilidad con un CRUD genérico encima y pasa a
+  administrar el producto — cuentas de operador, permisos por campo y por
+  fila, un rastro de auditoría que sobrevive al proceso, formularios con
+  relaciones e hijos, listas con doce operadores de filtro, sesiones que
+  dicen de quién son, vistas de operación que informan de lo que pasa, y lo
+  que la aplicación añada: sus verbos, sus pantallas, su marca, sus tarjetas
+  y su idioma. El banco de admin va de **32 a 59 de 59** controles, con un
+  **instrumento de navegador** aparte (contraste, foco, teclado) que corre en
+  el CI de orbit. Minor de suite por las minors de nucleus y orbit.
+  El detalle de A6, sesión a sesión y con lo que cada una midió, está en
+  [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md),
+  y lo que publicó cada set anterior —A5 incluido— en
+  [`../CHANGELOG.md`](../CHANGELOG.md).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
-- **Certificación mecánica:** 49 guards en el registro — los 49 de 1.32.0
+- **Certificación mecánica:** 50 guards en el registro — los 49 de 1.32.0 más
+  `umbrella-admin-posture`, el gate de A6: comprueba que la cifra que publica
+  la página del banco de admin sea la que su tabla cuenta, que ningún control
+  ausente se quede sin razón escrita, y que el instrumento del navegador siga
+  EXIGIDO por el CI de orbit — si dejara de estarlo, la lane se pondría verde
+  cuando el navegador falta, que es decir que se midió lo que nadie midió. Los
+  49 anteriores eran los de 1.31.0
   menos `umbrella-quickstart-embeds`, que resolvía las fences `file=` del
   quickstart contra `nucleus/examples/showcase_demo`: **la suite retiró los
   ejemplos del árbol el 2026-09-12** hasta cerrar el plan 5/5, así que los

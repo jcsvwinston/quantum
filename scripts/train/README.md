@@ -108,6 +108,15 @@ el driver desde los `require` entre hermanos: hojas → dependientes → **ROOT 
   vacíos; `"release-as"` en el config NO abre PR por sí solo).
 - **La arista quarkdatasource→root** tolera ≤1 minor de lag: no es permiso, es
   deuda con plazo — el segundo minor la saca de rango en plena certificación.
+- **Entre el PR del snapshot de docs y el tag, la fixture de
+  `orbit-docs-archive` NO muerde**, y no es un guard muerto. El snapshot de
+  una minor se corta ANTES de la release (el sitio sirve la doc del tag), así
+  que en esa ventana el árbol pinado lleva el snapshot de una versión que su
+  `.release-please-manifest.json` todavía no declara: la fixture, que quita
+  el snapshot más reciente para provocar el hueco, deja el archivo todavía
+  coherente con lo publicado y el guard pasa. En cuanto el pin avanza al tag,
+  vuelve a morder. Visto en el tren de 1.33.0; si `guard-of-guards` reporta
+  `orbit-docs-archive SOBREVIVIO(0)` a mitad de corte, es esto.
 
 ### 4. Re-pin del paraguas (`train.sh --desde paraguas`)
 

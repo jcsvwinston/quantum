@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.32.0"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-09-12
-status: certified           # Minor de suite por la minor de nucleus (QADR-0002); escrito por bump-set, revisar al certificar
+quantum: "1.33.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-09-18
+status: certified           # Minor de suite por la minor de nucleus y orbit (QADR-0002); escrito por bump-set, revisar al certificar
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules»; los módulos hermanos de
@@ -19,8 +19,8 @@ status: certified           # Minor de suite por la minor de nucleus (QADR-0002)
 # único borde root↔quarkdatasource por MAQ-3.
 modules:
   quark:   "v1.14.0"
-  nucleus: "v1.28.0"
-  orbit:   "v1.9.6"
+  nucleus: "v1.29.0"
+  orbit:   "v1.10.1"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -66,17 +66,17 @@ quark_modules:
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.4"
-  agent:           "v0.6.20"
-  server:          "v0.11.6"
-  quarkbridge:     "v1.8.24"
-  quarkdatasource: "v1.8.25"
+  agent:           "v0.7.0"
+  server:          "v0.12.0"
+  quarkbridge:     "v1.9.0"
+  quarkdatasource: "v1.9.1"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "1d13cf24"                                # = v1.14.0 exacto (contiene cmd/quark/v1.0.1, drivers/mssql/v0.2.1, drivers/mysql/v0.2.1, drivers/oracle/v0.2.1, drivers/postgres/v0.2.1, drivers/sqlite/v0.2.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  nucleus: "bf453678"                                # = v1.28.0 exacto (contiene drivers/mssql/v0.1.5, drivers/mysql/v0.1.5, drivers/oracle/v0.1.5, drivers/postgres/v0.1.5, drivers/sqlite/v0.1.5, exporters/otlp/v0.1.5, exporters/prometheus/v0.1.5, providers/ldap/v0.2.9, providers/secrets-aws/v0.1.5, providers/storage-azure/v0.1.5, providers/storage-gcs/v0.1.5, providers/storage-s3/v0.1.5 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  orbit:   "a82b64d0"                                # = v1.9.6 exacto (contiene agent/v0.6.20, proto/v0.4.4, quarkbridge/v1.8.24, quarkdatasource/v1.8.25, server/v0.11.6 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  nucleus: "6e2a05e0"                                # = v1.29.0 exacto (contiene drivers/mssql/v0.1.5, drivers/mysql/v0.1.5, drivers/oracle/v0.1.5, drivers/postgres/v0.1.5, drivers/sqlite/v0.1.5, exporters/otlp/v0.1.5, exporters/prometheus/v0.1.5, providers/ldap/v0.2.9, providers/secrets-aws/v0.1.5, providers/storage-azure/v0.1.5, providers/storage-gcs/v0.1.5, providers/storage-s3/v0.1.5 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  orbit:   "87c1f294"                                # = v1.10.1 exacto (contiene agent/v0.7.0, proto/v0.4.4, quarkbridge/v1.9.0, quarkdatasource/v1.9.1, server/v0.12.0 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -90,57 +90,51 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.32.0 publica el arco A5: la autenticación de nucleus deja de ser
-  un sustrato sobre el que construir y pasa a ser algo que una aplicación
-  monta. Se mueven nucleus (v1.27.0 → v1.28.0) y orbit (v1.9.5 → v1.9.6, una
-  release de alineación sin cambio de producto); quark v1.14.0 sigue donde
-  estaba. Módulos hermanos que cambian: orbit agent (v0.6.19 → v0.6.20),
-  quarkbridge (v1.8.23 → v1.8.24), quarkdatasource (v1.8.24 → v1.8.25) y
-  server (v0.11.5 → v0.11.6); el resto sin cambio. Minor de suite porque lo
-  es la de nucleus (QADR-0002). Corte fuera de la cadencia semanal por la
-  razón que QADR-0008 admite: cierra un arco.
+  Quantum 1.33.0 publica el arco A6: Orbit deja de ser un panel de
+  observabilidad con un CRUD genérico encima y pasa a ser el admin del
+  producto. Se mueven nucleus (v1.28.0 → v1.29.0) y orbit (v1.9.6 →
+  v1.10.1); quark v1.14.0 sigue donde estaba. Módulos hermanos que cambian:
+  orbit agent (v0.6.20 → v0.7.0), orbit quarkbridge (v1.8.24 → v1.9.0),
+  orbit quarkdatasource (v1.8.25 → v1.9.1) y orbit server (v0.11.6 →
+  v0.12.0); el resto sin cambio. Minor de suite porque lo son las de nucleus
+  y orbit (QADR-0002). Corte fuera de la cadencia semanal por la razón que
+  QADR-0008 admite: cierra un arco.
 
-  Lo que cambia para quien instala. Nucleus tenía sesiones, tokens, hash de
-  contraseñas, motor de políticas y dos costuras de extensión, y ninguna ruta
-  que iniciara sesión a nadie: cada aplicación escribía los mismos siete
-  manejadores y volvía a decidir cuánto vive un enlace de reset, si puede
-  usarse dos veces y qué revela un login fallido. Ahora hay tres módulos
-  opt-in que lo traen decidido. `pkg/accounts` sirve registro con
-  verificación, login, logout, reset, cambio de contraseña, enlace mágico y
-  bloqueo progresivo; `pkg/auth/apikeys` emite la credencial que usa un
-  programa —mostrada una vez, revocable, con scopes, rotación con periodo de
-  gracia y CLI—; y `pkg/auth/federated/oidc` llena la costura federada que
-  estaba escrita y vacía desde v1.15.0, con PKCE siempre, discovery, JWKS y
-  un id_token verificado contra audiencia, emisor, expiración y nonce. El
-  segundo factor es TOTP con códigos de recuperación y reautenticación para
-  las operaciones sensibles; los secretos se cifran en reposo y sin clave el
-  enrolamiento se rechaza, en vez de guardarlos en claro. Una identidad lleva
-  ya una LISTA de roles —un proveedor que devuelve tres grupos tenía un solo
-  campo donde ponerlos—, las sesiones ajenas se pueden revocar y un token
-  emitido también, y la política decide sobre un OBJETO y no sólo sobre una
-  ruta, así que «puede editar los posts que son suyos» deja de reimplementarse
-  dentro de cada manejador. El correo transaccional gana HTML, adjuntos,
-  plantillas y encolado dentro de la transacción del llamante.
-  Nada se retira y ninguna firma se mueve: una aplicación que no monta nada
-  se comporta igual que antes.
+  Lo que cambia para quien instala. Un operador podía mirarlo todo y
+  administrar a nadie: no había ruta que creara una cuenta, le cambiara la
+  contraseña o la desactivara, los permisos se paraban en el borde del
+  modelo, y el rastro de auditoría se iba con el proceso. Ahora las cuentas
+  se crean, se gradúan y se revocan desde el panel; una política puede
+  nombrar un campo (admin:Post.title) o confinarse a las filas propias
+  (admin:Post#own), y lo que una pantalla carga lleva las capacidades del
+  operador, así que la interfaz apaga lo que no puede hacer en vez de
+  descubrirlo con un 403; el rastro vive en una tabla con ventana de
+  retención, exportación y el historial de un registro. Un formulario
+  resuelve una relación, edita los hijos y acepta un fichero. Una lista
+  admite doce operadores —rango, subcadena, conjunto, nulo— con un total que
+  un paginador puede dividir, y el conjunto de filtros se guarda. Una fila de
+  sesión dice de quién es y desde qué dispositivo, y una llamada cierra todas
+  las de una cuenta sin cerrar la propia. Las vistas de operación informan de
+  lo que PASA y no de cómo están configuradas: la caché que el panel enseña y
+  vacía es la que la aplicación declara, el correo enseña entrega, las
+  migraciones degradan con el motivo, y /api/* contesta 404 JSON en vez de
+  una página web. Y la aplicación puede añadir lo suyo: sus verbos sobre sus
+  modelos, sus pantallas dentro del panel, su marca (logo, color, favicon),
+  las tarjetas de su resumen y el idioma del cromo. Todo por adición: ninguna
+  configuración, política o llamada que funcionara contra 1.32.0 se comporta
+  distinto. La release v1.10.1 de orbit añade los filtros con operador sobre
+  un origen de datos de Quark, que su módulo no podía escribir hasta que la
+  raíz publicara el contrato.
 
-  Lo que corrige, y conviene leer si usas MySQL. El store SQL de cuentas no
-  podía abrir una base MySQL: emitía `CREATE INDEX IF NOT EXISTS`, que ese
-  motor no tiene. Salió a la luz en la primera corrida de la prueba que el
-  propio arco añadió contra motores reales, y no antes, porque las pruebas
-  unitarias corren sobre SQLite, donde la sentencia es válida. Es el mismo
-  patrón que A4 dejó escrito: lo que no se ejecuta contra el motor no está
-  medido.
-
-  Y una postura que ahora se puede comprobar. `contracts/baseline/asvs_l2.txt`
-  mapea el framework sobre OWASP ASVS 4.0.3 nivel 2 —27 requisitos, cada uno
-  con una prueba que falla cuando el control deja de cumplirse: 24 cumplidos,
-  2 que completa la aplicación y 1 que no se cumple, con su razón—. Un
-  documento de postura que no puede decir que no es una página de marketing.
-
-  Lo que aprendió el tren. La imagen de MinIO dejó de servirse en Docker Hub,
-  así que la lane de storage y con ella el gate obligatorio salían rojos en
-  cualquier PR por algo ajeno al cambio: ahora se tira de quay.io. Y fusionar
-  el primero de una pila de PRs borrando su rama CIERRA automáticamente los
-  que la tenían por base, y un PR cerrado no se puede reabrir ni reapuntar —
-  la pila entera se reapunta a main ANTES de fusionar el primero.
+  Lo que aprendió el tren. Un release PR cuya rama no se regenera —porque el
+  commit que falta es un test(...), que release-please no considera
+  publicable— habría cortado el tag SIN el instrumento de navegador dentro:
+  gh pr update-branch la pone al día y, de paso, dispara el CI que esa rama
+  no dispara nunca. Un fix que pertenece sólo a un módulo hermano saca su tag
+  DESPUÉS del de la raíz, y entonces el módulo queda por delante del set sin
+  forma de certificarlo: la salida documentada —un cambio del paquete raíz
+  más Release-As en el mismo tren— tuvo que usarse, y por eso hay dos
+  releases de orbit en esta ronda. Y la deuda de documentación de una minor
+  se paga EN la rama del release: release-please sube el marcador de versión
+  de la doc, pero la sección de las notas la escribe una persona, y el guard
+  de coherencia de orbit es el que lo recuerda.

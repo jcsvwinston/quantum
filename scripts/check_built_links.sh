@@ -77,7 +77,22 @@ for dirpath, _dirnames, filenames in os.walk(build):
         for link in href_re.findall(content):
             internal.setdefault(html.unescape(link), page)
 
+# Una página de documentación ARCHIVADA (/nucleus/1.15.0/…, /orbit/1.9.0/…)
+# es una copia congelada de lo que la doc decía cuando se cortó ese snapshot,
+# y la política de los tres repos es que no se reescribe: un snapshot que se
+# corrigiera afirmaría que la doc de hoy fue la de entonces, que es justo lo
+# que el mecanismo existe para impedir. Así que un enlace suyo a una ruta que
+# el repo YA NO tiene —`examples/` salió del árbol de nucleus el 2026-09-12—
+# no es arreglable en su origen, y exigirlo pondría la lane roja para siempre
+# sin nada que hacer al respecto.
+#
+# Se informan igual, como AVISO con su página, para que no desaparezcan de la
+# vista: lo que NO hacen es tumbar la certificación. Los enlaces de la doc
+# VIVA, que es la que sí se puede arreglar, siguen siendo FAIL.
+archived_re = re.compile(r'^/(quark|nucleus|orbit)/\d+\.\d+(\.\d+)?/')
+
 broken_repo = []
+archived_broken = []
 for (repo, target), page in sorted(repo_links.items()):
     checkout = repos[repo]
     if not os.path.isdir(checkout):
@@ -87,7 +102,10 @@ for (repo, target), page in sorted(repo_links.items()):
               f"(git submodule update --init) — el guard no puede verificar sus enlaces.")
         sys.exit(1)
     if not os.path.exists(os.path.join(checkout, target)):
-        broken_repo.append((repo, target, page))
+        if archived_re.match(page):
+            archived_broken.append((repo, target, page))
+        else:
+            broken_repo.append((repo, target, page))
 
 broken_internal = []
 for link, page in sorted(internal.items()):
@@ -102,6 +120,10 @@ for link, page in sorted(internal.items()):
     if not any(os.path.exists(c) for c in candidates):
         broken_internal.append((link, page))
 
+for repo, target, page in archived_broken:
+    print(f"AVISO: {repo}: la ruta {target!r} ya no existe — enlazada desde la doc ARCHIVADA {page}, "
+          f"que no se reescribe (la copia es de cuando la ruta existía)")
+
 if broken_repo or broken_internal:
     total = len(broken_repo) + len(broken_internal)
     print(f"FAIL: {total} enlace(s) rotos en el sitio construido ({pages} páginas escaneadas):")
@@ -114,6 +136,7 @@ if broken_repo or broken_internal:
     print("así que una ruta rota aquí lo está también en github.com.")
     sys.exit(1)
 
+suffix = f", {len(archived_broken)} en doc archivada avisados" if archived_broken else ""
 print(f"OK: {len(repo_links)} enlaces a repos propios y {len(internal)} enlaces internos "
-      f"resuelven ({pages} páginas escaneadas)")
+      f"resuelven ({pages} páginas escaneadas{suffix})")
 PY
