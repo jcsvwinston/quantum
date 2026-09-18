@@ -356,10 +356,15 @@ bash scripts/check_audit_backlog.sh | tail -1   # ha de decir: … A6 A7
 
 ## Registro de sesiones
 
+Se rellena al terminar cada una: el PR que la cierra y lo que se midió. El
+estado se escribe **hecha** en minúsculas y entre asteriscos, que es lo que
+`scripts/estado.sh` lee para derivar cuál es la próxima.
+
 | Sesión | Estado | PR | Lo que midió |
 |---|---|---|---|
-| S0 | HECHA 2026-09-18 | nucleus#549 · quantum#206 | 12 de 40 controles; cinco correcciones al plan y cinco hallazgos nuevos |
-| S1 | HECHA 2026-09-18 | nucleus#550 | 15 de 40; NU-80 cerrado, y nueve defectos del primer borrador que cazó la revisión adversarial |
+| S0 | **hecha** 2026-09-18 | nucleus#549 · quantum#206 | 12 de 40 controles; cinco correcciones al plan y cinco hallazgos nuevos |
+| S1 | **hecha** 2026-09-18 | nucleus#550 · quantum#207 | 15 de 40; NU-80 cerrado, y nueve defectos del primer borrador que cazó la revisión adversarial |
+| S2 | pendiente | — | — |
 
 ### Lo que S0 dejó dicho, y no hay que redescubrir
 
