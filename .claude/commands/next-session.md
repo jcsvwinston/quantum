@@ -82,11 +82,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   producto, EN CURSO**: su `S0` (medición) está hecha y el troceado en once
   sesiones vive en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md).
-  **`S1`–`S6` fusionadas** (orbit#471, #472, #473, #474, #475, #482 y #483)
-  y **`S9` en revisión** (orbit#484): el banco está en **54/59**, con las
-  familias de **permisos, auditoría y operación COMPLETAS** y la de data
-  studio a un solo control de estarlo. Lo único ausente son las **cuatro de
-  personalización** (`S7` y `S8`) y ese control de data studio.
+  **`S1`–`S6` y `S9` fusionadas** (orbit#471, #472, #473, #474, #475, #482,
+  #483, #484 y #485) y **`S7` en revisión** (orbit#486): el banco está en
+  **56/59**, con las familias de **permisos, auditoría, operación y data
+  studio COMPLETAS**. Lo único ausente son **tres de personalización**
+  (marca, tablero declarable e idioma), que son `S8`.
   **El pin de nucleus, que era el cuello de botella del arco, está subido**:
   nucleus **v1.29.0** cortado y el `require` de orbit con él, lo que cerró de
   una vez **NU-73** (OPS-06 verificado: el stream abre y contesta
@@ -95,8 +95,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   **A6 tiene UN solo hallazgo abierto: OR-51**, que espera a que la raíz de
   orbit tenga release (orbit#470, el release PR de 1.10.0, está listo y sin
   conflictos). Su gate exige cero abiertos, así que ese es el último paso.
-  **Siguiente sesión: `S7`** (acciones y puntos de extensión) o **`S10`** (el
-  instrumento del navegador), las dos sin precondición; `S8` espera a `S7`.
+  **Siguiente sesión: `S8`** (la ropa del producto: marca, tablero de widgets
+  e idioma — su precondición, `S7`, ya está) o **`S10`** (el instrumento del
+  navegador, sin precondición). Con `S8` cae lo único ausente del banco, y
+  después sólo queda `S11`: el guard del gate, OR-51 y el set.
   Lo que fue A4 y A5, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A4-capa-de-datos.md`](../../docs/planes/A4-capa-de-datos.md) y
   [`docs/planes/A5-auth-de-producto.md`](../../docs/planes/A5-auth-de-producto.md).
@@ -164,6 +166,62 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-18 — A6 `S7` hecha: la aplicación declara sus propios verbos y sus propias pantallas, y el banco llega a 56 de 59
+
+- **DS-09 y CUST-04 en `present`** (orbit#486): el banco pasa de **54 a 56 de
+  59** y **data studio queda completa** (17/0/0), como operación. Sin
+  hallazgos nuevos: A6 sigue con **UN solo abierto, OR-51**. Lo único ausente
+  del banco son las **tres de personalización** — `S8`.
+- **Dos contratos por adición, sólo desde Go** (llevan funciones, así que no
+  hay nada que `nucleus.yml` pueda enlazar): `orbit.Config.Actions` declara
+  un verbo, su etiqueta y la función que lo ejecuta sobre la selección —la
+  rejilla lo dibuja al lado de Borrar, sobre el MISMO endpoint de bulk—, y
+  `orbit.Config.Pages` monta un `http.Handler` corriente bajo el prefijo del
+  panel, tras su sesión, autorizado como `view` sobre `admin:page:<id>` y
+  listado en su navegación, con el operador en el contexto. Las decisiones
+  están en el **ADR-010 de orbit**, no sólo aquí.
+- **El verbo ES el permiso, y por eso la acción hereda el confinamiento.**
+  `publish` sobre `admin:Post` se autoriza con la misma máquina que `delete`,
+  y un `#own` la confina igual: los ids que recibe la función de la
+  aplicación son los que ese operador puede tocar, y los de fuera vuelven
+  como fallos por id. **Ése es el motivo de que la acción pase por el panel**
+  en vez de ser un endpoint de la aplicación — una que lo saltara sería el
+  rodeo de todas las políticas de fila que el panel defiende.
+- **Una selección rechazada entera NO llega a la función** (`ran: false`):
+  entregarle una lista vacía la haría indistinguible de una invocada sobre la
+  tabla entera, que es lo que `AllowEmptySelection` declara aparte. Y la
+  llamada **queda auditada como `action.<verbo>` haya terminado o no**: una
+  acción que falla a medias ya tocó filas.
+- **Lo que el panel no puede honrar impide arrancar**: modelo inexistente,
+  verbo duplicado, verbo propio del panel, `Run` nulo, página sin handler, id
+  con barra. Cada uno sería, si no, un control que nunca aparece sin que nada
+  diga por qué — la degradación silenciosa que este arco lleva encontrando.
+- **La pantalla es un ENLACE, no un marco, y está medido por qué**: el panel
+  manda `X-Frame-Options: DENY` y `frame-ancestors 'none'` en TODA respuesta,
+  así que embeberla en la SPA la bloquearía el navegador **mientras cada test
+  en Go seguiría leyendo un 200**; relajar esa cabecera en todo el panel para
+  embeber una pantalla cambiaría una defensa contra clickjacking por una
+  maquetación. Su CSP también alcanza a la página: scripts en ficheros, no en
+  línea.
+- **Las dos sondas miden por efecto**, que es la lección que `S9` dejó
+  escrita: DS-09 ejecuta la acción y **relee la fila cambiada** (y comprueba
+  que al Run se le dijo quién llama y sobre qué), y CUST-04 pide las tres
+  cosas que hacen de una pantalla parte del panel: que la navegación la
+  liste, que se sirva bajo el prefijo y que sepa quién la lee. Aparte, tests
+  de unidad en `internal/admin` para lo que el banco no aísla: la tabla de
+  validación, el 403 que **no** llama a la función, el confinamiento de fila,
+  la entrada de auditoría en éxito y en error, y que el fallback de la SPA
+  siga ganando donde debe.
+- **Trampa nueva, y tumbó el arranque entero**: una ruta SIN método al lado
+  del catch-all `GET /{path...}` de la SPA es **ambigua** para el `ServeMux`
+  de Go, que se niega a construir el router — la aplicación no arrancaba
+  (fallo ruidoso e inmediato, que es el caso bueno). Las rutas de página
+  declaran sus métodos uno a uno. Escrito en `orbit/docs/admin-bench.md`.
+- **Siguiente: `S8`** (marca, tablero de widgets declarables e idioma: las
+  tres ausentes), cuya precondición ya se cumple, o **`S10`** (el instrumento
+  del navegador). Después sólo queda `S11`: el guard del gate, **OR-51** —que
+  sigue esperando a la release de la raíz de orbit— y el set.
+
 ### Sesión 2026-09-17 — A6 `S9` hecha: las vistas de operación dicen qué pasa, no cómo están configuradas, y el banco llega a 54 de 59
 
 - **OR-47, OR-48, OR-49 y OR-50 cerrados** (orbit#484): el banco pasa de
@@ -228,54 +286,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   Con `S7`+`S8` cae lo único que queda ausente además de un control de data
   studio: las cuatro de personalización.
 
-### Sesión 2026-09-15 — A6 `S6` hecha: la fila de sesión dice de quién es y desde qué dispositivo, y una llamada revoca todas las de una cuenta
-
-- **OPS-02, OPS-04 y OPS-16 en `present`** (orbit#483): el banco pasa de
-  **48 a 51 de 59** y **OR-46 queda cerrado**. La familia de operación queda
-  en 14 presentes, 2 parciales (OPS-11, OPS-13) y 1 ausente (OPS-17), los
-  tres de `S9`.
-- **OR-46 era una clave, no una ausencia**: el visor leía las claves
-  genéricas que una aplicación PODRÍA guardar (`user_id`, `email`…) y nunca
-  las que escribe el proveedor de auth del PROPIO panel
-  (`__nucleus_admin_username`), así que cada operador que el panel firmaba
-  salía como nadie. Ahora las propias van primero y las genéricas quedan de
-  reserva, con test de que una clave de aplicación no tapa al operador.
-- **El dispositivo lo estampa el panel, bajo la clave del framework**: el
-  middleware de runtime de nucleus escribe el user agent como mucho cada
-  30 s y el `touchAdminSession` de orbit refresca `last_seen` en CADA
-  petición, así que el de nucleus casi nunca volvía a escribir — un visor
-  alimentado sólo por él nombraría el dispositivo de la sesión recién firmada
-  y nada de la que lleva abierta toda la mañana. Misma sanitización
-  (caracteres de control fuera, 256 bytes) y un clasificador pequeño
-  (`Firefox on Linux`, `Safari on iOS`, `Go-http-client`) con el agente crudo
-  al lado.
-- **Tres decisiones que no conviene reabrir**: (1) la revocación masiva casa
-  con LA MISMA cadena que la fila muestra (`user`), no con un id de cuenta —
-  vale también para sesiones de aplicación, y lo que se lee es exactamente
-  lo que se revoca; (2) **la petición que revoca nunca se revoca a sí
-  misma**: revocar tu propia cuenta cierra los OTROS dispositivos
-  (`kept_current: true`), porque «cerrar en todas partes menos aquí» es lo
-  que se quiere y una llamada que se cerrara a sí misma dejaría una pantalla
-  sin nadie detrás; (3) cero revocadas es un 200 honesto, no un 404 — el
-  resultado pedido, que no quede otra sesión abierta, ya se cumple. Auditado
-  como `session.revoke_all` con el usuario de record y el recuento, complete
-  o no la llamada.
-- **La fila marca `current`** (ésta es la tuya) y la SPA lo dibuja («you»),
-  con el botón de revocar todas por fila y un diálogo que dice que la propia
-  se conserva. Dist reconstruido.
-- **Lección nueva del banco, la sexta de «la sonda mide el banco»**: OPS-02
-  contaba filas de la lista COMPARTIDA y su veredicto dependía del filtro
-  `-run`: `partial` en la corrida completa (sondas anteriores habían paseado
-  la sesión del superusuario por el panel) y `absent` a solas. Y el panel
-  estampa una sesión en las peticiones que pasan POR él, y el store lo ve al
-  comprometer la respuesta: un login solo no deja nada que leer. Las tres
-  sondas de sesión leen ahora SU fila, tras una petición propia por el panel.
-  Escrito en `orbit/docs/admin-bench.md` con las otras.
-- **Siguiente: `S9`** (las vistas de operación que callan —OR-47, OR-48,
-  OR-49, OR-50— y con ellas OPS-11, OPS-13 y OPS-17) o **`S7`** (acciones y
-  puntos de extensión), las dos sin precondición. La deuda corta del guard
-  `check_release_assets.sh` (§Estado vigente) sigue sin registrar.
-
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -306,9 +316,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 - **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~, ~~A4~~ y ~~A5~~
   CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0) → **A6 Orbit como admin de
-  producto, EN CURSO** (`S0`–`S6` y `S9` hechas; troceado de once sesiones en
+  producto, EN CURSO** (`S0`–`S7` y `S9` hechas; troceado de once sesiones en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md),
-  siguiente `S7` o `S10`) → A7 … → A12. El registro de hallazgos y su guard
+  siguiente `S8` o `S10`) → A7 … → A12. El registro de hallazgos y su guard
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco.
 - **Lo que A4 dejó a deber, con su porqué escrito**: la segunda mitad de su
   `S4` —uuid nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet,
@@ -326,7 +336,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   panel de `S5`), **orbit#483** (`S6`: dueño, dispositivo y revocación
   masiva), **orbit#469** (AUD-05) y los cuatro del borrado de ejemplos; en
   el paraguas, **quantum#189/#192/#193/#196/#197/#198/#199/#200/#201**.
-  **En revisión: orbit#484** (`S9`) y el del paraguas de esta sesión.
+  **orbit#484** (`S9`) y **orbit#485** (el `busy_timeout` del banco) también
+  fusionados. **En revisión: orbit#486** (`S7`: acciones y pantallas que
+  declara la aplicación, con el ADR-010 de orbit) y el del paraguas de esta
+  sesión.
 - **El pin, que era el cuello de botella del arco, ESTÁ SUBIDO**: nucleus
   **v1.29.0** cortado y el `require` de orbit con él (orbit#482), lo que
   cerró **NU-73**, **OR-45** y los veredictos de **DS-04** y **DS-05** en un
