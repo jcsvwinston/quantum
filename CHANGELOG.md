@@ -6,6 +6,63 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.32.0 — el arco A5: autenticación de producto
+
+Quantum 1.32.0 publica el arco A5: la autenticación de nucleus deja de ser
+un sustrato sobre el que construir y pasa a ser algo que una aplicación
+monta. Se mueven nucleus (v1.27.0 → v1.28.0) y orbit (v1.9.5 → v1.9.6, una
+release de alineación sin cambio de producto); quark v1.14.0 sigue donde
+estaba. Módulos hermanos que cambian: orbit agent (v0.6.19 → v0.6.20),
+quarkbridge (v1.8.23 → v1.8.24), quarkdatasource (v1.8.24 → v1.8.25) y
+server (v0.11.5 → v0.11.6); el resto sin cambio. Minor de suite porque lo
+es la de nucleus (QADR-0002). Corte fuera de la cadencia semanal por la
+razón que QADR-0008 admite: cierra un arco.
+
+Lo que cambia para quien instala. Nucleus tenía sesiones, tokens, hash de
+contraseñas, motor de políticas y dos costuras de extensión, y ninguna ruta
+que iniciara sesión a nadie: cada aplicación escribía los mismos siete
+manejadores y volvía a decidir cuánto vive un enlace de reset, si puede
+usarse dos veces y qué revela un login fallido. Ahora hay tres módulos
+opt-in que lo traen decidido. `pkg/accounts` sirve registro con
+verificación, login, logout, reset, cambio de contraseña, enlace mágico y
+bloqueo progresivo; `pkg/auth/apikeys` emite la credencial que usa un
+programa —mostrada una vez, revocable, con scopes, rotación con periodo de
+gracia y CLI—; y `pkg/auth/federated/oidc` llena la costura federada que
+estaba escrita y vacía desde v1.15.0, con PKCE siempre, discovery, JWKS y
+un id_token verificado contra audiencia, emisor, expiración y nonce. El
+segundo factor es TOTP con códigos de recuperación y reautenticación para
+las operaciones sensibles; los secretos se cifran en reposo y sin clave el
+enrolamiento se rechaza, en vez de guardarlos en claro. Una identidad lleva
+ya una LISTA de roles —un proveedor que devuelve tres grupos tenía un solo
+campo donde ponerlos—, las sesiones ajenas se pueden revocar y un token
+emitido también, y la política decide sobre un OBJETO y no sólo sobre una
+ruta, así que «puede editar los posts que son suyos» deja de reimplementarse
+dentro de cada manejador. El correo transaccional gana HTML, adjuntos,
+plantillas y encolado dentro de la transacción del llamante.
+Nada se retira y ninguna firma se mueve: una aplicación que no monta nada
+se comporta igual que antes.
+
+Lo que corrige, y conviene leer si usas MySQL. El store SQL de cuentas no
+podía abrir una base MySQL: emitía `CREATE INDEX IF NOT EXISTS`, que ese
+motor no tiene. Salió a la luz en la primera corrida de la prueba que el
+propio arco añadió contra motores reales, y no antes, porque las pruebas
+unitarias corren sobre SQLite, donde la sentencia es válida. Es el mismo
+patrón que A4 dejó escrito: lo que no se ejecuta contra el motor no está
+medido.
+
+Y una postura que ahora se puede comprobar. `contracts/baseline/asvs_l2.txt`
+mapea el framework sobre OWASP ASVS 4.0.3 nivel 2 —27 requisitos, cada uno
+con una prueba que falla cuando el control deja de cumplirse: 24 cumplidos,
+2 que completa la aplicación y 1 que no se cumple, con su razón—. Un
+documento de postura que no puede decir que no es una página de marketing.
+
+Lo que aprendió el tren. La imagen de MinIO dejó de servirse en Docker Hub,
+así que la lane de storage y con ella el gate obligatorio salían rojos en
+cualquier PR por algo ajeno al cambio: ahora se tira de quay.io. Y fusionar
+el primero de una pila de PRs borrando su rama CIERRA automáticamente los
+que la tenían por base, y un PR cerrado no se puede reabrir ni reapuntar —
+la pila entera se reapunta a main ANTES de fusionar el primero.
+
 ## Quantum 1.31.0 — Quantum 1.31.0 publica el arco A4 —quark como capa de datos de nucleus— y con él dos cosas que se notan desde fuera: lo que la API tipada de quark puede expresar, y la anchura de las columnas que genera
 
 Quantum 1.31.0 publica el arco A4 —quark como capa de datos de nucleus— y
