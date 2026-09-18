@@ -29,7 +29,8 @@ en nucleus — **cerrado** al subir el pin en orbit#482), **OR-45** (P2,
 **cerrado en `S5`**), **OR-46** (P2, **cerrado en `S6`**, orbit#483), y
 **OR-47**, **OR-48**, **OR-49** y **OR-50** (P3, **los cuatro cerrados en
 `S9`**, orbit#484). Nacidos dentro del arco: **OR-51** (P3, en `S5`), que
-espera a la release de la raíz de orbit y es **el único abierto de A6**;
+espera a la release de la raíz de orbit y es **el único abierto de A6**
+(`S7` no abrió ninguno);
 **OR-52** (P3, nacido y cerrado en `S9`); y **NU-76** (P3, nacido en `S9`,
 asignado a **A7**, así que no está en este gate).
 
@@ -521,6 +522,43 @@ Controles DS-09 y CUST-04.
 ```bash
 cd orbit && go test ./internal/adminbench/ -run 'TestAdminBench/(DS-09|CUST-04)' -v
 ```
+
+**HECHA el 2026-09-18** (orbit#486). El banco pasa de **54 a 56 de 59** y
+**data studio queda completa** (17 presentes, 0 parciales, 0 ausentes), como
+operación. Lo único ausente son las tres de personalización (`S8`).
+
+- **Dos contratos, los dos sólo desde Go** (llevan funciones): `Actions`
+  declara un verbo, su etiqueta y la función que lo ejecuta sobre la
+  selección —la rejilla lo dibuja al lado de Borrar—, y `Pages` monta un
+  `http.Handler` corriente bajo el prefijo del panel, tras su sesión, con su
+  RBAC (`view` sobre `admin:page:<id>`) y en su navegación, con el operador
+  en el contexto. Decisiones en el **ADR-010** de orbit.
+- **El verbo ES el permiso**, y por eso la acción hereda el confinamiento:
+  los ids que recibe la función son los que ese operador puede tocar
+  (tenant + `#own` de ADR-007), y los de fuera vuelven como fallos por id.
+  Una selección rechazada entera **no llega a la función** (`ran: false`):
+  una acción a la que se le entrega una lista vacía sería indistinguible de
+  una invocada sobre la tabla entera. Ése es el motivo de que la acción pase
+  por el panel en vez de ser un endpoint de la aplicación — si lo saltara,
+  sería el rodeo de todas las políticas de fila.
+- **Lo que el panel no puede honrar impide arrancar**: modelo inexistente,
+  verbo duplicado, verbo propio del panel, `Run` nulo, página sin handler, id
+  con barra. Cada uno sería, si no, un control que nunca aparece.
+- **La pantalla es un ENLACE, no un marco**: el panel manda
+  `X-Frame-Options: DENY` y `frame-ancestors 'none'` en toda respuesta, así
+  que embeberla en la SPA la bloquearía el navegador **mientras cada test en
+  Go seguiría leyendo un 200**; relajar la cabecera de todo el panel para
+  embeber una pantalla cambiaría una defensa por una maquetación.
+- **Las dos sondas miden por efecto**: DS-09 ejecuta la acción y **relee la
+  fila cambiada** (un 200 del endpoint de bulk sólo dice que el verbo se
+  enrutó, y este banco ya se tragó uno así en OPS-15), y CUST-04 pide las
+  tres cosas que hacen de una pantalla parte del panel: que la navegación la
+  liste, que se sirva bajo el prefijo y que sepa quién la está leyendo.
+- **Trampa nueva, que tumbó el arranque entero**: una ruta SIN método al
+  lado del catch-all `GET /{path...}` de la SPA es **ambigua** para el
+  `ServeMux` de Go, que se niega a construir el router — la aplicación no
+  arrancaba. Las rutas de página declaran sus métodos uno a uno. Escrito en
+  `orbit/docs/admin-bench.md` con las otras lecciones del banco.
 
 ## S8 · El panel con la ropa del producto
 
