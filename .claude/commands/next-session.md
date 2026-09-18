@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-18, QUANTUM 1.33.0 — A6 CERRADO, banco 59/59 + instrumento de navegador)
+## 3. Estado al cierre (2026-09-18, QUANTUM 1.33.0 — A6 CERRADO; A7 arrancado y TROCEADO por su sesión de medición)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -78,13 +78,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
 - **Trabajo por arcos del plan 5/5**: A1, A2, A3, A4, A5 y **A6 CERRADOS**
-  (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0, 1.33.0) → **siguiente: A7** (jobs,
-  eventos y tiempo real), que aún **no tiene troceado**: se escribe al
-  empezarlo y **por una sesión de medición** —las tres veces que se planificó
-  sin medir, la medición corrigió el plan—. A7 hereda dos hallazgos de A6:
-  **NU-77** (P2: una aplicación con outbox sobre SQLite puede fallar el
-  arranque) y **NU-76** (P3: `outbox.InspectRuntime` no sabe contar un topic).
-  Lo que fue A6, sesión a sesión y con lo que cada una midió, está en
+  (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0, 1.33.0) → **A7 EN CURSO** (jobs,
+  eventos y tiempo real): su `S0` de medición está hecha y el arco **ya tiene
+  troceado** en
+  [`docs/planes/A7-jobs-eventos-tiempo-real.md`](../../docs/planes/A7-jobs-eventos-tiempo-real.md)
+  —doce sesiones—; **siguiente: `S1`** (que la cola deje de perder trabajo).
+  A7 lleva **siete hallazgos abiertos**: los dos heredados de A6 —**NU-77**
+  (P2, arranque con outbox sobre SQLite) y **NU-76** (P3, contar un topic)— y
+  los **cinco que abrió la medición**: NU-78, NU-79, NU-80 (P2) y NU-81,
+  NU-82 (P3). Lo que fue A6, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md);
   A4 y A5, en sus ficheros.
   `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
@@ -157,6 +159,47 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `docs/handoff/sesiones-2026-07-12_a_2026-09-02.md` (grep, no cargar);
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
+
+### Sesión 2026-09-18 (tarde) — **A7 arranca**: la medición dice 12 de 40, y reescribe el plan en cinco sitios
+
+- **`S0` de A7, hecha** (nucleus#549 + el PR del paraguas de esta sesión). El
+  banco vive en `nucleus/internal/jobsbench` y su página es
+  `nucleus/docs/jobs-bench.md`: **40 controles, 12 presentes, 4 parciales, 24
+  ausentes** (queue 4/2/7, events 6/0/6, realtime 1/2/5, ops 1/0/6). Mismo
+  método que `authbench` y `adminbench`: el test asserta el **veredicto
+  registrado**, no el éxito. **El set NO se mueve**: `S0` mide, no corta.
+- **Cinco correcciones al plan escrito, y ninguna se sabía leyéndolo**: (1) la
+  cola **pierde trabajo con el proceso vivo** —un job cuyo tipo nadie maneja se
+  descarta (NU-80)—, así que hay una sesión ANTES del proveedor durable; (2) el
+  **panel que A6 acaba de publicar enseña ceros**, porque el `Inspector` del
+  proveedor por defecto los devuelve (NU-82) y Orbit consume ese mismo
+  inspector — no hay que escribir dashboard, hay que darle datos; (3) el bus
+  **ya tiene `recover` y límite, y los dos están mal puestos**: el recover sólo
+  cubre el camino asíncrono (NU-79) y el límite se toma en la goroutine del
+  emisor, así que `EmitAsync` **bloquea a quien emite** (NU-78); (4) **cero
+  series de métricas** medidas con un lector manual mientras un job corría
+  (NU-81); (5) **NU-77 deja de ser un flake**: `PRAGMA busy_timeout` da 0 y la
+  tabla del outbox ya existe cuando corre el primer `OnStart` — dos assertions
+  deterministas en macOS, donde la carrera no reproduce.
+- **El gate escrito de A7 no se podía cumplir tal cual**: pedía «dashboard con
+  datos reales en el showcase», y el showcase salió del árbol el 2026-09-12.
+  El troceado lo sustituye por un canal con clientes concurrentes en CI, y deja
+  las otras dos patas (banco sin ausentes sin razón; 10 000 jobs con caída a
+  mitad y cero pérdidas).
+- **Cuatro sondas se reescribieron antes de publicar nada**, porque medían menos
+  de lo que su título decía —la lección AUD-05 de A6, en cuatro formas nuevas—:
+  preguntar `/metrics` mide que el exportador es un módulo opcional, no si los
+  jobs están instrumentados; ver un mensaje `pending` no mide un reintento;
+  construir un relay con config vacía y leer su error no es entrega; y
+  comprobar que el runtime expone un outbox no mide ningún orden de arranque.
+  Quedan escritas en `nucleus/docs/jobs-bench.md`.
+- **Y una trampa de API que costó cuatro minutos de suite colgada**:
+  `signals.RedisRelay.ForwardToBus` **bloquea** —es el bucle de recepción, no
+  una suscripción que devuelve—, así que una sonda que lo llamó en línea colgó
+  el test hasta el timeout.
+- **Siguiente: `S1` de A7** — que la cola deje de perder trabajo (JOB-07,
+  JOB-08, JOB-10; cierra NU-80). Su precondición es que el banco pase, o sea
+  que **nucleus#549 fusionado**.
 
 ### Sesión 2026-09-18 — **A6 CERRADO**: el banco llega a 59/59, nace el instrumento de navegador y el set 1.33.0 lo publica
 
@@ -266,10 +309,21 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 - **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~, ~~A4~~, ~~A5~~ y
   ~~A6~~ CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0, 1.33.0) → **A7
-  (jobs, eventos y tiempo real), SIN TROCEAR**: se escribe al empezarlo y por
-  una sesión de MEDICIÓN → A8 … → A12. El registro de hallazgos y su guard
+  (jobs, eventos y tiempo real), EN CURSO y TROCEADO** por su `S0` de medición
+  (2026-09-18): doce sesiones en
+  [`docs/planes/A7-jobs-eventos-tiempo-real.md`](../../docs/planes/A7-jobs-eventos-tiempo-real.md),
+  siguiente `S1` → A8 … → A12. El registro de hallazgos y su guard
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco; A6 lo cerró
-  con el suyo propio, `umbrella-admin-posture`.
+  con el suyo propio, `umbrella-admin-posture`, y A7 propone
+  `umbrella-jobs-posture` para el suyo.
+- **Los cinco hallazgos que abrió la medición de A7** (todos en nucleus, todos
+  abiertos): **NU-78** (P2, `EmitAsync` bloquea al emisor con el techo de
+  concurrencia lleno), **NU-79** (P2, un pánico en un handler síncrono se lleva
+  a quien emitió; el `recover` sólo cubre el asíncrono), **NU-80** (P2, el
+  proveedor por defecto descarta un job cuyo tipo nadie maneja), **NU-81** (P3,
+  cero métricas de jobs fuera de asynq, y ninguna del outbox) y **NU-82** (P3,
+  el `Inspector` por defecto devuelve ceros — y es el que enseña el panel de
+  A6). Cada uno tiene su sesión asignada en el troceado.
 - **Lo que A4 dejó a deber, con su porqué escrito**: la segunda mitad de su
   `S4` —uuid nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet,
   JSONB— no está en el gate del arco y encaja en A8, que ya lleva los tipos
