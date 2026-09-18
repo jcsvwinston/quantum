@@ -12,8 +12,8 @@ modelo, y el rastro de auditoría se va con el proceso. Es el arco que lleva el
 sesiones por dispositivo, cuya capacidad ya existe en el framework
 (`ActiveSessions`, `Revoke`, `RevokeWhere`, metadatos con agente de usuario).
 
-**Gate del arco** (se registrará como guard `umbrella-admin-posture` con su
-fixture; sería el 50º):
+**Gate del arco** — CUMPLIDO el 2026-09-18, registrado como guard
+`umbrella-admin-posture` con su fixture (el 50º):
 
 - el banco de admin —`orbit/internal/adminbench`— sin ningún control ausente
   **sin razón escrita**;
@@ -29,8 +29,7 @@ en nucleus — **cerrado** al subir el pin en orbit#482), **OR-45** (P2,
 **cerrado en `S5`**), **OR-46** (P2, **cerrado en `S6`**, orbit#483), y
 **OR-47**, **OR-48**, **OR-49** y **OR-50** (P3, **los cuatro cerrados en
 `S9`**, orbit#484). Nacidos dentro del arco: **OR-51** (P3, en `S5`), que
-espera a la release de la raíz de orbit y es **el único abierto de A6**
-(`S7` no abrió ninguno);
+**cerrado en `S11`** tras la release v1.10.0 de la raíz (orbit#490);
 **OR-52** (P3, nacido y cerrado en `S9`); y **NU-76** (P3, nacido en `S9`,
 asignado a **A7**, así que no está en este gate).
 
@@ -574,6 +573,38 @@ declarables, e idioma. Controles CUST-02, CUST-03 y CUST-05.
 cd orbit && go test ./internal/adminbench/ -run 'TestAdminBench/CUST-0[235]' -v
 ```
 
+**HECHA el 2026-09-18** (orbit#488). El banco pasa de **56 a 59 de 59**:
+**todas las familias completas**. CUST-02, CUST-03 y CUST-05 en `present`.
+Decisiones en el **ADR-011** de orbit.
+
+- **Marca** (`Config.Branding`): logo, favicon y color de acento, por metas
+  del documento —el mismo canal que el prefijo y el título—, así que están en
+  la **pantalla de login**, la única que se ve antes de ser nadie. Al ser
+  cadenas, también se enlaza desde `nucleus.yml`.
+- **Los valores se VALIDAN, no se escapan**: un logo `javascript:` sería
+  ejecución de script en cada página del panel concedida por una línea de
+  YAML. URL absoluta http(s) o ruta del propio sitio; color hexadecimal; lo
+  demás **impide arrancar**.
+- **El color de marca decide el texto que va encima** (calculado desde la
+  luminosidad): blanco sobre un amarillo claro sería un fallo de contraste
+  que el panel introduce en nombre de la aplicación.
+- **Tarjetas** (`Config.Widgets`): las declara la aplicación con la función
+  que lee el valor; el panel pone pantalla, autorización
+  (`admin:dashboard`, permiso por tarjeta), **tres segundos por tarjeta** y
+  la degradación — una que falla **se dibuja diciéndolo**, porque quitarla
+  contaría una consulta rota como «no hay nada que ver».
+- **Idioma** (`Config.Locale`, `Config.Messages`): cubre el CROMO y nunca los
+  datos. Los catálogos se **funden**, así que una clave sin traducir se lee
+  en inglés y no como `nav.audit`, y una aplicación puede traducir el panel a
+  un idioma que el panel no trae. El catálogo se sirve **sin sesión**, porque
+  el login se dibuja antes de que la haya.
+- **Dos sondas del banco estaban mal, y este cambio lo destapó**: `UI-01`
+  medía contra el helper que TRUNCA para los logs (creció el `head` con tres
+  metas y el marcador se salió del corte), y el módulo que capturaba el
+  handle de base de datos del banco se montaba en TODAS las aplicaciones que
+  arranca, así que una sonda con app propia dejaba a la compartida leyendo
+  «database is closed».
+
 ## S9 · Las vistas de operación que callan
 
 **Precondición.** Ninguna.
@@ -636,6 +667,30 @@ verdad **midiéndolo**, no leyéndolo.
 **Criterio de hecho**: el arnés corre en el CI de orbit y su veredicto está
 registrado.
 
+**HECHA el 2026-09-18** (orbit#489). El instrumento existe, corre en el CI de
+orbit y su veredicto está registrado: `internal/adminbench/browser`
+(Playwright + axe-core) conducido desde `browserbench_test.go`, para que mida
+**la misma aplicación** que las sondas HTTP.
+
+- **Siete controles, los siete `present`**: contraste en el login y en las
+  pantallas que un operador abre, nombres accesibles en cada control, un
+  documento que declara idioma y landmarks, la navegación alcanzable con
+  teclado con foco visible, y un diálogo que se abre y se cierra con teclado.
+- **La afirmación de la auditoría de 2026-09-03 («0 `aria-*`, contraste
+  1,9–2,3:1») queda respondida MIRANDO**: lo que fuese verdad en agosto no lo
+  es de este build.
+- **UIX-00 mide el INSTRUMENTO, no el panel**: un motor de accesibilidad con
+  una regla renombrada informa de cero violaciones y todo lo demás pasa
+  midiendo nada — el mismo fallo que el `guard-of-guards` del paraguas
+  existe para evitar. Planta un botón sin nombre y texto a ~1,1:1, y se
+  comprobó rompiéndolo.
+- **Se salta si no hay navegador, y el CI se niega a saltárselo**
+  (`ORBIT_BENCH_BROWSER=required`): una lane verde porque falta el
+  instrumento es peor que no tener lane.
+- **El numerador se mantiene SEPARADO** de los 59 del banco HTTP: una cifra
+  que mezclara lo que ven dos instrumentos distintos no la podría comprobar
+  nadie.
+
 ## S11 · El gate, su guard y el set
 
 **Precondición.** `S1`–`S10` hechas; el registro sin hallazgos abiertos de A6.
@@ -651,3 +706,32 @@ bash scripts/check_audit_backlog.sh | tail -1   # A6 entre los cerrados
 bash scripts/guard-of-guards.sh
 bash scripts/suite-integral.sh --cierre
 ```
+
+**HECHA el 2026-09-18.** `scripts/check_admin_posture.sh` es el **guard 50º**,
+registrado con su fixture: comprueba que la cifra que publica
+`orbit/docs/admin-bench.md` sea la que cuenta la tabla del banco, que ningún
+control que no esté `present` se quede sin razón escrita, que el instrumento
+del navegador esté EN EL PIN, y que el CI de orbit lo corra con
+`ORBIT_BENCH_BROWSER=required` —sin eso la lane se pone verde cuando el
+navegador falta, que es decir que se midió lo que nadie midió— y que siga
+existiendo el control que prueba el propio motor de accesibilidad.
+
+- **OR-51 cerrado** (orbit#490), el último abierto del arco: los doce
+  operadores sobre el origen de datos de Quark, con `in` vacío que no casa
+  nada, operador no expresable rechazado por su nombre, y el rechazo de QK-25
+  en los motores cuyo `LIKE` no tiene escape por defecto. Entró **tras** la
+  release **v1.10.0** de la raíz de orbit, que es la que publica el contrato
+  que su módulo no podía nombrar con `GOWORK=off` — la dependencia topológica
+  que el hallazgo describía, pagada en el orden que exigía.
+- **Dos releases de orbit en la ronda, y las dos hacían falta**: `v1.10.0`
+  publica el arco entero, y `quarkdatasource v1.9.1` publica OR-51 — que no
+  se podía escribir antes de la primera.
+- **Trampa del corte**: la rama de un release PR **no se regenera sola** con
+  un commit que release-please no considera publicable (el `test(...)` de
+  `S10`), así que el tag se habría cortado sin el instrumento dentro.
+  `gh pr update-branch` la pone al día y, de paso, dispara el CI que esa rama
+  no dispara nunca.
+- **Y la deuda de doc por minor se paga EN la rama del release**: el guard de
+  coherencia de versiones de orbit exige que las release notes tengan la
+  sección de la versión que el marcador anuncia, y release-please sube el
+  marcador pero no escribe la sección.

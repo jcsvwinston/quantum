@@ -139,6 +139,16 @@ GUARDS=(
   # la nota de cada hueco, el veredicto de cada fila—, que es donde una
   # medición se vuelve mentira sin que ninguna suite se ponga roja.
   "umbrella-auth-posture|.|bash scripts/check_auth_posture.sh"
+  # El gate del arco A6: lo que la suite AFIRMA sobre su panel de
+  # administración es lo que sus propias medidas dicen. A6 dejó un banco de 59
+  # controles con su sonda (`orbit/internal/adminbench`) y un instrumento que
+  # corre en un NAVEGADOR para lo que una sonda en Go no puede ver — contraste,
+  # foco, alcance de teclado —, con sus veredictos registrados igual. Este
+  # guard vigila la frontera entre lo medido y lo PUBLICADO, y además que el
+  # instrumento del navegador siga siendo exigido por el CI de orbit: si deja
+  # de serlo, la lane se pone verde cuando el navegador falta, que es decir
+  # que se midió lo que nadie midió.
+  "umbrella-admin-posture|.|bash scripts/check_admin_posture.sh"
   # Toda lane del paraguas con disparador `schedule:` lleva su job
   # `notify-schedule-failure`: el cron rojo no puede degradar al email por
   # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que

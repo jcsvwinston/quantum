@@ -68,14 +68,35 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   **54 de 59** y la familia de **operación, completa**. Cerrar el fallback
   destapó que **OPS-15 llevaba desde `S0` dado por bueno leyendo la página
   HTML** que la SPA servía a una ruta de export que nunca casó (**OR-52**,
-  cerrado); queda **OR-51** como único hallazgo abierto de A6. El troceado
-  está en
+  cerrado). Sus tres últimas sesiones **cerraron el arco**: `S7` dejó que una
+  aplicación declare **sus propios verbos y sus propias pantallas** —una
+  acción sobre su modelo, autorizada como su propio verbo RBAC y confinada a
+  las filas que ese operador puede tocar, y un `http.Handler` montado dentro
+  del panel—; `S8` le puso **la ropa del producto** (logo, color y favicon en
+  toda página incluida la de login, tarjetas propias en el resumen, e idioma
+  del cromo con catálogos que se funden), y con ella el banco llegó a **59 de
+  59, todas las familias completas**; y `S10` añadió **el instrumento que un
+  arnés en Go no puede ser**: Playwright y axe-core en el CI de orbit, con
+  siete controles propios que responden MIRANDO a lo que la auditoría de
+  2026-09-03 afirmó de esta interfaz (0 `aria-*`, contrastes de 1,9–2,3:1) —
+  y con un control que mide el instrumento, porque un motor de accesibilidad
+  mal configurado informa de cero violaciones y todo lo demás pasa midiendo
+  nada. **OR-51 cerrado** tras la release v1.10.0 de la raíz de orbit, que es
+  la que publica el contrato que su módulo necesitaba nombrar. **A6 CERRADO**,
+  con su guard `umbrella-admin-posture` (el 50º) vigilando que lo publicado
+  siga siendo lo medido. El troceado está en
   [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
-- **Certificación mecánica:** 49 guards en el registro — los 49 de 1.32.0
+- **Certificación mecánica:** 50 guards en el registro — los 49 de 1.32.0 más
+  `umbrella-admin-posture`, el gate de A6: comprueba que la cifra que publica
+  la página del banco de admin sea la que su tabla cuenta, que ningún control
+  ausente se quede sin razón escrita, y que el instrumento del navegador siga
+  EXIGIDO por el CI de orbit — si dejara de estarlo, la lane se pondría verde
+  cuando el navegador falta, que es decir que se midió lo que nadie midió. Los
+  49 anteriores eran los de 1.31.0
   menos `umbrella-quickstart-embeds`, que resolvía las fences `file=` del
   quickstart contra `nucleus/examples/showcase_demo`: **la suite retiró los
   ejemplos del árbol el 2026-09-12** hasta cerrar el plan 5/5, así que los
