@@ -148,6 +148,55 @@ JOB-10.
 cd nucleus && go test ./internal/jobsbench/ -run 'TestJobsBench/JOB-(07|08|10)' -v
 ```
 
+**HECHA el 2026-09-18** (nucleus#550, CI verde). El banco pasa de **12 a 15 de
+40** y la familia de cola de 4 a 7 presentes. **NU-80 cerrado.**
+
+### Lo que S1 entregó, y las decisiones que conviene no reabrir
+
+- **Dos almacenes con presupuesto SEPARADO**, no uno: un tipo mal escrito no
+  puede desalojar los jobs que murieron de verdad, y `purge-archived` vacía
+  **sólo** la dead letter —un job que espera a su consumidor no está muerto—.
+  Los dos acotados (asynq acota el suyo en 10 000 y 90 días; éste muere con el
+  proceso, así que guarda menos).
+- **Dos acciones implementadas y cuatro rechazadas POR SU NOMBRE**, con la
+  palabra `unsupported` en el texto: Orbit clasifica el error por subcadena, y
+  sin esa palabra un nombre de cola equivocado le llega al operador como 500 en
+  vez de 400. **La pausa se queda fuera a propósito**: con el canal lleno, o
+  destruye trabajo aceptado o cuelga el cierre.
+- **Cero símbolos nuevos en `pkg/tasks`**. El paquete del proveedor no está
+  congelado y los campos del snapshot que esto necesita ya existían, así que no
+  hay baseline que regenerar ni superficie que crecer (QADR-0010).
+- **`TotalFailed` sigue contando lo mismo que antes** — es un campo publicado y
+  alguien puede tener una alerta colgada de él—, y reencolar un job retenido no
+  cuenta su fallo dos veces.
+- **El contexto retenido conserva sus VALORES** (`WithoutCancel`), porque en
+  este framework el tenant viaja ahí; el reencolado se ata al ciclo de vida del
+  manager para que el job siga siendo parable.
+- **Lo que S1 NO compra es durabilidad ante un reinicio.** Eso es `S2`. La doc
+  pública lo dice donde antes afirmaba que el manager hacía dead-letter y
+  métricas, que era verdad sólo de asynq.
+
+### Lo que encontró la revisión adversarial, y no hay que redescubrir
+
+Seis lentes sobre el diff y tres escépticos por hallazgo: **37 en bruto, 20
+confirmados**, y **nueve defectos reales en el primer borrador**. Los tres que
+más caro habrían salido:
+
+1. **`putBack` recortaba por el extremo equivocado**: una sola pulsación de
+   `retry-archived` con la cola llena destruía hasta 1 000 jobs retenidos
+   **mientras el mensaje decía que seguían retenidos**. Reproducido con
+   capacidad real por el verificador.
+2. **Los dos almacenes se fundían al reencolar**: un job que sólo esperaba
+   handler volvía clasificado como muerto, y el `purge-archived` siguiente lo
+   borraba — justo la invariante que el cambio dice proteger.
+3. **La sonda JOB-08 era flaky**: un token viejo en el canal cortocircuitaba la
+   espera, así que habría dado por bueno un reencolado sin comprobar la segunda
+   ejecución.
+
+Y uno que **no era de este cambio**: `Run` hace `wg.Add` mientras `Close` hace
+`wg.Wait`, que es una carrera de libro reproducible con `go Run(ctx)` +
+`Close()`. Arreglada aquí, con test de regresión bajo `-race`.
+
 ## S2 · `providers/sql`: la cola durable sobre la base que ya hay
 
 **Precondición**: `S1` fusionada.
@@ -310,6 +359,7 @@ bash scripts/check_audit_backlog.sh | tail -1   # ha de decir: … A6 A7
 | Sesión | Estado | PR | Lo que midió |
 |---|---|---|---|
 | S0 | HECHA 2026-09-18 | nucleus#549 · quantum#206 | 12 de 40 controles; cinco correcciones al plan y cinco hallazgos nuevos |
+| S1 | HECHA 2026-09-18 | nucleus#550 | 15 de 40; NU-80 cerrado, y nueve defectos del primer borrador que cazó la revisión adversarial |
 
 ### Lo que S0 dejó dicho, y no hay que redescubrir
 
