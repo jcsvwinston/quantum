@@ -216,6 +216,63 @@ trampa del arco) y lo escribe.
 cd nucleus && go test ./internal/jobsbench/ -run 'TestJobsBench/JOB-0[2346]' -v
 ```
 
+**HECHA el 2026-09-18** (nucleus#553, más nucleus#552 con los dos P1 del outbox
+que la medición destapó). El banco pasa de **15 a 19 de 40** y la familia de
+cola de 7 a **11 de 13**.
+
+### La decisión que el plan pedía, y su porqué
+
+**El proveedor vive DENTRO del módulo raíz**, en `pkg/tasks/providers/sql`. El
+criterio de ADR-030/031 para sacar algo a módulo hermano es el **peso** de lo
+que arrastra —los SDK cloud eran 42 MB de un hola-mundo de 75—; éste habla
+`database/sql` y no importa ningún driver, igual que `pkg/outbox`, así que no
+añade nada a la build de nadie y no cuesta ni tag ni suelo en cada corte. La
+excepción del suelo de 1.30.0 no aplica: no sale nada del raíz.
+
+### Lo que garantiza, dicho en la doc pública
+
+**At-least-once.** El worker reclama bajo lease y lo renueva mientras el
+handler corre; si el proceso muere con el job, el lease vence y otro lo
+recupera — y ese rescate está **acotado**, para que un job que tumba a su
+proceso acabe retirado en vez de girar. Las colas son un **orden**, no pesos, y
+una cola que nadie sirve no se toca. La curva de reintento viaja **con el job**.
+**El cron no está soportado**: necesita que una sola réplica dispare, eso es
+`S4`, y el arranque **rechaza** la combinación en vez de disparar cada entrada
+en cada réplica.
+
+### Lo que la revisión adversarial encontró, y no hay que redescubrir
+
+Siete lentes y tres escépticos por hallazgo: **43 en bruto, 41 confirmados**, y
+**el primer borrador era incorrecto de cuatro formas**, todas con test de
+regresión ahora:
+
+1. **No arrancaba.** La rama del proveedor dejaba el scheduler nil y `start()`
+   lo desreferenciaba: cualquier aplicación que eligiera `jobs_provider: sql`
+   moría en el arranque. **El banco no lo vio porque sus sondas conducen el
+   paquete directamente y no pasan por el cableado** — la lección de método de
+   esta sesión, y por eso `pkg/nucleus` tiene ahora el test de arranque.
+2. **Un tipo sin handler quemaba los intentos**: el claim cobra uno por
+   adelantado y `Release` no lo devolvía, así que un worker que sondea cada
+   segundo agotaba un presupuesto de tres en tres segundos y el job moría **sin
+   haberse ejecutado nunca**, en una réplica que no iba a ejecutarlo.
+3. **Las escrituras de resultado no estaban valladas por el dueño del lease**:
+   un rezagado podía cerrar un job que otro worker ya había tomado.
+4. **El apagado ordenado ejecutaba el mismo job DOS VECES A LA VEZ**: `Close`
+   cancelaba todo junto, el heartbeat moría mientras los handlers seguían, los
+   leases vencían debajo y otra réplica reclamaba lo que aquí seguía corriendo.
+   No es el duplicado que perdona at-least-once: nadie se había muerto.
+
+Más el reaper corriendo en cada reclamo de cada worker, y el snapshot contando
+los jobs terminados como tamaño de cola.
+
+### Lo que S2 deja abierto, con destinatario
+
+Tres hallazgos que son decisiones de diseño, no defectos del cambio, y que por
+eso se registran en vez de parchearse con prisa: **NU-86** (sin retención: la
+tabla crece sin límite y `Retention` se ignora), **NU-87** (el claim serializa
+en la cabeza de la cola; `SKIP LOCKED` donde exista, midiendo antes) y **NU-88**
+(ninguna escritura tolera `SQLITE_BUSY`, y depende de NU-77).
+
 ## S3 · Lo que la cola hace, visible
 
 **Precondición**: `S2` fusionada.
@@ -364,7 +421,8 @@ estado se escribe **hecha** en minúsculas y entre asteriscos, que es lo que
 |---|---|---|---|
 | S0 | **hecha** 2026-09-18 | nucleus#549 · quantum#206 | 12 de 40 controles; cinco correcciones al plan y cinco hallazgos nuevos |
 | S1 | **hecha** 2026-09-18 | nucleus#550 · quantum#207 | 15 de 40; NU-80 cerrado, y nueve defectos del primer borrador que cazó la revisión adversarial |
-| S2 | pendiente | — | — |
+| S2 | **hecha** 2026-09-18 | nucleus#553 (+ nucleus#552) | 19 de 40; el proveedor durable, dos P1 del outbox y cuatro defectos del primer borrador — uno impedía arrancar |
+| S3 | pendiente | — | — |
 
 ### Lo que S0 dejó dicho, y no hay que redescubrir
 
