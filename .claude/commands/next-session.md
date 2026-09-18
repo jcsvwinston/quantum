@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-18, QUANTUM 1.33.0 — A6 CERRADO; A7 arrancado y TROCEADO por su sesión de medición)
+## 3. Estado al cierre (2026-09-18, QUANTUM 1.33.0 — A6 CERRADO; A7 arrancado, TROCEADO y con `S0` y `S1` hechas)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -82,11 +82,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   eventos y tiempo real): su `S0` de medición está hecha y el arco **ya tiene
   troceado** en
   [`docs/planes/A7-jobs-eventos-tiempo-real.md`](../../docs/planes/A7-jobs-eventos-tiempo-real.md)
-  —doce sesiones—; **siguiente: `S1`** (que la cola deje de perder trabajo).
-  A7 lleva **siete hallazgos abiertos**: los dos heredados de A6 —**NU-77**
-  (P2, arranque con outbox sobre SQLite) y **NU-76** (P3, contar un topic)— y
-  los **cinco que abrió la medición**: NU-78, NU-79, NU-80 (P2) y NU-81,
-  NU-82 (P3). Lo que fue A6, sesión a sesión y con lo que cada una midió, está en
+  —doce sesiones—; `S0` (medición) y **`S1` (la cola deja de perder trabajo)
+  HECHAS**; **siguiente: `S2`**, el proveedor SQL durable, cuya precondición es
+  que **nucleus#550 esté fusionada**. A7 lleva **nueve hallazgos abiertos**:
+  los dos heredados de A6 —**NU-77** (P2, arranque con outbox sobre SQLite) y
+  **NU-76** (P3, contar un topic)—, los **cinco que abrió la medición**
+  (NU-78, NU-79, NU-80 —arreglado en nucleus#550, pendiente de fusión—, NU-81,
+  NU-82) y los **dos que verificó `S1`**: **NU-83** (P2) y **OR-53** (P2), las
+  dos mitades de que la vista de colas que A6 entregó sea **inalcanzable** en
+  una aplicación real — `orbit.Config` no tiene por dónde recibir un
+  `tasks.Inspector` y `nucleus.Runtime` no expone ninguno, así que el panel
+  contesta `enabled:false` con «task inspector not configured (check
+  redis_url)» y 400 en las acciones. Van a `S3`. Lo que fue A6, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md);
   A4 y A5, en sus ficheros.
   `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
@@ -160,6 +167,44 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-18 (noche) — **A7 `S1`**: la cola deja de tirar trabajo, y una revisión adversarial caza nueve defectos del primer borrador
+
+- **`S1` hecha** (nucleus#550, CI verde, **pendiente de fusión**). El banco pasa
+  de **12 a 15 de 40** y la familia de cola de 4 a 7. **NU-80 cerrado.** Los
+  tres caminos por los que el proveedor por defecto perdía trabajo **con el
+  proceso vivo** —tipo sin handler, reintentos agotados, cancelación entre dos
+  reintentos— ahora retienen; el apagado drena lo que quedaba y un job diferido
+  se retiene a sí mismo.
+- **Dos almacenes con presupuesto separado** (un tipo mal escrito no puede
+  desalojar a los muertos; `purge-archived` vacía sólo la dead letter), **dos
+  acciones implementadas y cuatro rechazadas por su nombre** con la palabra
+  `unsupported` que Orbit necesita para contestar 400, y **cero símbolos nuevos
+  en `pkg/tasks`** — el paquete del proveedor no está congelado, así que no hubo
+  baseline que regenerar. La pausa queda fuera a propósito.
+- **El método que hay que repetir**: diseño por panel (tres diseños
+  independientes, nueve jueces) y luego **revisión adversarial del diff** (seis
+  lentes, tres escépticos por hallazgo: 37 en bruto, 20 confirmados). Encontró
+  **nueve defectos reales en mi primer borrador**, tres de ellos graves: que
+  `putBack` recortaba por el extremo equivocado y **una pulsación de
+  `retry-archived` podía destruir 1 000 jobs retenidos diciendo que seguían
+  retenidos**; que los dos almacenes se fundían al reencolar, de modo que el
+  `purge` siguiente borraba lo que sólo esperaba handler; y que **mi propia
+  sonda JOB-08 era flaky** y habría dado por bueno un reencolado sin verlo
+  correr. Nada de eso lo habrían cazado los tests que yo había escrito.
+- **Y un defecto preexistente que salió a la luz**: `Run` hace `wg.Add`
+  mientras `Close` hace `wg.Wait` — carrera reproducible con `go Run(ctx)` +
+  `Close()`, confirmada bajo `-race`. Arranque y cierre quedan serializados,
+  con test de regresión.
+- **Corrección a lo que `S0` publicó**: escribí que el panel de A6 «enseña
+  ceros porque el `Inspector` por defecto los devuelve». Verificado en el
+  código, es inexacto y **peor**: `orbit.Module` nunca asigna `TaskInspector` y
+  `orbit.Config` no tiene campo para recibirlo, así que la vista de colas es
+  **inalcanzable**. Registrado como **OR-53** y **NU-83** (sus dos mitades), y
+  la nota de NU-82 corregida.
+- **Siguiente: `S2`** — el proveedor SQL durable. Su primera decisión, escrita
+  en el plan, es **dónde vive el módulo** (dentro del raíz cuesta dependencias a
+  todo consumidor; fuera cuesta tag y suelo en cada corte, ADR-030/031).
+
 ### Sesión 2026-09-18 (tarde) — **A7 arranca**: la medición dice 12 de 40, y reescribe el plan en cinco sitios
 
 - **`S0` de A7, hecha** (nucleus#549 + el PR del paraguas de esta sesión). El
@@ -201,84 +246,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   JOB-08, JOB-10; cierra NU-80). Su precondición es que el banco pase, o sea
   que **nucleus#549 fusionado**.
 
-### Sesión 2026-09-18 — **A6 CERRADO**: el banco llega a 59/59, nace el instrumento de navegador y el set 1.33.0 lo publica
-
-- **Cuatro sesiones y el tren en una ronda**: `S7` (orbit#486), `S8`
-  (orbit#488), `S10` (orbit#489) y `S11` (guard + registro + set), más
-  **OR-51** (orbit#490) y las dos releases de orbit que hicieron falta. El
-  banco de admin pasa de **54 a 59 de 59, todas las familias completas**, y
-  **A6 queda CERRADO** en `registro.csv` con su guard.
-- **`S7` — la aplicación declara sus propios verbos y sus propias pantallas**
-  (ADR-010 de orbit). `Config.Actions` es un verbo sobre un modelo propio,
-  dibujado en la rejilla y despachado por el MISMO endpoint de bulk;
-  `Config.Pages` monta un `http.Handler` corriente dentro del panel (su
-  prefijo, su sesión, `view` sobre `admin:page:<id>`, su navegación, el
-  operador en el contexto). **El verbo ES el permiso**, y por eso la acción
-  hereda el confinamiento por tenant y por fila: los ids que recibe la
-  función son los que ese operador puede tocar — si lo saltara, sería el
-  rodeo de todas las políticas de fila. Una selección rechazada entera **no
-  llega a la función** (`ran: false`). **La pantalla es un ENLACE, no un
-  marco**: el panel manda `X-Frame-Options: DENY` y `frame-ancestors 'none'`,
-  así que un `iframe` lo bloquearía el navegador **mientras cada test en Go
-  seguiría leyendo un 200**.
-- **`S8` — la ropa del producto** (ADR-011 de orbit): marca (logo, favicon,
-  color) por metas del documento, así que están **en el login**; tarjetas
-  declarables en el resumen con permiso por tarjeta sobre `admin:dashboard`,
-  tres segundos de límite y **una tarjeta que falla se dibuja diciéndolo**; e
-  idioma del cromo con catálogos que **se funden** (una clave sin traducir se
-  lee en inglés, no como `nav.audit`) servido **sin sesión**, porque el login
-  se dibuja antes de que la haya. Dos decisiones que no conviene reabrir: los
-  valores de marca **se validan, no se escapan** (un logo `javascript:` sería
-  ejecución de script concedida por una línea de YAML), y **el color de marca
-  decide el texto que va encima**, calculado desde su luminosidad.
-- **`S10` — el instrumento que un arnés en Go no puede ser**: Playwright +
-  axe-core en `orbit/internal/adminbench/browser`, conducido desde Go para
-  que mida **la misma aplicación**. Siete controles, los siete `present`, y
-  con ellos queda respondida **mirando** la afirmación de la auditoría de
-  2026-09-03 sobre esta interfaz (0 `aria-*`, contrastes de 1,9–2,3:1): no es
-  verdad de este build. **UIX-00 mide el INSTRUMENTO** —planta una violación
-  y falla si el motor no la caza—, porque un motor mal configurado informa de
-  cero violaciones y todo lo demás pasa midiendo nada; se comprobó
-  rompiéndolo. Se **salta** si no hay navegador y el CI **se niega a
-  saltárselo** (`ORBIT_BENCH_BROWSER=required`).
-- **`S11` — el gate**: `scripts/check_admin_posture.sh` es el **guard 50º**
-  con su fixture; comprueba que la cifra publicada sea la que la tabla
-  cuenta, que ningún control ausente se quede sin razón, que el instrumento
-  esté en el pin y que el CI lo EXIJA. **OR-51 cerrado** (los doce operadores
-  sobre el origen de datos de Quark, `in` vacío que no casa nada, y el
-  rechazo de QK-25 donde el comodín no se puede escapar).
-- **Dos sondas del propio banco estaban mal, y el cambio las destapó**:
-  `UI-01` medía contra el helper que **trunca** para los logs (el `head`
-  creció con tres metas y el marcador se salió del corte), y el módulo que
-  capturaba el handle de base de datos se montaba en TODAS las aplicaciones
-  que arranca el banco, así que una sonda con app propia dejaba a la
-  compartida leyendo «database is closed». Las dos quedan escritas en
-  `orbit/docs/admin-bench.md` con las anteriores.
-- **Y una cuarta, que parece un guard muerto y no lo es**: entre el PR del
-  snapshot de docs y el tag, la fixture de `orbit-docs-archive` **no muerde**
-  — el snapshot se corta ANTES de la release, así que en esa ventana el árbol
-  pinado lleva un snapshot que su manifiesto aún no declara y quitarlo deja
-  el archivo coherente. En cuanto el pin avanza al tag vuelve a morder.
-  Escrito en `scripts/train/README.md`.
-- **Tres trampas del tren, nuevas o confirmadas**: (1) **la rama de un
-  release PR no se regenera** con un commit que release-please no considera
-  publicable (el `test(...)` de `S10`), así que el tag se habría cortado sin
-  el instrumento dentro — `gh pr update-branch` la pone al día **y dispara el
-  CI que esa rama no dispara nunca**; (2) **un fix de un módulo hermano saca
-  su tag DESPUÉS del de la raíz** y deja al módulo por delante del set sin
-  forma de certificarlo: hubo que usar la salida documentada —un cambio del
-  paquete raíz más `Release-As:`—, y por eso hay **dos releases de orbit**
-  (v1.10.0 y v1.10.1); (3) **la deuda de doc de una minor se paga EN la rama
-  del release**: release-please sube el marcador de versión de la doc y la
-  sección de las notas la escribe una persona.
-- **Set: Quantum 1.33.0** — nucleus v1.29.0, orbit v1.10.1 (+ agent v0.7.0,
-  server v0.12.0, quarkbridge v1.9.0, quarkdatasource v1.9.1), quark v1.14.0
-  sin cambio.
-- **Siguiente: A7** (jobs, eventos y tiempo real), que hereda **NU-76** y
-  **NU-77** de este arco. El troceado se escribe al empezarlo, y **por una
-  sesión de medición**: las tres veces que se planificó sin medir, la
-  medición corrigió el plan.
-
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -316,14 +283,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   (`umbrella-audit-backlog`) siguen siendo el gate de cada arco; A6 lo cerró
   con el suyo propio, `umbrella-admin-posture`, y A7 propone
   `umbrella-jobs-posture` para el suyo.
-- **Los cinco hallazgos que abrió la medición de A7** (todos en nucleus, todos
-  abiertos): **NU-78** (P2, `EmitAsync` bloquea al emisor con el techo de
-  concurrencia lleno), **NU-79** (P2, un pánico en un handler síncrono se lleva
-  a quien emitió; el `recover` sólo cubre el asíncrono), **NU-80** (P2, el
-  proveedor por defecto descarta un job cuyo tipo nadie maneja), **NU-81** (P3,
-  cero métricas de jobs fuera de asynq, y ninguna del outbox) y **NU-82** (P3,
-  el `Inspector` por defecto devuelve ceros — y es el que enseña el panel de
-  A6). Cada uno tiene su sesión asignada en el troceado.
+- **Los hallazgos que abrió A7** (todos en nucleus salvo uno): **NU-78** (P2,
+  `EmitAsync` bloquea al emisor con el techo de concurrencia lleno), **NU-79**
+  (P2, un pánico en un handler síncrono se lleva a quien emitió; el `recover`
+  sólo cubre el asíncrono), **NU-80** (P2, el proveedor por defecto descartaba
+  un job cuyo tipo nadie maneja — **arreglado en nucleus#550**, pendiente de
+  fusión), **NU-81** (P3, cero métricas de jobs fuera de asynq, y ninguna del
+  outbox) y **NU-82** (P3, el `Inspector` por defecto devuelve ceros). Más los
+  dos que verificó `S1`: **NU-83** (P2) y **OR-53** (P2), que son las dos
+  mitades de lo mismo — **la vista de colas que A6 entregó es inalcanzable**
+  porque `orbit.Config` no tiene por dónde recibir un `tasks.Inspector` y
+  `nucleus.Runtime` no expone ninguno. Cada uno tiene su sesión asignada en el
+  troceado; NU-83 y OR-53 van a `S3`.
 - **Lo que A4 dejó a deber, con su porqué escrito**: la segunda mitad de su
   `S4` —uuid nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet,
   JSONB— no está en el gate del arco y encaja en A8, que ya lleva los tipos
