@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-18, QUANTUM 1.33.0 — A6 CERRADO; A7 arrancado, TROCEADO y con `S0` y `S1` hechas)
+## 3. Estado al cierre (2026-09-18, QUANTUM 1.33.0 — A6 CERRADO; A7 con `S0`, `S1` y `S2` hechas)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -82,18 +82,25 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   eventos y tiempo real): su `S0` de medición está hecha y el arco **ya tiene
   troceado** en
   [`docs/planes/A7-jobs-eventos-tiempo-real.md`](../../docs/planes/A7-jobs-eventos-tiempo-real.md)
-  —doce sesiones—; `S0` (medición) y **`S1` (la cola deja de perder trabajo)
-  HECHAS**; **siguiente: `S2`**, el proveedor SQL durable, cuya precondición es
-  que **nucleus#550 esté fusionada**. A7 lleva **nueve hallazgos abiertos**:
+  —doce sesiones—; `S0` (medición), **`S1`** (la cola deja de perder trabajo) y
+  **`S2`** (el proveedor SQL durable) HECHAS; **siguiente: `S3`**, la inspección
+  y las métricas, cuya precondición es que **nucleus#553 esté fusionada**. A7
+  lleva **catorce hallazgos abiertos**:
   los dos heredados de A6 —**NU-77** (P2, arranque con outbox sobre SQLite) y
   **NU-76** (P3, contar un topic)—, los **cinco que abrió la medición**
-  (NU-78, NU-79, NU-80 —arreglado en nucleus#550, pendiente de fusión—, NU-81,
-  NU-82) y los **dos que verificó `S1`**: **NU-83** (P2) y **OR-53** (P2), las
-  dos mitades de que la vista de colas que A6 entregó sea **inalcanzable** en
-  una aplicación real — `orbit.Config` no tiene por dónde recibir un
+  (NU-78, NU-79, **NU-80 cerrado**, NU-81, NU-82); los **dos que verificó
+  `S1`** —**NU-83** y **OR-53**, las dos mitades de que la vista de colas que
+  A6 entregó sea **inalcanzable**: `orbit.Config` no tiene por dónde recibir un
   `tasks.Inspector` y `nucleus.Runtime` no expone ninguno, así que el panel
   contesta `enabled:false` con «task inspector not configured (check
-  redis_url)» y 400 en las acciones. Van a `S3`. Lo que fue A6, sesión a sesión y con lo que cada una midió, está en
+  redis_url)» y 400 en las acciones—; los **dos P1 del outbox** que destapó
+  `S2`, **NU-84** (un mensaje reclamado por un proceso muerto no se entrega
+  jamás) y **NU-85** (una aplicación con outbox sobre MySQL no arranca), los dos
+  arreglados en nucleus#552; y los **tres que `S2` deja con destinatario**:
+  **NU-86** (la cola durable no borra nunca los jobs terminados y descarta
+  `Retention`), **NU-87** (el claim serializa en la cabeza de la cola) y
+  **NU-88** (ninguna escritura tolera `SQLITE_BUSY`, y depende de NU-77).
+  NU-83 y OR-53 van a `S3`. Lo que fue A6, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md);
   A4 y A5, en sus ficheros.
   `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
@@ -167,6 +174,52 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-18 (madrugada) — **A7 `S2`**: la cola durable existe, y una revisión de 41 hallazgos destapa que mi primer borrador NO ARRANCABA
+
+- **`S2` hecha** (nucleus#553) más **nucleus#552**, que arregla dos **P1 del
+  outbox** encontrados midiendo el terreno. El banco pasa de **15 a 19 de 40**
+  y la familia de cola a **11 de 13**. Los dos PRs con CI verde; el del
+  paraguas es quantum#208.
+- **La decisión que el plan exigía, tomada y escrita**: el proveedor vive
+  **dentro del módulo raíz** (`pkg/tasks/providers/sql`). El criterio de
+  ADR-030/031 para sacar un módulo es el **peso** de lo que arrastra; éste
+  habla `database/sql` y no importa driver alguno, como `pkg/outbox`, así que
+  no cuesta ni tag ni suelo en el tren.
+- **Dos P1 del outbox, verificados a mano antes de registrarlos**: **NU-84**,
+  un mensaje reclamado por un proceso que no vuelve **no se entrega jamás** —el
+  claim pedía `pending` y nada devolvía `processing`, así que el lease se
+  escribía y no rescataba nada—; y **NU-85**, una aplicación con outbox sobre
+  **MySQL no arranca**, porque `CREATE INDEX IF NOT EXISTS` no existe en MySQL
+  y el error sube desde `NewStore` hasta `app.New`. Ninguno se había visto
+  porque los tests del outbox abren SQLite y **la lane de matriz no ejecutaba
+  `pkg/outbox`**; ahora sí, y esa lane **falló al primer intento** por un
+  fichero que faltaba (el binario de test no enlazaba los drivers) — que es
+  exactamente lo que pasa cuando un paquete nunca se ha probado contra un motor
+  real.
+- **La lección de método de esta sesión, y la más cara**: la revisión
+  adversarial (siete lentes × tres escépticos: 43 hallazgos, **41 confirmados**)
+  descubrió que **`jobs_provider: sql` panicaba en el arranque** — la rama
+  dejaba el scheduler nil y `start()` lo desreferenciaba—. **El banco daba los
+  cuatro controles por presentes porque sus sondas conducen el paquete
+  directamente y nunca pasan por el cableado que usa una aplicación real.** Una
+  medición que no recorre el camino del usuario certifica algo que no existe.
+  `pkg/nucleus` tiene ya el test de arranque que faltaba.
+- **Otras tres formas en que el primer borrador era incorrecto**: un tipo sin
+  handler **quemaba los intentos** y moría sin ejecutarse (el claim cobra uno
+  por adelantado y `Release` no lo devolvía); las escrituras de resultado **no
+  estaban valladas por el dueño del lease**; y **el apagado ordenado ejecutaba
+  el mismo job dos veces A LA VEZ**, porque el heartbeat moría con el cierre
+  mientras los handlers seguían y los leases vencían debajo. Las cuatro con
+  test de regresión.
+- **Lo que S2 deja abierto, con destinatario**: **NU-86** (la cola durable no
+  borra nunca los jobs terminados y descarta `Retention`), **NU-87** (el claim
+  serializa en la cabeza de la cola) y **NU-88** (ninguna escritura tolera
+  `SQLITE_BUSY`; depende de NU-77). Son decisiones de diseño, no defectos del
+  cambio, y por eso se registran en vez de parchearse con prisa.
+- **Siguiente: `S3`** — la inspección y las métricas (NU-81, NU-82), que además
+  lleva **NU-83 y OR-53**: la vista de colas del panel sigue siendo inalcanzable
+  porque nadie puede pasarle un `Inspector`.
+
 ### Sesión 2026-09-18 (noche) — **A7 `S1`**: la cola deja de tirar trabajo, y una revisión adversarial caza nueve defectos del primer borrador
 
 - **`S1` hecha** (nucleus#550, CI verde, **pendiente de fusión**). El banco pasa
@@ -204,47 +257,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 - **Siguiente: `S2`** — el proveedor SQL durable. Su primera decisión, escrita
   en el plan, es **dónde vive el módulo** (dentro del raíz cuesta dependencias a
   todo consumidor; fuera cuesta tag y suelo en cada corte, ADR-030/031).
-
-### Sesión 2026-09-18 (tarde) — **A7 arranca**: la medición dice 12 de 40, y reescribe el plan en cinco sitios
-
-- **`S0` de A7, hecha** (nucleus#549 + el PR del paraguas de esta sesión). El
-  banco vive en `nucleus/internal/jobsbench` y su página es
-  `nucleus/docs/jobs-bench.md`: **40 controles, 12 presentes, 4 parciales, 24
-  ausentes** (queue 4/2/7, events 6/0/6, realtime 1/2/5, ops 1/0/6). Mismo
-  método que `authbench` y `adminbench`: el test asserta el **veredicto
-  registrado**, no el éxito. **El set NO se mueve**: `S0` mide, no corta.
-- **Cinco correcciones al plan escrito, y ninguna se sabía leyéndolo**: (1) la
-  cola **pierde trabajo con el proceso vivo** —un job cuyo tipo nadie maneja se
-  descarta (NU-80)—, así que hay una sesión ANTES del proveedor durable; (2) el
-  **panel que A6 acaba de publicar enseña ceros**, porque el `Inspector` del
-  proveedor por defecto los devuelve (NU-82) y Orbit consume ese mismo
-  inspector — no hay que escribir dashboard, hay que darle datos; (3) el bus
-  **ya tiene `recover` y límite, y los dos están mal puestos**: el recover sólo
-  cubre el camino asíncrono (NU-79) y el límite se toma en la goroutine del
-  emisor, así que `EmitAsync` **bloquea a quien emite** (NU-78); (4) **cero
-  series de métricas** medidas con un lector manual mientras un job corría
-  (NU-81); (5) **NU-77 deja de ser un flake**: `PRAGMA busy_timeout` da 0 y la
-  tabla del outbox ya existe cuando corre el primer `OnStart` — dos assertions
-  deterministas en macOS, donde la carrera no reproduce.
-- **El gate escrito de A7 no se podía cumplir tal cual**: pedía «dashboard con
-  datos reales en el showcase», y el showcase salió del árbol el 2026-09-12.
-  El troceado lo sustituye por un canal con clientes concurrentes en CI, y deja
-  las otras dos patas (banco sin ausentes sin razón; 10 000 jobs con caída a
-  mitad y cero pérdidas).
-- **Cuatro sondas se reescribieron antes de publicar nada**, porque medían menos
-  de lo que su título decía —la lección AUD-05 de A6, en cuatro formas nuevas—:
-  preguntar `/metrics` mide que el exportador es un módulo opcional, no si los
-  jobs están instrumentados; ver un mensaje `pending` no mide un reintento;
-  construir un relay con config vacía y leer su error no es entrega; y
-  comprobar que el runtime expone un outbox no mide ningún orden de arranque.
-  Quedan escritas en `nucleus/docs/jobs-bench.md`.
-- **Y una trampa de API que costó cuatro minutos de suite colgada**:
-  `signals.RedisRelay.ForwardToBus` **bloquea** —es el bucle de recepción, no
-  una suscripción que devuelve—, así que una sonda que lo llamó en línea colgó
-  el test hasta el timeout.
-- **Siguiente: `S1` de A7** — que la cola deje de perder trabajo (JOB-07,
-  JOB-08, JOB-10; cierra NU-80). Su precondición es que el banco pase, o sea
-  que **nucleus#549 fusionado**.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
