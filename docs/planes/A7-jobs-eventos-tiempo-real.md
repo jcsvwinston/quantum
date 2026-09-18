@@ -68,7 +68,7 @@ y tiempo real ejecutable, con el veredicto de cada uno medido, no leído.
 cd nucleus && go test ./internal/jobsbench/ -run TestJobsBench -v
 ```
 
-**HECHA el 2026-09-18** (nucleus#549, quantum#XXX). Lo que midió y lo que
+**HECHA el 2026-09-18** (nucleus#549, quantum#206). Lo que midió y lo que
 cambió del plan, abajo.
 
 ### Lo que S0 midió
@@ -309,7 +309,7 @@ bash scripts/check_audit_backlog.sh | tail -1   # ha de decir: … A6 A7
 
 | Sesión | Estado | PR | Lo que midió |
 |---|---|---|---|
-| S0 | HECHA 2026-09-18 | nucleus#549 · quantum#XXX | 12 de 40 controles; cinco correcciones al plan y cinco hallazgos nuevos |
+| S0 | HECHA 2026-09-18 | nucleus#549 · quantum#206 | 12 de 40 controles; cinco correcciones al plan y cinco hallazgos nuevos |
 
 ### Lo que S0 dejó dicho, y no hay que redescubrir
 
