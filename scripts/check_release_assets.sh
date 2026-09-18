@@ -49,6 +49,19 @@ OWNER=${QUANTUM_OWNER:-jcsvwinston}
 REQUERIDOS=(checksums.txt checksums.txt.sig checksums.txt.pem)
 status=0
 
+# Modo CERTIFICACIÓN (--cierre / env QUANTUM_CERTIFYING=1), el mismo que
+# `umbrella-suite-tag`: suite-integral.sh --cierre lo exporta para toda la
+# tanda. Fuera de él, «la versión de suite todavía no tiene tag» es un estado
+# LEGÍTIMO — el procedimiento corta el tag DESPUÉS del último PR de la ronda,
+# así que el propio PR de re-pin corre esta lane con el tag por existir —, y
+# exigir ahí la release pondría roja estructuralmente la lane del PR que debe
+# salir verde SIN escapes. En ese caso se AVISA; al cerrar, se exige.
+certifying=0
+if [[ "${QUANTUM_CERTIFYING:-0}" == "1" ]]; then certifying=1; fi
+for arg in "$@"; do
+  [ "$arg" = "--cierre" ] && certifying=1
+done
+
 # yaml_value <sección> <clave> — el mismo bloque de dos espacios que lee el
 # manifest-guard.
 yaml_value() {
@@ -77,6 +90,14 @@ while read -r repo tag; do
   if [ $rc -ne 0 ]; then
     case "$activos" in
       *"release not found"*|*"Not Found"*|*"not found"*)
+        # El tag de SUITE que aún no existe es el tren en marcha, no un
+        # release roto: se distingue preguntando por el tag, no por la
+        # release. Un tag que SÍ existe sin release publicada sigue siendo
+        # FAIL — ése es el modo de fallo que este guard caza.
+        if [ "$repo" = "quantum" ] && [ "$certifying" -eq 0 ] && ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null 2>&1; then
+          echo "AVISO: $repo $tag — la versión del set aún no tiene tag (tren en marcha); su release se exige al cerrar (--cierre)"
+          continue
+        fi
         echo "FAIL: $repo $tag — no hay release publicada para el tag que el set certifica" >&2 ;;
       *)
         echo "FAIL: $repo $tag — no pude preguntar a GitHub por su release: $(printf '%s' "$activos" | head -1)" >&2
