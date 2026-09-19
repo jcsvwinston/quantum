@@ -9,7 +9,8 @@ tres caminos, y que pueda empujar algo a un navegador abierto. Es el arco que
 lleva lo que Rails (Solid Queue, Action Cable), Phoenix (Channels) y Django
 (Channels) traen de serie.
 
-**Gate del arco** — PROPUESTO por `S0`, pendiente de cerrarse con su guard:
+**Gate del arco** — CUMPLIDO el 2026-09-19, registrado como guard
+`umbrella-jobs-posture` con su fixture (el 51º):
 
 - el banco de jobs —`nucleus/internal/jobsbench`— sin ningún control ausente
   **sin razón escrita**;
@@ -422,7 +423,15 @@ estado se escribe **hecha** en minúsculas y entre asteriscos, que es lo que
 | S0 | **hecha** 2026-09-18 | nucleus#549 · quantum#206 | 12 de 40 controles; cinco correcciones al plan y cinco hallazgos nuevos |
 | S1 | **hecha** 2026-09-18 | nucleus#550 · quantum#207 | 15 de 40; NU-80 cerrado, y nueve defectos del primer borrador que cazó la revisión adversarial |
 | S2 | **hecha** 2026-09-18 | nucleus#553 (+ nucleus#552) | 19 de 40; el proveedor durable, dos P1 del outbox y cuatro defectos del primer borrador — uno impedía arrancar |
-| S3 | pendiente | — | — |
+| S3 | **hecha** 2026-09-19 | nucleus#554 | 21 de 40; NU-81, NU-82 y NU-83, más un defecto que el banco cazó por ORDEN: los instrumentos se quedaban atados al meter provider anterior |
+| S4 | **hecha** 2026-09-19 | nucleus#555 | 22 de 40 y la familia de cola COMPLETA; cron con líder por lock de base de datos, y unicidad de job |
+| S5 | **hecha** 2026-09-19 | nucleus#556 | 24 de 40; NU-78 y NU-79 — el bus dejó de hacerle daño a quien emite |
+| S6 | **hecha** 2026-09-19 | nucleus#557 | 26 de 40; bus tipado junto al que hay, y el outbox como su transporte |
+| S7 | **hecha** 2026-09-19 | nucleus#558 | 28 de 40 y la familia de eventos COMPLETA; NU-76 |
+| S8 | **hecha** 2026-09-19 | nucleus#559 | 32 de 40 sin parciales; canales WS y SSE con el protocolo en el framework |
+| S9 | **hecha** 2026-09-19 | nucleus#560 | 39 de 40; NU-77 cerrado por sus dos causas, /livez y /readyz separados, pprof protegido, relay entre réplicas |
+| S10 | **hecha** 2026-09-19 | nucleus#561 | 40 de 40; `Server.Stream`, y `Quiet` para asertar silencio |
+| S11 | **hecha** 2026-09-19 | nucleus#562 · quantum#(este) | el gate medido (10 000 jobs, worker muerto a mitad, cero pérdidas), el guard 51º con su fixture, y la retención |
 
 ### Lo que S0 dejó dicho, y no hay que redescubrir
 
@@ -441,3 +450,57 @@ estado se escribe **hecha** en minúsculas y entre asteriscos, que es lo que
 - **`signals.RedisRelay.ForwardToBus` BLOQUEA**: es el bucle de recepción, no
   una suscripción que devuelve. Una sonda que lo llamó en línea colgó la suite
   cuatro minutos hasta el timeout del test.
+
+
+---
+
+## Cómo quedó el arco
+
+**El banco: 40 de 40, todas las familias completas.** De 12 de 40 a 40 de 40 en
+once sesiones, y el camino está en la tabla de arriba.
+
+**El gate, medido y exigido por el CI:**
+
+- el banco sin ningún control ausente sin razón escrita — no queda ninguno
+  ausente;
+- **10 000 jobs con el worker muerto a mitad y cero pérdidas**: medido con
+  SIGKILL sobre un proceso hijo, asertando que la muerte ocurrió CON TRABAJO EN
+  VUELO (matar un proceso ocioso también pasa, y mide nada), con el resultado
+  10 000 hechos, 0 muertos, 0 perdidos, 0 duplicados;
+- un canal con clientes concurrentes en el CI — los nueve tests de protocolo de
+  `pkg/realtime` conducen sockets crudos contra el servidor;
+- lo publicado y lo medido comprobados el uno contra el otro, por
+  `scripts/check_jobs_posture.sh`, el guard 51º, con su fixture de tres
+  roturas.
+
+**Lo que sustituyó al showcase.** El gate escrito pedía «dashboard con datos
+reales en el showcase» y el showcase salió del árbol el 2026-09-12. Lo
+sustituyen las dos patas medibles de arriba, y la vista de colas del panel la
+cierra OR-53 con el tren.
+
+**Lo que queda abierto, y por qué no lo cierra una sesión:**
+
+- **OR-53** — la mitad de orbit. `nucleus.TaskInspectorFrom` existe (NU-83),
+  pero orbit no puede compilar contra ella hasta que nucleus corte release: es
+  la trampa que A6 dejó escrita, y se resuelve EN el tren del arco, como OR-51
+  en A6.
+- **NU-87** — el claim 1+N serializa en la cabeza de la cola. **Reasignado a
+  A12** por escrito: es rendimiento, que es el arco de A12, y la cola cumple su
+  contrato sin ello — el claim es correcto y portable a los cinco motores, sólo
+  no escala.
+
+**Lo que este arco enseñó sobre medir**, y conviene no volver a aprender:
+
+1. **Una sonda que no recorre el camino del usuario certifica algo que no
+   existe.** El banco daba por presentes los cuatro controles del proveedor SQL
+   mientras `jobs_provider: sql` **panicaba en el arranque**, porque las sondas
+   conducían el paquete y no el cableado.
+2. **Un veredicto correcto por la razón equivocada no lo caza ningún test.**
+   Cuatro sondas de `S0` medían menos de lo que su título decía; dos más se
+   debilitaron al cambiar el código en `S1`.
+3. **El orden de los tests es un instrumento.** El defecto de los instrumentos
+   de métricas —que se quedaban atados al meter provider anterior— sólo se vio
+   porque una sonda corría después de otra.
+4. **Un `replace` silencioso miente.** El paso de CI que `S2` decía haber
+   añadido no se añadió, y el PR lo afirmaba. Los guards existen para eso, y
+   por eso `umbrella-jobs-posture` comprueba que la lane corra la prueba.

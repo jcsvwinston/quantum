@@ -35,6 +35,14 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
+- **A7 (jobs, eventos y tiempo real) está COMPLETO EN CÓDIGO y pendiente del
+  tren** (2026-09-19): el banco `nucleus/internal/jobsbench` va de 12 a **40 de
+  40** con las cuatro familias completas, el gate está medido —10 000 jobs con
+  el worker muerto a mitad: 10 000 hechos, 0 perdidos— y `umbrella-jobs-posture`
+  es el guard 51º. Falta fusionar los nueve PRs de nucleus, cortar su release,
+  cerrar con ella la mitad de orbit de OR-53 y certificar el set; **el arco se
+  declara cerrado ahí**. El detalle, sesión a sesión, en
+  [`planes/A7-jobs-eventos-tiempo-real.md`](planes/A7-jobs-eventos-tiempo-real.md).
 - **Certificación mecánica:** 50 guards en el registro — los 49 de 1.32.0 más
   `umbrella-admin-posture`, el gate de A6: comprueba que la cifra que publica
   la página del banco de admin sea la que su tabla cuenta, que ningún control
