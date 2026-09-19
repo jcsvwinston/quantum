@@ -11,13 +11,27 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-09-18)
+## Estado real (2026-09-19)
 
-- **Set certificado: Quantum 1.33.0** (2026-09-18) — quark v1.14.0 (con el
-  CLI en v1.0.1 y los cinco drivers en v0.2.1) · nucleus v1.29.0 (doce
-  módulos hermanos) · orbit v1.10.1 (proto v0.4.4, agent v0.7.0, server
-  v0.12.0, quarkbridge v1.9.0, quarkdatasource v1.9.1).
-  1.33.0 publica el arco **A6** (Orbit como admin de producto): el panel deja
+- **Set certificado: Quantum 1.34.0** (2026-09-19) — quark v1.14.0 (con el
+  CLI en v1.0.1 y los cinco drivers en v0.2.1) · nucleus v1.30.0 (doce
+  módulos hermanos) · orbit v1.10.2 (proto v0.4.4, agent v0.7.1, server
+  v0.12.1, quarkbridge v1.9.1, quarkdatasource v1.9.2).
+  1.34.0 publica el arco **A7** (jobs, eventos y tiempo real): una cola de
+  trabajos DURABLE sobre la base de datos que la aplicación ya tiene, sin
+  broker —at-least-once bajo lease, rescate acotado, cron sin Redis con líder
+  por fila de lease—, un bus de eventos TIPADO junto al de siempre con el
+  outbox como transporte opcional, CANALES en el framework sobre WebSocket y
+  SSE con su protocolo y su relay entre réplicas, y `/livez` y `/readyz` como
+  dos preguntas distintas con drenaje para un despliegue rodante. El banco
+  `nucleus/internal/jobsbench` va de **12 a 40 de 40**, con el gate medido
+  —10 000 jobs y el worker muerto a mitad: 10 000 hechos, 0 perdidos— y el
+  panel de orbit vuelve a ver la cola (OR-53). El detalle, sesión a sesión,
+  en [`planes/A7-jobs-eventos-tiempo-real.md`](planes/A7-jobs-eventos-tiempo-real.md).
+  Lo que el TREN encontró y ninguna sesión vio —nueve defectos, dos de ellos
+  paradas de release— está en ese mismo fichero y en el registro como
+  NU-89…NU-95, OR-54 y OR-55.
+- 1.33.0 publicó el arco **A6** (Orbit como admin de producto): el panel deja
   de ser uno de observabilidad con un CRUD genérico encima y pasa a
   administrar el producto — cuentas de operador, permisos por campo y por
   fila, un rastro de auditoría que sobrevive al proceso, formularios con
@@ -35,16 +49,13 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
-- **A7 (jobs, eventos y tiempo real) está COMPLETO EN CÓDIGO y pendiente del
-  tren** (2026-09-19): el banco `nucleus/internal/jobsbench` va de 12 a **40 de
-  40** con las cuatro familias completas, el gate está medido —10 000 jobs con
-  el worker muerto a mitad: 10 000 hechos, 0 perdidos— y `umbrella-jobs-posture`
-  es el guard 51º. Falta fusionar los nueve PRs de nucleus, cortar su release,
-  cerrar con ella la mitad de orbit de OR-53 y certificar el set; **el arco se
-  declara cerrado ahí**. El detalle, sesión a sesión, en
-  [`planes/A7-jobs-eventos-tiempo-real.md`](planes/A7-jobs-eventos-tiempo-real.md).
-- **Certificación mecánica:** 50 guards en el registro — los 49 de 1.32.0 más
-  `umbrella-admin-posture`, el gate de A6: comprueba que la cifra que publica
+- **Certificación mecánica:** 51 guards en el registro — los 50 de 1.33.0 más
+  `umbrella-jobs-posture`, el gate de A7: comprueba que la cifra que publica
+  `nucleus/docs/jobs-bench.md` sea la que su tabla cuenta, que ningún control
+  ausente se quede sin razón escrita, y que el CI de nucleus corra DE VERDAD
+  la prueba de durabilidad y la cola contra motores reales — un `replace`
+  silencioso ya afirmó una vez haber añadido un paso de CI que no estaba. El
+  50º es `umbrella-admin-posture`, el gate de A6: comprueba que la cifra que publica
   la página del banco de admin sea la que su tabla cuenta, que ningún control
   ausente se quede sin razón escrita, y que el instrumento del navegador siga
   EXIGIDO por el CI de orbit — si dejara de estarlo, la lane se pondría verde

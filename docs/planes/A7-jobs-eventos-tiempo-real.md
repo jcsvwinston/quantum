@@ -480,10 +480,8 @@ cierra OR-53 con el tren.
 
 **Lo que queda abierto, y por qué no lo cierra una sesión:**
 
-- **OR-53** — la mitad de orbit. `nucleus.TaskInspectorFrom` existe (NU-83),
-  pero orbit no puede compilar contra ella hasta que nucleus corte release: es
-  la trampa que A6 dejó escrita, y se resuelve EN el tren del arco, como OR-51
-  en A6.
+- ~~**OR-53**~~ — **cerrado en el tren**, y era más hondo que «falta una
+  línea»: ver abajo.
 - **NU-87** — el claim 1+N serializa en la cabeza de la cola. **Reasignado a
   A12** por escrito: es rendimiento, que es el arco de A12, y la cola cumple su
   contrato sin ello — el claim es correcto y portable a los cinco motores, sólo
@@ -504,3 +502,47 @@ cierra OR-53 con el tren.
 4. **Un `replace` silencioso miente.** El paso de CI que `S2` decía haber
    añadido no se añadió, y el PR lo afirmaba. Los guards existen para eso, y
    por eso `umbrella-jobs-posture` comprueba que la lane corra la prueba.
+
+
+## Lo que encontró el TREN, que ninguna sesión encontró
+
+El tren de este arco no fue mecánico. Redactar la doc pública que las sesiones
+debían y las notas de la versión —ambas verificadas contra el código por
+escépticos, no por lectura— destapó **nueve defectos**, dos de ellos paradas de
+release, y **ninguno lo tenía el banco**. Están en el registro como NU-89…NU-95,
+OR-54 y OR-55, con su informe.
+
+**Los dos que habrían salido publicados:**
+
+1. **Una aplicación que ya sirve su propio `/livez` o `/readyz` dejaba de
+   arrancar** (NU-89). El framework sirvió sólo `/healthz` durante todo `v1.x`,
+   así que quien quería las sondas de Kubernetes se las escribía; registrar las
+   nuestras en `New` las pone en el mux antes que las suyas y `ServeMux` panica
+   ante un patrón duplicado. Es **una ruptura en una minor**, que es justo lo
+   único que QADR-0010 prohíbe hasta el major del cierre de A12. Se montan al
+   arrancar el servidor y sólo para la ruta que la aplicación no reclamó.
+2. **Todo stream SSE moría al minuto** (NU-90). `WriteTimeout` es un plazo de la
+   conexión, no por escritura, y el keep-alive no salva: demuestra que el
+   stream vive, y al plazo eso le da igual. La función estrella del arco, rota
+   con la configuración de fábrica.
+
+**La lección de método, que es la quinta de la lista de abajo y la más cara:**
+*escribir la documentación ES una medición, y más severa que el banco.* El
+banco conduce el código; la doc obliga a afirmar QUÉ HACE, y una afirmación se
+puede contrastar. Las dos paradas de release salieron de redactar la página de
+canales y la sección de notas, no de las cuarenta sondas.
+
+**Y el corolario, en el propio banco de A6:** `OPS-14` («job queues listed and
+acted on») medía que el endpoint devolviera 200 — leía una clave `queues` de
+nivel superior que la respuesta nunca ha tenido, y la aplicación del banco ni
+siquiera declaraba un job. Reportó `present` durante todo A6 sobre un panel
+ciego (OR-55). Es AUD-05 otra vez: **un control cuyo título afirma más de lo
+que su sonda comprueba**.
+
+**Cuatro tests medían la máquina y no la cola** (NU-95), y los cuatro pusieron
+el CI en rojo durante el tren: una ventana fija leída justo entre el claim y el
+release —el ciclo funcionando, leído como job perdido—, 120 s fijos para drenar
+10 000 jobs en un gate que no va de rendimiento, el gate corriendo además en la
+lane de `-race` y en la de asynq, y tests que arrancaban un scheduler con
+`Start()` —que no escucha al contexto— sin cerrarlo. La regla que queda:
+**esperar al hecho, no al reloj**.

@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.33.0"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-09-18
-status: certified           # Minor de suite por la minor de nucleus y orbit (QADR-0002); escrito por bump-set, revisar al certificar
+quantum: "1.34.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-09-19
+status: certified           # Minor de suite por la minor de nucleus (QADR-0002); escrito por bump-set, revisar al certificar
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules»; los módulos hermanos de
@@ -19,8 +19,8 @@ status: certified           # Minor de suite por la minor de nucleus y orbit (QA
 # único borde root↔quarkdatasource por MAQ-3.
 modules:
   quark:   "v1.14.0"
-  nucleus: "v1.29.0"
-  orbit:   "v1.10.1"
+  nucleus: "v1.30.0"
+  orbit:   "v1.10.2"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -31,18 +31,18 @@ modules:
 # DESPUÉS del de la raíz no es certificable. Los bumps de módulo van dentro
 # de la release de la raíz, no detrás.
 nucleus_modules:
-  mssql:         "v0.1.5"
-  mysql:         "v0.1.5"
-  oracle:        "v0.1.5"
-  postgres:      "v0.1.5"
-  sqlite:        "v0.1.5"
-  otlp:          "v0.1.5"
-  prometheus:    "v0.1.5"
-  ldap:          "v0.2.9"
-  secrets-aws:   "v0.1.5"
-  storage-azure: "v0.1.5"
-  storage-gcs:   "v0.1.5"
-  storage-s3:    "v0.1.5"
+  mssql:         "v0.1.6"
+  mysql:         "v0.1.6"
+  oracle:        "v0.1.6"
+  postgres:      "v0.1.6"
+  sqlite:        "v0.1.6"
+  otlp:          "v0.1.6"
+  prometheus:    "v0.1.6"
+  ldap:          "v0.2.10"
+  secrets-aws:   "v0.1.6"
+  storage-azure: "v0.1.6"
+  storage-gcs:   "v0.1.6"
+  storage-s3:    "v0.1.6"
 
 # La clave de cada módulo es el ÚLTIMO segmento de su ruta, que es como la
 # deriva manifest-guard. Para `cmd/quark` eso da `quark`: la entrada `quark`
@@ -66,17 +66,17 @@ quark_modules:
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
   proto:           "v0.4.4"
-  agent:           "v0.7.0"
-  server:          "v0.12.0"
-  quarkbridge:     "v1.9.0"
-  quarkdatasource: "v1.9.1"
+  agent:           "v0.7.1"
+  server:          "v0.12.1"
+  quarkbridge:     "v1.9.1"
+  quarkdatasource: "v1.9.2"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "1d13cf24"                                # = v1.14.0 exacto (contiene cmd/quark/v1.0.1, drivers/mssql/v0.2.1, drivers/mysql/v0.2.1, drivers/oracle/v0.2.1, drivers/postgres/v0.2.1, drivers/sqlite/v0.2.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  nucleus: "6e2a05e0"                                # = v1.29.0 exacto (contiene drivers/mssql/v0.1.5, drivers/mysql/v0.1.5, drivers/oracle/v0.1.5, drivers/postgres/v0.1.5, drivers/sqlite/v0.1.5, exporters/otlp/v0.1.5, exporters/prometheus/v0.1.5, providers/ldap/v0.2.9, providers/secrets-aws/v0.1.5, providers/storage-azure/v0.1.5, providers/storage-gcs/v0.1.5, providers/storage-s3/v0.1.5 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  orbit:   "87c1f294"                                # = v1.10.1 exacto (contiene agent/v0.7.0, proto/v0.4.4, quarkbridge/v1.9.0, quarkdatasource/v1.9.1, server/v0.12.0 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  nucleus: "68a349ba"                                # = v1.30.0 exacto (contiene drivers/mssql/v0.1.6, drivers/mysql/v0.1.6, drivers/oracle/v0.1.6, drivers/postgres/v0.1.6, drivers/sqlite/v0.1.6, exporters/otlp/v0.1.6, exporters/prometheus/v0.1.6, providers/ldap/v0.2.10, providers/secrets-aws/v0.1.6, providers/storage-azure/v0.1.6, providers/storage-gcs/v0.1.6, providers/storage-s3/v0.1.6 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  orbit:   "91da5e90"                                # = v1.10.2 exacto (contiene agent/v0.7.1, proto/v0.4.4, quarkbridge/v1.9.1, quarkdatasource/v1.9.2, server/v0.12.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -90,51 +90,46 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.33.0 publica el arco A6: Orbit deja de ser un panel de
-  observabilidad con un CRUD genérico encima y pasa a ser el admin del
-  producto. Se mueven nucleus (v1.28.0 → v1.29.0) y orbit (v1.9.6 →
-  v1.10.1); quark v1.14.0 sigue donde estaba. Módulos hermanos que cambian:
-  orbit agent (v0.6.20 → v0.7.0), orbit quarkbridge (v1.8.24 → v1.9.0),
-  orbit quarkdatasource (v1.8.25 → v1.9.1) y orbit server (v0.11.6 →
-  v0.12.0); el resto sin cambio. Minor de suite porque lo son las de nucleus
-  y orbit (QADR-0002). Corte fuera de la cadencia semanal por la razón que
-  QADR-0008 admite: cierra un arco.
+  Quantum 1.34.0 publica el arco A7: jobs, eventos y tiempo real. Se mueven
+  nucleus (v1.29.0 → v1.30.0) y orbit (v1.10.1 → v1.10.2); quark v1.14.0
+  sigue donde estaba. Módulos hermanos que cambian: nucleus ldap (v0.2.9 →
+  v0.2.10), nucleus mssql (v0.1.5 → v0.1.6), nucleus mysql (v0.1.5 →
+  v0.1.6), nucleus oracle (v0.1.5 → v0.1.6), nucleus otlp (v0.1.5 →
+  v0.1.6), nucleus postgres (v0.1.5 → v0.1.6), nucleus prometheus (v0.1.5 →
+  v0.1.6), nucleus secrets-aws (v0.1.5 → v0.1.6), nucleus sqlite (v0.1.5 →
+  v0.1.6), nucleus storage-azure (v0.1.5 → v0.1.6), nucleus storage-gcs
+  (v0.1.5 → v0.1.6), nucleus storage-s3 (v0.1.5 → v0.1.6), orbit agent
+  (v0.7.0 → v0.7.1), orbit quarkbridge (v1.9.0 → v1.9.1), orbit
+  quarkdatasource (v1.9.1 → v1.9.2) y orbit server (v0.12.0 → v0.12.1); el
+  resto sin cambio. Minor de suite porque lo es la de nucleus (QADR-0002).
 
-  Lo que cambia para quien instala. Un operador podía mirarlo todo y
-  administrar a nadie: no había ruta que creara una cuenta, le cambiara la
-  contraseña o la desactivara, los permisos se paraban en el borde del
-  modelo, y el rastro de auditoría se iba con el proceso. Ahora las cuentas
-  se crean, se gradúan y se revocan desde el panel; una política puede
-  nombrar un campo (admin:Post.title) o confinarse a las filas propias
-  (admin:Post#own), y lo que una pantalla carga lleva las capacidades del
-  operador, así que la interfaz apaga lo que no puede hacer en vez de
-  descubrirlo con un 403; el rastro vive en una tabla con ventana de
-  retención, exportación y el historial de un registro. Un formulario
-  resuelve una relación, edita los hijos y acepta un fichero. Una lista
-  admite doce operadores —rango, subcadena, conjunto, nulo— con un total que
-  un paginador puede dividir, y el conjunto de filtros se guarda. Una fila de
-  sesión dice de quién es y desde qué dispositivo, y una llamada cierra todas
-  las de una cuenta sin cerrar la propia. Las vistas de operación informan de
-  lo que PASA y no de cómo están configuradas: la caché que el panel enseña y
-  vacía es la que la aplicación declara, el correo enseña entrega, las
-  migraciones degradan con el motivo, y /api/* contesta 404 JSON en vez de
-  una página web. Y la aplicación puede añadir lo suyo: sus verbos sobre sus
-  modelos, sus pantallas dentro del panel, su marca (logo, color, favicon),
-  las tarjetas de su resumen y el idioma del cromo. Todo por adición: ninguna
-  configuración, política o llamada que funcionara contra 1.32.0 se comporta
-  distinto. La release v1.10.1 de orbit añade los filtros con operador sobre
-  un origen de datos de Quark, que su módulo no podía escribir hasta que la
-  raíz publicara el contrato.
+  Qué cambia para quien instala. Una cola de trabajos DURABLE sobre la base
+  de datos que la aplicación ya tiene, sin broker: at-least-once bajo lease,
+  con el rescate acotado y la curva de reintento viajando con el job, y cron
+  sin Redis eligiendo líder con una fila de lease. Un bus de eventos TIPADO
+  junto al de siempre, con el outbox como transporte opcional; un suscriptor
+  que panica cuesta su evento y no el proceso, y emitir en asíncrono ya no
+  bloquea a quien emite. CANALES en el framework, sobre WebSocket y SSE, con
+  el protocolo, la comprobación de origen, los límites y el relay entre
+  réplicas. Y /livez y /readyz como dos preguntas distintas, con drenaje para
+  un despliegue rodante. El panel de orbit vuelve a ver la cola (OR-53).
 
-  Lo que aprendió el tren. Un release PR cuya rama no se regenera —porque el
-  commit que falta es un test(...), que release-please no considera
-  publicable— habría cortado el tag SIN el instrumento de navegador dentro:
-  gh pr update-branch la pone al día y, de paso, dispara el CI que esa rama
-  no dispara nunca. Un fix que pertenece sólo a un módulo hermano saca su tag
-  DESPUÉS del de la raíz, y entonces el módulo queda por delante del set sin
-  forma de certificarlo: la salida documentada —un cambio del paquete raíz
-  más Release-As en el mismo tren— tuvo que usarse, y por eso hay dos
-  releases de orbit en esta ronda. Y la deuda de documentación de una minor
-  se paga EN la rama del release: release-please sube el marcador de versión
-  de la doc, pero la sección de las notas la escribe una persona, y el guard
-  de coherencia de orbit es el que lo recuerda.
+  Nada de esto obliga a tocar una aplicación existente: todo es aditivo y
+  opt-in, y Runtime no crece — el inspector se alcanza por una interfaz
+  opcional. Dos cosas cambian por debajo y conviene saberlas: EmitAsync ya no
+  bloquea y descarta por encima de su capacidad en vuelo (el contador Dropped
+  lo dice), y una aplicación que sirva su propio /livez o /readyz conserva su
+  handler — las sondas del framework se montan al arrancar el servidor y sólo
+  para la ruta que nadie haya reclamado.
+
+  Qué aprendió el tren, que es lo más caro de este arco: ESCRIBIR LA
+  DOCUMENTACIÓN ES UNA MEDICIÓN, y más severa que el banco. El banco conduce
+  el código; la doc obliga a afirmar qué hace, y una afirmación se contrasta.
+  Redactar la página de canales y las notas de nucleus destapó nueve defectos
+  que ninguna de las cuarenta sondas vio, dos de ellos paradas de release: una
+  aplicación con su propio /livez dejaba de arrancar —ruptura en una minor,
+  que es lo único que QADR-0010 prohíbe— y todo stream SSE moría al minuto,
+  porque write_timeout es un plazo de la conexión y el keep-alive no le
+  importa. Quedan como NU-89…NU-95, OR-54 y OR-55 en el registro. Y el
+  corolario incómodo: OPS-14, el control de A6 que debía cazar OR-53, medía
+  que el endpoint devolviera 200 sobre un panel ciego.

@@ -64,44 +64,52 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-19, QUANTUM 1.33.0 — A7 COMPLETO en código: banco 40/40 y gate medido; falta el TREN)
+## 3. Estado al cierre (2026-09-19, QUANTUM 1.34.0 — A7 CERRADO: la cola durable, el bus tipado, los canales y las dos sondas)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.33.0** (2026-09-18) — quark v1.14.0 (sin
-  cambio), nucleus v1.29.0, orbit v1.10.1 y sus módulos, tal como los lista
+- **Set certificado: Quantum 1.34.0** (2026-09-19) — quark v1.14.0 (sin
+  cambio), nucleus v1.30.0, orbit v1.10.2 y sus módulos, tal como los lista
   `versions.yaml` (la fuente; no copies números de aquí). `declared_lags`
-  vacío. Publica el arco **A6**.
+  vacío. Publica el arco **A7**.
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
-- **Trabajo por arcos del plan 5/5**: A1, A2, A3, A4, A5 y **A6 CERRADOS**
-  (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0, 1.33.0) → **A7 EN CURSO** (jobs,
-  eventos y tiempo real): su `S0` de medición está hecha y el arco **ya tiene
-  troceado** en
-  [`docs/planes/A7-jobs-eventos-tiempo-real.md`](../../docs/planes/A7-jobs-eventos-tiempo-real.md)
-  —doce sesiones—, **LAS DOCE HECHAS** (S0…S11). El banco va de 12 a **40 de
-  40, todas las familias completas**, el gate está **medido** (10 000 jobs con
-  el worker muerto a mitad: 10 000 hechos, 0 perdidos, 0 duplicados) y el guard
-  **`umbrella-jobs-posture`** es el 51º del registro, con su fixture.
-  **Lo que falta para cerrar A7 es el TREN**: nueve PRs de nucleus apilados
-  (#554…#562) por fusionar, la release de nucleus, la mitad de orbit de OR-53
-  —que no puede compilar hasta que esa release exista— y el set. A7 lleva
-  **un hallazgo abierto**, OR-53, que cierra ahí. Los demás:
-  **NU-76, NU-77, NU-78, NU-79, NU-80, NU-81, NU-82, NU-83, NU-84, NU-85 y
-  NU-86 están HECHOS** (cada uno con su sesión y su PR en el plan del arco), y
-  **NU-87 se reasignó a A12** por escrito: es rendimiento del claim, que es el
-  arco de A12, y la cola cumple su contrato sin ello. Lo que fue A6, sesión a sesión y con lo que cada una midió, está en
-  [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md);
-  A4 y A5, en sus ficheros.
+- **Trabajo por arcos del plan 5/5**: A1…A6 y **A7 CERRADO**
+  (1.28.0 … 1.33.0, 1.34.0) → **siguiente: A8** (Quark enterprise: migraciones
+  v2, RLS en tres motores), que **no tiene troceado**: se escribe al empezarlo
+  y **por una sesión de medición** — las tres veces que se planificó sin medir,
+  la medición corrigió el plan. A8 hereda de A4 la segunda mitad de su `S4`
+  (uuid nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet, JSONB) y
+  **QK-24**, que avisa desde quark v1.14.0 pero no es error.
+  Lo que fue A7, sesión a sesión y con lo que cada una midió, está en
+  [`docs/planes/A7-jobs-eventos-tiempo-real.md`](../../docs/planes/A7-jobs-eventos-tiempo-real.md);
+  A4, A5 y A6, en sus ficheros.
   `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
   los copies de aquí.
   El gate de cada arco sigue siendo el registro
   `docs/auditoria/madurez-2026-09-03/registro.csv` con su guard
   `umbrella-audit-backlog` (cero abiertos en un arco cerrado).
-- **50 guards en el registro**: los 49 de 1.32.0 más
+- **Lo que A7 enseñó, y vale para cualquier arco**: **escribir la
+  documentación es una MEDICIÓN, y más severa que el banco.** El banco conduce
+  el código; la doc obliga a afirmar qué hace, y una afirmación se contrasta.
+  Redactar la doc pública que las sesiones debían y las notas de la versión
+  destapó **nueve defectos que ninguna de las cuarenta sondas vio**, dos de
+  ellos paradas de release (NU-89: una aplicación con su propio `/livez`
+  dejaba de arrancar, ruptura en una minor; NU-90: todo stream SSE moría al
+  minuto por `write_timeout`). Están en el registro como NU-89…NU-95, OR-54 y
+  OR-55. Y el corolario: **OPS-14**, el control de A6 que debía cazar OR-53,
+  medía que el endpoint devolviera 200 sobre un panel ciego. Un control cuyo
+  título afirma más de lo que su sonda comprueba pasa para siempre.
+- **51 guards en el registro**: los 50 de 1.33.0 más
+  **`umbrella-jobs-posture`**, el gate de A7 (2026-09-19): la cifra que
+  publica `nucleus/docs/jobs-bench.md` es la que cuenta la tabla, ningún
+  control ausente se queda sin razón escrita, y el CI de nucleus corre DE
+  VERDAD la prueba de durabilidad (10 000 jobs, worker muerto a mitad) y la
+  cola contra motores reales — un `replace` silencioso ya afirmó una vez haber
+  añadido un paso de CI que no estaba. El 50º es
   **`umbrella-admin-posture`**, el gate de A6 (2026-09-18): la cifra que
   publica `orbit/docs/admin-bench.md` es la que cuenta la tabla del banco,
   ningún control ausente se queda sin razón escrita, el instrumento de
@@ -167,7 +175,48 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-19 — **A7 completo en código**: de 12 a 40 de 40, nueve sesiones en una tanda, y el gate medido
+### Sesión 2026-09-19 — **A7 CERRADO**: de 12 a 40 de 40, y un tren que encontró nueve defectos que el banco no vio
+
+- **El tren, y lo que costó.** Diecisiete PRs de nucleus (los nueve del arco
+  apilados, siete de corrección y el de suelos), nucleus **v1.30.0** con sus
+  doce tags de módulo, orbit **v1.10.2** con cuatro, y el set **Quantum
+  1.34.0**. La pila no se podía fusionar con squash tal cual: el squash de cada
+  PR tiene el MISMO diff que el commit que la rama siguiente todavía lleva, así
+  que ambos lados cambian los mismos hunks desde la misma base y GitHub
+  responde `CONFLICTING`. Se rebasa cada rama sobre `main` antes de fusionar
+  (`git rebase` descarta el commit ya aplicado por patch-id) y se comprueba que
+  el ÁRBOL no cambie. Y antes de todo eso, reapuntar la pila entera a `main`:
+  fusionar el primero con `--delete-branch` cierra los PRs que colgaban de su
+  rama, y un PR cerrado no se reabre.
+- **Lo que el tren encontró y ninguna sesión vio: NUEVE defectos**, dos de
+  ellos paradas de release, registrados como NU-89…NU-95, OR-54 y OR-55. La
+  lección de método está arriba, en el estado vigente, y es la más cara del
+  arco: **escribir la documentación es una medición.** Las dos paradas
+  salieron de redactar la página de canales y la sección de notas, no de las
+  cuarenta sondas.
+- **Cuatro tests medían la máquina y no la cola** (NU-95) y pusieron el CI en
+  rojo cuatro veces: ventana fija leída entre el claim y el release, 120 s
+  fijos para drenar 10 000 jobs, el gate corriendo además en la lane de
+  `-race` y en la de asynq, y schedulers arrancados con `Start()` —que no
+  escucha al contexto— sin cerrar. La regla: **esperar al hecho, no al reloj**.
+- **Tres trampas del tren, dos ya escritas y una nueva.** (1) release-please
+  **regeneró la rama del release de orbit** entre el push de la deuda de doc y
+  el clon del conductor, y se llevó la sección: se rehace sobre la punta nueva
+  y se vigila hasta fusionar. (2) El workflow `Release` de nucleus estuvo en
+  cola ~40 min por runner: hasta que publica, la release no tiene
+  `checksums.txt` firmado y `umbrella-release-assets` no certificaría. (3)
+  **NUEVA, y de las que se ríen de uno**: en `align-module-floors.sh`, una
+  COMA dentro de un comentario en un `{ … } | sort` de sustitución de procesos
+  hace que bash deje de leerlo como grupo de comandos; el bloque muere, la
+  pasada de módulos internos se salta EN SILENCIO (el error va a stderr y el
+  script sigue) y vuelve justo la trampa de 1.31.0 que ese comentario
+  describía. Arreglado sacando el descubrimiento fuera del grupo.
+- **Y una de MDX**: una línea que empieza por `{` se lee como expresión JSX. Un
+  code span en línea se partió al ajustar el párrafo y dejó la continuación
+  empezando por la llave. No lo ve ningún test de Go ni ningún guard: sólo el
+  build del sitio.
+
+### Sesión 2026-09-19 (antes del tren) — **A7 completo en código**: de 12 a 40 de 40, nueve sesiones en una tanda, y el gate medido
 
 - **S3 a S11 hechas** (nucleus#554…#562, apilados). El banco cierra en **40 de
   40 con todas las familias completas**: cola 13/13, eventos 12/12, tiempo real
@@ -201,52 +250,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   orbit: `orbit.Config` necesita un campo para el `tasks.Inspector`, y no
   compila hasta que la release exista — la trampa que A6 dejó escrita), y
   certificar el set. **A7 se declara cerrado ahí**, no antes.
-
-### Sesión 2026-09-18 (madrugada) — **A7 `S2`**: la cola durable existe, y una revisión de 41 hallazgos destapa que mi primer borrador NO ARRANCABA
-
-- **`S2` hecha** (nucleus#553) más **nucleus#552**, que arregla dos **P1 del
-  outbox** encontrados midiendo el terreno. El banco pasa de **15 a 19 de 40**
-  y la familia de cola a **11 de 13**. Los dos PRs con CI verde; el del
-  paraguas es quantum#208.
-- **La decisión que el plan exigía, tomada y escrita**: el proveedor vive
-  **dentro del módulo raíz** (`pkg/tasks/providers/sql`). El criterio de
-  ADR-030/031 para sacar un módulo es el **peso** de lo que arrastra; éste
-  habla `database/sql` y no importa driver alguno, como `pkg/outbox`, así que
-  no cuesta ni tag ni suelo en el tren.
-- **Dos P1 del outbox, verificados a mano antes de registrarlos**: **NU-84**,
-  un mensaje reclamado por un proceso que no vuelve **no se entrega jamás** —el
-  claim pedía `pending` y nada devolvía `processing`, así que el lease se
-  escribía y no rescataba nada—; y **NU-85**, una aplicación con outbox sobre
-  **MySQL no arranca**, porque `CREATE INDEX IF NOT EXISTS` no existe en MySQL
-  y el error sube desde `NewStore` hasta `app.New`. Ninguno se había visto
-  porque los tests del outbox abren SQLite y **la lane de matriz no ejecutaba
-  `pkg/outbox`**; ahora sí, y esa lane **falló al primer intento** por un
-  fichero que faltaba (el binario de test no enlazaba los drivers) — que es
-  exactamente lo que pasa cuando un paquete nunca se ha probado contra un motor
-  real.
-- **La lección de método de esta sesión, y la más cara**: la revisión
-  adversarial (siete lentes × tres escépticos: 43 hallazgos, **41 confirmados**)
-  descubrió que **`jobs_provider: sql` panicaba en el arranque** — la rama
-  dejaba el scheduler nil y `start()` lo desreferenciaba—. **El banco daba los
-  cuatro controles por presentes porque sus sondas conducen el paquete
-  directamente y nunca pasan por el cableado que usa una aplicación real.** Una
-  medición que no recorre el camino del usuario certifica algo que no existe.
-  `pkg/nucleus` tiene ya el test de arranque que faltaba.
-- **Otras tres formas en que el primer borrador era incorrecto**: un tipo sin
-  handler **quemaba los intentos** y moría sin ejecutarse (el claim cobra uno
-  por adelantado y `Release` no lo devolvía); las escrituras de resultado **no
-  estaban valladas por el dueño del lease**; y **el apagado ordenado ejecutaba
-  el mismo job dos veces A LA VEZ**, porque el heartbeat moría con el cierre
-  mientras los handlers seguían y los leases vencían debajo. Las cuatro con
-  test de regresión.
-- **Lo que S2 deja abierto, con destinatario**: **NU-86** (la cola durable no
-  borra nunca los jobs terminados y descarta `Retention`), **NU-87** (el claim
-  serializa en la cabeza de la cola) y **NU-88** (ninguna escritura tolera
-  `SQLITE_BUSY`; depende de NU-77). Son decisiones de diseño, no defectos del
-  cambio, y por eso se registran en vez de parchearse con prisa.
-- **Siguiente: `S3`** — la inspección y las métricas (NU-81, NU-82), que además
-  lleva **NU-83 y OR-53**: la vista de colas del panel sigue siendo inalcanzable
-  porque nadie puede pasarle un `Inspector`.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 

@@ -122,6 +122,22 @@ case "$MODE" in
 esac
 
 touched=""
+# Los módulos que siguen el suelo por `replace ../..` en vez de declararlo:
+# los de examples/ y los INTERNOS no publicables (internal/enginesuite).
+# Sustituyen la raíz por la copia local, así que quedan rancios al subir el de
+# los hermanos; no entran en el descubrimiento de arriba, que sólo mira lo
+# PUBLICABLE, y el tren de 1.31.0 salió rojo por esto: «updates to go.mod
+# needed» en las suites por motor con los suelos ya subidos en todo lo demás.
+#
+# El descubrimiento se calcula AQUI y no dentro de un `{ ... } | sort` en la
+# sustitución de procesos de abajo. Una COMA dentro de un comentario en ese
+# grupo hace que bash deje de leerlo como grupo de comandos: el bloque muere
+# con «ambiguous redirect» y un error de sintaxis, la pasada entera se salta
+# en silencio —el error va a stderr y el script sigue— y vuelve exactamente la
+# trampa de 1.31.0 que este comentario describe. Los comentarios con coma que
+# la describían eran los que la reintroducían.
+seguidores=$( { find "$DIR/examples" -mindepth 2 -maxdepth 2 -name go.mod 2>/dev/null; find "$DIR/internal" -mindepth 2 -maxdepth 2 -name go.mod 2>/dev/null; } )
+
 for item in $behind; do
   mod=${item%%:*}
   echo "  → $mod: go mod edit -require=$ROOT_MOD@$TARGET && GOWORK=off go mod tidy"
@@ -144,16 +160,7 @@ while IFS= read -r ex; do
     rel=${exdir#$DIR/}; echo "  → $rel: go mod tidy (sigue el suelo por replace)"
     touched="$touched $rel/go.mod"; [ -f "$exdir/go.sum" ] && touched="$touched $rel/go.sum"
   fi
-done < <({
-  find "$DIR/examples" -mindepth 2 -maxdepth 2 -name go.mod 2>/dev/null
-  # Los módulos INTERNOS no publicables (internal/enginesuite) juegan igual:
-  # sustituyen la raíz por la copia local, declaran su suelo y quedan rancios
-  # al subir el de los hermanos. No entran en el descubrimiento de arriba
-  # —ese sólo mira lo PUBLICABLE— y el tren de 1.31.0 salió rojo por esto:
-  # «updates to go.mod needed» en las suites por motor, con los suelos ya
-  # subidos en todo lo demás.
-  find "$DIR/internal" -mindepth 2 -maxdepth 2 -name go.mod 2>/dev/null
-} | sort)
+done < <(printf '%s\n' "$seguidores" | sort -u | sed '/^$/d')
 if [ "$COMMIT" -eq 0 ]; then echo "cambios en el árbol sin commit (--no-commit):$touched"; exit 0; fi
 mods=$(printf '%s\n' $behind | sed 's/:.*//' | tr '\n' ' ' | sed 's/ $//')
 git -C "$DIR" add $touched
