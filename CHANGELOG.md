@@ -6,6 +6,57 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.33.0 — el arco A6, Orbit como admin de producto
+
+Quantum 1.33.0 publica el arco A6: Orbit deja de ser un panel de
+observabilidad con un CRUD genérico encima y pasa a ser el admin del
+producto. Se mueven nucleus (v1.28.0 → v1.29.0) y orbit (v1.9.6 →
+v1.10.1); quark v1.14.0 sigue donde estaba. Módulos hermanos que cambian:
+orbit agent (v0.6.20 → v0.7.0), orbit quarkbridge (v1.8.24 → v1.9.0),
+orbit quarkdatasource (v1.8.25 → v1.9.1) y orbit server (v0.11.6 →
+v0.12.0); el resto sin cambio. Minor de suite porque lo son las de nucleus
+y orbit (QADR-0002). Corte fuera de la cadencia semanal por la razón que
+QADR-0008 admite: cierra un arco.
+
+Lo que cambia para quien instala. Un operador podía mirarlo todo y
+administrar a nadie: no había ruta que creara una cuenta, le cambiara la
+contraseña o la desactivara, los permisos se paraban en el borde del
+modelo, y el rastro de auditoría se iba con el proceso. Ahora las cuentas
+se crean, se gradúan y se revocan desde el panel; una política puede
+nombrar un campo (admin:Post.title) o confinarse a las filas propias
+(admin:Post#own), y lo que una pantalla carga lleva las capacidades del
+operador, así que la interfaz apaga lo que no puede hacer en vez de
+descubrirlo con un 403; el rastro vive en una tabla con ventana de
+retención, exportación y el historial de un registro. Un formulario
+resuelve una relación, edita los hijos y acepta un fichero. Una lista
+admite doce operadores —rango, subcadena, conjunto, nulo— con un total que
+un paginador puede dividir, y el conjunto de filtros se guarda. Una fila de
+sesión dice de quién es y desde qué dispositivo, y una llamada cierra todas
+las de una cuenta sin cerrar la propia. Las vistas de operación informan de
+lo que PASA y no de cómo están configuradas: la caché que el panel enseña y
+vacía es la que la aplicación declara, el correo enseña entrega, las
+migraciones degradan con el motivo, y /api/* contesta 404 JSON en vez de
+una página web. Y la aplicación puede añadir lo suyo: sus verbos sobre sus
+modelos, sus pantallas dentro del panel, su marca (logo, color, favicon),
+las tarjetas de su resumen y el idioma del cromo. Todo por adición: ninguna
+configuración, política o llamada que funcionara contra 1.32.0 se comporta
+distinto. La release v1.10.1 de orbit añade los filtros con operador sobre
+un origen de datos de Quark, que su módulo no podía escribir hasta que la
+raíz publicara el contrato.
+
+Lo que aprendió el tren. Un release PR cuya rama no se regenera —porque el
+commit que falta es un test(...), que release-please no considera
+publicable— habría cortado el tag SIN el instrumento de navegador dentro:
+gh pr update-branch la pone al día y, de paso, dispara el CI que esa rama
+no dispara nunca. Un fix que pertenece sólo a un módulo hermano saca su tag
+DESPUÉS del de la raíz, y entonces el módulo queda por delante del set sin
+forma de certificarlo: la salida documentada —un cambio del paquete raíz
+más Release-As en el mismo tren— tuvo que usarse, y por eso hay dos
+releases de orbit en esta ronda. Y la deuda de documentación de una minor
+se paga EN la rama del release: release-please sube el marcador de versión
+de la doc, pero la sección de las notas la escribe una persona, y el guard
+de coherencia de orbit es el que lo recuerda.
+
 ## Quantum 1.32.0 — el arco A5: autenticación de producto
 
 Quantum 1.32.0 publica el arco A5: la autenticación de nucleus deja de ser

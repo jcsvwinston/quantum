@@ -149,6 +149,7 @@ GUARDS=(
   # de serlo, la lane se pone verde cuando el navegador falta, que es decir
   # que se midió lo que nadie midió.
   "umbrella-admin-posture|.|bash scripts/check_admin_posture.sh"
+  "umbrella-jobs-posture|.|bash scripts/check_jobs_posture.sh"
   # Toda lane del paraguas con disparador `schedule:` lleva su job
   # `notify-schedule-failure`: el cron rojo no puede degradar al email por
   # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que
