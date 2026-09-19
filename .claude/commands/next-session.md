@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-18, QUANTUM 1.33.0 — A6 CERRADO; A7 con `S0`, `S1` y `S2` hechas)
+## 3. Estado al cierre (2026-09-19, QUANTUM 1.33.0 — A7 COMPLETO en código: banco 40/40 y gate medido; falta el TREN)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -82,25 +82,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   eventos y tiempo real): su `S0` de medición está hecha y el arco **ya tiene
   troceado** en
   [`docs/planes/A7-jobs-eventos-tiempo-real.md`](../../docs/planes/A7-jobs-eventos-tiempo-real.md)
-  —doce sesiones—; `S0` (medición), **`S1`** (la cola deja de perder trabajo) y
-  **`S2`** (el proveedor SQL durable) HECHAS; **siguiente: `S3`**, la inspección
-  y las métricas, cuya precondición es que **nucleus#553 esté fusionada**. A7
-  lleva **catorce hallazgos abiertos**:
-  los dos heredados de A6 —**NU-77** (P2, arranque con outbox sobre SQLite) y
-  **NU-76** (P3, contar un topic)—, los **cinco que abrió la medición**
-  (NU-78, NU-79, **NU-80 cerrado**, NU-81, NU-82); los **dos que verificó
-  `S1`** —**NU-83** y **OR-53**, las dos mitades de que la vista de colas que
-  A6 entregó sea **inalcanzable**: `orbit.Config` no tiene por dónde recibir un
-  `tasks.Inspector` y `nucleus.Runtime` no expone ninguno, así que el panel
-  contesta `enabled:false` con «task inspector not configured (check
-  redis_url)» y 400 en las acciones—; los **dos P1 del outbox** que destapó
-  `S2`, **NU-84** (un mensaje reclamado por un proceso muerto no se entrega
-  jamás) y **NU-85** (una aplicación con outbox sobre MySQL no arranca), los dos
-  arreglados en nucleus#552; y los **tres que `S2` deja con destinatario**:
-  **NU-86** (la cola durable no borra nunca los jobs terminados y descarta
-  `Retention`), **NU-87** (el claim serializa en la cabeza de la cola) y
-  **NU-88** (ninguna escritura tolera `SQLITE_BUSY`, y depende de NU-77).
-  NU-83 y OR-53 van a `S3`. Lo que fue A6, sesión a sesión y con lo que cada una midió, está en
+  —doce sesiones—, **LAS DOCE HECHAS** (S0…S11). El banco va de 12 a **40 de
+  40, todas las familias completas**, el gate está **medido** (10 000 jobs con
+  el worker muerto a mitad: 10 000 hechos, 0 perdidos, 0 duplicados) y el guard
+  **`umbrella-jobs-posture`** es el 51º del registro, con su fixture.
+  **Lo que falta para cerrar A7 es el TREN**: nueve PRs de nucleus apilados
+  (#554…#562) por fusionar, la release de nucleus, la mitad de orbit de OR-53
+  —que no puede compilar hasta que esa release exista— y el set. A7 lleva
+  **un hallazgo abierto**, OR-53, que cierra ahí. Los demás:
+  **NU-76, NU-77, NU-78, NU-79, NU-80, NU-81, NU-82, NU-83, NU-84, NU-85 y
+  NU-86 están HECHOS** (cada uno con su sesión y su PR en el plan del arco), y
+  **NU-87 se reasignó a A12** por escrito: es rendimiento del claim, que es el
+  arco de A12, y la cola cumple su contrato sin ello. Lo que fue A6, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A6-orbit-admin-de-producto.md`](../../docs/planes/A6-orbit-admin-de-producto.md);
   A4 y A5, en sus ficheros.
   `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
@@ -174,6 +167,41 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-19 — **A7 completo en código**: de 12 a 40 de 40, nueve sesiones en una tanda, y el gate medido
+
+- **S3 a S11 hechas** (nucleus#554…#562, apilados). El banco cierra en **40 de
+  40 con todas las familias completas**: cola 13/13, eventos 12/12, tiempo real
+  8/8, operación 7/7.
+- **Lo que entró, por sesión**: `S3` inspección real y métricas para los tres
+  proveedores más `TaskInspectorFrom` (NU-81, NU-82, NU-83); `S4` cron con
+  **líder por lock de base de datos** y unicidad de job; `S5` el bus deja de
+  hacer daño a quien emite (NU-78, NU-79); `S6` **bus tipado junto al que hay**
+  y el outbox como su transporte; `S7` el outbox cuenta por topic (NU-76);
+  `S8` **canales WS y SSE con el protocolo escrito en el framework**; `S9`
+  `/livez` y `/readyz` separados, pprof protegido, relay entre réplicas y
+  **NU-77 cerrado por sus dos causas**; `S10` `Server.Stream` con `Quiet`;
+  `S11` el gate, el guard y la retención (NU-86).
+- **El gate, medido de verdad**: 10 000 jobs, el worker muerto con **SIGKILL**
+  y **trabajo en vuelo asertado** —matar un proceso ocioso también pasa y mide
+  nada—, resultado **10 000 hechos, 0 muertos, 0 perdidos, 0 duplicados**. Corre
+  en el CI.
+- **`umbrella-jobs-posture` es el guard 51º**, con fixture de tres roturas: la
+  página que publica otra cifra, el CI que deja de correr la prueba, y la
+  prueba que deja de exigir trabajo en vuelo.
+- **Cuatro lecciones sobre medir, todas pagadas en esta tanda**: (1) una sonda
+  que **no recorre el cableado** certifica algo que no existe — el banco daba
+  por buenos cuatro controles mientras `jobs_provider: sql` **panicaba en el
+  arranque**; (2) un veredicto correcto **por la razón equivocada** no lo caza
+  ningún test; (3) **el orden de los tests es un instrumento** — el defecto de
+  los instrumentos de métricas sólo se vio porque una sonda corría después de
+  otra; y (4) **un `replace` silencioso miente**: el paso de CI que `S2` decía
+  haber añadido no estaba, y su PR lo afirmaba.
+- **Lo que falta, y no lo hace una sesión sola: EL TREN.** Fusionar los nueve
+  PRs, cortar la release de nucleus, cerrar con ella **OR-53** (la mitad de
+  orbit: `orbit.Config` necesita un campo para el `tasks.Inspector`, y no
+  compila hasta que la release exista — la trampa que A6 dejó escrita), y
+  certificar el set. **A7 se declara cerrado ahí**, no antes.
+
 ### Sesión 2026-09-18 (madrugada) — **A7 `S2`**: la cola durable existe, y una revisión de 41 hallazgos destapa que mi primer borrador NO ARRANCABA
 
 - **`S2` hecha** (nucleus#553) más **nucleus#552**, que arregla dos **P1 del
@@ -219,44 +247,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 - **Siguiente: `S3`** — la inspección y las métricas (NU-81, NU-82), que además
   lleva **NU-83 y OR-53**: la vista de colas del panel sigue siendo inalcanzable
   porque nadie puede pasarle un `Inspector`.
-
-### Sesión 2026-09-18 (noche) — **A7 `S1`**: la cola deja de tirar trabajo, y una revisión adversarial caza nueve defectos del primer borrador
-
-- **`S1` hecha** (nucleus#550, CI verde, **pendiente de fusión**). El banco pasa
-  de **12 a 15 de 40** y la familia de cola de 4 a 7. **NU-80 cerrado.** Los
-  tres caminos por los que el proveedor por defecto perdía trabajo **con el
-  proceso vivo** —tipo sin handler, reintentos agotados, cancelación entre dos
-  reintentos— ahora retienen; el apagado drena lo que quedaba y un job diferido
-  se retiene a sí mismo.
-- **Dos almacenes con presupuesto separado** (un tipo mal escrito no puede
-  desalojar a los muertos; `purge-archived` vacía sólo la dead letter), **dos
-  acciones implementadas y cuatro rechazadas por su nombre** con la palabra
-  `unsupported` que Orbit necesita para contestar 400, y **cero símbolos nuevos
-  en `pkg/tasks`** — el paquete del proveedor no está congelado, así que no hubo
-  baseline que regenerar. La pausa queda fuera a propósito.
-- **El método que hay que repetir**: diseño por panel (tres diseños
-  independientes, nueve jueces) y luego **revisión adversarial del diff** (seis
-  lentes, tres escépticos por hallazgo: 37 en bruto, 20 confirmados). Encontró
-  **nueve defectos reales en mi primer borrador**, tres de ellos graves: que
-  `putBack` recortaba por el extremo equivocado y **una pulsación de
-  `retry-archived` podía destruir 1 000 jobs retenidos diciendo que seguían
-  retenidos**; que los dos almacenes se fundían al reencolar, de modo que el
-  `purge` siguiente borraba lo que sólo esperaba handler; y que **mi propia
-  sonda JOB-08 era flaky** y habría dado por bueno un reencolado sin verlo
-  correr. Nada de eso lo habrían cazado los tests que yo había escrito.
-- **Y un defecto preexistente que salió a la luz**: `Run` hace `wg.Add`
-  mientras `Close` hace `wg.Wait` — carrera reproducible con `go Run(ctx)` +
-  `Close()`, confirmada bajo `-race`. Arranque y cierre quedan serializados,
-  con test de regresión.
-- **Corrección a lo que `S0` publicó**: escribí que el panel de A6 «enseña
-  ceros porque el `Inspector` por defecto los devuelve». Verificado en el
-  código, es inexacto y **peor**: `orbit.Module` nunca asigna `TaskInspector` y
-  `orbit.Config` no tiene campo para recibirlo, así que la vista de colas es
-  **inalcanzable**. Registrado como **OR-53** y **NU-83** (sus dos mitades), y
-  la nota de NU-82 corregida.
-- **Siguiente: `S2`** — el proveedor SQL durable. Su primera decisión, escrita
-  en el plan, es **dónde vive el módulo** (dentro del raíz cuesta dependencias a
-  todo consumidor; fuera cuesta tag y suelo en cada corte, ADR-030/031).
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
