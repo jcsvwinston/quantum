@@ -198,8 +198,10 @@ con `quark:"index"` / `index=<nombre>` y `Migrate`/`PlanMigration` los leen;
 los índices no declarados siguen sin tocarse a propósito. `migraciones` de
 5 a 9 present, banco **33 de 69**. MIG-03 retitulado (borrar lo no declarado
 se rehúsa por diseño) y su sonda vieja no tenía camino a `present`. Cinco
-mutaciones, `PlanConstraints` en `SharedSuite` para los seis motores. Queda
-para `S10`: el CLI no conoce `index`.
+mutaciones, `PlanConstraints` en `SharedSuite` para los seis motores, que
+cazó que **MySQL/MariaDB crean un índice de respaldo por cada FK** con el
+nombre de la restricción: el introspector lo filtra ahora como el de la PK.
+Queda para `S10`: el CLI no conoce `index`.
 
 
 **`S2` (quark#406, `feat(query)`)** — la familia `qk25` del banco de 3/1/7 a

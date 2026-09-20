@@ -276,6 +276,15 @@ Una trampa de la propia suite: su base de datos comparte tablas de otros
 tests, así que el plan de un solo modelo propone borrarlas; se mide sólo lo
 que dice de su tabla.
 
+**Lo que sólo vio la matriz real, otra vez**: MySQL y MariaDB crean solos
+un índice de respaldo para cada `FOREIGN KEY`, con el nombre de la
+restricción, y el introspector lo devolvía como un índice más — el plan
+recién aplicado proponía `DROP INDEX` sobre él para siempre. Se filtra en la
+introspección, como ya se filtraba el de la `PRIMARY KEY`: la restricción es
+lo que el modelo del diff sigue, y su índice lo gestiona el motor. Tercera
+vez en el arco (Oracle `ORA-01424`, el gate del arnés, y esto) que la lane
+de un motor enseña lo que ninguna sonda sobre SQLite puede ver.
+
 **Queda para `S10` (la sesión del CLI)**: `quark from-models` y `quark model`
 parsean el vocabulario de la etiqueta en su propio módulo y no conocen
 `index` todavía.
