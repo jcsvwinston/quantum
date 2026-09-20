@@ -277,6 +277,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 > sirven el redirector al sitio unificado. El histórico de cómo se llegó ahí
 > vive en el §3 y en `docs/auditoria/`.
 
+**`quantum-app` NO frena nada (decisión de Carlos, 2026-09-20).** Mientras el
+plan 5 de 5 siga abierto, nada de lo que le ocurra a `jcsvwinston/quantum-app`
+bloquea un arco, un corte ni una certificación: se **rehará entero** al
+terminar el plan, así que arreglarlo set a set es trabajo que se tira. Sus
+gates en rojo y sus PRs de bump sin fusionar —cuatro abiertos desde 1.30.0— se
+anotan y se sigue. Lo único que hay que distinguir es «deuda suya» de «el set
+recién cortado rompió al consumidor»: lo segundo SÍ es hallazgo del release.
+No se abren sesiones ni arcos para ponerlo al día. El detalle está en
+`scripts/train/README.md`, en la sección del anuncio.
+
 **Trabajo con destinatario (por orden de arranque):**
 
 - **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~, ~~A4~~, ~~A5~~ y
