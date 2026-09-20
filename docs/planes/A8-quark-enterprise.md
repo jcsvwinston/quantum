@@ -73,7 +73,7 @@ un control necesita un motor vivo su nota lo dice — esa prueba vive en
 | `S7` | `precision/scale` deja de secuestrar, y la matriz de tipos deja de mentir | S5 | **HECHA** — quark#410: `TYP-11` a `present`, QK-28 y QK-30 cerrados; banco 39 de 69 |
 | `S8` | RLS fuera de PostgreSQL: qué recibe cada motor, y la verificación | S1 | **HECHA** — quark#412: `RLS-02` y `RLS-04` a `present`, `RLS-01` `partial` medido y decidido; banco 44 de 69 con `S6` |
 | `S9` | Paginación por cursor / keyset | S0 | **HECHA** — quark#413: `OPS-15` a `present`; banco 45 de 69 |
-| `S10` | El CLI: `migrate diff/plan/verify` y las políticas de tenant | S3, S8 | `MIG-11` y `RLS-06` a `present` |
+| `S10` | El CLI: `migrate diff/plan/verify` y las políticas de tenant | S3, S8 | **HECHA** — quark#414: `MIG-11` y `RLS-06` a `present`; banco 47 de 69 |
 | `S11` | Gate, guard y set | todas | `umbrella-quark-posture` registrado con su fixture; set certificado |
 
 **El orden no es negociable en dos sitios**: `S1` va primero porque es el P1, y
@@ -530,3 +530,50 @@ arnés de aceptación se lleva `acceptance/REPORTS/` al commit —el
 
 **Siguiente: `S10`** (el CLI: `migrate diff/plan/verify` y las políticas de
 tenant; MIG-11, RLS-06; y el token `index` que `S3` dejó a deber).
+
+### `S10` — el CLI: `migrate diff/plan/verify` y las políticas de tenant (2026-09-20) · **hecha**
+
+**PR**: quark#414 (`feat(cli)`). **Medido**: MIG-11 y RLS-06 a `present`; el
+banco de 45 a **47 de 69**.
+
+**Lo que entrega.** Primero un rehúse en la raíz: `PlanMigration` sin
+modelos devolvía el plan de borrar todas las tablas vivas —el esquema
+deseado de «nada»—, y eso era lo que recibía un binario precompilado que no
+lleva los modelos del usuario. Ahora falla con `ErrInvalidQuery` y nombra
+los dos caminos honestos. Sobre eso, **`quark migrate diff | plan | verify
+--from-models <dir>`**: el binario lee los structs con `go/packages` (el
+lector que ya tenía `migrate create`), los mapea con la misma función de
+tipos del runtime, arrastra del esquema vivo los índices, FK y CHECK que
+las etiquetas no pueden nombrar (la regla de `PlanMigration`: lo no
+declarado no se propone borrar) y diffea contra `IntrospectSchema`;
+`verify` sale distinto de cero con deriva, así que es un gate de CI sin
+compilar los modelos en nada. Y **`quark tenant install-rls-policies |
+verify-rls-policies --from-models <dir>`**: los comandos que el ADR-0012 y
+la guía imprimían, en el binario publicado —por cada tabla del modelo con
+la columna de tenant, el DDL del runner (enable, force, drop-if-exists,
+create policy sobre `current_setting(var, true)`), con `--dry-run`; verify
+lee `pg_class`/`pg_policy` y sale con los huecos—, ambos limitados a
+PostgreSQL. El `quarktenant.Run` embebible conserva sus acciones a pelo: es
+otro programa, y el banco ya no lee su rehúse del prefijo `tenant` como
+hueco. El lector estático aprende lo que el runtime aprendió en `S3` y `S5`
+(`default`, `quark:"index"`/`index=<n>`, `check=<expr>` partido por comas
+fuera de paréntesis y comillas, `db:"…,enum=a|b"`), `migrate create` los
+emite y `quark model` acepta `index` — la deuda que `S3` dejó.
+
+**Método**: tests del CLI sobre un módulo fixture (diff en base vacía
+propone las dos tablas y verify falla; tras aplicar el DDL del propio
+lector el plan está «in sync» y verify pasa, que es decir que el mapeo de
+fuente y el del runtime coinciden; las etiquetas nuevas llegan al DDL y al
+esquema deseado; el DDL de políticas byte a byte con la forma del runner,
+la selección de tablas y la puerta de PostgreSQL). Los dos tests de la suite
+que fijaban «sin modelos se borra todo» fijan ahora el rehúse y el borrado
+con un modelo. Las sondas leen las fuentes del CLI —módulo aparte— y corren
+el rehúse de la raíz.
+
+**Trampas**: cargar un módulo fixture desde dentro del `go.work` del repo
+falla con «not in workspace / outside main module» — `GOWORK=off` y
+`Chdir` al módulo; y el test que exige `Example:` a todo subcomando
+ejecutable cazó los cinco nuevos sin ejemplo.
+
+**Siguiente: `S11`** (gate, guard y set: `umbrella-quark-posture` con su
+fixture, y el tren que corta la MINOR de quark y certifica el set).

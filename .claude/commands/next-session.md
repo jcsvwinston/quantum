@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S9` HECHAS, banco 45 de 69)
+## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S10` HECHAS, banco 47 de 69)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -101,14 +101,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   rehusados por motor; `S8` en quark#412: `GetClient` falla cerrado, el router
   Native verifica las políticas al primer uso (`ErrRLSNotEnforced`) y el RLS
   nativo se queda en PostgreSQL con el porqué escrito; `S9` en quark#413:
-  `PaginateAfter`, keyset con token opaco y una sentencia por página — banco
-  45 de 69) → **siguiente: `S10`** (el CLI: `migrate diff/plan/verify` y las
-  políticas de tenant); luego `S11`, el gate. **Para el tren**: quark#404 y
-  #410 (fix) y #406–#409, #411–#413 (feat) hacen una MINOR de
-  quark, y el snapshot de doc va ANTES del release PR; antes eran quark#404
-  (fix) y #406–#409
-  (feat) hacen una MINOR de quark, y el snapshot de doc va ANTES del release
-  PR. A8 hereda de A4 la segunda mitad de su `S4`
+  `PaginateAfter`, keyset con token opaco y una sentencia por página; `S10`
+  en quark#414: `PlanMigration` sin modelos rehúsa, `migrate
+  diff|plan|verify --from-models` y `tenant install-rls-policies|
+  verify-rls-policies` en el binario, y el lector estático aprende
+  `default`/`index`/`check`/`enum` — banco 47 de 69) → **siguiente: `S11`**
+  (gate, guard y set: `umbrella-quark-posture` con su fixture y el tren).
+  **Para el tren**: quark#404 y #410 (fix) y #406–#409, #411–#414 (feat)
+  hacen una MINOR de quark, y el snapshot de doc va ANTES del release PR.
+  A8 hereda de A4 la segunda mitad de su `S4`
   (uuid nativo, enums con CHECK, arrays, rangos, inet, JSONB: van en `S5`–`S7`)
   y **QK-24**, que avisa desde quark v1.14.0 pero no es error y va a A12.
   Lo que fue A7, sesión a sesión y con lo que cada una midió, está en
@@ -202,7 +203,21 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-20 — **A8 `S1`–`S9` HECHAS**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, tipos nativos de PostgreSQL, el router Native que verifica, y keyset
+### Sesión 2026-09-20 — **A8 `S1`–`S10` HECHAS**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, tipos nativos de PostgreSQL, el router Native que verifica, keyset y el CLI
+
+**`S10` (quark#414, `feat(cli)`)** — `PlanMigration` sin modelos rehúsa con
+`ErrInvalidQuery` (antes: el plan de borrar todas las tablas vivas, que es
+lo que recibía un binario sin los modelos del usuario). `quark migrate
+diff|plan|verify --from-models <dir>` lee los structs con `go/packages`,
+mapea con la función de tipos del runtime, arrastra lo no declarado del
+esquema vivo y diffea; `verify` es un gate de CI. `quark tenant
+install-rls-policies|verify-rls-policies --from-models` imprime/aplica el
+DDL del runner y verifica en `pg_class`/`pg_policy`; sólo PostgreSQL. El
+lector estático aprende `default`, `index`, `check`, `enum`; `quark model`
+acepta `index`. MIG-11 y RLS-06 a `present`; banco **47 de 69**. Trampas:
+`GOWORK=off` + `Chdir` para cargar un módulo fixture desde el `go.work`; el
+test de `Example:` cazó cinco subcomandos.
+
 
 **`S9` (quark#413, `feat(query)`)** — `PaginateAfter(pageSize, token)`: una
 sentencia por página que busca la última fila leída por el `ORDER BY` (la
