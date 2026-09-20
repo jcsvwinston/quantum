@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S5` y `S7` HECHAS, banco 39 de 69)
+## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S7` HECHAS, banco 42 de 69)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -95,11 +95,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   UUID con tipo por motor, la clave mapeada conserva su PK (QK-29) y CHECK
   declarado en el modelo; `S7` en quark#410: `precision/scale` refina sólo
   flotantes con aviso en el resto, la familia decimal es una para el diff y
-  la matriz/roadmap dicen la verdad (QK-28, QK-30) — banco 39 de 69) →
-  **siguiente: `S6`** (arrays de PostgreSQL, rangos e inet: TYP-04, TYP-06,
-  TYP-07); luego `S8`, `S9`, `S10`, `S11`. **Para el tren**: quark#404 y
-  #410 (fix) y #406–#409 (feat) hacen una MINOR de quark, y el snapshot de
-  doc va ANTES del release PR; antes eran quark#404 (fix) y #406–#409
+  la matriz/roadmap dicen la verdad (QK-28, QK-30); `S6` en quark#411:
+  slices/maps almacenados (array nativo en PG, JSON en el resto),
+  `Range[T]`, `net.IP` como `INET`, y los operadores de PG conocidos y
+  rehusados por motor — banco 42 de 69) → **siguiente: `S8`** (RLS fuera de
+  PostgreSQL: RLS-01, RLS-02, RLS-04); luego `S9`, `S10`, `S11`. **Para el
+  tren**: quark#404 y #410 (fix) y #406–#409, #411 (feat) hacen una MINOR de
+  quark, y el snapshot de doc va ANTES del release PR; antes eran quark#404
+  (fix) y #406–#409
   (feat) hacen una MINOR de quark, y el snapshot de doc va ANTES del release
   PR. A8 hereda de A4 la segunda mitad de su `S4`
   (uuid nativo, enums con CHECK, arrays, rangos, inet, JSONB: van en `S5`–`S7`)
@@ -195,7 +198,17 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-20 — **A8 `S1`–`S5` y `S7` HECHAS**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum desde el modelo, y `precision/scale` sin secuestro
+### Sesión 2026-09-20 — **A8 `S1`–`S7` HECHAS**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale` sin secuestro, y los tipos nativos de PostgreSQL
+
+**`S6` (quark#411, `feat(types)`)** — slices y maps crudos almacenados
+(array nativo en PostgreSQL con literal de array en el cable, JSON en el
+resto), `quark.Range[T]` (rangos nativos en PG, JSON en el resto), `net.IP`
+como `INET`/texto en su forma textual, y los operadores `@>`, `<@`, `&&`,
+`<<`, `>>`, `<<=`, `>>=` conocidos por el guard y rehusados POR MOTOR fuera
+de PG con `ErrUnsupportedFeature` antes de emitir SQL; el introspector de PG
+lee arrays y rangos por `udt_name`. Banco **42 de 69** (`tipos` 10/1/0).
+Retitulados TYP-04/06/07 a lo que SQLite mide; PG lo prueba `NativeTypes`.
+
 
 **`S7` (quark#410, `fix(migrate)`)** — la pista `precision/scale` refina sólo
 flotantes (`DECIMAL(p,s)`, `NUMBER(p,s)` en Oracle) y en el resto se ignora
