@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S7` HECHAS, banco 42 de 69)
+## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S8` HECHAS, banco 44 de 69)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -98,9 +98,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   la matriz/roadmap dicen la verdad (QK-28, QK-30); `S6` en quark#411:
   slices/maps almacenados (array nativo en PG, JSON en el resto),
   `Range[T]`, `net.IP` como `INET`, y los operadores de PG conocidos y
-  rehusados por motor — banco 42 de 69) → **siguiente: `S8`** (RLS fuera de
-  PostgreSQL: RLS-01, RLS-02, RLS-04); luego `S9`, `S10`, `S11`. **Para el
-  tren**: quark#404 y #410 (fix) y #406–#409, #411 (feat) hacen una MINOR de
+  rehusados por motor; `S8` en quark#412: `GetClient` falla cerrado, el router
+  Native verifica las políticas al primer uso (`ErrRLSNotEnforced`) y el RLS
+  nativo se queda en PostgreSQL con el porqué escrito — banco 44 de 69) →
+  **siguiente: `S9`** (keyset: OPS-15, en quark#413 esperando CI); luego
+  `S10`, `S11`. **Para el tren**: quark#404 y #410 (fix) y #406–#409, #411,
+  #412 (feat) hacen una MINOR de
   quark, y el snapshot de doc va ANTES del release PR; antes eran quark#404
   (fix) y #406–#409
   (feat) hacen una MINOR de quark, y el snapshot de doc va ANTES del release
@@ -198,7 +201,19 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-20 — **A8 `S1`–`S7` HECHAS**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale` sin secuestro, y los tipos nativos de PostgreSQL
+### Sesión 2026-09-20 — **A8 `S1`–`S8` HECHAS**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, los tipos nativos de PostgreSQL, y el router Native que verifica
+
+**`S8` (quark#412, `feat(tenancy)`)** — `GetClient` falla cerrado bajo Native
+fuera de PostgreSQL (RLS-02); el router verifica al primer uso por tabla que
+el motor aplica RLS (`pg_class`, `pg_policy`) y rehúsa con
+`ErrRLSNotEnforced` si no puede confirmarlo (RLS-04), con
+`SkipPolicyVerification` como salida; `List`/`First`/`Find` dicen `q.err`
+antes que «client not initialized». RLS-01 se queda en PostgreSQL con la
+razón escrita: los contextos de sesión de SQL Server y Oracle sobreviven al
+commit en el pool. Banco **44 de 69** con `S6`. Trampa de esta tanda: un
+`git add -A` tras correr el arnés de aceptación se lleva `acceptance/REPORTS/`
+al commit; quedó en `.gitignore` en `S9`.
+
 
 **`S6` (quark#411, `feat(types)`)** — slices y maps crudos almacenados
 (array nativo en PostgreSQL con literal de array en el cable, JSON en el
