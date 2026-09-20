@@ -216,6 +216,17 @@ colas de UPDATE/DELETE, validación del patrón), y el banco por mutación
 test que buscaba la palabra `ESCAPE` la encontró en el nombre de la tabla
 `like_escape_rows`; se busca la CLÁUSULA (` ESCAPE '`), no la palabra.
 
+**Lo que sólo vio el motor real, y ninguna sonda sobre SQLite**: el primer
+corte escapaba `[` en los seis motores («con el carácter declarado, `\[` es
+un corchete literal en todas partes»); la lane de Oracle lo tumbó con
+`ORA-01424` — Oracle sólo admite el escape delante de `%`, `_` o de sí mismo.
+El corchete es comodín SOLO en SQL Server, así que se escapa sólo ahí, y eso
+obliga a componer el patrón de las búsquedas de texto cuando ya se conoce el
+dialecto (en `WhereP` para los tipados, en `ToSQL` para el AST). LIKE-03 lo
+mide como segundo hecho por motor: para un texto con `[`, exactamente SQL
+Server liga un valor distinto. La regla del arco se confirma: **una prueba
+en los cinco motores no es un extra, es la única que ve esto.**
+
 **Docs en el mismo PR**: `guides/querying` (búsqueda de texto del usuario),
 `reference/api/query-builder`, `reference/sqlguard`, `guides/codegen`;
 `docs/enterprise-bench.md` regenerado.

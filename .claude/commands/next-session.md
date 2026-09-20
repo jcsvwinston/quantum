@@ -198,8 +198,10 @@ lo prueba en los cinco motores. **La forma plana `Where(col,"LIKE",p)` no
 cambia**: unificar su escape es rompiente → **QK-32** (A12). Cuatro controles
 retitulados con su porqué escrito (su `present` sólo era alcanzable rompiendo
 la forma publicada). QK-31 de paso: la lane de MariaDB falla en vez de saltar.
-Trampa: buscar la palabra `ESCAPE` la encuentra en `like_escape_rows`; se
-busca la cláusula. Detalle en el plan del arco.
+Trampas: buscar la palabra `ESCAPE` la encuentra en `like_escape_rows` (se
+busca la cláusula); y **Oracle rechaza `\[` con `ORA-01424`** — el corchete
+se escapa SOLO en SQL Server, donde es comodín, y lo vio la lane de Oracle,
+no una sonda sobre SQLite. Detalle en el plan del arco.
 
 **`S1` (quark#404)**:
 
