@@ -72,7 +72,7 @@ un control necesita un motor vivo su nota lo dice — esa prueba vive en
 | `S6` | Arrays de PostgreSQL, rangos e inet | S5 | **HECHA** — quark#411: `TYP-04`, `TYP-06` y `TYP-07` a `present`; banco 42 de 69 |
 | `S7` | `precision/scale` deja de secuestrar, y la matriz de tipos deja de mentir | S5 | **HECHA** — quark#410: `TYP-11` a `present`, QK-28 y QK-30 cerrados; banco 39 de 69 |
 | `S8` | RLS fuera de PostgreSQL: qué recibe cada motor, y la verificación | S1 | **HECHA** — quark#412: `RLS-02` y `RLS-04` a `present`, `RLS-01` `partial` medido y decidido; banco 44 de 69 con `S6` |
-| `S9` | Paginación por cursor / keyset | S0 | `OPS-15` a `present` |
+| `S9` | Paginación por cursor / keyset | S0 | **HECHA** — quark#413: `OPS-15` a `present`; banco 45 de 69 |
 | `S10` | El CLI: `migrate diff/plan/verify` y las políticas de tenant | S3, S8 | `MIG-11` y `RLS-06` a `present` |
 | `S11` | Gate, guard y set | todas | `umbrella-quark-posture` registrado con su fixture; set certificado |
 
@@ -497,3 +497,36 @@ verificación y construye el suyo con ella activa.
 
 **Siguiente: `S9`** (paginación por cursor / keyset: OPS-15) — ya escrita en
 rama, pendiente de rebase y CI.
+
+### `S9` — paginación por cursor / keyset (2026-09-20) · **hecha**
+
+**PR**: quark#413 (`feat(query)`). **Medido**: OPS-15 a `present`; el banco de
+44 a **45 de 69**.
+
+**Lo que entrega.** `Paginate(pageSize, page)` es paginación por número de
+página —un `COUNT` y un `OFFSET` por página, así que la página N hace al
+servidor recorrer todas las anteriores— y conserva su contrato para quien
+quiere un total. **`PaginateAfter(pageSize, token)`** es paginación por
+keyset (seek): una sola sentencia por página que busca la última fila leída
+a través del `ORDER BY` de la consulta —`a > ? OR (a = ? AND b < ?)`, la
+comparación de tuplas desarrollada porque SQL Server y Oracle no la tienen—,
+con la clave primaria añadida al orden para que sea total y un empate no
+salte ni repita filas. Devuelve `KeysetPage` con `Items`, `HasMore` y
+`Next`, un token opaco (el orden y los valores de la última fila) que se
+rehúsa con `ErrInvalidQuery` si se le entrega a una consulta con otro
+`ORDER BY`, en vez de buscar en el sitio equivocado. Toda columna del orden
+debe ser columna del modelo, porque el token se construye con sus valores.
+
+**Método**: tests de raíz (primera página plana, segunda con predicado y
+sin OFFSET en una sentencia, última sin más; orden compuesto con empates y
+un tramo DESC recorrido sin saltos ni repeticiones; token de otro orden,
+basura, columna desconocida y orden sólo por PK), `Keyset` en `SharedSuite`
+para los seis motores, y el exerciser `KEYSET` en el arnés.
+
+**Trampa que casi llega dos veces a `main`**: `git add -A` tras correr el
+arnés de aceptación se lleva `acceptance/REPORTS/` al commit —el
+`.gitignore` ignoraba la ruta vieja de `examples/superapp`—. Entró en
+`.gitignore` en este PR.
+
+**Siguiente: `S10`** (el CLI: `migrate diff/plan/verify` y las políticas de
+tenant; MIG-11, RLS-06; y el token `index` que `S3` dejó a deber).

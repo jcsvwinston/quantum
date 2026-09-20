@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S8` HECHAS, banco 44 de 69)
+## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S9` HECHAS, banco 45 de 69)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -100,10 +100,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `Range[T]`, `net.IP` como `INET`, y los operadores de PG conocidos y
   rehusados por motor; `S8` en quark#412: `GetClient` falla cerrado, el router
   Native verifica las políticas al primer uso (`ErrRLSNotEnforced`) y el RLS
-  nativo se queda en PostgreSQL con el porqué escrito — banco 44 de 69) →
-  **siguiente: `S9`** (keyset: OPS-15, en quark#413 esperando CI); luego
-  `S10`, `S11`. **Para el tren**: quark#404 y #410 (fix) y #406–#409, #411,
-  #412 (feat) hacen una MINOR de
+  nativo se queda en PostgreSQL con el porqué escrito; `S9` en quark#413:
+  `PaginateAfter`, keyset con token opaco y una sentencia por página — banco
+  45 de 69) → **siguiente: `S10`** (el CLI: `migrate diff/plan/verify` y las
+  políticas de tenant); luego `S11`, el gate. **Para el tren**: quark#404 y
+  #410 (fix) y #406–#409, #411–#413 (feat) hacen una MINOR de
   quark, y el snapshot de doc va ANTES del release PR; antes eran quark#404
   (fix) y #406–#409
   (feat) hacen una MINOR de quark, y el snapshot de doc va ANTES del release
@@ -201,7 +202,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-20 — **A8 `S1`–`S8` HECHAS**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, los tipos nativos de PostgreSQL, y el router Native que verifica
+### Sesión 2026-09-20 — **A8 `S1`–`S9` HECHAS**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, tipos nativos de PostgreSQL, el router Native que verifica, y keyset
+
+**`S9` (quark#413, `feat(query)`)** — `PaginateAfter(pageSize, token)`: una
+sentencia por página que busca la última fila leída por el `ORDER BY` (la
+comparación de tuplas desarrollada, porque SQL Server y Oracle no la
+tienen), PK añadida al orden, token opaco que se rehúsa bajo otro orden.
+`Paginate` conserva su contrato con total. Banco **45 de 69**.
+`acceptance/REPORTS/` al `.gitignore`.
+
 
 **`S8` (quark#412, `feat(tenancy)`)** — `GetClient` falla cerrado bajo Native
 fuera de PostgreSQL (RLS-02); el router verifica al primer uso por tabla que
