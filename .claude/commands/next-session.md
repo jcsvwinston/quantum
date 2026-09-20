@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S4` HECHAS, banco 35 de 69)
+## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S5` HECHAS, banco 38 de 69)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -91,10 +91,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   porque es rompiente; `S3` cerró QK-27 en quark#407: el plan lleva índices,
   FK y CHECK, el ejecutor los emite y el modelo declara índices con
   `quark:"index"`; `S4` en quark#408: `ALTER COLUMN` de cuatro facetas en
-  los seis motores y SQLite reconstruye la tabla — banco 35 de 69) →
-  **siguiente: `S5`** (uuid nativo y enum con CHECK desde el modelo: TYP-01,
-  TYP-03, QK-29); luego `S7`, `S6`, `S8`, `S9`, `S10`, `S11` en ese orden, el
-  que menos rebase cuesta. **Para el tren**: quark#404 (fix) y #406–#408
+  los seis motores y SQLite reconstruye la tabla; `S5` en quark#409: forma
+  UUID con tipo por motor, la clave mapeada conserva su PK (QK-29) y CHECK
+  declarado en el modelo — banco 38 de 69) → **siguiente: `S7`**
+  (`precision/scale` deja de secuestrar el tipo y la matriz no miente: TYP-11,
+  QK-28, QK-30); luego `S6`, `S8`, `S9`, `S10`, `S11` en ese orden, el que
+  menos rebase cuesta. **Para el tren**: quark#404 (fix) y #406–#409
   (feat) hacen una MINOR de quark, y el snapshot de doc va ANTES del release
   PR. A8 hereda de A4 la segunda mitad de su `S4`
   (uuid nativo, enums con CHECK, arrays, rangos, inet, JSONB: van en `S5`–`S7`)
@@ -190,7 +192,17 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-20 — **A8 `S1`–`S4` HECHAS**: la transacción fija el inquilino; `LIKE … ESCAPE` por dialecto; el plan de migración emite lo que lleva; y `ALTER COLUMN` completo con SQLite reconstruyendo
+### Sesión 2026-09-20 — **A8 `S1`–`S5` HECHAS**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, y uuid/enum desde el modelo
+
+**`S5` (quark#409, `feat(model)`)** — forma UUID (`[16]byte`) con tipo por
+motor (PG `UUID`, SQLite `UUID` declarado, MySQL `CHAR(36)`, Oracle
+`VARCHAR2(36)`, SQL Server `NCHAR(36)` porque su `UNIQUEIDENTIFIER` se lee
+en orden de bytes mixto); **la clave mapeada conserva `PRIMARY KEY`**
+(QK-29); `quark:"check=<expr>"` y `db:"col,enum=a|b"` emitidos por `Migrate`
+como `ck_<tabla>_<col>` y llevados por `PlanMigration`; el divisor de la
+etiqueta respeta paréntesis y comillas. Banco **38 de 69**. Trampa: la
+matriz de tipos se GENERA con `-write-type-matrix`; la fila va al generador.
+
 
 **`S4` (quark#408, `feat(migrate)`)** — `OpAlterColumn` cubre tipo, nullable,
 default y PK en los seis motores (PG por faceta; MySQL/MariaDB un `MODIFY`;
