@@ -68,7 +68,7 @@ un control necesita un motor vivo su nota lo dice — esa prueba vive en
 | `S2` | `LIKE … ESCAPE` de punta a punta, por dialecto | S0 | **HECHA** — quark#406: `qk25` 11 de 11 (los 7 `absent` y el `partial`), probado en los cinco motores por `SharedSuite`; banco 29 de 69 |
 | `S3` | El plan lleva índices, FK y CHECK, y el ejecutor los emite | S0 | **HECHA** — quark#407: `MIG-01`, `MIG-02`, `MIG-03` y `MIG-06` a `present`; banco 33 de 69 |
 | `S4` | `ALTER COLUMN` completo y reversibilidad más allá de CREATE/DROP | S3 | **HECHA** — quark#408: `MIG-07` y `MIG-09` a `present`; banco 35 de 69 |
-| `S5` | uuid nativo y enum con CHECK desde el modelo | S0 | `TYP-01` y `TYP-03` a `present`, con la PK intacta |
+| `S5` | uuid nativo y enum con CHECK desde el modelo | S0 | **HECHA** — quark#409: `TYP-01`, `TYP-02` y `TYP-03` a `present`; banco 38 de 69 |
 | `S6` | Arrays de PostgreSQL, rangos e inet | S5 | `TYP-04`, `TYP-06` y `TYP-07` a `present` |
 | `S7` | `precision/scale` deja de secuestrar, y la matriz de tipos deja de mentir | S5 | `TYP-11` a `present`; la matriz publicada coincide con lo medido |
 | `S8` | RLS fuera de PostgreSQL: qué recibe cada motor, y la verificación | S1 | `RLS-01`, `RLS-02` y `RLS-04` con su veredicto medido |
@@ -339,3 +339,42 @@ motores.
 
 **Siguiente: `S5`** (uuid nativo y enum con CHECK desde el modelo, con la PK
 intacta: TYP-01, TYP-03 y QK-29).
+
+### `S5` — uuid nativo y enum con CHECK desde el modelo (2026-09-20) · **hecha**
+
+**PR**: quark#409 (`feat(model)`). **Medido**: `tipos` de 3 a **6 present**;
+el banco de 35 a **38 de 69**. Cierra **QK-29**.
+
+**Lo que entrega.** (1) **La forma UUID**: un array de 16 bytes —la forma de
+`google/uuid.UUID` y de todo UUID del ecosistema— recibe `UUID` en PostgreSQL
+y en SQLite (nombre de tipo declarado; el texto se guarda como texto bajo su
+afinidad NUMERIC porque un UUID nunca es un número bien formado), `CHAR(36)`
+en MySQL/MariaDB, `VARCHAR2(36)` en Oracle y `NCHAR(36)` en SQL Server. El
+`UNIQUEIDENTIFIER` de SQL Server se descarta a propósito: su driver lo lee
+como dieciséis bytes en el orden mixto del motor, que un `Scanner` que espera
+el orden RFC lee como OTRO UUID. El valor viaja en texto por el
+`Valuer`/`Scanner` del propio tipo; como clave, `UUID PRIMARY KEY` sin
+autoincremento inferido. (2) **La clave mapeada conserva su clave (QK-29)**:
+`SQLTypeWithOpts` devolvía el tipo del mapper ANTES del sufijo y el ejemplo
+documentado para claves UUID creaba tablas sin clave. Ahora el tipo del
+mapper va tal cual y `PRIMARY KEY` se añade salvo que el mapper lo escriba.
+(3) **El modelo declara CHECK**: `quark:"check=<expr>"` literal o
+`db:"col,enum=a|b|c"` como lista `IN`; `Migrate` los emite como
+`CONSTRAINT ck_<tabla>_<columna> CHECK (…)` —la forma que la reconstrucción
+de SQLite sabe leer— y `PlanMigration` los lleva en el esquema deseado. Un
+`check=` o `enum=` vacío es error de etiqueta. El divisor de tokens de la
+etiqueta `quark` deja de partir por las comas de dentro de paréntesis y
+comillas.
+
+**Trampa del propio repo**: la matriz de tipos publicada la GENERA un test
+(`-write-type-matrix`); una fila a mano la deja rancia y el test lo dice. La
+fila UUID se añade al generador, no al `.mdx`.
+
+**Método**: tests de raíz (tipo por dialecto y como clave; ida y vuelta del
+UUID; el id duplicado rechazado; ambas gramáticas, la coma dentro de la
+expresión, la aplicación del CHECK, plan vacío tras migrar y CHECK que
+sobrevive a la reconstrucción; etiquetas vacías como error), dos
+mutaciones, y `ModelTypesAndChecks` en `SharedSuite` para los seis motores.
+
+**Siguiente: `S7`** (`precision/scale` deja de secuestrar el tipo base y la
+matriz deja de mentir: TYP-11, QK-28, QK-30), y después `S6`.
