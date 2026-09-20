@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0` medición y `S1` confinamiento en transacción HECHAS)
+## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`, `S1` y `S2` HECHAS, banco 29 de 69)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -83,11 +83,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   [`docs/planes/A8-quark-enterprise.md`](../../docs/planes/A8-quark-enterprise.md).
   La medición corrigió el enunciado por cuarta vez: de las tres cosas de
   «migraciones v2» dos existían y la tercera no significa lo que el plan
-  suponía, y el RLS nativo es PostgreSQL y nada más. **`S0` y `S1` HECHAS**
-  (banco 20 → 21 de 69; `S1` cerró el P1 QK-26 en quark#404 con la decisión
-  escrita en el ADR-0025 de quark: la transacción fija el inquilino) →
-  **siguiente: `S2`** (`LIKE … ESCAPE` de punta a punta, por dialecto; su
-  remedio ingenuo rompe SQLite). A8 hereda de A4 la segunda mitad de su `S4`
+  suponía, y el RLS nativo es PostgreSQL y nada más. **`S0`, `S1` y `S2`
+  HECHAS** (banco 20 → 21 → 29 de 69; `S1` cerró el P1 QK-26 en quark#404 con
+  la decisión escrita en el ADR-0025 de quark: la transacción fija el
+  inquilino; `S2` cerró QK-25 y QK-31 en quark#406 con las superficies
+  escapadas de `LIKE`, y dejó escrito en **QK-32** (A12) que la forma plana no
+  se toca porque es rompiente) → **siguiente: `S3`** (índices, FK y CHECK en
+  el plan de migración y en el ejecutor). **Para el tren**: quark#404 (fix) y
+  quark#406 (feat) hacen una MINOR de quark, y el snapshot de doc va ANTES
+  del release PR. A8 hereda de A4 la segunda mitad de su `S4`
   (uuid nativo, enums con CHECK, arrays, rangos, inet, JSONB: van en `S5`–`S7`)
   y **QK-24**, que avisa desde quark v1.14.0 pero no es error y va a A12.
   Lo que fue A7, sesión a sesión y con lo que cada una midió, está en
@@ -181,7 +185,23 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-20 — **A8 `S1` HECHA**: la transacción fija el inquilino, y los seis defectos de la revisión cerrados con un test por cada uno
+### Sesión 2026-09-20 — **A8 `S1` y `S2` HECHAS**: la transacción fija el inquilino; y `LIKE … ESCAPE` por dialecto, sin tocar la forma plana
+
+**`S2` (quark#406, `feat(query)`)** — la familia `qk25` del banco de 3/1/7 a
+**11 present**; banco **29 de 69**. Por adición: `WhereLike`/`WhereNotLike`,
+`WhereContains`/`WhereStartsWith`/`WhereEndsWith` con `EscapeLike`, los
+tipados `Contains`/`StartsWith`/`EndsWith`/`LikeEscaped` y el AST
+`Like`/`Contains`; la cola `ESCAPE` se escribe POR MOTOR (doblada en
+MySQL/MariaDB, y SQLite rechaza la doblada) desde un helper que los cinco
+renderizadores añaden; el guard rechaza el escape colgante; `SharedSuite`
+lo prueba en los cinco motores. **La forma plana `Where(col,"LIKE",p)` no
+cambia**: unificar su escape es rompiente → **QK-32** (A12). Cuatro controles
+retitulados con su porqué escrito (su `present` sólo era alcanzable rompiendo
+la forma publicada). QK-31 de paso: la lane de MariaDB falla en vez de saltar.
+Trampa: buscar la palabra `ESCAPE` la encuentra en `like_escape_rows`; se
+busca la cláusula. Detalle en el plan del arco.
+
+**`S1` (quark#404)**:
 
 - **PR quark#404** (`fix(tenancy)`), sobre la rama del primer corte. Los seis
   defectos que la revisión adversarial dejó abiertos se cierran así: (1) toda
