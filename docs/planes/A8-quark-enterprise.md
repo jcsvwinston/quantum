@@ -69,7 +69,7 @@ un control necesita un motor vivo su nota lo dice — esa prueba vive en
 | `S3` | El plan lleva índices, FK y CHECK, y el ejecutor los emite | S0 | **HECHA** — quark#407: `MIG-01`, `MIG-02`, `MIG-03` y `MIG-06` a `present`; banco 33 de 69 |
 | `S4` | `ALTER COLUMN` completo y reversibilidad más allá de CREATE/DROP | S3 | **HECHA** — quark#408: `MIG-07` y `MIG-09` a `present`; banco 35 de 69 |
 | `S5` | uuid nativo y enum con CHECK desde el modelo | S0 | **HECHA** — quark#409: `TYP-01`, `TYP-02` y `TYP-03` a `present`; banco 38 de 69 |
-| `S6` | Arrays de PostgreSQL, rangos e inet | S5 | `TYP-04`, `TYP-06` y `TYP-07` a `present` |
+| `S6` | Arrays de PostgreSQL, rangos e inet | S5 | **HECHA** — quark#411: `TYP-04`, `TYP-06` y `TYP-07` a `present`; banco 42 de 69 |
 | `S7` | `precision/scale` deja de secuestrar, y la matriz de tipos deja de mentir | S5 | **HECHA** — quark#410: `TYP-11` a `present`, QK-28 y QK-30 cerrados; banco 39 de 69 |
 | `S8` | RLS fuera de PostgreSQL: qué recibe cada motor, y la verificación | S1 | `RLS-01`, `RLS-02` y `RLS-04` con su veredicto medido |
 | `S9` | Paginación por cursor / keyset | S0 | `OPS-15` a `present` |
@@ -405,3 +405,49 @@ que buscaba «ningún NUMBER» en el bool con pista medía el motor, no la pista
 
 **Siguiente: `S6`** (arrays de PostgreSQL, rangos e inet: TYP-04, TYP-06,
 TYP-07).
+
+### `S6` — arrays de PostgreSQL, rangos e inet (2026-09-20) · **hecha**
+
+**PR**: quark#411 (`feat(types)`). **Medido**: `tipos` de 7 a **10 present**
+(la familia queda en 10 present · 1 partial · 0 absent); el banco de 39 a
+**42 de 69**.
+
+**Lo que entrega, por adición.** (1) **Los slices y maps crudos se
+almacenan**: `[]string`, `[]int64` o `map[string]any` recibían columna y
+fallaban en la primera escritura en el conversor de `database/sql`; ahora
+Quark los liga y los lee — en PostgreSQL un slice de tipo escalar es un array
+nativo (`TEXT[]`, `BIGINT[]`, `DOUBLE PRECISION[]`, `BOOLEAN[]`) y el valor
+viaja como literal de array; en el resto, y para maps y slices de structs en
+todos, la columna es el tipo JSON del dialecto. `Array[T]` sigue siendo el
+envoltorio JSON en los seis. (2) **`quark.Range[T]`** (`Lower`, `Upper`,
+`Bounds` con `"[)"` por defecto, `Empty`): `TSTZRANGE`/`INT8RANGE`/
+`INT4RANGE`/`NUMRANGE` en PostgreSQL con el literal de rango en el cable, JSON
+en el resto; `Scan` lee ambas formas. (3) **`net.IP` es una dirección, no
+cuatro bytes**: `INET` en PostgreSQL, texto en el resto, ligada y leída en su
+forma textual (y desde los bytes crudos de una fila anterior). (4) **Los
+operadores de PostgreSQL son conocidos y se rehúsan por motor**: `@>`, `<@`,
+`&&`, `<<`, `>>`, `<<=`, `>>=` entran en la lista del guard, y fuera de
+PostgreSQL el builder los rehúsa con `ErrUnsupportedFeature` nombrando el
+motor antes de emitir SQL — en SELECT, UPDATE, DELETE y el AST. Nada se
+reescribe a una aproximación, y MySQL no llega a leer `<<` como
+desplazamiento. (5) El introspector de PostgreSQL lee arrays (el
+`information_schema` sólo dice `ARRAY`; el elemento va en `udt_name`) y
+tipos de usuario como los rangos por `udt_name`, así que el plan converge.
+
+**Los tres controles, retitulados a lo que SQLite puede medir**: la ida y
+vuelta, el JSON en la columna, y el operador conocido y rehusado por motor
+(un rechazo de la lista —`ErrInvalidQuery`— es el estado de `S0`: el
+operador no existía). Los tipos nativos y las respuestas de los operadores
+se prueban en `NativeTypes` de `SharedSuite` sobre PostgreSQL. TYP-08 acepta
+el rechazo por motor como el mismo hecho que registraba.
+
+**Método**: tests de raíz (literal de rango y JSON en ambos sentidos; el
+literal de array con comas, comillas y barras en los elementos; el lector de
+IP sobre texto, `inet` con máscara y bytes; ida y vuelta completa en SQLite
+con tipos y plan; cada operador rehusado por motor y `@@` por la lista; bajo
+un cliente de dialecto PostgreSQL el bind del WHERE es el literal y el DDL
+los tipos nativos), `NativeTypes` en la suite, y el exerciser `NATIVETYPES`
+en el arnés para que el gate estricto cubra los métodos de `Range`.
+
+**Siguiente: `S8`** (RLS fuera de PostgreSQL: qué recibe cada motor, y la
+verificación: RLS-01, RLS-02, RLS-04).
