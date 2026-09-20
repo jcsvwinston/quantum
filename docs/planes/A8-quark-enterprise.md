@@ -66,7 +66,7 @@ un control necesita un motor vivo su nota lo dice — esa prueba vive en
 | `S0` | La medición: el banco, su página y los hallazgos | A7 cerrado | **HECHA** — 20/69, 46 defectos registrados |
 | `S1` | El confinamiento por tenant sobrevive a una transacción | S0 | **HECHA** — quark#404: `RLS-13` a `present` con evidencia positiva, 21 de 69; ADR-0025 |
 | `S2` | `LIKE … ESCAPE` de punta a punta, por dialecto | S0 | **HECHA** — quark#406: `qk25` 11 de 11 (los 7 `absent` y el `partial`), probado en los cinco motores por `SharedSuite`; banco 29 de 69 |
-| `S3` | El plan lleva índices, FK y CHECK, y el ejecutor los emite | S0 | `MIG-01`, `MIG-03` y `MIG-06` a `present` |
+| `S3` | El plan lleva índices, FK y CHECK, y el ejecutor los emite | S0 | **HECHA** — quark#407: `MIG-01`, `MIG-02`, `MIG-03` y `MIG-06` a `present`; banco 33 de 69 |
 | `S4` | `ALTER COLUMN` completo y reversibilidad más allá de CREATE/DROP | S3 | `MIG-07` y `MIG-09` a `present` |
 | `S5` | uuid nativo y enum con CHECK desde el modelo | S0 | `TYP-01` y `TYP-03` a `present`, con la PK intacta |
 | `S6` | Arrays de PostgreSQL, rangos e inet | S5 | `TYP-04`, `TYP-06` y `TYP-07` a `present` |
@@ -235,3 +235,50 @@ en los cinco motores no es un extra, es la única que ve esto.**
 emite: `MIG-01`, `MIG-03`, `MIG-06`). Nota para el tren: quark#404 (fix) y
 quark#406 (feat) juntos hacen una MINOR de quark; el snapshot de doc va
 ANTES del release PR (regla de quark), y `quark-doc-debt.sh` lo sabe.
+
+### `S3` — el plan lleva índices, FK y CHECK, y el ejecutor los emite (2026-09-20) · **hecha**
+
+**PR**: quark#407 (`feat(migrate)`). **Medido**: `migraciones` de 5 a **9
+present**; el banco de 29 a **33 de 69**. MIG-01, MIG-02 y MIG-06 cambian de
+veredicto sólo con el arreglo; MIG-03 se retitula y su sonda se reescribe.
+
+**QK-27, las tres mitades.** (1) **El ejecutor emite la tabla entera**: FK y
+CHECK inline en el `CREATE TABLE` —la única forma que tiene SQLite, y una que
+aceptan los seis— y cada índice como su propio `CREATE INDEX` por el helper
+que ya usa `CreateIndex`. (2) **`Diff` ordena y casa para que el bucle
+converja**: las tablas nuevas se crean padres primero (orden topológico por
+sus FK, nombre entre las libres, nombre si hay ciclo); una FK se casa por lo
+que ES —columnas, tabla y columnas destino— y nunca por un nombre que SQLite
+no guarda; la acción vacía es el default del motor, `NO ACTION`; y un índice
+deseado lo satisface uno vivo de la misma forma con otro nombre, que es lo
+que parece desde el catálogo el índice de respaldo de una columna
+`quark:"unique"`. (3) **El modelo declara índices**: `quark:"index"`
+(`idx_<tabla>_<columna>`) e `index=<nombre>` entran en el vocabulario cerrado
+de la etiqueta; `Migrate` los crea tras la tabla y `PlanMigration` los
+propone cuando faltan. Los índices vivos que el modelo no nombra siguen sin
+tocarse, a propósito: un modelo que no puede describir todo el catálogo no
+debe proponer destruir lo que calla.
+
+**El retitulado de MIG-03 y su porqué.** El título de `S0` pedía «proponer
+crear o borrar índices»; borrar uno que el modelo no nombra es justo lo que
+el plan rehúsa por diseño. La sonda nueva mide las tres cosas que sí hay:
+`Migrate` crea el declarado y el plan queda vacío; un índice manual no
+provoca nada; el declarado que falta se propone, y sólo él. El estado de
+`S0` sigue siendo un `absent` alcanzable. Y la sonda vieja NO tenía camino a
+`present` (las dos ramas no vacías devolvían `partial`): la misma enfermedad
+que `S0` corrigió en MIG-11 y LIKE-02, en un tercer control.
+
+**Método**: cinco tests de raíz, cada uno verificado revirtiendo su arreglo;
+la prueba `PlanConstraints` en `SharedSuite` aplica un esquema padre/hijo
+con índice, FK y CHECK en cada motor de la matriz y exige residuo vacío —el
+CHECK se prueba por la fila que rechaza, porque SQLite no lo introspecciona.
+Una trampa de la propia suite: su base de datos comparte tablas de otros
+tests, así que el plan de un solo modelo propone borrarlas; se mide sólo lo
+que dice de su tabla.
+
+**Queda para `S10` (la sesión del CLI)**: `quark from-models` y `quark model`
+parsean el vocabulario de la etiqueta en su propio módulo y no conocen
+`index` todavía.
+
+**Siguiente: `S4`** (`ALTER COLUMN` completo y reversibilidad más allá de
+CREATE/DROP: `MIG-07`, `MIG-09`), que depende de `S3`.
