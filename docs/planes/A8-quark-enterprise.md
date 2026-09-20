@@ -65,7 +65,7 @@ un control necesita un motor vivo su nota lo dice — esa prueba vive en
 |---|---|---|---|
 | `S0` | La medición: el banco, su página y los hallazgos | A7 cerrado | **HECHA** — 20/69, 46 defectos registrados |
 | `S1` | El confinamiento por tenant sobrevive a una transacción | S0 | **HECHA** — quark#404: `RLS-13` a `present` con evidencia positiva, 21 de 69; ADR-0025 |
-| `S2` | `LIKE … ESCAPE` de punta a punta, por dialecto | S0 | Los 7 `absent` de `qk25` cerrados; ejercido en los cinco motores |
+| `S2` | `LIKE … ESCAPE` de punta a punta, por dialecto | S0 | **HECHA** — quark#406: `qk25` 11 de 11 (los 7 `absent` y el `partial`), probado en los cinco motores por `SharedSuite`; banco 29 de 69 |
 | `S3` | El plan lleva índices, FK y CHECK, y el ejecutor los emite | S0 | `MIG-01`, `MIG-03` y `MIG-06` a `present` |
 | `S4` | `ALTER COLUMN` completo y reversibilidad más allá de CREATE/DROP | S3 | `MIG-07` y `MIG-09` a `present` |
 | `S5` | uuid nativo y enum con CHECK desde el modelo | S0 | `TYP-01` y `TYP-03` a `present`, con la PK intacta |
@@ -165,3 +165,73 @@ ningún test hasta que se busca el caso en que la razón importa.
 `reference/api/multi-tenant` (`TenantRouter.Tx`, `ErrTenantMismatch`),
 `advanced/row-level-native`; `docs/adr/0025` y `docs/playbooks/tenant.md` con
 los dos anti-patrones nuevos; `docs/enterprise-bench.md` regenerado.
+
+### `S2` — `LIKE … ESCAPE` de punta a punta, por dialecto (2026-09-20) · **hecha**
+
+**PR**: quark#406 (`feat(query)`). **Medido**: la familia `qk25` de **3 present ·
+1 partial · 7 absent** a **11 present**; el banco de 21 a **29 de 69**. Y la
+prueba que la sesión debía —«ejercido en los cinco motores»— la hace
+`testLikeEscape` dentro de `SharedSuite`: en cada motor de la matriz asserta
+que la sentencia lleva la cola DE ESE motor (placeholder y grafía) y que
+devuelve exactamente la fila que una búsqueda de comodín literal debe.
+
+**Lo que entrega, todo por adición.** `WhereLike`/`WhereNotLike` (patrón con
+el escape declarado), `WhereContains`/`WhereStartsWith`/`WhereEndsWith` (texto
+del usuario, escapado con el nuevo `EscapeLike` —`%`, `_`, `[`, `\`— y
+envuelto), los tipados `Contains`/`StartsWith`/`EndsWith`/`LikeEscaped` y el
+AST `Like`/`Contains`/`StartsWith`/`EndsWith`. La cola se escribe POR MOTOR
+—`ESCAPE '\\'` en MySQL y MariaDB, cuyo parser lee una barra sola dentro del
+literal como escape; `ESCAPE '\'` en los demás, y SQLite RECHAZA la doblada—
+desde un solo helper que los cinco renderizadores (SELECT, UPDATE, DELETE)
+añaden. El guard lee el valor: un patrón que acaba en escape colgante se
+rechaza con `ErrInvalidQuery` antes de llegar al motor.
+
+**La decisión: la forma plana NO cambia.** `Where(col, "LIKE", p)` y el
+tipado `Like` siguen entregando el patrón opaco bajo el escape por defecto
+del motor. Declararles `ESCAPE` unificaría el significado, pero cambia lo
+que significa una barra invertida en tres motores para toda consulta
+publicada: es rompiente y va a A12 (**QK-32**, nacido aquí). El remedio
+ingenuo que el plan avisaba —escapar el valor sin declarar el carácter— es
+justo lo que rompe SQLite, y las sondas lo distinguen (0 filas = `partial`).
+
+**Cuatro controles retitulados, y por qué es honesto.** El `present` que `S0`
+escribió para LIKE-02, 03, 05 y 06 sólo era alcanzable cambiando la forma
+plana publicada (una búsqueda de `%%%` contestando cero filas). La capacidad
+que una aplicación necesita es una superficie que reciba el TEXTO del
+usuario aparte de los comodines que la aplicación pone alrededor —la propia
+sonda de `S0` lo dejó escrito: «1 fila sólo es alcanzable desde una superficie
+que reciba el texto aparte del patrón»—, y eso es lo que miden ahora; cada
+nota lo dice y asserta la forma plana como SUELO (si cambiara, la sonda
+falla en vez de dar un veredicto). LIKE-03 pasa de medir la variación por
+«escape por defecto» —que con el carácter declarado deja de importar— a
+medirla por las reglas del literal del parser, que es la que existe.
+
+**QK-31 de paso**: los tres `t.Skipf` tras un `Ping` fallido de la suite de
+MariaDB pasan a `t.Fatalf`; la lane que declara un motor falla si el motor
+no contesta (LIKE-11 a `present`).
+
+**Método**: tests de raíz verificados revirtiendo su arreglo (cola del SELECT,
+colas de UPDATE/DELETE, validación del patrón), y el banco por mutación
+(sin la cola del SELECT caen LIKE-01/02/03/05/08). Y una trampa pequeña: un
+test que buscaba la palabra `ESCAPE` la encontró en el nombre de la tabla
+`like_escape_rows`; se busca la CLÁUSULA (` ESCAPE '`), no la palabra.
+
+**Lo que sólo vio el motor real, y ninguna sonda sobre SQLite**: el primer
+corte escapaba `[` en los seis motores («con el carácter declarado, `\[` es
+un corchete literal en todas partes»); la lane de Oracle lo tumbó con
+`ORA-01424` — Oracle sólo admite el escape delante de `%`, `_` o de sí mismo.
+El corchete es comodín SOLO en SQL Server, así que se escapa sólo ahí, y eso
+obliga a componer el patrón de las búsquedas de texto cuando ya se conoce el
+dialecto (en `WhereP` para los tipados, en `ToSQL` para el AST). LIKE-03 lo
+mide como segundo hecho por motor: para un texto con `[`, exactamente SQL
+Server liga un valor distinto. La regla del arco se confirma: **una prueba
+en los cinco motores no es un extra, es la única que ve esto.**
+
+**Docs en el mismo PR**: `guides/querying` (búsqueda de texto del usuario),
+`reference/api/query-builder`, `reference/sqlguard`, `guides/codegen`;
+`docs/enterprise-bench.md` regenerado.
+
+**Siguiente: `S3`** (el plan lleva índices, FK y CHECK, y el ejecutor los
+emite: `MIG-01`, `MIG-03`, `MIG-06`). Nota para el tren: quark#404 (fix) y
+quark#406 (feat) juntos hacen una MINOR de quark; el snapshot de doc va
+ANTES del release PR (regla de quark), y `quark-doc-debt.sh` lo sabe.
