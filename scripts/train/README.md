@@ -369,6 +369,33 @@ la escritura humana. Tres veces el objetivo de 30 minutos. Pero es una
 INFERENCIA sobre el envolvente, no la medida que el reloj hace: el primer dato
 de verdad lo dará el tren siguiente.
 
+### quantum-app NO frena nada (decisión de Carlos, 2026-09-20)
+
+**Mientras el plan 5 de 5 siga abierto, nada de lo que le pase a
+`quantum-app` bloquea un arco, un corte ni una certificación.** Se rehará
+entero al terminar el plan, así que arreglarlo set a set es trabajo que se
+tira.
+
+En la práctica, para quien conduzca el tren:
+
+- El anuncio es el ÚLTIMO paso del cierre y corre sobre un set **ya
+  certificado**. Que su run acabe en `failure`, o que el PR del bump quede en
+  borrador con los gates rojos, **no invalida el set ni obliga a nada**.
+- **Una comprobación, y seguir.** Lo único que hay que distinguir es «deuda de
+  quantum-app» de «el set recién cortado rompió al consumidor». Lo segundo SÍ
+  es hallazgo del release y se trata como tal; lo primero se anota y se pasa.
+- **No se abren sesiones ni arcos para ponerlo al día**, y sus PRs de bump se
+  acumulan sin fusionar a propósito (a 2026-09-20, cuatro abiertos desde
+  1.30.0).
+
+Ejemplo de lo que no hay que perseguir, del tren de 1.34.0: su gate
+`suitemanifest` lee `examples/superapp/apisurface.json` de quark y **los
+ejemplos salieron del árbol el 2026-09-12**; sus tres paquetes de test pasan.
+Es deuda de aquella decisión, y se resuelve sola cuando se rehaga.
+
+El requisito de permiso de abajo sigue siendo válido —sin él el anuncio ni
+siquiera llega a abrir PR— pero su incumplimiento tampoco frena el cierre.
+
 ### El anuncio a quantum-app exige un permiso del repo (REQUISITO)
 
 El workflow `set-bump.yml` de quantum-app abre el PR con el `GITHUB_TOKEN` de
