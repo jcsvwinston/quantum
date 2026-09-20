@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-19, QUANTUM 1.34.0 — A7 CERRADO: la cola durable, el bus tipado, los canales y las dos sondas)
+## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0` medición y `S1` confinamiento en transacción HECHAS)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -77,13 +77,19 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   manda para cada pregunta, qué NO decide una sesión sola y las tres
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
-- **Trabajo por arcos del plan 5/5**: A1…A6 y **A7 CERRADO**
-  (1.28.0 … 1.33.0, 1.34.0) → **siguiente: A8** (Quark enterprise: migraciones
-  v2, RLS en tres motores), que **no tiene troceado**: se escribe al empezarlo
-  y **por una sesión de medición** — las tres veces que se planificó sin medir,
-  la medición corrigió el plan. A8 hereda de A4 la segunda mitad de su `S4`
-  (uuid nativo, enums con CHECK, arrays de PostgreSQL, rangos, inet, JSONB) y
-  **QK-24**, que avisa desde quark v1.14.0 pero no es error.
+- **Trabajo por arcos del plan 5/5**: A1…A7 CERRADOS (1.28.0 … 1.34.0) →
+  **A8 EN CURSO y TROCEADO** (Quark enterprise) por su `S0` de medición
+  (2026-09-20): doce sesiones en
+  [`docs/planes/A8-quark-enterprise.md`](../../docs/planes/A8-quark-enterprise.md).
+  La medición corrigió el enunciado por cuarta vez: de las tres cosas de
+  «migraciones v2» dos existían y la tercera no significa lo que el plan
+  suponía, y el RLS nativo es PostgreSQL y nada más. **`S0` y `S1` HECHAS**
+  (banco 20 → 21 de 69; `S1` cerró el P1 QK-26 en quark#404 con la decisión
+  escrita en el ADR-0025 de quark: la transacción fija el inquilino) →
+  **siguiente: `S2`** (`LIKE … ESCAPE` de punta a punta, por dialecto; su
+  remedio ingenuo rompe SQLite). A8 hereda de A4 la segunda mitad de su `S4`
+  (uuid nativo, enums con CHECK, arrays, rangos, inet, JSONB: van en `S5`–`S7`)
+  y **QK-24**, que avisa desde quark v1.14.0 pero no es error y va a A12.
   Lo que fue A7, sesión a sesión y con lo que cada una midió, está en
   [`docs/planes/A7-jobs-eventos-tiempo-real.md`](../../docs/planes/A7-jobs-eventos-tiempo-real.md);
   A4, A5 y A6, en sus ficheros.
@@ -175,6 +181,43 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-20 — **A8 `S1` HECHA**: la transacción fija el inquilino, y los seis defectos de la revisión cerrados con un test por cada uno
+
+- **PR quark#404** (`fix(tenancy)`), sobre la rama del primer corte. Los seis
+  defectos que la revisión adversarial dejó abiertos se cierran así: (1) toda
+  escritura mira `q.err` a la entrada, las copias internas de `BaseQuery` lo
+  arrastran y `queryRowOn` lo acuña en el `*sql.Row` — el comentario que decía
+  que «aflora solo en `Scan`» describía un mecanismo inexistente, y un
+  `Create` bajo Native sobre SQLite ejecutaba su INSERT sin aislamiento
+  alguno; (2) `NewTenantRouter` estampa el `BaseClient` y `Client.BeginTx`
+  confina la transacción si el contexto lleva inquilino, así que
+  `GetClient`+`client.Tx` es la misma puerta que `router.Tx`; (3) `Preload`
+  cualifica la tabla de la relación (`qualifiedTable`, por donde pasa ya toda
+  tabla que una consulta toca); (4) `DatabasePerTenant` no re-resuelve del
+  contexto de la consulta: hereda; (5) `RLS-13` exige evidencia POSITIVA —un
+  schema `ATTACH`ado en SQLite con una fila que sólo vive ahí, y el predicado
+  ligado a ESE inquilino con sólo sus filas de vuelta—, y revertir el
+  confinamiento de `ForTx` la pone en `partial`; (6) **decisión escrita en el
+  ADR-0025 de quark: la transacción fija el inquilino** — un contexto sin
+  inquilino lo hereda, uno que nombre a otro falla con `ErrTenantMismatch`
+  (API nueva, aditiva).
+- **Banco: 21 de 69** (27 parciales, 21 ausentes). Se movió un solo control;
+  era el P1.
+- **Método**: cada test de regresión se verificó **revirtiendo su arreglo**
+  (cuatro mutaciones; cada una puso rojo el test que debía y ninguno más). La
+  lección del primer corte —un parámetro declarado, documentado y no leído—
+  se pagó así: el booleano `inTx` pasó a ser el propio `*Tx`, que además
+  decide QUÉ inquilino, de modo que no leerlo ya no compila.
+- **Lo que enseñó, y vale para el arco**: `For[T]` sin inquilino ya se
+  rechazaba, pero **por la razón equivocada** («client not initialized»,
+  porque `GetClient` falló antes de llegar al confinamiento); la fuga real
+  era la consulta que SÍ tenía cliente y falló al construirse (Native sobre
+  un motor que no es PostgreSQL). El primer test que escribí para el defecto
+  pasaba con el arreglo revertido — lo destapó la mutación, no la lectura.
+- **Siguiente: `S2`.** Precondición: quark#404 fusionado. La deuda de doc de
+  la release (RT-9) la paga el tren; el snapshot, si la release es minor, va
+  ANTES del release PR.
+
 ### Sesión 2026-09-19 — **A7 CERRADO**: de 12 a 40 de 40, y un tren que encontró nueve defectos que el banco no vio
 
 - **El tren, y lo que costó.** Diecisiete PRs de nucleus (los nueve del arco
@@ -216,41 +259,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   empezando por la llave. No lo ve ningún test de Go ni ningún guard: sólo el
   build del sitio.
 
-### Sesión 2026-09-19 (antes del tren) — **A7 completo en código**: de 12 a 40 de 40, nueve sesiones en una tanda, y el gate medido
-
-- **S3 a S11 hechas** (nucleus#554…#562, apilados). El banco cierra en **40 de
-  40 con todas las familias completas**: cola 13/13, eventos 12/12, tiempo real
-  8/8, operación 7/7.
-- **Lo que entró, por sesión**: `S3` inspección real y métricas para los tres
-  proveedores más `TaskInspectorFrom` (NU-81, NU-82, NU-83); `S4` cron con
-  **líder por lock de base de datos** y unicidad de job; `S5` el bus deja de
-  hacer daño a quien emite (NU-78, NU-79); `S6` **bus tipado junto al que hay**
-  y el outbox como su transporte; `S7` el outbox cuenta por topic (NU-76);
-  `S8` **canales WS y SSE con el protocolo escrito en el framework**; `S9`
-  `/livez` y `/readyz` separados, pprof protegido, relay entre réplicas y
-  **NU-77 cerrado por sus dos causas**; `S10` `Server.Stream` con `Quiet`;
-  `S11` el gate, el guard y la retención (NU-86).
-- **El gate, medido de verdad**: 10 000 jobs, el worker muerto con **SIGKILL**
-  y **trabajo en vuelo asertado** —matar un proceso ocioso también pasa y mide
-  nada—, resultado **10 000 hechos, 0 muertos, 0 perdidos, 0 duplicados**. Corre
-  en el CI.
-- **`umbrella-jobs-posture` es el guard 51º**, con fixture de tres roturas: la
-  página que publica otra cifra, el CI que deja de correr la prueba, y la
-  prueba que deja de exigir trabajo en vuelo.
-- **Cuatro lecciones sobre medir, todas pagadas en esta tanda**: (1) una sonda
-  que **no recorre el cableado** certifica algo que no existe — el banco daba
-  por buenos cuatro controles mientras `jobs_provider: sql` **panicaba en el
-  arranque**; (2) un veredicto correcto **por la razón equivocada** no lo caza
-  ningún test; (3) **el orden de los tests es un instrumento** — el defecto de
-  los instrumentos de métricas sólo se vio porque una sonda corría después de
-  otra; y (4) **un `replace` silencioso miente**: el paso de CI que `S2` decía
-  haber añadido no estaba, y su PR lo afirmaba.
-- **Lo que falta, y no lo hace una sesión sola: EL TREN.** Fusionar los nueve
-  PRs, cortar la release de nucleus, cerrar con ella **OR-53** (la mitad de
-  orbit: `orbit.Config` necesita un campo para el `tasks.Inspector`, y no
-  compila hasta que la release exista — la trampa que A6 dejó escrita), y
-  certificar el set. **A7 se declara cerrado ahí**, no antes.
-
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -289,16 +297,17 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **El plan a 5 de 5** manda el orden: ~~A1~~, ~~A2~~, ~~A3~~, ~~A4~~, ~~A5~~ y
-  ~~A6~~ CERRADOS (1.28.0, 1.29.0, 1.30.0, 1.31.0, 1.32.0, 1.33.0) → **A7
-  (jobs, eventos y tiempo real), EN CURSO y TROCEADO** por su `S0` de medición
-  (2026-09-18): doce sesiones en
-  [`docs/planes/A7-jobs-eventos-tiempo-real.md`](../../docs/planes/A7-jobs-eventos-tiempo-real.md),
-  siguiente `S1` → A8 … → A12. El registro de hallazgos y su guard
-  (`umbrella-audit-backlog`) siguen siendo el gate de cada arco; A6 lo cerró
-  con el suyo propio, `umbrella-admin-posture`, y A7 propone
-  `umbrella-jobs-posture` para el suyo.
-- **Los hallazgos que abrió A7** (todos en nucleus salvo uno): **NU-78** (P2,
+- **El plan a 5 de 5** manda el orden: ~~A1~~ … ~~A7~~ CERRADOS (1.28.0 …
+  1.34.0) → **A8 (Quark enterprise), EN CURSO y TROCEADO** por su `S0` de
+  medición (2026-09-20): doce sesiones en
+  [`docs/planes/A8-quark-enterprise.md`](../../docs/planes/A8-quark-enterprise.md),
+  `S0` y `S1` hechas, siguiente `S2` → A9 … → A12. El registro de hallazgos y
+  su guard (`umbrella-audit-backlog`) siguen siendo el gate de cada arco; A6 y
+  A7 lo cerraron con el suyo propio (`umbrella-admin-posture`,
+  `umbrella-jobs-posture`) y A8 propone `umbrella-quark-posture` para el suyo
+  (`S11`).
+- **Los hallazgos que abrió A7, todos CERRADOS en 1.34.0** (queda como mapa de
+  qué sesión cerró qué; todos en nucleus salvo uno): **NU-78** (P2,
   `EmitAsync` bloquea al emisor con el techo de concurrencia lleno), **NU-79**
   (P2, un pánico en un handler síncrono se lleva a quien emitió; el `recover`
   sólo cubre el asíncrono), **NU-80** (P2, el proveedor por defecto descartaba
@@ -364,7 +373,7 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
   **declara su alcance** en el payload en vez de fingir uno más estrecho.
   Replicarlo dentro de orbit duplicaría el quoting por dialecto del
   framework. Va a A7 (jobs, eventos y tiempo real), NO al gate de A6.
-- **QK-25, nacido en `S5` (P2, A8)**: el builder de quark no puede emitir
+- **QK-25, nacido en `S5` de A6 (P2, A8 → su `S2`)**: el builder de quark no puede emitir
   `LIKE … ESCAPE`, y SQLite y Oracle no tienen escape por defecto, así que un
   `%` en el valor ensancha. `quarkdatasource` rechaza esa consulta en esos dos
   motores en vez de contestarla mal; **la caja de búsqueda arrastra el mismo

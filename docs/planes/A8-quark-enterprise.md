@@ -64,7 +64,7 @@ un control necesita un motor vivo su nota lo dice — esa prueba vive en
 | Sesión | Qué entrega | Precondición | Criterio de hecho |
 |---|---|---|---|
 | `S0` | La medición: el banco, su página y los hallazgos | A7 cerrado | **HECHA** — 20/69, 46 defectos registrados |
-| `S1` | El confinamiento por tenant sobrevive a una transacción | S0 | **A MEDIAS** — ver abajo: seis defectos confirmados sin cerrar |
+| `S1` | El confinamiento por tenant sobrevive a una transacción | S0 | **HECHA** — quark#404: `RLS-13` a `present` con evidencia positiva, 21 de 69; ADR-0025 |
 | `S2` | `LIKE … ESCAPE` de punta a punta, por dialecto | S0 | Los 7 `absent` de `qk25` cerrados; ejercido en los cinco motores |
 | `S3` | El plan lleva índices, FK y CHECK, y el ejecutor los emite | S0 | `MIG-01`, `MIG-03` y `MIG-06` a `present` |
 | `S4` | `ALTER COLUMN` completo y reversibilidad más allá de CREATE/DROP | S3 | `MIG-07` y `MIG-09` a `present` |
@@ -100,42 +100,68 @@ la medición fresca. El resto puede reordenarse si una sesión se atasca.
   devuelven todos el mismo veredicto no-`present` no puede ponerse verde nunca,
   así que cerrar el hueco no mueve nada. Le pasaba a `MIG-11` y a `LIKE-02`.
 
-### `S1` — el confinamiento en una transacción (2026-09-20) · **a medias**
+### `S1` — el confinamiento en una transacción (2026-09-20) · **hecha**
 
-Rama `quark:fix/a8-s1-tenant-in-tx`, empujada y **sin PR a propósito**: no está
-terminada.
+**PR**: quark#404 (`fix(tenancy)`), sobre la rama del primer corte
+`quark:fix/a8-s1-tenant-in-tx`. **Medido**: `RLS-13` de `partial` a
+`present`, el banco de **20 a 21 de 69**; un solo control, el P1.
 
-**Lo que sí está hecho y verificado.** El confinamiento vive ahora en una sola
-función, `applyTenantConfinement`, llamada desde los dos constructores — el
-defecto era exactamente que había dos caminos y divergían, así que una
-estrategia añadida ahí llega a los dos o a ninguno. Bajo `RowLevelSecurityNative`
-dentro de una transacción la consulta conserva el executor de la transacción,
-porque el aislamiento ya lo puso `set_config` en esa conexión. `RLS-13` pasa de
-`partial` a `present` y el banco va a **21 de 69**. Cuatro tests de regresión,
-cada uno comprobado revirtiendo el arreglo.
+**Lo que entrega.** El confinamiento vive en UNA función,
+`applyTenantConfinement`, llamada desde `For` y desde `ForTx` — el defecto era
+que había dos caminos y divergían. El `*Tx` lleva el router que lo confina y
+el inquilino para el que se abrió, puestos por UNA función,
+`TenantRouter.confineTx`, desde `router.Tx` y desde `Client.BeginTx` cuando el
+cliente es el `BaseClient` estampado. Bajo `RowLevelSecurityNative` dentro de
+una transacción la consulta conserva el executor de la transacción, porque el
+aislamiento ya lo puso `set_config` en esa conexión.
 
-**Lo que la revisión adversarial encontró, y hay que cerrar antes del PR.** Seis
-lentes, tres escépticos por hallazgo y regla de mayoría: 23 confirmados sobre 23
-crudos, que son seis defectos distintos vistos por lentes distintas.
+**La decisión que faltaba, tomada y escrita — ADR-0025 de quark: la
+transacción fija el inquilino.** Un contexto de consulta que no resuelve
+inquilino lo hereda (`ForTx[T](context.Background(), tx)` es válido); uno que
+resuelve OTRO falla con `ErrTenantMismatch`, API nueva y aditiva. Bajo Native
+el motor ya filtra por el que fijó la transacción; bajo `DatabasePerTenant`
+el pool ya se eligió. Obedecer al contexto de la consulta —lo que hacía el
+primer corte— era una mentira en el primero y una regresión en el segundo.
 
-1. **`Create` no consulta `q.err`**, así que cuando `ResolveTenant` falla dentro
-   de `router.Tx` la escritura sale igual. Es fuga.
-2. **El arreglo sólo cubre `router.Tx`.** `GetClient(ctx)` + `client.Tx` sigue
-   entregando un `*Tx` desnudo: la misma fuga por la otra puerta.
-3. **`Preload` no cualifica la tabla de la relación** con el esquema del
-   inquilino, así que el confinamiento no alcanza a lo precargado.
-4. **Regresión**: bajo `DatabasePerTenant`, `ForTx` con un contexto sin tenant
-   ahora falla, donde antes bastaba el pool.
-5. **`RLS-13` llega a `present` sin observar confinamiento positivo** dentro de
-   la transacción: una consulta que simplemente falla lo satisface. Hay que
-   endurecer la sonda ANTES de fiarse de su veredicto.
-6. **El inquilino se re-resuelve del contexto de la consulta**, no del que abrió
-   la transacción, y las estrategias no se ponen de acuerdo sobre cuál manda.
-   Es una decisión de diseño que hay que tomar y escribir.
+**Los seis defectos de la revisión, cerrados y cada uno con su test verificado
+revirtiendo el arreglo** (`tenant_tx_confinement_test.go`):
 
-**Y una lección de método, que es mía.** El parámetro `inTx` se declaró, se
-documentó con el porqué… y no se leyó en ninguna línea. El comentario afirmaba
-una guarda que no existía: el mismo defecto que este arco lleva encontrando
-desde `S0`, cometido en el arreglo de un P1. Lo cazó la revisión, no el
-compilador —un parámetro sin usar es legal en Go— ni `go vet`, ni los tests que
-yo había escrito.
+1. **`Create` no consultaba `q.err`** — ni ningún mutador. Las copias
+   internas de `BaseQuery` (`dq`, `sq`, `bq`) no arrastraban `err` y
+   `queryRowOn` no lo miraba: el comentario que afirmaba que «aflora solo en
+   `Scan`» describía un mecanismo inexistente. Un `Create` bajo Native sobre
+   SQLite ejecutaba su INSERT sin aislamiento alguno. Ahora todo mutador
+   abre con `if q.err != nil`, toda copia arrastra `err`, y `queryRowOn`
+   acuña el error en el `*sql.Row` con `errorRow`.
+2. **`GetClient`+`client.Tx` era la otra puerta.** `NewTenantRouter` estampa
+   el `BaseClient` de las tres estrategias de pool compartido y `BeginTx`
+   confina la transacción si el contexto lleva inquilino (`set_config`
+   incluido bajo Native). Sin inquilino queda como siempre fue —sobre el pool
+   compartido—, que es como corren migraciones y aprovisionamiento; un
+   inquilino inválido es error, nunca una transacción desnuda.
+3. **`Preload` leía las relaciones del schema por defecto.** Toda tabla que
+   una consulta toca pasa ahora por `qualifiedTable`.
+4. **Regresión bajo `DatabasePerTenant`** (un `ForTx` con contexto sin
+   inquilino fallaba donde bastaba el pool): resuelta por la regla del ADR.
+5. **`RLS-13` llegaba a `present` sin observar confinamiento positivo.** La
+   sonda `ATTACH`a en SQLite una base bajo el nombre del inquilino, con una
+   fila que sólo vive ahí: la evidencia son las filas leídas, no la forma del
+   error; y el lado cliente exige el predicado ligado a ESE inquilino con
+   sólo sus filas de vuelta. Revertir el confinamiento de `ForTx` la deja en
+   `partial` y el banco en rojo.
+6. **Quién manda sobre el inquilino dentro de la transacción**: arriba.
+
+**Método, y dos lecciones.** (a) El booleano `inTx` del primer corte —declarado,
+documentado y no leído— pasó a ser el propio `*Tx`, que además decide QUÉ
+inquilino: no leerlo ya no compila. (b) El primer test que escribí para el
+defecto 1 pasaba con el arreglo revertido: `For[T]` sin inquilino ya se
+rechazaba, pero **por la razón equivocada** («client not initialized», porque
+`GetClient` falló antes de llegar al confinamiento). La fuga real era la
+consulta que SÍ tenía cliente y falló al construirse. Lo destapó la mutación,
+no la lectura — un veredicto correcto por la razón equivocada no lo caza
+ningún test hasta que se busca el caso en que la razón importa.
+
+**Docs en el mismo PR**: `advanced/multi-tenant` (sección Transactions),
+`reference/api/multi-tenant` (`TenantRouter.Tx`, `ErrTenantMismatch`),
+`advanced/row-level-native`; `docs/adr/0025` y `docs/playbooks/tenant.md` con
+los dos anti-patrones nuevos; `docs/enterprise-bench.md` regenerado.
