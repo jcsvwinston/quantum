@@ -71,7 +71,7 @@ un control necesita un motor vivo su nota lo dice — esa prueba vive en
 | `S5` | uuid nativo y enum con CHECK desde el modelo | S0 | **HECHA** — quark#409: `TYP-01`, `TYP-02` y `TYP-03` a `present`; banco 38 de 69 |
 | `S6` | Arrays de PostgreSQL, rangos e inet | S5 | **HECHA** — quark#411: `TYP-04`, `TYP-06` y `TYP-07` a `present`; banco 42 de 69 |
 | `S7` | `precision/scale` deja de secuestrar, y la matriz de tipos deja de mentir | S5 | **HECHA** — quark#410: `TYP-11` a `present`, QK-28 y QK-30 cerrados; banco 39 de 69 |
-| `S8` | RLS fuera de PostgreSQL: qué recibe cada motor, y la verificación | S1 | `RLS-01`, `RLS-02` y `RLS-04` con su veredicto medido |
+| `S8` | RLS fuera de PostgreSQL: qué recibe cada motor, y la verificación | S1 | **HECHA** — quark#412: `RLS-02` y `RLS-04` a `present`, `RLS-01` `partial` medido y decidido; banco 44 de 69 con `S6` |
 | `S9` | Paginación por cursor / keyset | S0 | `OPS-15` a `present` |
 | `S10` | El CLI: `migrate diff/plan/verify` y las políticas de tenant | S3, S8 | `MIG-11` y `RLS-06` a `present` |
 | `S11` | Gate, guard y set | todas | `umbrella-quark-posture` registrado con su fixture; set certificado |
@@ -451,3 +451,49 @@ en el arnés para que el gate estricto cubra los métodos de `Range`.
 
 **Siguiente: `S8`** (RLS fuera de PostgreSQL: qué recibe cada motor, y la
 verificación: RLS-01, RLS-02, RLS-04).
+### `S8` — RLS fuera de PostgreSQL: qué recibe cada motor, y la verificación (2026-09-20) · **hecha**
+
+**PR**: quark#412 (`feat(tenancy)`). **Medido**: `rls` de 4 a **6 present**
+(RLS-02 y RLS-04); RLS-01 conserva su `partial` MEDIDO con la decisión en la
+nota. Banco: 44 de 69 una vez fusionadas `S6` y `S8`.
+
+**Lo que entrega.** (1) **La tercera puerta falla cerrada (RLS-02)**:
+`GetClient` —el método de `ClientProvider`, exportado y documentado—
+devolvía el `BaseClient` bajo `RowLevelSecurityNative` en un motor sin RLS
+nativo, y una lectura a través suyo devolvía las filas de todos los
+inquilinos; ahora rehúsa con `ErrUnsupportedFeature` como `For` y `Tx`.
+(2) **El router verifica antes de servir (RLS-04)**: en PostgreSQL comprueba,
+una vez por tabla al primer uso, que `pg_class.relrowsecurity` está activo y
+existe al menos una `pg_policy`, y rehúsa con `ErrRLSNotEnforced` si no —
+desactivado, sin política, o un catálogo que no puede leer—. Antes, un router
+Native servía filas sobre una base cuyas políticas nunca se instalaron, sin
+una palabra; `quarktenant.VerifyRLSPolicies` existía y nada lo llamaba. Esa
+función sigue siendo el preflight detallado (nombre de la política, `FORCE`,
+qué dice el predicado) y ahora informa con el sentinela de la raíz.
+`TenantConfig.SkipPolicyVerification` lo apaga para políticas gestionadas
+fuera de la vista de Quark; los tres tests de la suite que miden otra cosa
+bajo Native (retención, durabilidad, aviso de SQL crudo) lo usan. (3) **Una
+lectura sobre una consulta que falló al construirse dice por qué**: `List`,
+`First` y `Find` miraban `q.client == nil` antes que `q.err`, así que un
+proveedor rehusado salía como «client not initialized» — la lección de `S1`,
+cerrada en su origen.
+
+**La decisión de RLS-01, escrita.** El RLS nativo sigue siendo sólo
+PostgreSQL, y `S8` decide dejarlo así: el `SESSION_CONTEXT` de SQL Server y
+el contexto de sesión de Oracle son de SESIÓN — fijados dentro de una
+transacción sobreviven a su commit en la conexión del pool, y el siguiente
+inquilino que tome esa conexión hereda la identidad del anterior salvo que
+todos los caminos la limpien —, donde el `set_config(..., true)` de
+PostgreSQL es de transacción. Quark no ofrece una estrategia que no pueda
+hacer segura sobre un pool. La guía multi-tenant lleva ahora la tabla de qué
+recibe cada motor: PostgreSQL Native o Client; los otros cinco Client, y
+Native rehúsa por las tres puertas.
+
+**Trampa del banco**: las sondas de MECANISMO (qué variable fija el router,
+cómo escopa la caché) corren sobre un SQLite con forma de PostgreSQL que no
+tiene `pg_class`; la verificación al primer uso las habría rehusado todas.
+Sus routers la saltan y lo dicen; RLS-04 es el control que mide la
+verificación y construye el suyo con ella activa.
+
+**Siguiente: `S9`** (paginación por cursor / keyset: OPS-15) — ya escrita en
+rama, pendiente de rebase y CI.
