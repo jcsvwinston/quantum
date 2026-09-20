@@ -11,67 +11,45 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-09-19)
+## Estado real (2026-09-20)
 
-- **Set certificado: Quantum 1.34.0** (2026-09-19) — quark v1.14.0 (con el
-  CLI en v1.0.1 y los cinco drivers en v0.2.1) · nucleus v1.30.0 (doce
-  módulos hermanos) · orbit v1.10.2 (proto v0.4.4, agent v0.7.1, server
-  v0.12.1, quarkbridge v1.9.1, quarkdatasource v1.9.2).
-  1.34.0 publica el arco **A7** (jobs, eventos y tiempo real): una cola de
-  trabajos DURABLE sobre la base de datos que la aplicación ya tiene, sin
-  broker —at-least-once bajo lease, rescate acotado, cron sin Redis con líder
-  por fila de lease—, un bus de eventos TIPADO junto al de siempre con el
-  outbox como transporte opcional, CANALES en el framework sobre WebSocket y
-  SSE con su protocolo y su relay entre réplicas, y `/livez` y `/readyz` como
-  dos preguntas distintas con drenaje para un despliegue rodante. El banco
-  `nucleus/internal/jobsbench` va de **12 a 40 de 40**, con el gate medido
-  —10 000 jobs y el worker muerto a mitad: 10 000 hechos, 0 perdidos— y el
-  panel de orbit vuelve a ver la cola (OR-53). El detalle, sesión a sesión,
-  en [`planes/A7-jobs-eventos-tiempo-real.md`](planes/A7-jobs-eventos-tiempo-real.md).
-  Lo que el TREN encontró y ninguna sesión vio —nueve defectos, dos de ellos
-  paradas de release— está en ese mismo fichero y en el registro como
-  NU-89…NU-95, OR-54 y OR-55.
-- 1.33.0 publicó el arco **A6** (Orbit como admin de producto): el panel deja
-  de ser uno de observabilidad con un CRUD genérico encima y pasa a
-  administrar el producto — cuentas de operador, permisos por campo y por
-  fila, un rastro de auditoría que sobrevive al proceso, formularios con
-  relaciones e hijos, listas con doce operadores de filtro, sesiones que
-  dicen de quién son, vistas de operación que informan de lo que pasa, y lo
-  que la aplicación añada: sus verbos, sus pantallas, su marca, sus tarjetas
-  y su idioma. El banco de admin va de **32 a 59 de 59** controles, con un
-  **instrumento de navegador** aparte (contraste, foco, teclado) que corre en
-  el CI de orbit. Minor de suite por las minors de nucleus y orbit.
-  El detalle de A6, sesión a sesión y con lo que cada una midió, está en
-  [`planes/A6-orbit-admin-de-producto.md`](planes/A6-orbit-admin-de-producto.md),
-  y lo que publicó cada set anterior —A5 incluido— en
+- **Set certificado: Quantum 1.35.0** (2026-09-20) — quark v1.15.0 (con el
+  CLI en v1.1.0 y los cinco drivers en v0.2.2) · nucleus v1.30.1 (doce
+  módulos hermanos) · orbit v1.10.3 (proto v0.4.4, agent v0.7.2, server
+  v0.12.2, quarkbridge v1.9.2, quarkdatasource v1.9.3).
+  1.35.0 publica el arco **A8** (Quark enterprise): `LIKE` escapado por
+  adición con la forma plana intacta, el plan de migración que lleva y emite
+  índices, FK y CHECK declarados en el modelo, `ALTER COLUMN` completo en los
+  seis motores con SQLite reconstruyendo la tabla, uuid/slices/maps/rangos/
+  `net.IP` en el tipo de cada motor, el router Native que falla cerrado y
+  verifica las políticas, keyset con `PaginateAfter`, y el CLI que planifica
+  desde fuente e instala y verifica RLS. El banco
+  `quark/internal/enterprisebench` va de **20 a 47 de 69**, cada ausente con
+  su nota, y los dos hallazgos rompientes (QK-24, QK-32) esperan al major de
+  A12. El detalle, sesión a sesión, en
+  [`planes/A8-quark-enterprise.md`](planes/A8-quark-enterprise.md).
+- 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
+  trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
+  TIPADO con el outbox como transporte opcional, CANALES sobre WebSocket y
+  SSE con relay entre réplicas, y `/livez` y `/readyz` separados. El banco
+  `nucleus/internal/jobsbench` fue de **12 a 40 de 40**. El detalle en
+  [`planes/A7-jobs-eventos-tiempo-real.md`](planes/A7-jobs-eventos-tiempo-real.md);
+  lo que publicó cada set anterior —A6 y A5 incluidos— en
   [`../CHANGELOG.md`](../CHANGELOG.md).
   La fuente de verdad es [`versions.yaml`](../versions.yaml), siempre — y
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
-- **Certificación mecánica:** 51 guards en el registro — los 50 de 1.33.0 más
-  `umbrella-jobs-posture`, el gate de A7: comprueba que la cifra que publica
-  `nucleus/docs/jobs-bench.md` sea la que su tabla cuenta, que ningún control
-  ausente se quede sin razón escrita, y que el CI de nucleus corra DE VERDAD
-  la prueba de durabilidad y la cola contra motores reales — un `replace`
-  silencioso ya afirmó una vez haber añadido un paso de CI que no estaba. El
-  50º es `umbrella-admin-posture`, el gate de A6: comprueba que la cifra que publica
-  la página del banco de admin sea la que su tabla cuenta, que ningún control
-  ausente se quede sin razón escrita, y que el instrumento del navegador siga
-  EXIGIDO por el CI de orbit — si dejara de estarlo, la lane se pondría verde
-  cuando el navegador falta, que es decir que se midió lo que nadie midió. Los
-  49 anteriores eran los de 1.31.0
-  menos `umbrella-quickstart-embeds`, que resolvía las fences `file=` del
-  quickstart contra `nucleus/examples/showcase_demo`: **la suite retiró los
-  ejemplos del árbol el 2026-09-12** hasta cerrar el plan 5/5, así que los
-  listados viven en la página y quien los compara con lo que el scaffold
-  escribe es `scripts/ci/check_quickstart_listings.sh`, dentro de la lane
-  que ya genera el proyecto; más `umbrella-release-assets`, registrado el
-  2026-09-15: la release de cada tag que el set pina publica DE VERDAD su
-  `checksums.txt` firmado — los otros 48 leen el árbol, y un release que
-  falla al firmar salía verde (nucleus v1.26.0). Es el único guard que
-  pregunta a la red. Lane semanal + modo `--cierre`
-  ([`AUDITORIA_CONTINUA.md`](AUDITORIA_CONTINUA.md)).
+- **Certificación mecánica:** 52 guards en el registro — los 51 de 1.34.0 más
+  `umbrella-quark-posture`, el gate de A8: comprueba en el árbol pinado que
+  el banco de quark tiene sus 69 controles y ningún ausente sin nota, que la
+  cifra que publica `quark/docs/enterprise-bench.md` es la que cuenta la
+  tabla, y que las seis pruebas que el arco añadió a `SharedSuite` siguen
+  corriendo en la lane de cada motor — lo único del arco que se mide contra
+  un motor real. El 51º, `umbrella-jobs-posture`, es el gate de A7 (la cifra
+  de `nucleus/docs/jobs-bench.md`, ningún ausente sin razón, y el CI de
+  nucleus corriendo DE VERDAD la prueba de durabilidad). El set se certifica
+  con `suite-integral --cierre` sobre el árbol pinado.
 - **Auditoría de madurez 2026-09-03 sobre 1.26.0: ejecutada, corregida y
   PUBLICADA en 1.26.1.** Cuatro auditores midieron cada pilar contra el
   mercado (147 defectos, 4 P0, todos en la primera hora del evaluador). Los

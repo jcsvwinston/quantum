@@ -64,57 +64,35 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S10` HECHAS, banco 47 de 69)
+## 3. Estado al cierre (2026-09-20, QUANTUM 1.35.0 — A8 CERRADO: Quark como capa de datos enterprise, banco 20 → 47 de 69)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.34.0** (2026-09-19) — quark v1.14.0 (sin
-  cambio), nucleus v1.30.0, orbit v1.10.2 y sus módulos, tal como los lista
-  `versions.yaml` (la fuente; no copies números de aquí). `declared_lags`
-  vacío. Publica el arco **A7**.
+- **Set certificado: Quantum 1.35.0** (2026-09-20) — quark v1.15.0 (con el
+  CLI `cmd/quark` v1.1.0), nucleus v1.30.0 (sin cambio), orbit alineado a los
+  pines nuevos, tal como los lista `versions.yaml` (la fuente; no copies
+  números de aquí). `declared_lags` vacío. Publica el arco **A8**.
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
-- **Trabajo por arcos del plan 5/5**: A1…A7 CERRADOS (1.28.0 … 1.34.0) →
-  **A8 EN CURSO y TROCEADO** (Quark enterprise) por su `S0` de medición
-  (2026-09-20): doce sesiones en
-  [`docs/planes/A8-quark-enterprise.md`](../../docs/planes/A8-quark-enterprise.md).
-  La medición corrigió el enunciado por cuarta vez: de las tres cosas de
-  «migraciones v2» dos existían y la tercera no significa lo que el plan
-  suponía, y el RLS nativo es PostgreSQL y nada más. **`S0`–`S3` HECHAS**
-  (banco 20 → 21 → 29 → 33 de 69; `S1` cerró el P1 QK-26 en quark#404 con la
-  decisión escrita en el ADR-0025 de quark: la transacción fija el inquilino;
-  `S2` cerró QK-25 y QK-31 en quark#406 con las superficies escapadas de
-  `LIKE`, y dejó escrito en **QK-32** (A12) que la forma plana no se toca
-  porque es rompiente; `S3` cerró QK-27 en quark#407: el plan lleva índices,
-  FK y CHECK, el ejecutor los emite y el modelo declara índices con
-  `quark:"index"`; `S4` en quark#408: `ALTER COLUMN` de cuatro facetas en
-  los seis motores y SQLite reconstruye la tabla; `S5` en quark#409: forma
-  UUID con tipo por motor, la clave mapeada conserva su PK (QK-29) y CHECK
-  declarado en el modelo; `S7` en quark#410: `precision/scale` refina sólo
-  flotantes con aviso en el resto, la familia decimal es una para el diff y
-  la matriz/roadmap dicen la verdad (QK-28, QK-30); `S6` en quark#411:
-  slices/maps almacenados (array nativo en PG, JSON en el resto),
-  `Range[T]`, `net.IP` como `INET`, y los operadores de PG conocidos y
-  rehusados por motor; `S8` en quark#412: `GetClient` falla cerrado, el router
-  Native verifica las políticas al primer uso (`ErrRLSNotEnforced`) y el RLS
-  nativo se queda en PostgreSQL con el porqué escrito; `S9` en quark#413:
-  `PaginateAfter`, keyset con token opaco y una sentencia por página; `S10`
-  en quark#414: `PlanMigration` sin modelos rehúsa, `migrate
-  diff|plan|verify --from-models` y `tenant install-rls-policies|
-  verify-rls-policies` en el binario, y el lector estático aprende
-  `default`/`index`/`check`/`enum` — banco 47 de 69) → **siguiente: `S11`**
-  (gate, guard y set: `umbrella-quark-posture` con su fixture y el tren).
-  **Para el tren**: quark#404 y #410 (fix) y #406–#409, #411–#414 (feat)
-  hacen una MINOR de quark, y el snapshot de doc va ANTES del release PR.
-  A8 hereda de A4 la segunda mitad de su `S4`
-  (uuid nativo, enums con CHECK, arrays, rangos, inet, JSONB: van en `S5`–`S7`)
-  y **QK-24**, que avisa desde quark v1.14.0 pero no es error y va a A12.
-  Lo que fue A7, sesión a sesión y con lo que cada una midió, está en
-  [`docs/planes/A7-jobs-eventos-tiempo-real.md`](../../docs/planes/A7-jobs-eventos-tiempo-real.md);
-  A4, A5 y A6, en sus ficheros.
+- **Trabajo por arcos del plan 5/5**: A1…A8 CERRADOS (1.28.0 … 1.35.0) →
+  **siguiente: A9** (Fleet unificado y una sola SPA), SIN troceado todavía:
+  empieza por su `S0` de medición (`docs/planes/README.md` §5). **A8** (Quark
+  enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
+  `quark/internal/enterprisebench` de 20 a **47 de 69**, QK-25…QK-31 hechos,
+  y los dos rompientes (QK-24, QK-32: la forma plana de `LIKE`) a A12. Lo que
+  fue, sesión a sesión y con lo que cada una midió, está en
+  [`docs/planes/A8-quark-enterprise.md`](../../docs/planes/A8-quark-enterprise.md);
+  A4…A7, en sus ficheros. Tres lecciones que valen para el arco siguiente: la
+  medición corrigió el enunciado del plan por cuarta vez (dos de las tres
+  cosas de «migraciones v2» ya existían; el RLS nativo es PostgreSQL y nada
+  más); **un control cuyo `present` sólo se alcanza rompiendo la forma
+  publicada se retitula con el porqué escrito, no se fuerza** (cuatro
+  controles de `LIKE`); y la lane de un motor real enseñó tres veces lo que
+  ninguna sonda sobre SQLite podía ver, que es por lo que el guard del arco
+  vigila `SharedSuite` y no sólo la cifra.
   `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
   los copies de aquí.
   El gate de cada arco sigue siendo el registro
@@ -131,7 +109,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   OR-55. Y el corolario: **OPS-14**, el control de A6 que debía cazar OR-53,
   medía que el endpoint devolviera 200 sobre un panel ciego. Un control cuyo
   título afirma más de lo que su sonda comprueba pasa para siempre.
-- **51 guards en el registro**: los 50 de 1.33.0 más
+- **52 guards en el registro**: los 51 de 1.34.0 más
+  **`umbrella-quark-posture`**, el gate de A8 (2026-09-20): el banco de quark
+  tiene sus 69 controles y ningún ausente sin razón escrita, la cifra que
+  publica `quark/docs/enterprise-bench.md` es la que cuenta la tabla, y las
+  seis pruebas que el arco añadió a `SharedSuite` siguen corriendo en la lane
+  de cada motor — lo único del arco que se mide contra un motor real, porque
+  las sondas del banco corren sobre SQLite. El 51º es
   **`umbrella-jobs-posture`**, el gate de A7 (2026-09-19): la cifra que
   publica `nucleus/docs/jobs-bench.md` es la que cuenta la tabla, ningún
   control ausente se queda sin razón escrita, y el CI de nucleus corre DE
@@ -203,7 +187,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-20 — **A8 `S1`–`S10` HECHAS**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, tipos nativos de PostgreSQL, el router Native que verifica, keyset y el CLI
+### Sesión 2026-09-20 — **A8 `S1`–`S11` HECHAS, ARCO CERRADO en Quantum 1.35.0**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, tipos nativos de PostgreSQL, el router Native que verifica, keyset, el CLI, y el guard del arco
+
+**`S11` (el PR del set)** — guard `umbrella-quark-posture` con su fixture
+(52º): 69 controles con nota en los ausentes, la cifra publicada es la que
+cuenta la tabla, y las seis pruebas del arco siguen en `SharedSuite`. El tren:
+quark v1.15.0 + `cmd/quark` v1.1.0 de un release PR; la deuda de doc pagada
+EN la rama del release (prosa → menciones → snapshot a mano); orbit alineado;
+set certificado. `registro.csv` cierra A8. Las trampas del tren, en
+`scripts/train/README.md` (sección 1.35.0).
+
 
 **`S10` (quark#414, `feat(cli)`)** — `PlanMigration` sin modelos rehúsa con
 `ErrInvalidQuery` (antes: el plan de borrar todas las tablas vivas, que es

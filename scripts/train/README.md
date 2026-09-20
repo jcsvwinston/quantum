@@ -660,6 +660,67 @@ release-please@17` y llamar a `parseConventionalCommits` de
 bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
 la línea y la columna.
 
+### Lo que aprendió el tren de 1.35.0 (A8: la minor de quark con la deuda de doc en la rama)
+
+**La prosa escrita ANTES del commit de suelos se pierde.** El tren abre su
+primer commit (`sube_suelos`, `fix(deps)`) y lo fusiona en main; release-please
+regenera entonces la rama del release PR desde cero, y todo lo que se hubiera
+empujado a esa rama —la sección del sitio, `docs/RELEASE_NOTES_vX.Y.0.md`, el
+snapshot— desaparece con ella. Es la trampa de 1.31.0 con otra cara: allí la
+disparó un push humano; aquí la dispara **el propio tren**, en su primer paso.
+El orden que funciona: `train.sh --desde quark` PRIMERO, dejar que fusione los
+suelos, espere la regeneración y pare en el esqueleto con TODOs; y entonces
+redactar. Si la prosa ya estaba (como aquí), el rescate es mecánico y no pasa
+por resolver conflictos con el esqueleto: `git switch -C <rama> <commit del
+bot regenerado>`, `cherry-pick` de los commits de doc, guards de doc en local
+(`check-version-coherence`, `check_docs_archive_freshness`,
+`check_versioned_docs_markers`, `check_docs_product_voice`, `lint-docs`) y
+`push --force-with-lease=<rama>:<sha del esqueleto>` sobre la rama del bot,
+sustituyendo el esqueleto por la prosa. Relanzar `--desde quark`:
+`quark-doc-debt.sh` dice «nada que pagar» y sigue.
+
+**El guard de voz de producto rechaza citar un ADR en la doc pública.** «The
+decision is written in ADR-0025» en la sección del sitio es vocabulario
+interno para `check_docs_product_voice.sh`: el lector no puede abrir los ADR.
+Se explica la decisión en una frase. El snapshot es una copia literal de
+`website/docs`, así que la corrección va en los dos sitios o el archivo
+publica la frase vieja.
+
+**Un PATCH de nucleus también debe su sección de notas.** El commit de
+suelos del tren (`fix(deps)`) hace que release-please proponga una patch de la
+raíz de nucleus junto a los módulos, y `check_version_claims.sh` exige un
+`## vX.Y.Z` para la versión del manifiesto sea minor o patch: el release PR
+sale rojo en «Test And Smoke» sin que nadie haya escrito código. La parada del
+driver pregunta por «la deuda de doc del minor», pero la causa es la misma en
+una patch. Se escribe la sección (una frase: sólo dependencias) en la rama del
+release y se relanza `--desde nucleus`. El snapshot no hace falta en una patch.
+
+**No toques el checkout hermano mientras el tren corre.** El monitor del
+log enseñó un `FAIL: ../orbit no está en main limpio (rama
+release-please--branches--main)` y el operador cambió `../orbit` a `main` a
+mano — pero el tren NO se había parado: esa línea era del `--check` previo, y
+`align-orbit-pins.sh` ya estaba escribiendo en su rama `chore/align-set-*`.
+El cambio de rama a mitad dejó el commit de alineación en el `main` LOCAL y
+la rama que el driver empujó vacía («No commits between main and
+chore/align-set-…»). Limpieza: `git reset --hard origin/main` en `../orbit`,
+borrar la rama local y la remota, relanzar `--desde orbit`. Regla: si el
+proceso del driver sigue vivo (`pgrep -f train.sh`), el hermano es suyo; una
+línea `FAIL` en el log sólo es parada si va seguida de «PARADA EN SECO».
+
+**Un rojo de infraestructura en la lane del navegador.** `Admin bench
+(browser)` de orbit murió en `npx playwright install --with-deps chromium`:
+`apt` recibió un 403 de `packages.microsoft.com` («no longer signed»). No es
+del release ni del arco; relanzar `--desde orbit` basta (el driver empuja un
+commit vacío y el CI corre entero otra vez). Se distingue de un rojo real en
+que el paso caído es la instalación, no el test.
+
+**El historial de quark llevaba dos releases sin entrada.** `CLAUDE.md` y
+`.claude/HISTORIAL.md` piden una entrada por release, a mano; v1.13.0 y
+v1.14.0 no la tuvieron y nadie lo vio, porque ningún guard lee ese fichero.
+Se escribieron al cortar v1.15.0, marcadas como añadidas después. Cuando el
+esqueleto bumpa la línea marcada de `CLAUDE.md`, es el momento de mirar si la
+entrada anterior existe.
+
 ### Lo que aprendió el tren de 1.30.0 (A3)
 
 - **En squash-only, el título del PR de suelos ES el commit que llega a main.**
