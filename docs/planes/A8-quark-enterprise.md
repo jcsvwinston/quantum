@@ -70,7 +70,7 @@ un control necesita un motor vivo su nota lo dice — esa prueba vive en
 | `S4` | `ALTER COLUMN` completo y reversibilidad más allá de CREATE/DROP | S3 | **HECHA** — quark#408: `MIG-07` y `MIG-09` a `present`; banco 35 de 69 |
 | `S5` | uuid nativo y enum con CHECK desde el modelo | S0 | **HECHA** — quark#409: `TYP-01`, `TYP-02` y `TYP-03` a `present`; banco 38 de 69 |
 | `S6` | Arrays de PostgreSQL, rangos e inet | S5 | `TYP-04`, `TYP-06` y `TYP-07` a `present` |
-| `S7` | `precision/scale` deja de secuestrar, y la matriz de tipos deja de mentir | S5 | `TYP-11` a `present`; la matriz publicada coincide con lo medido |
+| `S7` | `precision/scale` deja de secuestrar, y la matriz de tipos deja de mentir | S5 | **HECHA** — quark#410: `TYP-11` a `present`, QK-28 y QK-30 cerrados; banco 39 de 69 |
 | `S8` | RLS fuera de PostgreSQL: qué recibe cada motor, y la verificación | S1 | `RLS-01`, `RLS-02` y `RLS-04` con su veredicto medido |
 | `S9` | Paginación por cursor / keyset | S0 | `OPS-15` a `present` |
 | `S10` | El CLI: `migrate diff/plan/verify` y las políticas de tenant | S3, S8 | `MIG-11` y `RLS-06` a `present` |
@@ -378,3 +378,30 @@ mutaciones, y `ModelTypesAndChecks` en `SharedSuite` para los seis motores.
 
 **Siguiente: `S7`** (`precision/scale` deja de secuestrar el tipo base y la
 matriz deja de mentir: TYP-11, QK-28, QK-30), y después `S6`.
+
+### `S7` — `precision/scale` deja de secuestrar, y la matriz deja de mentir (2026-09-20) · **hecha**
+
+**PR**: quark#410 (`fix(migrate)`). **Medido**: `tipos` de 6 a **7 present**;
+el banco de 38 a **39 de 69**. Cierra **QK-28** y **QK-30**.
+
+**Lo que entrega.** `applyPrecisionScale` sustituía el tipo base de CUALQUIER
+campo con la pista sin mirar el tipo Go —un `string` salía `DECIMAL(10,2)`,
+un `bool` `DECIMAL(3)`— y su godoc describía lo contrario. Ahora refina sólo
+`float32`, `float64` y `Nullable` de ellos a `DECIMAL(p,s)` —`NUMBER(p,s)` en
+Oracle, la grafía del motor— y en cualquier otro tipo la pista se ignora con
+un **aviso de etiqueta** que nombra el campo: un no-op silencioso no se
+confunde con una etiqueta que funciona. `normalizeType` lee `numeric(p,s)`
+(PostgreSQL) y `NUMBER(p,s)` (Oracle) como `decimal(p,s)`, así que un plan con
+un decimal dimensionado converge en los dos; el `NUMBER` desnudo de Oracle
+sigue casando con sus formas dimensionadas y `NUMBER(19)` sigue siendo el
+entero. **QK-30**: la fila de slices y maps de la matriz decía «se serializan
+como texto» —`database/sql` los rechaza en la primera escritura— y ahora lo
+dice y apunta a `Array[T]`/`JSON[T]`; el roadmap deja de llamar «nativo en
+PostgreSQL» a `Array[T]`, que es JSON en los seis (el array nativo para slices
+es `S6`).
+
+**Trampa pequeña**: el bool de Oracle es `NUMBER(1)` de nacimiento; un test
+que buscaba «ningún NUMBER» en el bool con pista medía el motor, no la pista.
+
+**Siguiente: `S6`** (arrays de PostgreSQL, rangos e inet: TYP-04, TYP-06,
+TYP-07).
