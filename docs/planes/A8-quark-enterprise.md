@@ -9,8 +9,11 @@
 > es PostgreSQL y nada más. Es la cuarta vez que la medición corrige el plan.
 
 **Precondición del arco**: Quantum 1.34.0 certificado (A7 cerrado).
-**Gate del arco**: el registro `docs/auditoria/madurez-2026-09-03/registro.csv`
-sin hallazgos abiertos de A8, y el banco publicando su cifra.
+**Gate del arco** — CUMPLIDO el 2026-09-20, registrado como guard
+`umbrella-quark-posture` y publicado en Quantum 1.35.0: el registro
+`docs/auditoria/madurez-2026-09-03/registro.csv` sin hallazgos abiertos de A8
+(QK-25 a QK-31 hechos; QK-24 y QK-32, rompientes, en A12), y el banco
+publicando su cifra: **47 de 69** controles presentes, desde 20.
 
 ## El banco
 
@@ -74,7 +77,7 @@ un control necesita un motor vivo su nota lo dice — esa prueba vive en
 | `S8` | RLS fuera de PostgreSQL: qué recibe cada motor, y la verificación | S1 | **HECHA** — quark#412: `RLS-02` y `RLS-04` a `present`, `RLS-01` `partial` medido y decidido; banco 44 de 69 con `S6` |
 | `S9` | Paginación por cursor / keyset | S0 | **HECHA** — quark#413: `OPS-15` a `present`; banco 45 de 69 |
 | `S10` | El CLI: `migrate diff/plan/verify` y las políticas de tenant | S3, S8 | **HECHA** — quark#414: `MIG-11` y `RLS-06` a `present`; banco 47 de 69 |
-| `S11` | Gate, guard y set | todas | `umbrella-quark-posture` registrado con su fixture; set certificado |
+| `S11` | Gate, guard y set | todas | **HECHA** — quantum#(set 1.35.0): `umbrella-quark-posture` registrado con su fixture; quark v1.15.0 y el set certificado |
 
 **El orden no es negociable en dos sitios**: `S1` va primero porque es el P1, y
 `S2` va segundo porque su remedio ingenuo rompe SQLite y conviene cerrarlo con
@@ -577,3 +580,40 @@ ejecutable cazó los cinco nuevos sin ejemplo.
 
 **Siguiente: `S11`** (gate, guard y set: `umbrella-quark-posture` con su
 fixture, y el tren que corta la MINOR de quark y certifica el set).
+
+### `S11` — gate, guard y set (2026-09-20) · **hecha**
+
+**PR**: el del set, `chore(set): Quantum 1.35.0`. **Medido**: nada nuevo en el
+banco (47 de 69); lo que esta sesión mide es la frontera entre lo medido y lo
+publicado.
+
+**Lo que entrega.** El guard **`umbrella-quark-posture`**
+(`scripts/check_quark_posture.sh`) con su fixture, el 52º del registro. Sobre
+el árbol PINADO comprueba tres cosas: que el banco tiene sus 69 controles y
+cada uno que no está `present` lleva nota que diga qué falta; que la cifra que
+publica `quark/docs/enterprise-bench.md` es la que cuenta la tabla del banco;
+y que las seis pruebas que el arco añadió a `SharedSuite` —`LikeEscape`,
+`PlanConstraints`, `AlterColumn`, `ModelTypesAndChecks`, `NativeTypes`,
+`Keyset`— siguen ahí. La tercera es la que distingue este guard de sus dos
+hermanos: las sondas del banco corren sobre SQLite, y lo único del arco que se
+ejecuta contra un motor real son esas pruebas en la lane de cada motor. Tres
+veces una lane enseñó lo que ninguna sonda podía ver (ORA-01424 con `\[`, el
+índice de respaldo de la FK en MySQL, el literal de rango de PostgreSQL); sin
+ellas el banco seguiría verde y los motores dejarían de medirse. La fixture
+rompe las tres cosas a la vez sobre una copia del banco real: cifra
+falsificada, `Keyset` retirado de la suite, RLS-01 sin nota.
+
+**Lo que NO comprueba**: que las sondas pasen — eso es `go test` en el CI de
+quark, que es donde se ejecuta lo que mide.
+
+**El tren**: quark v1.15.0 (minor: nueve `feat`, dos `fix`) con `cmd/quark`
+v1.1.0 del mismo release PR; la deuda de doc pagada EN la rama del release y
+en este orden —prosa, menciones, snapshot 1.15.0 cortado a mano porque
+Docusaurus no arranca en el sandbox—; orbit alineado a los pines nuevos; el
+paraguas re-pinado y el set certificado. Las trampas nuevas del tren, en
+`scripts/train/README.md`.
+
+**Lo que A8 deja a A12**: QK-24 (aviso desde v1.14.0) y QK-32 (la forma plana
+de `LIKE`), los dos rompientes por definición. Y lo que deja al siguiente arco
+que toque Quark: los 22 controles no presentes, cada uno con su nota en el
+banco.

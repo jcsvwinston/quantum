@@ -134,7 +134,7 @@ que una sesión necesita para orientarse.
 | A5 | Auth de producto (OIDC, API keys, accounts, MFA) | — (puede solaparse con A4: repos distintos) | [`A5-auth-de-producto.md`](A5-auth-de-producto.md) |
 | A6 | Orbit como admin de producto | decisión del contrato datasource | [`A6-orbit-admin-de-producto.md`](A6-orbit-admin-de-producto.md) |
 | **A7** | Jobs, eventos y tiempo real | A6 para el panel de colas | [`A7-jobs-eventos-tiempo-real.md`](A7-jobs-eventos-tiempo-real.md) |
-| A8 | Quark enterprise (migraciones v2, RLS en tres motores) | A4 | al empezarlo |
+| A8 | Quark enterprise | A4 | [`A8-quark-enterprise.md`](A8-quark-enterprise.md) (cerrado en 1.35.0) |
 | A9 | Fleet unificado y una sola SPA | A6 | al empezarlo |
 | A10 | Testing y OpenAPI de primera clase | A5 para el cliente de test con sesión | al empezarlo |
 | A11 | Extensibilidad y catálogo | A5, A7 (los módulos que cataloga) | al empezarlo |

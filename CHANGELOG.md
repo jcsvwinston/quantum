@@ -6,6 +6,52 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.34.0 — el arco A7: jobs, eventos y tiempo real
+
+Quantum 1.34.0 publica el arco A7: jobs, eventos y tiempo real. Se mueven
+nucleus (v1.29.0 → v1.30.0) y orbit (v1.10.1 → v1.10.2); quark v1.14.0
+sigue donde estaba. Módulos hermanos que cambian: nucleus ldap (v0.2.9 →
+v0.2.10), nucleus mssql (v0.1.5 → v0.1.6), nucleus mysql (v0.1.5 →
+v0.1.6), nucleus oracle (v0.1.5 → v0.1.6), nucleus otlp (v0.1.5 →
+v0.1.6), nucleus postgres (v0.1.5 → v0.1.6), nucleus prometheus (v0.1.5 →
+v0.1.6), nucleus secrets-aws (v0.1.5 → v0.1.6), nucleus sqlite (v0.1.5 →
+v0.1.6), nucleus storage-azure (v0.1.5 → v0.1.6), nucleus storage-gcs
+(v0.1.5 → v0.1.6), nucleus storage-s3 (v0.1.5 → v0.1.6), orbit agent
+(v0.7.0 → v0.7.1), orbit quarkbridge (v1.9.0 → v1.9.1), orbit
+quarkdatasource (v1.9.1 → v1.9.2) y orbit server (v0.12.0 → v0.12.1); el
+resto sin cambio. Minor de suite porque lo es la de nucleus (QADR-0002).
+
+Qué cambia para quien instala. Una cola de trabajos DURABLE sobre la base
+de datos que la aplicación ya tiene, sin broker: at-least-once bajo lease,
+con el rescate acotado y la curva de reintento viajando con el job, y cron
+sin Redis eligiendo líder con una fila de lease. Un bus de eventos TIPADO
+junto al de siempre, con el outbox como transporte opcional; un suscriptor
+que panica cuesta su evento y no el proceso, y emitir en asíncrono ya no
+bloquea a quien emite. CANALES en el framework, sobre WebSocket y SSE, con
+el protocolo, la comprobación de origen, los límites y el relay entre
+réplicas. Y /livez y /readyz como dos preguntas distintas, con drenaje para
+un despliegue rodante. El panel de orbit vuelve a ver la cola (OR-53).
+
+Nada de esto obliga a tocar una aplicación existente: todo es aditivo y
+opt-in, y Runtime no crece — el inspector se alcanza por una interfaz
+opcional. Dos cosas cambian por debajo y conviene saberlas: EmitAsync ya no
+bloquea y descarta por encima de su capacidad en vuelo (el contador Dropped
+lo dice), y una aplicación que sirva su propio /livez o /readyz conserva su
+handler — las sondas del framework se montan al arrancar el servidor y sólo
+para la ruta que nadie haya reclamado.
+
+Qué aprendió el tren, que es lo más caro de este arco: ESCRIBIR LA
+DOCUMENTACIÓN ES UNA MEDICIÓN, y más severa que el banco. El banco conduce
+el código; la doc obliga a afirmar qué hace, y una afirmación se contrasta.
+Redactar la página de canales y las notas de nucleus destapó nueve defectos
+que ninguna de las cuarenta sondas vio, dos de ellos paradas de release: una
+aplicación con su propio /livez dejaba de arrancar —ruptura en una minor,
+que es lo único que QADR-0010 prohíbe— y todo stream SSE moría al minuto,
+porque write_timeout es un plazo de la conexión y el keep-alive no le
+importa. Quedan como NU-89…NU-95, OR-54 y OR-55 en el registro. Y el
+corolario incómodo: OPS-14, el control de A6 que debía cazar OR-53, medía
+que el endpoint devolviera 200 sobre un panel ciego.
+
 ## Quantum 1.33.0 — el arco A6, Orbit como admin de producto
 
 Quantum 1.33.0 publica el arco A6: Orbit deja de ser un panel de
