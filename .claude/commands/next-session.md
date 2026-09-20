@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S3` HECHAS, banco 33 de 69)
+## 3. Estado al cierre (2026-09-20, QUANTUM 1.34.0 — A8 EN CURSO: `S0`–`S4` HECHAS, banco 35 de 69)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -90,10 +90,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `LIKE`, y dejó escrito en **QK-32** (A12) que la forma plana no se toca
   porque es rompiente; `S3` cerró QK-27 en quark#407: el plan lleva índices,
   FK y CHECK, el ejecutor los emite y el modelo declara índices con
-  `quark:"index"`) → **siguiente: `S4`** (`ALTER COLUMN` completo y
-  reversibilidad: MIG-07, MIG-09). **Para el tren**: quark#404 (fix), #406 y
-  #407 (feat) hacen una MINOR de quark, y el snapshot de doc va ANTES del
-  release PR. A8 hereda de A4 la segunda mitad de su `S4`
+  `quark:"index"`; `S4` en quark#408: `ALTER COLUMN` de cuatro facetas en
+  los seis motores y SQLite reconstruye la tabla — banco 35 de 69) →
+  **siguiente: `S5`** (uuid nativo y enum con CHECK desde el modelo: TYP-01,
+  TYP-03, QK-29); luego `S7`, `S6`, `S8`, `S9`, `S10`, `S11` en ese orden, el
+  que menos rebase cuesta. **Para el tren**: quark#404 (fix) y #406–#408
+  (feat) hacen una MINOR de quark, y el snapshot de doc va ANTES del release
+  PR. A8 hereda de A4 la segunda mitad de su `S4`
   (uuid nativo, enums con CHECK, arrays, rangos, inet, JSONB: van en `S5`–`S7`)
   y **QK-24**, que avisa desde quark v1.14.0 pero no es error y va a A12.
   Lo que fue A7, sesión a sesión y con lo que cada una midió, está en
@@ -187,7 +190,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-20 — **A8 `S1`, `S2` y `S3` HECHAS**: la transacción fija el inquilino; `LIKE … ESCAPE` por dialecto; y el plan de migración emite lo que lleva
+### Sesión 2026-09-20 — **A8 `S1`–`S4` HECHAS**: la transacción fija el inquilino; `LIKE … ESCAPE` por dialecto; el plan de migración emite lo que lleva; y `ALTER COLUMN` completo con SQLite reconstruyendo
+
+**`S4` (quark#408, `feat(migrate)`)** — `OpAlterColumn` cubre tipo, nullable,
+default y PK en los seis motores (PG por faceta; MySQL/MariaDB un `MODIFY`;
+SQL Server por nombre de sus restricciones; Oracle un `MODIFY` de lo que
+cambia), y **SQLite reconstruye la tabla** dentro de la transacción del
+plan llevando índices, triggers, CHECK y nombres de FK leídos de
+`sqlite_master` — con lo que FK y CHECK en SQLite dejan de rehusarse. Un
+CHECK ilegible rehúsa la reconstrucción en vez de perderse. Banco **35 de
+69**. La sonda MIG-07 medía nullable sobre una columna recién convertida en
+PK: artefacto de orden, corregido. Detalle en el plan.
+
 
 **`S3` (quark#407, `feat(migrate)`)** — QK-27: `applyCreateTable` emite la
 tabla ENTERA (FK y CHECK inline, índices como `CREATE INDEX`); `Diff` crea

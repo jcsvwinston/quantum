@@ -67,7 +67,7 @@ un control necesita un motor vivo su nota lo dice — esa prueba vive en
 | `S1` | El confinamiento por tenant sobrevive a una transacción | S0 | **HECHA** — quark#404: `RLS-13` a `present` con evidencia positiva, 21 de 69; ADR-0025 |
 | `S2` | `LIKE … ESCAPE` de punta a punta, por dialecto | S0 | **HECHA** — quark#406: `qk25` 11 de 11 (los 7 `absent` y el `partial`), probado en los cinco motores por `SharedSuite`; banco 29 de 69 |
 | `S3` | El plan lleva índices, FK y CHECK, y el ejecutor los emite | S0 | **HECHA** — quark#407: `MIG-01`, `MIG-02`, `MIG-03` y `MIG-06` a `present`; banco 33 de 69 |
-| `S4` | `ALTER COLUMN` completo y reversibilidad más allá de CREATE/DROP | S3 | `MIG-07` y `MIG-09` a `present` |
+| `S4` | `ALTER COLUMN` completo y reversibilidad más allá de CREATE/DROP | S3 | **HECHA** — quark#408: `MIG-07` y `MIG-09` a `present`; banco 35 de 69 |
 | `S5` | uuid nativo y enum con CHECK desde el modelo | S0 | `TYP-01` y `TYP-03` a `present`, con la PK intacta |
 | `S6` | Arrays de PostgreSQL, rangos e inet | S5 | `TYP-04`, `TYP-06` y `TYP-07` a `present` |
 | `S7` | `precision/scale` deja de secuestrar, y la matriz de tipos deja de mentir | S5 | `TYP-11` a `present`; la matriz publicada coincide con lo medido |
@@ -291,3 +291,51 @@ parsean el vocabulario de la etiqueta en su propio módulo y no conocen
 
 **Siguiente: `S4`** (`ALTER COLUMN` completo y reversibilidad más allá de
 CREATE/DROP: `MIG-07`, `MIG-09`), que depende de `S3`.
+
+### `S4` — `ALTER COLUMN` completo y reversibilidad (2026-09-20) · **hecha**
+
+**PR**: quark#408 (`feat(migrate)`). **Medido**: `migraciones` de 9 a **11
+present**; el banco de 33 a **35 de 69**.
+
+**Lo que entrega.** `OpAlterColumn` cubre las cuatro facetas —tipo,
+nullable, default y clave primaria— en los seis motores, con los deltas
+calculados como los calcula `Diff` (un op sin cambio es un no-op).
+PostgreSQL altera cada faceta por separado; MySQL/MariaDB reformulan la
+columna con un `MODIFY`; SQL Server altera la columna y gestiona por nombre
+—leído del catálogo— sus restricciones de default y de clave; Oracle emite
+un `MODIFY (…)` con exactamente lo que cambia (repetir `NOT NULL` es
+ORA-01442). Un rename por `OpAlterColumn` se rehúsa en voz alta: es cosa de
+`Sync`.
+
+**SQLite reconstruye la tabla**, el procedimiento que documenta su manual:
+leer la tabla, crear la nueva con nombre temporal, copiar filas, borrar,
+renombrar, recrear. Corre sobre el executor del plan —la transacción—, así
+que un fallo (un `NOT NULL` sobre filas con `NULL`) deja la tabla como
+estaba. Lleva lo que los PRAGMA no saben, leyéndolo de `sqlite_master`: el
+DDL de los índices literal, el índice automático de una columna `UNIQUE`
+como índice único con nombre y misma forma, los triggers, los CHECK en la
+forma que escribe `applyCreateTable` y los NOMBRES de las FK — que es lo que
+permite al `OpDropForeignKey` de `Plan.Down` encontrar su clave. Un CHECK
+en otra forma rehúsa la reconstrucción en vez de perderse. Con
+`PRAGMA foreign_keys` activo, la comprobación se difiere al `COMMIT`. Las FK
+y los CHECK en SQLite (`OpAddForeignKey`/`OpDropForeignKey`/`OpAddCheck`/
+`OpDropCheck`) pasan por la misma reconstrucción.
+
+**La sonda MIG-07 y un artefacto de orden**: `S0` medía primero el delta de
+PK dando por hecho que se rechazaría; al aterrizar, la columna es clave, y
+una clave nunca es nullable, así que el delta de nullable medido después
+leía del catálogo un hecho sobre claves. Los deltas van ahora en el orden
+del título, la clave la última. MIG-09 retitulado: la FK también hace el
+viaje de ida y vuelta.
+
+**Método**: tests de raíz (los cuatro deltas y las filas sobreviven cuatro
+reconstrucciones; índices, índice único manual, triggers, CHECK y nombres
+de FK sobreviven y el rollback generado borra la clave por su nombre; un
+CHECK ilegible se rehúsa sin tocar la columna; un `NOT NULL` sobre `NULL`
+falla y deja la tabla; las sentencias por dialecto), tres mutaciones sobre
+la reconstrucción, los cinco tests de la suite que pinaban las negativas
+convertidos en afirmaciones, y `AlterColumn` en `SharedSuite` para los seis
+motores.
+
+**Siguiente: `S5`** (uuid nativo y enum con CHECK desde el modelo, con la PK
+intacta: TYP-01, TYP-03 y QK-29).
