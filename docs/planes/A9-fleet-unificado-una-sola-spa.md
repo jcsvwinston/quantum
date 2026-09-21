@@ -104,7 +104,7 @@ dice que no lo hace nadie.
 |---|---|---|---|
 | `S0` | La medición: el banco, su página y los hallazgos | A8 cerrado | **HECHA** — orbit#500: 16/50, 8 hallazgos que reescriben el plan y OR-56 |
 | `S1` | La identidad del nodo es la del certificado, y el agente lo carga por configuración | S0 | **HECHA** — orbit#501: `IDENT-05`, `IDENT-06` a `present` (18/50); e2e mTLS con agente real a través de la extensión, en la lane `test` |
-| `S2` | Rotación de certificados en servidor y agente sin reinicio | S1 | `IDENT-07`, `IDENT-08` a `present` |
+| `S2` | Rotación de certificados en servidor y agente sin reinicio | S1 | **HECHA** — orbit#505: `IDENT-07`, `IDENT-08` a `present` (20/50, identity 10/0/0) |
 | `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | ADR-012 aceptado; `FDS-08`, `FDS-09` a `present`; `buf breaking` limpio |
 | `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present` |
 | `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | `FDS-11`, `FDS-12` a `present`; `quarkdatasource` registrado en el fleet |
@@ -123,6 +123,37 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 `S3`–`S5` pueden ir en paralelo (ficheros distintos); `S6`–`S8` tras ellos.
 
 ## Registro de sesiones
+
+### `S2` — rotación sin reinicio (2026-09-21) · **hecha**
+
+- **PR**: [orbit#505](https://github.com/jcsvwinston/orbit/pull/505)
+  (`feat(fleet)`). Banco **20 de 50**, familia `identity` completa (10/0/0).
+- **La forma**: los dos lados sirven el certificado DESDE los ficheros en vez
+  de copiarlo una vez. `server.TLSFromFiles` construye un `tls.Config` cuyo
+  `GetCertificate` pregunta en cada handshake si los dos ficheros cambiaron
+  (tamaño o mtime) y relee el par si es así; el binario lo usa para los dos
+  listeners. El agente resuelve `tls_cert_file`/`tls_key_file` a un
+  `GetClientCertificate` con el mismo origen, así que la SIGUIENTE conexión
+  (bajo un stream vivo, la reconexión) presenta el certificado nuevo. Una
+  rotación es escribir dos ficheros. Una rotación a medias (certificado
+  nuevo, clave vieja) mantiene el par anterior con UN WARN por error distinto
+  y reintenta en el siguiente handshake. Sin watcher ni dependencia nueva;
+  los CA bundles se leen una vez (rotar la CA sigue siendo reinicio).
+- **Duplicación deliberada**: el origen (~40 líneas) vive dos veces,
+  `server/certfiles.go` y `agent/certfiles.go`, porque el ADR-006 no
+  permite un módulo común. Si `S3` mueve el contrato `datasource` a módulo
+  propio, ese módulo NO es el sitio de esto: es del contrato, no de TLS.
+- **Sondas**: `IDENT-07` y `IDENT-08` conservan la medición genérica de Go y
+  añaden la del producto —ficheros escritos, handshake, reescritos, handshake
+  otra vez; la del agente a través de un failover a un segundo servidor—.
+  El helper `writeKeyPair` fija el mtime con `Chtimes` para que dos
+  escrituras en el mismo tick del reloj sean distintas para el sello.
+- **Método**: dos mutaciones (cada origen sin releer nunca): la sonda y el
+  test propio del módulo en rojo, nada más. El test del servidor cubre
+  además la rotación rota (par anterior servido, exactamente un WARN en tres
+  handshakes) y la clave que alcanza.
+- **Siguiente: `S3`** (ADR-012, la decisión de módulos y el proto aditivo).
+  Precondición: orbit#505 fusionado. OR-56 (`HA-05`) sigue abierto.
 
 ### `S1` — la identidad del nodo es la del certificado (2026-09-21) · **hecha**
 
