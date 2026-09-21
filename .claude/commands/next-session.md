@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-21, QUANTUM 1.35.0 — A9 EN CURSO: `S0`–`S2` hechas, el banco del fleet en 20 de 50)
+## 3. Estado al cierre (2026-09-21, QUANTUM 1.35.0 — A9 EN CURSO: `S0`–`S2` hechas y `S3` a medias (espera un corte de proto), el banco del fleet en 21 de 50)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -81,12 +81,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   **A9 (Fleet unificado y una sola SPA) EN CURSO y TROCEADO** por su `S0`
   de medición (2026-09-20/21, orbit#500): doce sesiones en
   [`docs/planes/A9-fleet-unificado-una-sola-spa.md`](../../docs/planes/A9-fleet-unificado-una-sola-spa.md),
-  banco `orbit/internal/fleettest/fleetbench` en **20 de 50** (3 parciales;
-  familia `identity` completa) tras `S1` (orbit#501, identidad del nodo = CN
-  del certificado, ficheros TLS en la configuración del agente) y `S2`
-  (orbit#505, rotación sin reinicio en los dos lados), `S0`–`S2` hechas,
-  **siguiente `S3`** (ADR-012, la decisión de módulos y el proto aditivo),
-  precondición orbit#505 fusionado. Hallazgos abiertos: **OR-56** (P2, A9, el stream
+  banco `orbit/internal/fleettest/fleetbench` en **21 de 50** (6 parciales;
+  familia `identity` completa) tras `S1` (orbit#501), `S2` (orbit#505) y la
+  **parte 1 de `S3`** (orbit#506: ADR-012 aceptado, proto aditivo, total
+  exacto). **`S3` está A MEDIAS por diseño**: el agente pina `proto` por tag
+  (ADR-006), así que leer `where` exige que exista `proto/v0.5.0` → hay que
+  **cortar orbit** (release PR de release-please, decisión del responsable)
+  y después la parte 2 (pin de agent/server + `whereFromWire`, guardada y
+  empujada en la rama `wip/a9-s3-part2` de orbit; `FDS-08` a `present`). `S4` ejecuta la
+  extracción de `datasource` a módulo con la mecánica del ADR-012. Hallazgos abiertos: **OR-56** (P2, A9, el stream
   superseded que no se termina) y **OR-57** (P3, A12: el enlace identidad↔
   certificado es opt-in hasta el major). **A8** (Quark
   enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
@@ -196,7 +199,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-21 — **A9 `S0`–`S2` HECHAS (orbit#500, #501, #505)**: el banco del fleet de 16 a 20 de 50, la identidad del nodo es la del certificado y rota sin reinicio, OR-56 y OR-57
+### Sesión 2026-09-21 — **A9 `S0`–`S2` HECHAS y `S3` a medias (orbit#500, #501, #505, #506)**: el banco del fleet de 16 a 21 de 50, identidad y rotación, ADR-012 y el proto aditivo; OR-56, OR-57 y OR-58
 
 - **Lo que quedó a medias el 20 y esta sesión cerró**: el banco
   `orbit/internal/fleettest/fleetbench` estaba commiteado en el hermano de
@@ -246,7 +249,19 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   ADR-006 no permite módulo común. `IDENT-07/08` rotan ficheros de verdad
   (helper `writeKeyPair` con `Chtimes`). Banco **20 de 50**, `identity`
   10/0/0. Dos mutaciones, rojas donde debían.
-- **Siguiente: `S3`** (ADR-012). Precondición: orbit#505 fusionado.
+- **`S3` parte 1 (orbit#506, `feat(fleet)`)**: ADR-012 aceptado (el contrato
+  `datasource` a módulo hoja, segunda arista de ADR-006; medido que
+  `quarkdatasource` sólo importa ese paquete de la raíz y que el adaptador
+  nucleus es `internal/`; extracción en `S4`); proto por adición
+  (`RecordFilter`/`where`, `OperatorIdentity`/`operator`; `buf breaking`
+  limpio; stubs Go+TS regenerados, SPA tipa); `ExactTotal` en cada
+  `ListRecords` → `FDS-09` present. `FDS-05/07/UI-09` a partial: el cable
+  declara y declarar no es hacer. Banco **21 de 50**. **Trampa que partió
+  la sesión**: el agente pina `proto` por tag, así que el código que lee
+  `where` no compila standalone hasta `proto/v0.5.0` — apartado para la
+  parte 2. OR-58: la SPA del fleet afirma «tenant filters apply».
+- **Siguiente**: que Carlos decida cortar orbit ahora (release PR) o al
+  cerrar más sesiones; con `proto/v0.5.0` publicado, parte 2 de `S3`.
 
 ### Sesión 2026-09-20 — **A8 `S1`–`S11` HECHAS, ARCO CERRADO en Quantum 1.35.0**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, tipos nativos de PostgreSQL, el router Native que verifica, keyset, el CLI, y el guard del arco
 
