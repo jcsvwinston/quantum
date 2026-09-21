@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-21, QUANTUM 1.35.0 — A9 EN CURSO: `S0` y `S1` hechas, el banco del fleet en 18 de 50)
+## 3. Estado al cierre (2026-09-21, QUANTUM 1.35.0 — A9 EN CURSO: `S0`–`S2` hechas, el banco del fleet en 20 de 50)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -81,11 +81,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   **A9 (Fleet unificado y una sola SPA) EN CURSO y TROCEADO** por su `S0`
   de medición (2026-09-20/21, orbit#500): doce sesiones en
   [`docs/planes/A9-fleet-unificado-una-sola-spa.md`](../../docs/planes/A9-fleet-unificado-una-sola-spa.md),
-  banco `orbit/internal/fleettest/fleetbench` en **18 de 50** (5 parciales)
-  tras `S1` (orbit#501, identidad del nodo = CN del certificado, ficheros
-  TLS en la configuración del agente), `S0` y `S1` hechas, **siguiente `S2`**
-  (rotación) o `S3` (ADR-012, la decisión de módulos), precondición
-  orbit#501 fusionado. Hallazgos abiertos: **OR-56** (P2, A9, el stream
+  banco `orbit/internal/fleettest/fleetbench` en **20 de 50** (3 parciales;
+  familia `identity` completa) tras `S1` (orbit#501, identidad del nodo = CN
+  del certificado, ficheros TLS en la configuración del agente) y `S2`
+  (orbit#505, rotación sin reinicio en los dos lados), `S0`–`S2` hechas,
+  **siguiente `S3`** (ADR-012, la decisión de módulos y el proto aditivo),
+  precondición orbit#505 fusionado. Hallazgos abiertos: **OR-56** (P2, A9, el stream
   superseded que no se termina) y **OR-57** (P3, A12: el enlace identidad↔
   certificado es opt-in hasta el major). **A8** (Quark
   enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
@@ -195,7 +196,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-21 — **A9 `S0` y `S1` HECHAS (orbit#500, orbit#501)**: el banco del fleet de 16 a 18 de 50, la identidad del nodo es la del certificado, OR-56 y OR-57
+### Sesión 2026-09-21 — **A9 `S0`–`S2` HECHAS (orbit#500, #501, #505)**: el banco del fleet de 16 a 20 de 50, la identidad del nodo es la del certificado y rota sin reinicio, OR-56 y OR-57
 
 - **Lo que quedó a medias el 20 y esta sesión cerró**: el banco
   `orbit/internal/fleettest/fleetbench` estaba commiteado en el hermano de
@@ -235,8 +236,17 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   frame nada más registrar (recibir uno es aceptación, no error del arnés), y
   `git checkout <fichero>` para deshacer una mutación se lleva TODAS las
   ediciones sin commitear — se deshace con el mismo reemplazo textual.
-- **Siguiente: `S2`** (rotación sin reinicio) o `S3` (ADR-012). Precondición
-  de ambas: orbit#501 fusionado.
+- **`S2` (orbit#505, `feat(fleet)`)**: los dos lados sirven el certificado
+  DESDE los ficheros: `server.TLSFromFiles` (`GetCertificate` que relee el
+  par cuando el handshake encuentra los ficheros cambiados; el binario lo usa
+  en los dos listeners) y el `GetClientCertificate` del agente con el mismo
+  origen, así que la siguiente conexión presenta el certificado nuevo. Una
+  rotación a medias mantiene el par anterior con UN WARN. Sin watcher ni
+  dependencia nueva; ~40 líneas duplicadas en `server` y `agent` porque el
+  ADR-006 no permite módulo común. `IDENT-07/08` rotan ficheros de verdad
+  (helper `writeKeyPair` con `Chtimes`). Banco **20 de 50**, `identity`
+  10/0/0. Dos mutaciones, rojas donde debían.
+- **Siguiente: `S3`** (ADR-012). Precondición: orbit#505 fusionado.
 
 ### Sesión 2026-09-20 — **A8 `S1`–`S11` HECHAS, ARCO CERRADO en Quantum 1.35.0**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, tipos nativos de PostgreSQL, el router Native que verifica, keyset, el CLI, y el guard del arco
 
