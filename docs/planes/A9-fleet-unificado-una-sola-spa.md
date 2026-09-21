@@ -106,7 +106,7 @@ dice que no lo hace nadie.
 | `S1` | La identidad del nodo es la del certificado, y el agente lo carga por configuración | S0 | **HECHA** — orbit#501: `IDENT-05`, `IDENT-06` a `present` (18/50); e2e mTLS con agente real a través de la extensión, en la lane `test` |
 | `S2` | Rotación de certificados en servidor y agente sin reinicio | S1 | **HECHA** — orbit#505: `IDENT-07`, `IDENT-08` a `present` (20/50, identity 10/0/0) |
 | `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | **HECHA** — orbit#506 (ADR-012, proto aditivo, `FDS-09`) + corte `v1.11.0`/`proto/v0.5.0` + orbit#507 (el agente lee `where`, `FDS-08`); `buf breaking` limpio; banco 22/50 |
-| `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present` |
+| `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | **PARTE 1 HECHA** — orbit#509: el contrato y su adaptador Nucleus son el módulo `orbit/datasource` (ADR-012 ejecutado). **Parte 2**: `agent.Config.DataSource`, el agente bajo la identidad recibida y el servidor rellenándola → `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present` |
 | `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | `FDS-11`, `FDS-12` a `present`; `quarkdatasource` registrado en el fleet |
 | `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | familia `retention` completa |
 | `S7` | Alertas por umbral con canales, y colectores propios del servidor | S6 | familia `alerts` completa |
@@ -123,6 +123,46 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 `S3`–`S5` pueden ir en paralelo (ficheros distintos); `S6`–`S8` tras ellos.
 
 ## Registro de sesiones
+
+### `S4` — el módulo `datasource` (2026-09-21) · **parte 1 hecha**
+
+- **PR**: [orbit#509](https://github.com/jcsvwinston/orbit/pull/509)
+  (`feat(datasource)`). El contrato pasa a `github.com/jcsvwinston/orbit/datasource`
+  con el adaptador Nucleus como subpaquete `datasource/nucleus` (era
+  `internal/`); la raíz y `quarkdatasource` lo requieren en `v1.0.0`, el tag
+  que el corte creará; `quarkdatasource` deja de requerir la raíz.
+- **La decisión que ADR-012 dejaba a `S4`, tomada con la medición**: el
+  adaptador viaja con el contrato (un módulo, no dos). Requerir Nucleus no
+  añade nada a ningún consumidor —los tres lo requieren ya— y un contrato
+  sin implementación por defecto obligaría a cada consumidor a traer la
+  suya. Está escrito como enmienda en el ADR-012.
+- **Hasta el tag**: `go.work` lleva un `replace` versionado (listar el
+  directorio no basta: la versión requerida entra en el grafo y Go pide su
+  `go.mod` al proxy), y `scripts/ci/link_unpublished_siblings.sh` añade un
+  `replace` de directorio en el `go.mod` de cada lane `GOWORK=off` sólo
+  mientras el tag del hermano no exista, y lo retira antes del diff de tidy.
+  Medido: `go mod tidy` ignora el workspace y pide al proxy igual — por eso
+  el `replace` va en el `go.mod` durante la lane y no en un `go.work`.
+- **Guard de pines**: `datasource` en `MODULES`; un módulo sin tag se acepta
+  pinado en su `initial-version` de release-please; la excepción del borde
+  raíz se retira (no queda quien requiera la raíz). Trampa cazada de paso:
+  `latest_tag` abortaba EN SILENCIO con un módulo sin tags (`grep` sin match
+  bajo `pipefail`+`errexit`).
+- **Registrado en**: release-please (`initial-version: 1.0.0`, `exclude-paths`
+  de la raíz), Dependabot, CodeQL, la lane de tests del workspace, la matriz
+  de módulos (columna nueva con `—` para las releases anteriores).
+- **Lo que el corte debe**: commit de convergencia tras `datasource/v1.0.0`
+  (quitar el `replace` del `go.work`, `go mod tidy` en raíz y
+  `quarkdatasource` para que sus `go.sum` lleven las líneas del módulo). En
+  el paraguas, cuando el set pine ese árbol: `orbit_modules.datasource` en
+  `versions.yaml` y `./orbit/datasource` en el `go.work` (manifest-guard
+  descubre los módulos del árbol y fallará hasta que estén).
+- **Siguiente: parte 2** — `agent.Config.DataSource` (por defecto, el
+  adaptador Nucleus sobre `Registry`/`Databases`), el agente ejecuta bajo la
+  identidad recibida (RBAC por modelo con el `Authorizer` y confinamiento
+  por tenant con un filtro sobre `ModelInfo.TenantField`, como el panel) y
+  el servidor rellena `DataStudioRequest.operator`. Precondición: orbit#509
+  fusionado.
 
 ### `S3` — ADR-012 y el proto aditivo (2026-09-21) · **hecha**
 
