@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-20, QUANTUM 1.35.0 — A8 CERRADO: Quark como capa de datos enterprise, banco 20 → 47 de 69)
+## 3. Estado al cierre (2026-09-21, QUANTUM 1.35.0 — A9 EN CURSO: `S0` hecha, el banco del fleet en 16 de 50)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -78,8 +78,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
 - **Trabajo por arcos del plan 5/5**: A1…A8 CERRADOS (1.28.0 … 1.35.0) →
-  **siguiente: A9** (Fleet unificado y una sola SPA), SIN troceado todavía:
-  empieza por su `S0` de medición (`docs/planes/README.md` §5). **A8** (Quark
+  **A9 (Fleet unificado y una sola SPA) EN CURSO y TROCEADO** por su `S0`
+  de medición (2026-09-20/21, orbit#500): doce sesiones en
+  [`docs/planes/A9-fleet-unificado-una-sola-spa.md`](../../docs/planes/A9-fleet-unificado-una-sola-spa.md),
+  banco `orbit/internal/fleettest/fleetbench` en **16 de 50** (5 parciales),
+  `S0` hecha, **siguiente `S1`** (precondición: orbit#500 fusionado). Un
+  hallazgo abierto del arco, **OR-56** (P2). **A8** (Quark
   enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
   `quark/internal/enterprisebench` de 20 a **47 de 69**, QK-25…QK-31 hechos,
   y los dos rompientes (QK-24, QK-32: la forma plana de `LIKE`) a A12. Lo que
@@ -186,6 +190,37 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `docs/handoff/sesiones-2026-07-12_a_2026-09-02.md` (grep, no cargar);
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
+
+### Sesión 2026-09-21 — **A9 `S0` HECHA (orbit#500)**: el banco del fleet, 16 de 50, ocho hallazgos que reescriben el plan y OR-56
+
+- **Lo que quedó a medias el 20 y esta sesión cerró**: el banco
+  `orbit/internal/fleettest/fleetbench` estaba commiteado en el hermano de
+  orbit (rama `feat/a9-s0-fleet-bench`) con la ronda adversarial SIN
+  commitear y sin PR; el plan del arco decía `orbit#PENDIENTE` y 17/50. Se
+  verificó en local (`go test ./...` en `internal/fleettest`, verde; la tabla
+  generada coincide con la publicada), se commiteó la ronda, se abrió
+  **orbit#500** (`test(fleetbench)`: módulo no publicado, no corta release) y
+  el plan, el registro y este §3 llevan la cifra final: **16 present, 5
+  partial, 29 absent**.
+- **La ronda adversarial movió `HA-05` de `present` a `partial` y parió
+  OR-56** (P2, A9): la sonda contaba entradas de un `map`, que no puede tener
+  dos; medida sobre el stream, el par superseded nunca se termina —el lector
+  de `AgentService.Stream` bloquea en `Receive` y sólo mira el contexto
+  cancelado tras un error— y un frame que emite tras el relevo llega a la UI
+  como si fuera del nodo. La misma enfermedad que A8 escribió: *una sonda que
+  llega a su veredicto por más de un reparto de hechos*. Seis sondas más se
+  endurecieron a medir lo que su título nombra.
+- **Lo que la medición encontró y el plan no sabía** (ocho puntos, en
+  `docs/planes/A9-fleet-unificado-una-sola-spa.md`): el mTLS del servidor
+  ya existe y su identidad se tira; el agente no puede hablar `datasource`
+  sin una decisión de módulos (ADR-006); el servidor declara por escrito que
+  no persiste; alertas cero; multi-servidor sólo failover del agente; dos
+  SPAs sin código común y la del fleet es la débil; connect-es 2 lo pina
+  `proto/buf.gen.yaml`; el presupuesto de tamaño es raw y nada sirve
+  comprimido. Quinta vez que la medición corrige el enunciado.
+- **Siguiente: `S1`** (la identidad del nodo es la del certificado, y el
+  agente lo carga por configuración). Precondición: orbit#500 fusionado.
+  `S3` (ADR-012, la decisión de módulos) puede ir en paralelo.
 
 ### Sesión 2026-09-20 — **A8 `S1`–`S11` HECHAS, ARCO CERRADO en Quantum 1.35.0**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, tipos nativos de PostgreSQL, el router Native que verifica, keyset, el CLI, y el guard del arco
 
@@ -339,47 +374,6 @@ no una sonda sobre SQLite. Detalle en el plan del arco.
   la release (RT-9) la paga el tren; el snapshot, si la release es minor, va
   ANTES del release PR.
 
-### Sesión 2026-09-19 — **A7 CERRADO**: de 12 a 40 de 40, y un tren que encontró nueve defectos que el banco no vio
-
-- **El tren, y lo que costó.** Diecisiete PRs de nucleus (los nueve del arco
-  apilados, siete de corrección y el de suelos), nucleus **v1.30.0** con sus
-  doce tags de módulo, orbit **v1.10.2** con cuatro, y el set **Quantum
-  1.34.0**. La pila no se podía fusionar con squash tal cual: el squash de cada
-  PR tiene el MISMO diff que el commit que la rama siguiente todavía lleva, así
-  que ambos lados cambian los mismos hunks desde la misma base y GitHub
-  responde `CONFLICTING`. Se rebasa cada rama sobre `main` antes de fusionar
-  (`git rebase` descarta el commit ya aplicado por patch-id) y se comprueba que
-  el ÁRBOL no cambie. Y antes de todo eso, reapuntar la pila entera a `main`:
-  fusionar el primero con `--delete-branch` cierra los PRs que colgaban de su
-  rama, y un PR cerrado no se reabre.
-- **Lo que el tren encontró y ninguna sesión vio: NUEVE defectos**, dos de
-  ellos paradas de release, registrados como NU-89…NU-95, OR-54 y OR-55. La
-  lección de método está arriba, en el estado vigente, y es la más cara del
-  arco: **escribir la documentación es una medición.** Las dos paradas
-  salieron de redactar la página de canales y la sección de notas, no de las
-  cuarenta sondas.
-- **Cuatro tests medían la máquina y no la cola** (NU-95) y pusieron el CI en
-  rojo cuatro veces: ventana fija leída entre el claim y el release, 120 s
-  fijos para drenar 10 000 jobs, el gate corriendo además en la lane de
-  `-race` y en la de asynq, y schedulers arrancados con `Start()` —que no
-  escucha al contexto— sin cerrar. La regla: **esperar al hecho, no al reloj**.
-- **Tres trampas del tren, dos ya escritas y una nueva.** (1) release-please
-  **regeneró la rama del release de orbit** entre el push de la deuda de doc y
-  el clon del conductor, y se llevó la sección: se rehace sobre la punta nueva
-  y se vigila hasta fusionar. (2) El workflow `Release` de nucleus estuvo en
-  cola ~40 min por runner: hasta que publica, la release no tiene
-  `checksums.txt` firmado y `umbrella-release-assets` no certificaría. (3)
-  **NUEVA, y de las que se ríen de uno**: en `align-module-floors.sh`, una
-  COMA dentro de un comentario en un `{ … } | sort` de sustitución de procesos
-  hace que bash deje de leerlo como grupo de comandos; el bloque muere, la
-  pasada de módulos internos se salta EN SILENCIO (el error va a stderr y el
-  script sigue) y vuelve justo la trampa de 1.31.0 que ese comentario
-  describía. Arreglado sacando el descubrimiento fuera del grupo.
-- **Y una de MDX**: una línea que empieza por `{` se lee como expresión JSX. Un
-  code span en línea se partió al ajustar el párrafo y dejó la continuación
-  empezando por la llave. No lo ve ningún test de Go ni ningún guard: sólo el
-  build del sitio.
-
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -418,15 +412,16 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **El plan a 5 de 5** manda el orden: ~~A1~~ … ~~A7~~ CERRADOS (1.28.0 …
-  1.34.0) → **A8 (Quark enterprise), EN CURSO y TROCEADO** por su `S0` de
-  medición (2026-09-20): doce sesiones en
-  [`docs/planes/A8-quark-enterprise.md`](../../docs/planes/A8-quark-enterprise.md),
-  `S0` y `S1` hechas, siguiente `S2` → A9 … → A12. El registro de hallazgos y
-  su guard (`umbrella-audit-backlog`) siguen siendo el gate de cada arco; A6 y
-  A7 lo cerraron con el suyo propio (`umbrella-admin-posture`,
-  `umbrella-jobs-posture`) y A8 propone `umbrella-quark-posture` para el suyo
-  (`S11`).
+- **El plan a 5 de 5** manda el orden: ~~A1~~ … ~~A8~~ CERRADOS (1.28.0 …
+  1.35.0) → **A9 (Fleet unificado y una sola SPA), EN CURSO y TROCEADO** por
+  su `S0` de medición (2026-09-20/21, orbit#500): doce sesiones en
+  [`docs/planes/A9-fleet-unificado-una-sola-spa.md`](../../docs/planes/A9-fleet-unificado-una-sola-spa.md),
+  `S0` hecha, siguiente `S1` → A10 … → A12. El registro de hallazgos y su
+  guard (`umbrella-audit-backlog`) siguen siendo el gate de cada arco; A6, A7
+  y A8 lo cerraron con el suyo propio (`umbrella-admin-posture`,
+  `umbrella-jobs-posture`, `umbrella-quark-posture`) y A9 propone
+  `umbrella-fleet-posture` para el suyo (`S11`). Hallazgo abierto del arco:
+  **OR-56** (P2, el stream superseded que no se termina).
 - **Los hallazgos que abrió A7, todos CERRADOS en 1.34.0** (queda como mapa de
   qué sesión cerró qué; todos en nucleus salvo uno): **NU-78** (P2,
   `EmitAsync` bloquea al emisor con el techo de concurrencia lleno), **NU-79**

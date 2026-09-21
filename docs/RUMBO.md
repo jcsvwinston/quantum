@@ -28,6 +28,13 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   su nota, y los dos hallazgos rompientes (QK-24, QK-32) esperan al major de
   A12. El detalle, sesión a sesión, en
   [`planes/A8-quark-enterprise.md`](planes/A8-quark-enterprise.md).
+  **A9** (Fleet unificado y una sola SPA) está EN CURSO: su `S0` de
+  medición (orbit#500) dejó el banco `orbit/internal/fleettest/fleetbench`
+  en **16 de 50** y ocho hallazgos que reescriben el enunciado —el mTLS del
+  servidor ya existe y su identidad se tira; el agente no puede hablar
+  `datasource` sin una decisión de módulos; el servidor declara que no
+  persiste—, con el troceado en
+  [`planes/A9-fleet-unificado-una-sola-spa.md`](planes/A9-fleet-unificado-una-sola-spa.md).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
   TIPADO con el outbox como transporte opcional, CANALES sobre WebSocket y
