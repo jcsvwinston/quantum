@@ -153,8 +153,8 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
   compila con `GOWORK=off` hasta que exista `proto/v0.5.0`. El mapeo
   (`whereFromWire` sobre `model.ParseFilterOp`, que rehúsa en vez de tirar,
   con su test y con la sonda `FDS-08` ya escrita contra el campo tipado) está
-  apartado en el scratchpad de la sesión y entra en la **parte 2**, tras el
-  corte. ADR-006 ya lo decía: un cambio de proto son dos cortes.
+  commiteado y empujado en la rama `wip/a9-s3-part2` de orbit y entra en la
+  **parte 2**, tras el corte. ADR-006 ya lo decía: un cambio de proto son dos cortes.
 - **Tres controles a `partial` por la misma razón**: `FDS-05`, `FDS-07` y
   `UI-09` — el cable DECLARA identidad, tenant y operadores, y declarar no es
   hacer. `UI-09` se endureció de paso: un campo del descriptor no es una

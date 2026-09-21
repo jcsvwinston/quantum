@@ -87,8 +87,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   exacto). **`S3` está A MEDIAS por diseño**: el agente pina `proto` por tag
   (ADR-006), así que leer `where` exige que exista `proto/v0.5.0` → hay que
   **cortar orbit** (release PR de release-please, decisión del responsable)
-  y después la parte 2 (pin de agent/server + `whereFromWire`, guardado en
-  el scratchpad de la sesión; `FDS-08` a `present`). `S4` ejecuta la
+  y después la parte 2 (pin de agent/server + `whereFromWire`, guardada y
+  empujada en la rama `wip/a9-s3-part2` de orbit; `FDS-08` a `present`). `S4` ejecuta la
   extracción de `datasource` a módulo con la mecánica del ADR-012. Hallazgos abiertos: **OR-56** (P2, A9, el stream
   superseded que no se termina) y **OR-57** (P3, A12: el enlace identidad↔
   certificado es opt-in hasta el major). **A8** (Quark
