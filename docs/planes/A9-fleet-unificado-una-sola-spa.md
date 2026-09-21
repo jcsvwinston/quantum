@@ -103,7 +103,7 @@ dice que no lo hace nadie.
 | Sesión | Qué entrega | Precondición | Criterio de hecho |
 |---|---|---|---|
 | `S0` | La medición: el banco, su página y los hallazgos | A8 cerrado | **HECHA** — orbit#500: 16/50, 8 hallazgos que reescriben el plan y OR-56 |
-| `S1` | La identidad del nodo es la del certificado, y el agente lo carga por configuración | S0 | `IDENT-05`, `IDENT-06` a `present`; e2e mTLS con agente real en CI |
+| `S1` | La identidad del nodo es la del certificado, y el agente lo carga por configuración | S0 | **HECHA** — orbit#501: `IDENT-05`, `IDENT-06` a `present` (18/50); e2e mTLS con agente real a través de la extensión, en la lane `test` |
 | `S2` | Rotación de certificados en servidor y agente sin reinicio | S1 | `IDENT-07`, `IDENT-08` a `present` |
 | `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | ADR-012 aceptado; `FDS-08`, `FDS-09` a `present`; `buf breaking` limpio |
 | `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present` |
@@ -123,6 +123,43 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 `S3`–`S5` pueden ir en paralelo (ficheros distintos); `S6`–`S8` tras ellos.
 
 ## Registro de sesiones
+
+### `S1` — la identidad del nodo es la del certificado (2026-09-21) · **hecha**
+
+- **PR**: [orbit#501](https://github.com/jcsvwinston/orbit/pull/501)
+  (`feat(fleet)`: agent y server suben minor; la raíz también, porque la doc
+  pública vive en ella). Banco **18 de 50** (identity 8/2/0).
+- **Servidor, por adición**: `server.Config.AgentIdentityFromCertificate`
+  (`--agent-identity-from-cert`) rehúsa con `PermissionDenied` la
+  registración cuyo `node_id` no es el CN del certificado verificado, y `Run`
+  rehúsa arrancar con el knob sobre un listener que no verifica certificados.
+  **Apagado por defecto**: el servidor registra el `node_id` declarado y deja
+  un WARN con las dos identidades y el flag — nunca en silencio. Encenderlo
+  por defecto rompería a un fleet que comparte un certificado entre agentes:
+  es **OR-57** (A12, QADR-0010).
+- **Agente, por adición**: `ExtensionConfig` gana `tls_cert_file`,
+  `tls_key_file`, `tls_ca_file`, `tls_server_name`; `TLSConfig()` los carga
+  sobre un clon de `TLS`. Con certificado por fichero y sin `node_id`, el
+  nodo se registra como el CN del certificado: la identidad escrita una vez,
+  donde el servidor la autentica.
+- **Lo que las sondas miden ahora**: `IDENT-05` boota un agente real A TRAVÉS
+  de la extensión con tres rutas de fichero y sin `node_id`, y busca el nodo
+  bajo el CN (antes: reflexión sobre nombres de campo — un campo es un
+  nombre, no una superficie). `IDENT-06` lee el `PermissionDenied` de un
+  stream crudo contra un servidor con el enlace, y deja registrado que el
+  default sigue registrando lo declarado.
+- **Método**: cinco mutaciones, cada una revirtiendo un arreglo (la negativa
+  del servidor, el WARN degradado a Debug, el guard de `Run`, `Attach` sin
+  leer el CN, `TLSConfig` ignorando los ficheros); cada una puso rojo el test
+  que debía y la sonda que debía. Una trampa del arnés: el servidor envía un
+  frame (el `Subscribe` agregado) nada más registrar, así que `Receive` con
+  éxito es evidencia de aceptación, no un error del test.
+- **Trampa de sesión**: `git checkout <fichero>` para deshacer una mutación
+  devuelve el fichero AL ÍNDICE y se lleva las ediciones sin commitear. Las
+  mutaciones se deshacen con el mismo reemplazo textual que las hizo.
+- **Siguiente: `S2`** (rotación sin reinicio: `IDENT-07`, `IDENT-08`) o `S3`
+  (ADR-012). Precondición de ambas: orbit#501 fusionado. OR-56 (`HA-05`)
+  sigue abierto: `S1` tocó el handler pero no el bucle lector.
 
 ### `S0` — la medición (2026-09-20) · **hecha**
 
