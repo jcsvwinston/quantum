@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.35.0"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-09-20
-status: certified           # Minor de suite por la minor de quark (QADR-0002); escrito por bump-set, revisar al certificar
+quantum: "1.36.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-09-21
+status: certified           # Minor de suite por la minor de orbit (QADR-0002); escrito por bump-set, revisar al certificar
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules»; los módulos hermanos de
@@ -20,7 +20,7 @@ status: certified           # Minor de suite por la minor de quark (QADR-0002); 
 modules:
   quark:   "v1.15.0"
   nucleus: "v1.30.1"
-  orbit:   "v1.10.3"
+  orbit:   "v1.12.0"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -65,18 +65,18 @@ quark_modules:
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
-  proto:           "v0.4.4"
-  agent:           "v0.7.2"
-  server:          "v0.12.2"
+  proto:           "v0.5.0"
+  agent:           "v0.9.0"
+  server:          "v0.14.0"
   quarkbridge:     "v1.9.2"
-  quarkdatasource: "v1.9.3"
+  quarkdatasource: "v1.10.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "2a0ef4c0"                                # = v1.15.0 exacto (contiene cmd/quark/v1.1.0, drivers/mssql/v0.2.2, drivers/mysql/v0.2.2, drivers/oracle/v0.2.2, drivers/postgres/v0.2.2, drivers/sqlite/v0.2.2 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
   nucleus: "baaa6ce1"                                # = v1.30.1 exacto (contiene drivers/mssql/v0.1.7, drivers/mysql/v0.1.7, drivers/oracle/v0.1.7, drivers/postgres/v0.1.7, drivers/sqlite/v0.1.7, exporters/otlp/v0.1.7, exporters/prometheus/v0.1.7, providers/ldap/v0.2.11, providers/secrets-aws/v0.1.7, providers/storage-azure/v0.1.7, providers/storage-gcs/v0.1.7, providers/storage-s3/v0.1.7 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  orbit:   "1b215053"                                # = v1.10.3 exacto (contiene agent/v0.7.2, proto/v0.4.4, quarkbridge/v1.9.2, quarkdatasource/v1.9.3, server/v0.12.2 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  orbit:   "f528dfc5"                                # = v1.12.0 exacto (contiene agent/v0.9.0, proto/v0.5.0, quarkbridge/v1.9.2, quarkdatasource/v1.10.0, server/v0.14.0 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -90,44 +90,43 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.35.0 publica el arco A8: Quark como capa de datos enterprise. Se
-  mueven quark (v1.14.0 → v1.15.0), nucleus (v1.30.0 → v1.30.1) y orbit
-  (v1.10.2 → v1.10.3). Módulos hermanos que cambian: quark cmd/quark (v1.0.1
-  → v1.1.0) y sus cinco drivers (v0.2.1 → v0.2.2); los doce módulos de
-  nucleus suben una patch (ldap v0.2.10 → v0.2.11, el resto v0.1.6 → v0.1.7);
-  orbit agent (v0.7.1 → v0.7.2), server (v0.12.1 → v0.12.2), quarkbridge
-  (v1.9.1 → v1.9.2) y quarkdatasource (v1.9.2 → v1.9.3); el resto sin
-  cambio. Minor de suite porque lo es la de quark (QADR-0002). Corte en
-  cadencia.
+  Quantum 1.36.0 publica las tres primeras sesiones del arco A9 (Fleet
+  unificado): la identidad del nodo es la del certificado, los certificados
+  rotan sin reinicio y el Data Studio del fleet acepta filtros con operador.
+  Se mueve orbit (v1.10.3 → v1.12.0, dos cortes: v1.11.0 y el de
+  convergencia v1.12.0); quark v1.15.0 y nucleus v1.30.1 siguen donde
+  estaban. Módulos hermanos que cambian: orbit agent (v0.7.2 → v0.9.0),
+  orbit proto (v0.4.4 → v0.5.0), orbit server (v0.12.2 → v0.14.0) y orbit
+  quarkdatasource (v1.9.3 → v1.10.0); quarkbridge sin cambio. Minor de suite
+  porque lo es la de orbit (QADR-0002). Corte FUERA de la cadencia semanal
+  (QADR-0008): la S3 de A9 necesitaba publicado proto/v0.5.0 para que el
+  agente pudiera leer los campos nuevos (agent pina proto por tag, ADR-006
+  de orbit), y un corte de orbit deja al paraguas con tags de módulo por
+  delante del set pinado, que manifest-guard rechaza; re-pinar es el paso
+  siguiente del corte, no una opción.
 
-  Qué cambia para quien instala. Todo en quark, y todo por adición. LIKE
-  escapado: WhereLike, WhereContains, WhereStartsWith, WhereEndsWith y los
-  tipados escapan el texto del usuario y declaran el carácter de escape por
-  motor; la forma plana Where(col, "LIKE", p) no cambia. El plan de
-  migración lleva y emite índices, claves foráneas y CHECK, y el modelo los
-  declara con quark:"index", check= y enum=; lo no declarado no se propone
-  borrar. ALTER COLUMN de tipo, nulabilidad, default y clave primaria en los
-  seis motores, con SQLite reconstruyendo la tabla. Tipos: uuid por forma,
-  slices y maps almacenados (array nativo en PostgreSQL, JSON en el resto),
-  Range[T], net.IP como INET, y los operadores de PostgreSQL rehusados fuera
-  de él. El router RowLevelSecurityNative falla cerrado fuera de PostgreSQL y
-  verifica al primer uso que el motor aplica las políticas
-  (ErrRLSNotEnforced). PaginateAfter pagina por keyset con token opaco y una
-  sentencia por página. El CLI planifica desde fuente —quark migrate
-  diff|plan|verify --from-models— e instala y verifica políticas RLS; y
-  PlanMigration sin modelos ahora rehúsa en vez de proponer borrar todas las
-  tablas. Corrige que el confinamiento por tenant se perdiera dentro de una
-  transacción (QK-26) y que precision/scale reescribiera columnas que no eran
-  flotantes (QK-28, QK-30). El banco quark/internal/enterprisebench pasa de
-  20 a 47 de 69 controles, cada ausente con su nota; los dos hallazgos
-  rompientes del arco (QK-24, QK-32) esperan al major de A12. nucleus y
-  orbit sólo alinean pines. El paraguas registra el guard 52º,
-  umbrella-quark-posture: la cifra publicada es la que cuenta el banco y las
-  seis pruebas del arco siguen corriendo en la lane de cada motor.
+  Qué cambia para quien instala. Todo en el plano fleet de orbit y todo por
+  adición. El servidor puede atar la identidad del nodo al certificado
+  (--agent-identity-from-cert): una registración cuyo node_id no sea el CN
+  del certificado verificado se rehúsa; apagado por defecto, registra lo
+  declarado y avisa. El agente carga su certificado por ficheros
+  (tls_cert_file, tls_key_file, tls_ca_file, tls_server_name) y, sin
+  node_id, se llama como el CN. Los certificados de servidor y agente se
+  releen cuando un handshake encuentra los ficheros cambiados: rotar es
+  reescribir dos ficheros, sin reinicio. El protocolo gana filtros con
+  operador (ListRecordsRequest.where) e identidad del operador
+  (DataStudioRequest.operator); el agente aplica los operadores y rehúsa los
+  que no conoce, y cada lista del fleet lleva un total exacto. La identidad
+  se declara pero el servidor aún no la rellena. El banco
+  orbit/internal/fleettest/fleetbench pasa de 16 a 22 de 50. El ADR-012 de
+  orbit decide que el contrato datasource será un módulo propio; la
+  extracción llega con la S4.
 
-  Qué aprendió el tren. La prosa de quark escrita ANTES del commit de suelos
-  se pierde cuando release-please regenera la rama; el rescate es reset al
-  commit del bot, cherry-pick y push con lease. Una patch de nucleus también
-  debe su sección de notas. Y el checkout hermano es del driver mientras el
-  proceso vive: tocarlo a mano dejó la alineación de orbit en el main local.
-  Todo en scripts/train/README.md, sección 1.35.0.
+  Qué aprendió el tren. Un cambio de proto en orbit son DOS cortes (ADR-006)
+  y el set sólo certifica el segundo: el árbol de v1.11.0 llevaba agent y
+  server pinando proto v0.4.4 con v0.5.0 publicado, y el guard de pines
+  internos lo rechazó dentro de suite-integral; el PR de re-pin a v1.11.0
+  se retiró y se rehízo sobre el corte de convergencia v1.12.0. Un corte de
+  orbit a mitad de arco pone en rojo TODO PR del paraguas hasta re-pinar. Y
+  la deuda de doc de una minor de orbit se paga en la rama del bot en este
+  orden: primero la sección de notas, después el snapshot.
