@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-21, QUANTUM 1.36.0 — A9 EN CURSO: `S0`–`S3` hechas y publicadas, `S4` a medias (el módulo `datasource` en orbit#509), el banco del fleet en 22 de 50)
+## 3. Estado al cierre (2026-09-21, QUANTUM 1.36.0 — A9 EN CURSO: `S0`–`S4` hechas, el banco del fleet en 26 de 50)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -91,13 +91,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   cortes, ADR-006), el corte de convergencia **v1.12.0** (agent/v0.9.0,
   server/v0.14.0, quarkdatasource/v1.10.0) es el que pina **Quantum
   1.36.0**, cortado el mismo día con `train.sh --desde paraguas --hasta
-  cierre` (dos paradas de prosa, un PR de set retirado). **`S4` a medias**:
-  la parte 1 (orbit#509) extrae el contrato y su adaptador Nucleus al módulo
-  `orbit/datasource` con la mecánica del ADR-012 (replace versionado en el
+  cierre` (dos paradas de prosa, un PR de set retirado). **`S4` hecha**
+  (orbit#509 + orbit#511): el contrato y su adaptador Nucleus son el módulo
+  `orbit/datasource` (mecánica del ADR-012: replace versionado en el
   `go.work` y `link_unpublished_siblings.sh` en las lanes hasta que exista
-  `datasource/v1.0.0`); la parte 2 es el agente consumidor. **Siguiente
-  `S4`** (extracción de `datasource` a módulo con la mecánica del ADR-012 +
-  el agente consumidor), precondición orbit#507 fusionado. Hallazgos abiertos: **OR-56** (P2, A9, el stream
+  `datasource/v1.0.0`), y el agente sirve Data Studio a través de él bajo el
+  operador que el servidor envía (política por modelo, tenant por filtro).
+  Banco **26 de 50**. **Siguiente
+  `S5`** (audit con antes/después, ADR-002 cerrado, `quarkdatasource` en el
+  fleet), precondición orbit#511 fusionado. Hallazgos abiertos: **OR-56** (P2, A9, el stream
   superseded que no se termina) y **OR-57** (P3, A12: el enlace identidad↔
   certificado es opt-in hasta el major). **A8** (Quark
   enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
@@ -295,9 +297,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `go.work` para el desarrollo. El guard de pines acepta un módulo sin tag
   en su `initial-version` y pierde la excepción del borde raíz. Lo que debe
   el corte y el paraguas está en el plan.
-- **Siguiente: `S4` parte 2** (`agent.Config.DataSource`, identidad y
-  tenant en el agente, el servidor rellena `operator`), precondición
-  orbit#509 fusionado.
+- **`S4` parte 2 (orbit#511, `feat(agent)`)**: el Data Studio del agente
+  reescrito sobre el contrato (adiós `model.CRUD`), `DataSource` en
+  `agent.Config`/`ExtensionConfig`, el servidor rellena `operator` con el
+  tenant de `X-Auth-Tenant` (`--ui-tenant-header`, sólo proxy de confianza),
+  y el agente ejecuta como el panel: claims en el contexto, política por
+  modelo y verbo, tenant por filtro, propiedad antes de escribir. `FDS-05/06/
+  07/10` a present; banco **26 de 50**; tres mutaciones. Trampa: el cable
+  usa NOMBRES de campo y el adaptador claves JSON — el handler traduce.
+- **Siguiente: `S5`** (`FDS-11`, `FDS-12`, quarkdatasource en el fleet),
+  precondición orbit#511 fusionado.
 
 ### Sesión 2026-09-20 — **A8 `S1`–`S11` HECHAS, ARCO CERRADO en Quantum 1.35.0**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, tipos nativos de PostgreSQL, el router Native que verifica, keyset, el CLI, y el guard del arco
 

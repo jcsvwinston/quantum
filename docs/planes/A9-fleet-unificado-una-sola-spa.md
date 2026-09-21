@@ -106,7 +106,7 @@ dice que no lo hace nadie.
 | `S1` | La identidad del nodo es la del certificado, y el agente lo carga por configuración | S0 | **HECHA** — orbit#501: `IDENT-05`, `IDENT-06` a `present` (18/50); e2e mTLS con agente real a través de la extensión, en la lane `test` |
 | `S2` | Rotación de certificados en servidor y agente sin reinicio | S1 | **HECHA** — orbit#505: `IDENT-07`, `IDENT-08` a `present` (20/50, identity 10/0/0) |
 | `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | **HECHA** — orbit#506 (ADR-012, proto aditivo, `FDS-09`) + corte `v1.11.0`/`proto/v0.5.0` + orbit#507 (el agente lee `where`, `FDS-08`); `buf breaking` limpio; banco 22/50 |
-| `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | **PARTE 1 HECHA** — orbit#509: el contrato y su adaptador Nucleus son el módulo `orbit/datasource` (ADR-012 ejecutado). **Parte 2**: `agent.Config.DataSource`, el agente bajo la identidad recibida y el servidor rellenándola → `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present` |
+| `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | **HECHA** — orbit#509 (el módulo `orbit/datasource`) + orbit#511 (el agente sobre el contrato bajo el operador que el servidor envía): `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present`; banco 26/50 |
 | `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | `FDS-11`, `FDS-12` a `present`; `quarkdatasource` registrado en el fleet |
 | `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | familia `retention` completa |
 | `S7` | Alertas por umbral con canales, y colectores propios del servidor | S6 | familia `alerts` completa |
@@ -124,7 +124,7 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 
 ## Registro de sesiones
 
-### `S4` — el módulo `datasource` (2026-09-21) · **parte 1 hecha**
+### `S4` — el módulo `datasource` y el agente que lo habla (2026-09-21) · **hecha**
 
 - **PR**: [orbit#509](https://github.com/jcsvwinston/orbit/pull/509)
   (`feat(datasource)`). El contrato pasa a `github.com/jcsvwinston/orbit/datasource`
@@ -157,11 +157,42 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
   el paraguas, cuando el set pine ese árbol: `orbit_modules.datasource` en
   `versions.yaml` y `./orbit/datasource` en el `go.work` (manifest-guard
   descubre los módulos del árbol y fallará hasta que estén).
-- **Siguiente: parte 2** — `agent.Config.DataSource` (por defecto, el
-  adaptador Nucleus sobre `Registry`/`Databases`), el agente ejecuta bajo la
-  identidad recibida (RBAC por modelo con el `Authorizer` y confinamiento
-  por tenant con un filtro sobre `ModelInfo.TenantField`, como el panel) y
-  el servidor rellena `DataStudioRequest.operator`. Precondición: orbit#509
+- **Parte 2, [orbit#511](https://github.com/jcsvwinston/orbit/pull/511)
+  (`feat(agent)`)**: `agent/datastudio` reescrito sobre
+  `datasource.DataSource` (el camino `model.CRUD` desaparece);
+  `agent.Config.DataSource` y `ExtensionConfig.DataSource`, nil = el
+  adaptador Nucleus sobre `Registry`/`Databases`. El servidor rellena
+  `DataStudioRequest.operator` desde `auth.Identity` en cada petición, con el
+  tenant nuevo de la cabecera `X-Auth-Tenant` del proxy de confianza
+  (`--ui-tenant-header`, sólo en esa ruta). Bajo ese operador el agente pone
+  las claims del framework en el contexto (un hook de modelo ve quién pide),
+  aplica la política de la aplicación por modelo y verbo del panel (`list`,
+  `retrieve`, `create`, `update`, `delete`, `bulk_delete`) con su
+  `Authorizer` (un `*authz.Enforcer` decide; una fuente de sólo filas se
+  compila en uno), y confina a un operador con tenant: filtro de igualdad
+  sobre la columna de tenant en lecturas, tenant estampado al crear,
+  propiedad confirmada antes de actualizar o borrar, y la fila de otro
+  tenant es «not found», no «forbidden». Sin operador (servidor viejo), el
+  comportamiento anterior. Dos prefijos de error son convención de cable
+  que el servidor mapea a códigos: `permission denied:` y `not found:`. El
+  cable conserva `values_json` por NOMBRE de campo (lo que indexa la SPA)
+  aunque el adaptador emite claves JSON: el handler traduce por nombre y
+  columna plegados.
+- **Medido y decidido de paso**: nucleus no exporta un setter de tenant en
+  el contexto, así que el agente confina por filtro como el panel; el
+  modelo casbin de nucleus no trata `*` como sujeto comodín (la política de
+  la aplicación decide con su propio enforcer, la compilada sólo cubre
+  fuentes de filas). La propiedad fuzz de A3 sobre el estrechado de ids
+  (`FuzzParseID`) vive ahora en `datasource/nucleus`, que es quien estrecha.
+- **Banco 26 de 50** (datasource 10/1/1): `FDS-05`, `FDS-06`, `FDS-07`,
+  `FDS-10` a `present`. Tres mutaciones: el servidor sin rellenar
+  `operator` (FDS-05/06/07 en rojo), el agente sin confinar por tenant
+  (FDS-07), el agente sin autorizar (FDS-06). Tests unitarios del handler
+  con un `DataSource` en memoria con claves JSON, tests del servidor para la
+  cabecera de tenant (sólo ruta de proxy de confianza) y el mapeo de códigos.
+- **Siguiente: `S5`** (`FDS-11` audit con antes/después, `FDS-12` ADR-002
+  cerrado como implementado, `quarkdatasource` registrado en el fleet — que
+  ya es posible por `ExtensionConfig.DataSource`). Precondición: orbit#511
   fusionado.
 
 ### `S3` — ADR-012 y el proto aditivo (2026-09-21) · **hecha**
