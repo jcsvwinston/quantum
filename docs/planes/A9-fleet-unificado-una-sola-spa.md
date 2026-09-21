@@ -1,0 +1,163 @@
+# A9 — Fleet unificado y una sola SPA
+
+> Lee antes [`README.md`](README.md): el contrato de sesión, qué fichero manda
+> para cada pregunta y qué no decide una sesión sola.
+
+> **El troceado salió de la MEDICIÓN, no del enunciado.** El plan a 5/5
+> describía este arco en cinco líneas —el agente habla el contrato
+> `datasource`; mTLS real de extremo a extremo con rotación; retención local
+> de eventos, métricas y audit con alertas; multi-servidor con estado
+> compartido; una sola SPA sobre el stack del fleet— y un gate: la checklist
+> de paridad de A6 sobre un clúster de tres agentes. `S0` midió las cinco y
+> corrigió tres: el mTLS **ya existe** en el servidor (exige y verifica el
+> certificado del cliente) y lo que falta es lo que viene después —atar la
+> identidad del nodo al certificado, cargar el certificado del agente por
+> configuración y rotar—; el agente **no puede** hablar el contrato sin una
+> decisión de módulos, porque `agent/go.mod` no requiere la raíz donde vive
+> `datasource` y el ADR-006 prohíbe pines cruzados salvo el proto; y «el stack
+> del fleet como base común» nombra la SPA **menos** mantenida de las dos
+> (cero tests, sin router, sin división de código, último cambio dos meses
+> atrás). Es la quinta vez que la medición corrige el plan.
+
+**Precondición del arco**: Quantum 1.35.0 certificado (A8 cerrado); A6 cerrado
+(1.33.0), porque el fleet debe alcanzar la paridad que A6 midió en el panel.
+**Gate del arco**: el registro `docs/auditoria/madurez-2026-09-03/registro.csv`
+sin hallazgos abiertos de A9, el banco del fleet publicando su cifra, y el
+ADR-002 de orbit cerrado como implementado.
+
+## El banco
+
+`orbit/internal/fleettest/fleetbench` — **50 controles, uno por sonda
+ejecutable**, publicados en `orbit/docs/fleet-bench.md`. Vive dentro del
+módulo `internal/fleettest`, el único que puede arrancar un `agent.Agent` real
+contra un `server.Server` real, así que cada sonda mide el plano fleet de
+punta a punta: un servidor que escucha, un agente que se registra, y la API
+que la SPA consume. El test asserta el veredicto REGISTRADO, no el éxito:
+cerrar un hueco pone la suite en rojo y pide actualizar la cifra.
+
+**Línea de base medida el 2026-09-20 sobre orbit v1.10.3 (tras la ronda
+adversarial; la primera pasada daba 17/4/29):**
+
+| familia | present | partial | absent | de |
+|---|---|---|---|---|
+| identity | 6 | 2 | 2 | 10 |
+| datasource | 4 | 2 | 6 | 12 |
+| retention | 1 | 0 | 6 | 7 |
+| alerts | 2 | 0 | 4 | 6 |
+| ha | 1 | 1 | 3 | 5 |
+| ui | 2 | 0 | 8 | 10 |
+| **TOTAL** | **16** | **5** | **29** | **50** |
+
+Corre en SQLite y en la lane `test` del CI de orbit (`go test ./...` en
+`internal/fleettest`). Lo que sólo existe en un navegador —contraste, foco,
+teclado de la SPA del fleet— no lo mide este banco: lo medirá el instrumento
+de A6 cuando `S10` lo apunte al fleet, y hasta entonces el control `UI-07`
+dice que no lo hace nadie.
+
+## Lo que la medición encontró y el plan no sabía
+
+1. **El mTLS del servidor ya existe, y la identidad que produce se tira.**
+   `--agent-client-ca` exige y verifica el certificado del cliente, el guard
+   fail-closed lo cuenta como autenticación, y hay test. Pero
+   `server/services/agent_service.go` registra el nodo con el `node_id` que el
+   agente **declara**, y nunca lee la identidad que el handshake acaba de
+   poner en el contexto: un agente con certificado `node-a` puede registrarse
+   como `node-b`. Y el agente sólo acepta un `*tls.Config` construido en Go
+   (`koanf:"-"`): no hay forma de darle un certificado por configuración. Sin
+   rotación en ninguno de los dos lados.
+2. **El agente no habla el contrato, y el grafo de módulos lo impide.**
+   `datasource` vive en el módulo raíz; `agent/go.mod` y `server/go.mod` no
+   lo requieren, y el ADR-006 dice que el único pin cruzado permitido es el
+   proto. Antes de que el agente construya un `datasource.DataSource` hay una
+   decisión: mover el contrato a módulo propio o enmendar el ADR-006. Además
+   el cable no lleva ni la identidad del operador ni los doce operadores de
+   filtro: `ListRecordsRequest` tiene `map<string,string> filters`. El ADR-002
+   enumera cuatro pasos y este quinto no.
+3. **El servidor declara por escrito que no persiste** (`server/doc.go`:
+   «The server is NOT persistence»). Eventos en anillos, métricas sólo la
+   última muestra por nodo, audit del fleet en un anillo de 2048 sin
+   antes/después ni retención ni export. Retención local no es una función
+   que falta: es un invariante que hay que superar con un ADR sucesor.
+4. **Alertas: cero código, cero mensajes en el proto.** Y el servidor no tiene
+   colectores Prometheus propios (sólo el registro por defecto de Go); el
+   agente sí, ocho.
+5. **Multi-servidor: `server/doc.go` dice «single-instance by default»**, con
+   failover del agente por lista de endpoints y nada más: sin estado
+   compartido, sin relay entre servidores, sin sharding.
+6. **Dos SPAs con cero código compartido y dos sistemas de tokens
+   incompatibles**, y la del fleet es la débil: sin tests, sin router, un
+   único chunk de 430 KB, Vite 6, sin AG Grid/Recharts/base-ui. El panel
+   tiene 21 ficheros de test, división por rutas y presupuesto de carga
+   inicial. La decisión «el stack del fleet como base» se toma en `S9` con
+   estos datos delante, no antes.
+7. **connect-es 2 no está bloqueado sólo por Dependabot**: `proto/buf.gen.yaml`
+   pina los generadores v1 con un comentario que afirma que no hay v2
+   publicada, y la hay. La migración es de `proto/`.
+8. **El presupuesto de tamaño existente es raw y sólo de carga inicial**;
+   todos los assets del panel comprimidos suman ≈504 KB y nada sirve
+   comprimido. El «<400 KB comprimido» de A12 hoy no tiene ni medida ni
+   contraparte en el servidor.
+
+## El troceado
+
+| Sesión | Qué entrega | Precondición | Criterio de hecho |
+|---|---|---|---|
+| `S0` | La medición: el banco, su página y los hallazgos | A8 cerrado | **HECHA** — orbit#500: 16/50, 8 hallazgos que reescriben el plan y OR-56 |
+| `S1` | La identidad del nodo es la del certificado, y el agente lo carga por configuración | S0 | `IDENT-05`, `IDENT-06` a `present`; e2e mTLS con agente real en CI |
+| `S2` | Rotación de certificados en servidor y agente sin reinicio | S1 | `IDENT-07`, `IDENT-08` a `present` |
+| `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | ADR-012 aceptado; `FDS-08`, `FDS-09` a `present`; `buf breaking` limpio |
+| `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present` |
+| `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | `FDS-11`, `FDS-12` a `present`; `quarkdatasource` registrado en el fleet |
+| `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | familia `retention` completa |
+| `S7` | Alertas por umbral con canales, y colectores propios del servidor | S6 | familia `alerts` completa |
+| `S8` | Multi-servidor: estado compartido, relay de eventos y asignación de agentes | S6 | familia `ha` completa |
+| `S9` | Una sola SPA: la decisión con datos (ADR-013), tokens compartidos, tests, frescura del dist y presupuesto | S5 | `UI-01` a `UI-05` a `present` |
+| `S10` | connect-es 2 desde `proto/`, el instrumento de navegador sobre el fleet, tenant en la UI | S9 | `UI-06`, `UI-07`, `UI-09` a `present` |
+| `S11` | Gate, guard y set: clúster de tres agentes en CI, `umbrella-fleet-posture`, set certificado | todas | guard registrado con fixture; set certificado; ADR-002 implementado |
+
+**El orden no es negociable en tres sitios**: `S3` va antes que `S4` porque
+sin la decisión de módulos el agente no puede importar el contrato; `S6` va
+antes que `S7` y `S8` porque alertas y estado compartido necesitan un
+almacén; y `S9` va después de `S5` porque la SPA única debe hablar con un
+fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
+`S3`–`S5` pueden ir en paralelo (ficheros distintos); `S6`–`S8` tras ellos.
+
+## Registro de sesiones
+
+### `S0` — la medición (2026-09-20) · **hecha**
+
+- **PR**: [orbit#500](https://github.com/jcsvwinston/orbit/pull/500)
+  (`test(fleetbench)`, módulo `internal/fleettest`, que no se publica: no
+  corta release). Dos commits: el banco y la ronda adversarial.
+- **Banco**: `orbit/internal/fleettest/fleetbench`, 50 controles en seis
+  familias, publicados en `orbit/docs/fleet-bench.md`. **16 presentes, 5
+  parciales, 29 ausentes.** Corre en la lane `test` del CI de orbit (`go test
+  ./...` en `internal/fleettest`), así que mide en cada PR.
+- **Método**: reconocimiento por familias contra el código real, luego las
+  sondas, luego una ronda adversarial preguntando a cada sonda qué OTRO
+  reparto de hechos le daría el mismo veredicto. Movió un control y endureció
+  seis (FDS-11 mira dentro de un `BeforeCreate`; FDS-12 deja la supervivencia
+  al reinicio a RET-04; UI-02/UI-04/UI-05/UI-07 y ALR-06 miden lo que su
+  título nombra y no una palabra).
+- **Lo que la ronda encontró y el reconocimiento no**: `HA-05` (una
+  reconexión con el mismo `node_id` supersede el stream anterior) daba
+  `present` contando entradas de un `map`, que no puede tener dos. Medido
+  sobre el stream —un par crudo registrado primero y un agente real que toma
+  el relevo—, `Registry.Add` cancela el escritor viejo pero el lector de
+  `AgentService.Stream` bloquea en `Receive` y sólo mira el contexto cancelado
+  tras un error, así que el par superseded no ve error alguno y un frame que
+  emite después llega al suscriptor de la UI como si fuera del nodo. Es
+  **OR-56** (P2, A9) en el registro; `HA-05` queda `partial` hasta que el
+  lector salga en `streamCtx.Done()`. Encaja en `S8` (familia `ha`), o antes
+  si `S1` toca ese handler.
+- **Dos hipótesis del reconocimiento que las sondas tumbaron** están escritas
+  en la página del banco: leer es una hipótesis, y sólo la sonda dice si era
+  verdad. `FDS-09` es `absent` aunque el proto declare `total`: el servidor
+  nunca lo rellena. Una declaración no es una superficie.
+- **Detalle del arnés que vale para otros bancos**: un `Run` de servidor o
+  agente que no retorna a los 5 s de cancelarlo se REGISTRA, no se traga: un
+  proceso que no para es un hallazgo, no un tiempo.
+- **Siguiente: `S1`** (la identidad del nodo es la del certificado).
+  Precondición: orbit#500 fusionado. `S3` puede ir en paralelo (ficheros
+  distintos), pero su ADR-012 es una decisión de módulos que se escribe
+  ANTES de tocar `agent/go.mod`.
