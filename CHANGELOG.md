@@ -6,6 +6,50 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.35.0 — El arco A8: Quark como capa de datos enterprise
+
+Quantum 1.35.0 publica el arco A8: Quark como capa de datos enterprise. Se
+mueven quark (v1.14.0 → v1.15.0), nucleus (v1.30.0 → v1.30.1) y orbit
+(v1.10.2 → v1.10.3). Módulos hermanos que cambian: quark cmd/quark (v1.0.1
+→ v1.1.0) y sus cinco drivers (v0.2.1 → v0.2.2); los doce módulos de
+nucleus suben una patch (ldap v0.2.10 → v0.2.11, el resto v0.1.6 → v0.1.7);
+orbit agent (v0.7.1 → v0.7.2), server (v0.12.1 → v0.12.2), quarkbridge
+(v1.9.1 → v1.9.2) y quarkdatasource (v1.9.2 → v1.9.3); el resto sin
+cambio. Minor de suite porque lo es la de quark (QADR-0002). Corte en
+cadencia.
+
+Qué cambia para quien instala. Todo en quark, y todo por adición. LIKE
+escapado: WhereLike, WhereContains, WhereStartsWith, WhereEndsWith y los
+tipados escapan el texto del usuario y declaran el carácter de escape por
+motor; la forma plana Where(col, "LIKE", p) no cambia. El plan de
+migración lleva y emite índices, claves foráneas y CHECK, y el modelo los
+declara con quark:"index", check= y enum=; lo no declarado no se propone
+borrar. ALTER COLUMN de tipo, nulabilidad, default y clave primaria en los
+seis motores, con SQLite reconstruyendo la tabla. Tipos: uuid por forma,
+slices y maps almacenados (array nativo en PostgreSQL, JSON en el resto),
+Range[T], net.IP como INET, y los operadores de PostgreSQL rehusados fuera
+de él. El router RowLevelSecurityNative falla cerrado fuera de PostgreSQL y
+verifica al primer uso que el motor aplica las políticas
+(ErrRLSNotEnforced). PaginateAfter pagina por keyset con token opaco y una
+sentencia por página. El CLI planifica desde fuente —quark migrate
+diff|plan|verify --from-models— e instala y verifica políticas RLS; y
+PlanMigration sin modelos ahora rehúsa en vez de proponer borrar todas las
+tablas. Corrige que el confinamiento por tenant se perdiera dentro de una
+transacción (QK-26) y que precision/scale reescribiera columnas que no eran
+flotantes (QK-28, QK-30). El banco quark/internal/enterprisebench pasa de
+20 a 47 de 69 controles, cada ausente con su nota; los dos hallazgos
+rompientes del arco (QK-24, QK-32) esperan al major de A12. nucleus y
+orbit sólo alinean pines. El paraguas registra el guard 52º,
+umbrella-quark-posture: la cifra publicada es la que cuenta el banco y las
+seis pruebas del arco siguen corriendo en la lane de cada motor.
+
+Qué aprendió el tren. La prosa de quark escrita ANTES del commit de suelos
+se pierde cuando release-please regenera la rama; el rescate es reset al
+commit del bot, cherry-pick y push con lease. Una patch de nucleus también
+debe su sección de notas. Y el checkout hermano es del driver mientras el
+proceso vive: tocarlo a mano dejó la alineación de orbit en el main local.
+Todo en scripts/train/README.md, sección 1.35.0.
+
 ## Quantum 1.34.0 — el arco A7: jobs, eventos y tiempo real
 
 Quantum 1.34.0 publica el arco A7: jobs, eventos y tiempo real. Se mueven
