@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-21, QUANTUM 1.35.0 — A9 EN CURSO: `S0` hecha, el banco del fleet en 16 de 50)
+## 3. Estado al cierre (2026-09-21, QUANTUM 1.35.0 — A9 EN CURSO: `S0` y `S1` hechas, el banco del fleet en 18 de 50)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -81,9 +81,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   **A9 (Fleet unificado y una sola SPA) EN CURSO y TROCEADO** por su `S0`
   de medición (2026-09-20/21, orbit#500): doce sesiones en
   [`docs/planes/A9-fleet-unificado-una-sola-spa.md`](../../docs/planes/A9-fleet-unificado-una-sola-spa.md),
-  banco `orbit/internal/fleettest/fleetbench` en **16 de 50** (5 parciales),
-  `S0` hecha, **siguiente `S1`** (precondición: orbit#500 fusionado). Un
-  hallazgo abierto del arco, **OR-56** (P2). **A8** (Quark
+  banco `orbit/internal/fleettest/fleetbench` en **18 de 50** (5 parciales)
+  tras `S1` (orbit#501, identidad del nodo = CN del certificado, ficheros
+  TLS en la configuración del agente), `S0` y `S1` hechas, **siguiente `S2`**
+  (rotación) o `S3` (ADR-012, la decisión de módulos), precondición
+  orbit#501 fusionado. Hallazgos abiertos: **OR-56** (P2, A9, el stream
+  superseded que no se termina) y **OR-57** (P3, A12: el enlace identidad↔
+  certificado es opt-in hasta el major). **A8** (Quark
   enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
   `quark/internal/enterprisebench` de 20 a **47 de 69**, QK-25…QK-31 hechos,
   y los dos rompientes (QK-24, QK-32: la forma plana de `LIKE`) a A12. Lo que
@@ -191,7 +195,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-21 — **A9 `S0` HECHA (orbit#500)**: el banco del fleet, 16 de 50, ocho hallazgos que reescriben el plan y OR-56
+### Sesión 2026-09-21 — **A9 `S0` y `S1` HECHAS (orbit#500, orbit#501)**: el banco del fleet de 16 a 18 de 50, la identidad del nodo es la del certificado, OR-56 y OR-57
 
 - **Lo que quedó a medias el 20 y esta sesión cerró**: el banco
   `orbit/internal/fleettest/fleetbench` estaba commiteado en el hermano de
@@ -218,9 +222,21 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   SPAs sin código común y la del fleet es la débil; connect-es 2 lo pina
   `proto/buf.gen.yaml`; el presupuesto de tamaño es raw y nada sirve
   comprimido. Quinta vez que la medición corrige el enunciado.
-- **Siguiente: `S1`** (la identidad del nodo es la del certificado, y el
-  agente lo carga por configuración). Precondición: orbit#500 fusionado.
-  `S3` (ADR-012, la decisión de módulos) puede ir en paralelo.
+- **`S1` (orbit#501, `feat(fleet)`)**: `server.Config.AgentIdentityFromCertificate`
+  (`--agent-identity-from-cert`) rehúsa con `PermissionDenied` un `node_id`
+  que no sea el CN del certificado verificado, y `Run` rehúsa el knob sin
+  mTLS; apagado por defecto (WARN con las dos identidades) porque encenderlo
+  rompe a un fleet con un certificado compartido → **OR-57** (A12). El agente
+  gana `tls_cert_file`/`tls_key_file`/`tls_ca_file`/`tls_server_name` y, sin
+  `node_id`, se llama como el CN. `IDENT-05` boota un agente real A TRAVÉS de
+  la extensión desde tres rutas (antes medía nombres de campo por reflexión);
+  `IDENT-06` lee la negativa en el cable. Banco **18 de 50**. Cinco
+  mutaciones, cada una roja donde debía. Dos trampas: el servidor envía un
+  frame nada más registrar (recibir uno es aceptación, no error del arnés), y
+  `git checkout <fichero>` para deshacer una mutación se lleva TODAS las
+  ediciones sin commitear — se deshace con el mismo reemplazo textual.
+- **Siguiente: `S2`** (rotación sin reinicio) o `S3` (ADR-012). Precondición
+  de ambas: orbit#501 fusionado.
 
 ### Sesión 2026-09-20 — **A8 `S1`–`S11` HECHAS, ARCO CERRADO en Quantum 1.35.0**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, tipos nativos de PostgreSQL, el router Native que verifica, keyset, el CLI, y el guard del arco
 
@@ -420,8 +436,9 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
   guard (`umbrella-audit-backlog`) siguen siendo el gate de cada arco; A6, A7
   y A8 lo cerraron con el suyo propio (`umbrella-admin-posture`,
   `umbrella-jobs-posture`, `umbrella-quark-posture`) y A9 propone
-  `umbrella-fleet-posture` para el suyo (`S11`). Hallazgo abierto del arco:
-  **OR-56** (P2, el stream superseded que no se termina).
+  `umbrella-fleet-posture` para el suyo (`S11`). Hallazgos abiertos:
+  **OR-56** (P2, A9, el stream superseded que no se termina) y **OR-57**
+  (P3, A12, el enlace identidad↔certificado nace opt-in).
 - **Los hallazgos que abrió A7, todos CERRADOS en 1.34.0** (queda como mapa de
   qué sesión cerró qué; todos en nucleus salvo uno): **NU-78** (P2,
   `EmitAsync` bloquea al emisor con el techo de concurrencia lleno), **NU-79**
