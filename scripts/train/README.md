@@ -660,6 +660,40 @@ release-please@17` y llamar a `parseConventionalCommits` de
 bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
 la línea y la columna.
 
+### Lo que aprendió el tren de 1.36.0 (A9: un corte de orbit a mitad de arco)
+
+**Un cambio de proto son DOS cortes, y el set sólo certifica el segundo.**
+ADR-006 lo decía y el tren lo midió: la `S3` de A9 añadió campos a
+`admin.proto`, se cortó orbit (v1.11.0, `proto/v0.5.0`), y ese árbol lleva
+`agent` y `server` pinando `proto v0.4.4` — el guard de pines internos de
+orbit (`orbit-internal-pins`, que `suite-integral` corre SOBRE EL ÁRBOL
+PINADO con los tags vivos) lo rechaza. El primer PR de re-pin (quantum#231,
+a v1.11.0) salió rojo por eso y se retiró. Lo que certifica es el corte de
+convergencia: `agent`/`server` re-pinados a `proto v0.5.0` (aquí venían en
+el PR de producto que necesitaba el tag), release PR, `v1.12.0`, y re-pin a
+ESE. Orden que ahorra la vuelta: **no lanzar `--desde paraguas` hasta que el
+árbol del último tag de orbit pase `check_internal_pins.sh` por sí mismo.**
+
+**Un corte de orbit fuera del tren pone en rojo TODO PR del paraguas.**
+`manifest-guard` exige que los últimos tags de módulo sean ancestros del pin,
+sin tolerancia declarable: en cuanto orbit publica tags, cada PR del
+paraguas y la lane semanal fallan hasta re-pinar. Cortar un pilar a mitad de
+arco arrastra un set fuera de cadencia el mismo día; la razón va en `notes:`
+(QADR-0008).
+
+**La deuda de doc de una minor de orbit, en la rama del bot y en orden.**
+Sección `## vX.Y.Z` en `website/docs/reference/release-notes.md` PRIMERO y
+`scripts/release/cut_docs_snapshot.sh` DESPUÉS, en un worktree de
+`release-please--branches--main`, push a esa rama, y sólo entonces
+`check-anchored-release-branch.sh` + `merge-bot-pr.sh`. Dos veces seguidas
+sin sorpresa (v1.11.0 y v1.12.0).
+
+**Retirar un PR de set no es `git checkout` del árbol.** El re-pin vive en la
+rama `chore/set-X.Y.Z`; para rehacerlo con otros pines: cerrar el PR con
+`--delete-branch`, volver a `main`, `git submodule update --init orbit`, y
+relanzar `--desde paraguas` (bump-set escribe otro esqueleto: guardar la
+prosa redactada antes, que no se recupera del PR cerrado sin buscarla).
+
 ### Lo que aprendió el tren de 1.35.0 (A8: la minor de quark con la deuda de doc en la rama)
 
 **La prosa escrita ANTES del commit de suelos se pierde.** El tren abre su

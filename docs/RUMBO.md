@@ -39,8 +39,7 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   del certificado y el agente carga el suyo por ficheros), `S2` (orbit#505:
   los certificados rotan sin reinicio en los dos lados) y `S3` (orbit#506 y
   #507: ADR-012, el proto declara identidad y operadores, el agente aplica
-  los operadores y da totales exactos; la 1.11.0 de orbit se cortó a mitad
-  de arco y el set aún no la pina)— y ocho hallazgos
+  los operadores y da totales exactos; publicado en 1.36.0)— y ocho hallazgos
   que reescriben el enunciado —el mTLS del
   servidor ya existe y su identidad se tira; el agente no puede hablar
   `datasource` sin una decisión de módulos; el servidor declara que no

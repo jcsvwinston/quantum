@@ -64,14 +64,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-21, QUANTUM 1.35.0 — A9 EN CURSO: `S0`–`S3` hechas, orbit v1.11.0 cortado a mitad de arco, el banco del fleet en 22 de 50)
+## 3. Estado al cierre (2026-09-21, QUANTUM 1.36.0 — A9 EN CURSO: `S0`–`S3` hechas y publicadas fuera de cadencia, el banco del fleet en 22 de 50)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.35.0** (2026-09-20) — quark v1.15.0 (con el
-  CLI `cmd/quark` v1.1.0), nucleus v1.30.0 (sin cambio), orbit alineado a los
-  pines nuevos, tal como los lista `versions.yaml` (la fuente; no copies
-  números de aquí). `declared_lags` vacío. Publica el arco **A8**.
+- **Set certificado: Quantum 1.36.0** (2026-09-21, FUERA de cadencia) —
+  quark v1.15.0 y nucleus v1.30.1 sin cambio, orbit v1.12.0 con sus cinco
+  módulos, tal como los lista `versions.yaml` (la fuente; no copies números
+  de aquí). `declared_lags` vacío. Publica las tres primeras sesiones de
+  **A9**; A8 lo publicó 1.35.0.
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
@@ -85,8 +86,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   familia `identity` completa) tras `S1` (orbit#501), `S2` (orbit#505) y
   `S3` (orbit#506 + orbit#507). **Orbit se cortó a mitad de arco** (decisión
   de Carlos, 2026-09-21): **v1.11.0, proto/v0.5.0, agent/v0.8.0,
-  server/v0.13.0**, deuda de doc pagada en la rama del bot; el set del
-  paraguas sigue en orbit v1.10.3 hasta el tren del siguiente set. **Siguiente
+  server/v0.13.0**, y como el árbol de v1.11.0 NO certifica (agent/server
+  pinaban proto v0.4.4 con v0.5.0 publicado: un cambio de proto son DOS
+  cortes, ADR-006), el corte de convergencia **v1.12.0** (agent/v0.9.0,
+  server/v0.14.0, quarkdatasource/v1.10.0) es el que pina **Quantum
+  1.36.0**, cortado el mismo día con `train.sh --desde paraguas --hasta
+  cierre` (dos paradas de prosa, un PR de set retirado). **Siguiente
   `S4`** (extracción de `datasource` a módulo con la mecánica del ADR-012 +
   el agente consumidor), precondición orbit#507 fusionado. Hallazgos abiertos: **OR-56** (P2, A9, el stream
   superseded que no se termina) y **OR-57** (P3, A12: el enlace identidad↔
@@ -266,8 +271,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   activos, y el guard sólo mira la raíz). **Parte 2 de `S3` (orbit#507)**:
   pines de agent/server a `proto v0.5.0`, quarkdatasource a la raíz
   `v1.11.0`, `whereFromWire` (rehúsa, no tira) → `FDS-08` present. Banco
-  **22 de 50**. El re-pin del set queda para el tren.
-- **Siguiente: `S4`**, precondición orbit#507 fusionado.
+  **22 de 50**.
+- **El re-pin, y la trampa que lo costó**: `manifest-guard` rechaza tags de
+  módulo por delante del pin, así que tras el corte TODO PR del paraguas
+  estaba rojo; y el primer re-pin (a v1.11.0, quantum#231) cayó en
+  `suite-integral` porque el guard de pines internos de orbit corre sobre el
+  árbol pinado y ese árbol llevaba proto v0.4.4 con v0.5.0 publicado. Se
+  retiró, se fusionó el release PR de convergencia (v1.12.0, deuda de doc
+  en la rama del bot: notas y luego snapshot) y se rehizo el re-pin:
+  **Quantum 1.36.0** certificado (52 guards) y anunciado a quantum-app, cuyo
+  bump #27 sale en borrador con gates rojos, como todos desde 1.30.0.
+  Escrito en `scripts/train/README.md` (sección 1.36.0).
+- **Siguiente: `S4`**, precondición orbit#507 fusionado (lo está).
 
 ### Sesión 2026-09-20 — **A8 `S1`–`S11` HECHAS, ARCO CERRADO en Quantum 1.35.0**: tenancy en transacción, `LIKE … ESCAPE`, el plan emite lo que lleva, `ALTER COLUMN` completo, uuid/enum, `precision/scale`, tipos nativos de PostgreSQL, el router Native que verifica, keyset, el CLI, y el guard del arco
 

@@ -173,8 +173,12 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
   que el guard avisaba a una minor), y `whereFromWire` sobre
   `model.ParseFilterOp`, que rehúsa con el filtro nombrado en vez de tirar.
   `FDS-08` a `present` (mutación: con el mapeo vacío, sonda y tests en
-  rojo). Banco **22 de 50** (5 parciales). El set del paraguas sigue pinando
-  orbit v1.10.3: el re-pin lo hace el tren del siguiente set.
+  rojo). Banco **22 de 50** (5 parciales). Y como el árbol de v1.11.0 no
+  certifica (agent/server pinaban proto v0.4.4 con v0.5.0 publicado — un
+  cambio de proto son DOS cortes, ADR-006), el release PR de convergencia
+  orbit#508 cortó **v1.12.0** (agent/v0.9.0, server/v0.14.0,
+  quarkdatasource/v1.10.0) y **Quantum 1.36.0** lo pina, certificado el
+  mismo día fuera de cadencia.
 - **Siguiente: `S4`** (el agente sirve Data Studio a través de
   `datasource.DataSource`), que empieza por la extracción del contrato a
   módulo con la mecánica del ADR-012. Precondición: orbit#507 fusionado.
