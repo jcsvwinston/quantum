@@ -105,7 +105,7 @@ dice que no lo hace nadie.
 | `S0` | La medición: el banco, su página y los hallazgos | A8 cerrado | **HECHA** — orbit#500: 16/50, 8 hallazgos que reescriben el plan y OR-56 |
 | `S1` | La identidad del nodo es la del certificado, y el agente lo carga por configuración | S0 | **HECHA** — orbit#501: `IDENT-05`, `IDENT-06` a `present` (18/50); e2e mTLS con agente real a través de la extensión, en la lane `test` |
 | `S2` | Rotación de certificados en servidor y agente sin reinicio | S1 | **HECHA** — orbit#505: `IDENT-07`, `IDENT-08` a `present` (20/50, identity 10/0/0) |
-| `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | ADR-012 aceptado; `FDS-08`, `FDS-09` a `present`; `buf breaking` limpio |
+| `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | **PARTE 1 HECHA** — orbit#506: ADR-012 aceptado, proto aditivo con `buf breaking` limpio, `FDS-09` a `present` (21/50). **Parte 2** tras cortar `proto/v0.5.0`: el agente lee `where` → `FDS-08` a `present` |
 | `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present` |
 | `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | `FDS-11`, `FDS-12` a `present`; `quarkdatasource` registrado en el fleet |
 | `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | familia `retention` completa |
@@ -123,6 +123,48 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 `S3`–`S5` pueden ir en paralelo (ficheros distintos); `S6`–`S8` tras ellos.
 
 ## Registro de sesiones
+
+### `S3` — ADR-012 y el proto aditivo (2026-09-21) · **parte 1 hecha**
+
+- **PR**: [orbit#506](https://github.com/jcsvwinston/orbit/pull/506)
+  (`feat(fleet)`). Banco **21 de 50** (6 parciales).
+- **ADR-012, aceptado**: el contrato `datasource` pasa a módulo hoja
+  (`github.com/jcsvwinston/orbit/datasource`, misma ruta de import, cero
+  dependencias), la segunda arista que ADR-006 permite. Medido: el fichero no
+  importa nada; `quarkdatasource` sólo importa ese paquete de la raíz (así
+  que la excepción `≤1 minor` de `check_internal_pins.sh` se retira con la
+  extracción); el adaptador que convierte una aplicación en `DataSource` es
+  `internal/` a la raíz, inalcanzable desde el agente en cualquier layout —
+  ESA decisión es de `S4`. Primer tag `datasource/v1.0.0` (API congelada
+  desde v1). **La extracción se ejecuta en `S4`**, con el agente como primer
+  consumidor nuevo, y la mecánica escrita en el ADR: suelo que nombra el tag
+  del corte, `replace` versionado en el go.work del CI hasta el corte
+  (patrón de quark), paquete de release-please, `orbit_modules.datasource` en
+  `versions.yaml`.
+- **Proto por adición** (`buf lint` y `buf breaking --against main` limpios;
+  stubs Go y TS regenerados; la SPA del fleet tipa y linta): `RecordFilter`
+  + `ListRecordsRequest.where` (los doce operadores del contrato),
+  `OperatorIdentity` + `DataStudioRequest.operator` (subject, email, role,
+  read_only, tenant).
+- **Agente**: cada `ListRecords` pide `ExactTotal` → `FDS-09` a `present`
+  (mutación: sin `ExactTotal`, la sonda en rojo).
+- **Lo que la lane standalone enseñó y partió la sesión en dos**: el agente
+  pina `proto` por tag (ADR-006), así que un agente que lea `where` no
+  compila con `GOWORK=off` hasta que exista `proto/v0.5.0`. El mapeo
+  (`whereFromWire` sobre `model.ParseFilterOp`, que rehúsa en vez de tirar,
+  con su test y con la sonda `FDS-08` ya escrita contra el campo tipado) está
+  apartado en el scratchpad de la sesión y entra en la **parte 2**, tras el
+  corte. ADR-006 ya lo decía: un cambio de proto son dos cortes.
+- **Tres controles a `partial` por la misma razón**: `FDS-05`, `FDS-07` y
+  `UI-09` — el cable DECLARA identidad, tenant y operadores, y declarar no es
+  hacer. `UI-09` se endureció de paso: un campo del descriptor no es una
+  noción de tenant en la UI, ni lo es la palabra dentro de una cadena
+  traducida — y esa cadena (`ui/src/lib/i18n.ts`, «tenant filters apply»)
+  afirma lo que no ocurre: **OR-58** (P3, `S10`).
+- **Siguiente**: cortar orbit (release PR de release-please) para que exista
+  `proto/v0.5.0`; luego la parte 2 (pin de `agent` y `server` a
+  `proto/v0.5.0` + `whereFromWire`; `FDS-08` a `present`). Cortar a mitad de
+  arco es una decisión del responsable, no de la sesión.
 
 ### `S2` — rotación sin reinicio (2026-09-21) · **hecha**
 
