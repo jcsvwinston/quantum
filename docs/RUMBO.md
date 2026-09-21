@@ -35,11 +35,11 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   [`planes/A8-quark-enterprise.md`](planes/A8-quark-enterprise.md).
   **A9** (Fleet unificado y una sola SPA) está EN CURSO: su `S0` de
   medición (orbit#500) dejó el banco `orbit/internal/fleettest/fleetbench`
-  en **16 de 50** —**21** tras `S1` (orbit#501: la identidad del nodo es la
+  en **16 de 50** —**22** tras `S1` (orbit#501: la identidad del nodo es la
   del certificado y el agente carga el suyo por ficheros), `S2` (orbit#505:
-  los certificados rotan sin reinicio en los dos lados) y la parte 1 de `S3`
-  (orbit#506: ADR-012, el proto declara identidad y operadores, total
-  exacto)— y ocho hallazgos
+  los certificados rotan sin reinicio en los dos lados) y `S3` (orbit#506 y
+  #507: ADR-012, el proto declara identidad y operadores, el agente aplica
+  los operadores y da totales exactos; publicado en 1.36.0)— y ocho hallazgos
   que reescriben el enunciado —el mTLS del
   servidor ya existe y su identidad se tira; el agente no puede hablar
   `datasource` sin una decisión de módulos; el servidor declara que no

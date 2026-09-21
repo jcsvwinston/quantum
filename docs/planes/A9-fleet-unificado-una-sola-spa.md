@@ -105,7 +105,7 @@ dice que no lo hace nadie.
 | `S0` | La medición: el banco, su página y los hallazgos | A8 cerrado | **HECHA** — orbit#500: 16/50, 8 hallazgos que reescriben el plan y OR-56 |
 | `S1` | La identidad del nodo es la del certificado, y el agente lo carga por configuración | S0 | **HECHA** — orbit#501: `IDENT-05`, `IDENT-06` a `present` (18/50); e2e mTLS con agente real a través de la extensión, en la lane `test` |
 | `S2` | Rotación de certificados en servidor y agente sin reinicio | S1 | **HECHA** — orbit#505: `IDENT-07`, `IDENT-08` a `present` (20/50, identity 10/0/0) |
-| `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | **PARTE 1 HECHA** — orbit#506: ADR-012 aceptado, proto aditivo con `buf breaking` limpio, `FDS-09` a `present` (21/50). **Parte 2** tras cortar `proto/v0.5.0`: el agente lee `where` → `FDS-08` a `present` |
+| `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | **HECHA** — orbit#506 (ADR-012, proto aditivo, `FDS-09`) + corte `v1.11.0`/`proto/v0.5.0` + orbit#507 (el agente lee `where`, `FDS-08`); `buf breaking` limpio; banco 22/50 |
 | `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present` |
 | `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | `FDS-11`, `FDS-12` a `present`; `quarkdatasource` registrado en el fleet |
 | `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | familia `retention` completa |
@@ -124,7 +124,7 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 
 ## Registro de sesiones
 
-### `S3` — ADR-012 y el proto aditivo (2026-09-21) · **parte 1 hecha**
+### `S3` — ADR-012 y el proto aditivo (2026-09-21) · **hecha**
 
 - **PR**: [orbit#506](https://github.com/jcsvwinston/orbit/pull/506)
   (`feat(fleet)`). Banco **21 de 50** (6 parciales).
@@ -161,10 +161,27 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
   noción de tenant en la UI, ni lo es la palabra dentro de una cadena
   traducida — y esa cadena (`ui/src/lib/i18n.ts`, «tenant filters apply»)
   afirma lo que no ocurre: **OR-58** (P3, `S10`).
-- **Siguiente**: cortar orbit (release PR de release-please) para que exista
-  `proto/v0.5.0`; luego la parte 2 (pin de `agent` y `server` a
-  `proto/v0.5.0` + `whereFromWire`; `FDS-08` a `present`). Cortar a mitad de
-  arco es una decisión del responsable, no de la sesión.
+- **El corte, y la parte 2.** Carlos decidió cortar orbit a mitad de arco:
+  release PR orbit#504 → **orbit v1.11.0, proto/v0.5.0, agent/v0.8.0,
+  server/v0.13.0** (2026-09-21), con la deuda de doc pagada EN la rama del
+  bot (sección `## v1.11.0` en las notas y snapshot `1.11.0`, en ese orden),
+  `check-anchored-release-branch.sh` en verde y `merge-bot-pr.sh` que
+  disparó el CI, fusionó y esperó los seis tags; la release publica su
+  `checksums.txt` firmado. **Parte 2 en
+  [orbit#507](https://github.com/jcsvwinston/orbit/pull/507)**: `agent` y
+  `server` a `proto v0.5.0`, `quarkdatasource` a la raíz `v1.11.0` (el pin
+  que el guard avisaba a una minor), y `whereFromWire` sobre
+  `model.ParseFilterOp`, que rehúsa con el filtro nombrado en vez de tirar.
+  `FDS-08` a `present` (mutación: con el mapeo vacío, sonda y tests en
+  rojo). Banco **22 de 50** (5 parciales). Y como el árbol de v1.11.0 no
+  certifica (agent/server pinaban proto v0.4.4 con v0.5.0 publicado — un
+  cambio de proto son DOS cortes, ADR-006), el release PR de convergencia
+  orbit#508 cortó **v1.12.0** (agent/v0.9.0, server/v0.14.0,
+  quarkdatasource/v1.10.0) y **Quantum 1.36.0** lo pina, certificado el
+  mismo día fuera de cadencia.
+- **Siguiente: `S4`** (el agente sirve Data Studio a través de
+  `datasource.DataSource`), que empieza por la extracción del contrato a
+  módulo con la mecánica del ADR-012. Precondición: orbit#507 fusionado.
 
 ### `S2` — rotación sin reinicio (2026-09-21) · **hecha**
 
