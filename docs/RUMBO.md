@@ -42,7 +42,7 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   los operadores y da totales exactos; publicado en 1.36.0) y `S4` (orbit#509
   y #511: el contrato `datasource` es un módulo y el fleet lo habla bajo el
   operador, con política y tenant) y `S5` (orbit#512 y #513, con la 1.13.0
-  de orbit cortada entre medias: el audit del fleet dice qué cambió,
+  de orbit cortada entre medias y la 1.14.0 de convergencia después: el audit del fleet dice qué cambió,
   `quarkdatasource` probado en el fleet, ADR-002 implementado; **28** de 50,
   familia `datasource` completa; pendiente de publicar en el set)— y ocho
   hallazgos

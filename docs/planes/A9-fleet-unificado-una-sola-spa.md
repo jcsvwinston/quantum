@@ -107,7 +107,7 @@ dice que no lo hace nadie.
 | `S2` | Rotación de certificados en servidor y agente sin reinicio | S1 | **HECHA** — orbit#505: `IDENT-07`, `IDENT-08` a `present` (20/50, identity 10/0/0) |
 | `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | **HECHA** — orbit#506 (ADR-012, proto aditivo, `FDS-09`) + corte `v1.11.0`/`proto/v0.5.0` + orbit#507 (el agente lee `where`, `FDS-08`); `buf breaking` limpio; banco 22/50 |
 | `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | **HECHA** — orbit#509 (el módulo `orbit/datasource`) + orbit#511 (el agente sobre el contrato bajo el operador que el servidor envía): `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present`; banco 26/50 |
-| `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | **HECHA** — orbit#512 (el cable declara el antes y el después del audit) + corte `v1.13.0`/`proto/v0.6.0` + orbit#513 (el agente devuelve el registro previo, el servidor escribe los dos lados, `quarkdatasource` probado en el fleet, ADR-002 implementado): `FDS-11`, `FDS-12` a `present`; banco 28/50, familia `datasource` completa |
+| `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | **HECHA** — orbit#512 (el cable declara el antes y el después del audit) + corte `v1.13.0`/`proto/v0.6.0` + orbit#513 + corte de convergencia `v1.14.0` (el agente devuelve el registro previo, el servidor escribe los dos lados, `quarkdatasource` probado en el fleet, ADR-002 implementado): `FDS-11`, `FDS-12` a `present`; banco 28/50, familia `datasource` completa |
 | `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | familia `retention` completa |
 | `S7` | Alertas por umbral con canales, y colectores propios del servidor | S6 | familia `alerts` completa |
 | `S8` | Multi-servidor: estado compartido, relay de eventos y asignación de agentes | S6 | familia `ha` completa |
@@ -174,11 +174,16 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
   y `FDS-12` a `present`. Dos mutaciones: servidor sin escribir los lados
   (rojo en el create), agente sin devolver el registro previo (rojo en el
   update). Quedan parciales `UI-09` (S10) y `HA-05` (OR-56, S8).
-- **Convergencia pendiente**: el árbol de main tras orbit#513 pasa
-  `check_internal_pins.sh` solo; el árbol de v1.13.0 NO (agent/server con
-  proto v0.5.0), así que el paraguas sigue en rojo hasta el corte de
-  convergencia (v1.14.0) y su re-pin, con `orbit_modules.datasource` en
-  `versions.yaml` y `./orbit/datasource` en el go.work del paraguas.
+- **El corte de convergencia** (decisión de Carlos, el mismo día): orbit#513
+  fusionado → release PR orbit#514 → **orbit v1.14.0, agent/v0.11.0,
+  server/v0.16.0, quarkdatasource/v1.12.0** (proto/v0.6.0, datasource/v1.0.0
+  y quarkbridge sin cambio), deuda de doc en la rama del bot (notas
+  `## v1.14.0` y snapshot; el guard de voz de producto rechazó «ADR-002»
+  en las notas y se dijo en prosa —el `tail` había tapado su aviso, regla:
+  no encadenar un guard con `tail`—). El árbol de v1.14.0 pasa
+  `check_internal_pins.sh` por sí solo: es el que puede pinar el set, con
+  `orbit_modules.datasource` en `versions.yaml` y `./orbit/datasource` en
+  el go.work del paraguas.
 - **Lo que conviene decidir antes de `S6`**: `S6` (retención y export),
   `S7` (alertas) y `S8` (multi-servidor) tocarán el proto casi seguro. Cada
   cambio de proto son dos cortes y, a mitad de arco, un re-pin del set. La

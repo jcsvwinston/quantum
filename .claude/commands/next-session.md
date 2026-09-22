@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-22, QUANTUM 1.36.0 — A9 EN CURSO: `S0`–`S5` hechas, el banco del fleet en 28 de 50; orbit cortado a mitad de arco por segunda vez, paraguas pendiente de re-pin)
+## 3. Estado al cierre (2026-09-22, QUANTUM 1.36.0 — A9 EN CURSO: `S0`–`S5` hechas, el banco del fleet en 28 de 50; orbit cortado a mitad de arco por segunda vez y convergido en v1.14.0, paraguas pendiente de re-pin)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -103,12 +103,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   fleet dice qué cambió (el agente devuelve el registro previo, el servidor
   escribe los dos lados con tope), `quarkdatasource` probado en el fleet en
   `internal/fleettest`, ADR-002 implementado. Banco **28 de 50**, familia
-  `datasource` completa. **El paraguas está en ROJO** desde el corte
-  (`manifest-guard`: tags de módulo por delante del pin) y el árbol de
-  v1.13.0 no certifica (agent/server con proto v0.5.0): hace falta el corte
-  de convergencia (orbit#513 fusionado → release PR → v1.14.0) y el re-pin
-  del set con `orbit_modules.datasource` en `versions.yaml` y
-  `./orbit/datasource` en el go.work del paraguas. **Siguiente: `S6`**
+  `datasource` completa. **Corte de convergencia hecho**: orbit#514 →
+  **v1.14.0, agent/v0.11.0, server/v0.16.0, quarkdatasource/v1.12.0**; ese
+  árbol pasa `check_internal_pins.sh` solo. **El paraguas está en ROJO**
+  desde el primer corte (`manifest-guard`: tags de módulo por delante del
+  pin) hasta el re-pin del set a v1.14.0, con `orbit_modules.datasource`
+  en `versions.yaml` y `./orbit/datasource` en el go.work del paraguas
+  (`train.sh --desde paraguas`, set fuera de cadencia, razón en `notes:`). **Siguiente: `S6`**
   (retención: un almacén para eventos, métricas y audit con ventana y
   export, ADR sucesor de «no persiste»), y ANTES de tocar su proto, la
   propuesta escrita en el registro de `S5`: diseñar la adición de `S6`–`S8`
@@ -256,9 +257,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   en `internal/fleettest` (Quark sólo cabe ahí). ADR-002 `implemented` con
   sección «Ejecución». `FDS-11` mide un update; dos mutaciones en rojo.
   Banco **28/50**.
+- **El corte de convergencia**: orbit#513 fusionado, release PR orbit#514
+  con la deuda de doc en la rama del bot → **v1.14.0, agent/v0.11.0,
+  server/v0.16.0, quarkdatasource/v1.12.0**. Trampa nueva: `guard | tail`
+  tapa el exit del guard; la voz de producto rechazó «ADR-002» en las notas
+  y hubo un segundo push a la rama del bot antes de fusionar.
 - **Para antes de `S6`**: `S6`–`S8` tocarán el proto; diseñar su adición en
   un solo PR y pagar un corte, no tres (está en el registro de `S5`). Y el
-  paraguas queda en rojo hasta el corte de convergencia y el re-pin.
+  paraguas queda en rojo hasta el re-pin a v1.14.0.
 
 ### Sesión 2026-09-21 — **A9 `S0`–`S3` HECHAS (orbit#500, #501, #505, #506, #507) y orbit v1.11.0 cortado**: el banco del fleet de 16 a 22 de 50; identidad, rotación, ADR-012 y los operadores en el cable; OR-56, OR-57 y OR-58
 
