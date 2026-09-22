@@ -107,7 +107,7 @@ dice que no lo hace nadie.
 | `S2` | Rotación de certificados en servidor y agente sin reinicio | S1 | **HECHA** — orbit#505: `IDENT-07`, `IDENT-08` a `present` (20/50, identity 10/0/0) |
 | `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | **HECHA** — orbit#506 (ADR-012, proto aditivo, `FDS-09`) + corte `v1.11.0`/`proto/v0.5.0` + orbit#507 (el agente lee `where`, `FDS-08`); `buf breaking` limpio; banco 22/50 |
 | `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | **HECHA** — orbit#509 (el módulo `orbit/datasource`) + orbit#511 (el agente sobre el contrato bajo el operador que el servidor envía): `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present`; banco 26/50 |
-| `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | **EN CURSO** — parte 1 orbit#512 (el cable declara el antes y el después del audit); parte 2 tras el corte: `FDS-11`, `FDS-12` a `present`; `quarkdatasource` probado en el fleet |
+| `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | **HECHA** — orbit#512 (el cable declara el antes y el después del audit) + corte `v1.13.0`/`proto/v0.6.0` + orbit#513 (el agente devuelve el registro previo, el servidor escribe los dos lados, `quarkdatasource` probado en el fleet, ADR-002 implementado): `FDS-11`, `FDS-12` a `present`; banco 28/50, familia `datasource` completa |
 | `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | familia `retention` completa |
 | `S7` | Alertas por umbral con canales, y colectores propios del servidor | S6 | familia `alerts` completa |
 | `S8` | Multi-servidor: estado compartido, relay de eventos y asignación de agentes | S6 | familia `ha` completa |
@@ -124,7 +124,7 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 
 ## Registro de sesiones
 
-### `S5` — el audit dice qué cambió, ADR-002 se cierra y `quarkdatasource` entra en el fleet (2026-09-22) · **en curso, parte 1**
+### `S5` — el audit dice qué cambió, ADR-002 se cierra y `quarkdatasource` entra en el fleet (2026-09-22) · **hecha**
 
 - **Parte 1, [orbit#512](https://github.com/jcsvwinston/orbit/pull/512)
   (`feat(proto)`)**: proto por adición, `buf lint` y `buf breaking` limpios,
@@ -147,16 +147,38 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
   el test no puede vivir en la raíz (Quark no entra en su grafo) ni en el
   agente (mismo motivo), así que vive en `quarkdatasource` y requiere el
   agente publicado. Ambas cosas caen en la **parte 2, tras el corte**.
-- **Parte 2 (pendiente)**: el agente devuelve `previous`; el servidor
-  escribe los dos lados en su ring de audit (con tope de tamaño por lado) y
-  `ListAudit` los expone → `FDS-11` a `present`; test en `quarkdatasource`
-  con el handler del agente sobre el adaptador; ADR-002 con estado
-  implementado y su fila del índice → `FDS-12` a `present`. Precondición:
-  orbit cortado (proto/v0.6.0, agent/v0.10.0, server/v0.15.0,
-  datasource/v1.0.0) y sus deberes de convergencia hechos (quitar el
-  `replace` de `datasource` del `go.work`, tidy de root y quarkdatasource,
-  `orbit_modules.datasource` en `versions.yaml`, `./orbit/datasource` en el
-  go.work del paraguas).
+- **El corte, y la parte 2.** Carlos decidió cortar orbit otra vez a mitad
+  de arco: release PR orbit#510 → **orbit v1.13.0, proto/v0.6.0,
+  agent/v0.10.0, server/v0.15.0, datasource/v1.0.0 (primer tag),
+  quarkdatasource/v1.11.0** (2026-09-22), con la deuda de doc pagada en la
+  rama del bot (sección `## v1.13.0` en las notas y snapshot `1.13.0`, en
+  ese orden), `check-anchored-release-branch.sh` en verde y `merge-bot-pr.sh`
+  que disparó el CI, fusionó y esperó los siete tags. **Parte 2 en
+  [orbit#513](https://github.com/jcsvwinston/orbit/pull/513)
+  (`feat(fleet)`)**: el agente devuelve el registro tal como estaba
+  (`DataStudioResponse.previous`: uno en update y delete, uno por fila en
+  bulk, ninguno en create; renderizado ANTES de escribir, porque el primer
+  test cazó un store que entrega el mismo mapa que muta); el servidor
+  escribe los dos lados como objetos JSON con claves ordenadas (un array en
+  bulk), cada lado con tope de 64 KiB y marcador, y `ListAudit` los expone;
+  agent/server a `proto v0.6.0`, el `replace` de `datasource` fuera del
+  `go.work`, raíz y quarkdatasource tidy contra el tag publicado. La PRUEBA
+  de `quarkdatasource` en el fleet vive donde Quark puede vivir, el módulo
+  test-only `internal/fleettest`: `TestQuarkDataSourceInTheFleet` arranca
+  un agente cuya única fuente es el adaptador Quark (sin registro ni base de
+  Nucleus) y lo conduce por el servidor como dos tenants. ADR-002 pasa a
+  `implemented` con una sección «Ejecución» que nombra el PR y el control
+  del banco de cada paso del plan; fila del índice al día.
+- **Banco 28 de 50** (datasource 12/0/0, familia completa): `FDS-11`
+  endurecida —mide un update: el título viejo a un lado y el nuevo al otro—
+  y `FDS-12` a `present`. Dos mutaciones: servidor sin escribir los lados
+  (rojo en el create), agente sin devolver el registro previo (rojo en el
+  update). Quedan parciales `UI-09` (S10) y `HA-05` (OR-56, S8).
+- **Convergencia pendiente**: el árbol de main tras orbit#513 pasa
+  `check_internal_pins.sh` solo; el árbol de v1.13.0 NO (agent/server con
+  proto v0.5.0), así que el paraguas sigue en rojo hasta el corte de
+  convergencia (v1.14.0) y su re-pin, con `orbit_modules.datasource` en
+  `versions.yaml` y `./orbit/datasource` en el go.work del paraguas.
 - **Lo que conviene decidir antes de `S6`**: `S6` (retención y export),
   `S7` (alertas) y `S8` (multi-servidor) tocarán el proto casi seguro. Cada
   cambio de proto son dos cortes y, a mitad de arco, un re-pin del set. La
