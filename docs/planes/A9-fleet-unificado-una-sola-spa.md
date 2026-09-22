@@ -107,7 +107,7 @@ dice que no lo hace nadie.
 | `S2` | Rotación de certificados en servidor y agente sin reinicio | S1 | **HECHA** — orbit#505: `IDENT-07`, `IDENT-08` a `present` (20/50, identity 10/0/0) |
 | `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | **HECHA** — orbit#506 (ADR-012, proto aditivo, `FDS-09`) + corte `v1.11.0`/`proto/v0.5.0` + orbit#507 (el agente lee `where`, `FDS-08`); `buf breaking` limpio; banco 22/50 |
 | `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | **HECHA** — orbit#509 (el módulo `orbit/datasource`) + orbit#511 (el agente sobre el contrato bajo el operador que el servidor envía): `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present`; banco 26/50 |
-| `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | `FDS-11`, `FDS-12` a `present`; `quarkdatasource` registrado en el fleet |
+| `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | **EN CURSO** — parte 1 orbit#512 (el cable declara el antes y el después del audit); parte 2 tras el corte: `FDS-11`, `FDS-12` a `present`; `quarkdatasource` probado en el fleet |
 | `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | familia `retention` completa |
 | `S7` | Alertas por umbral con canales, y colectores propios del servidor | S6 | familia `alerts` completa |
 | `S8` | Multi-servidor: estado compartido, relay de eventos y asignación de agentes | S6 | familia `ha` completa |
@@ -123,6 +123,45 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 `S3`–`S5` pueden ir en paralelo (ficheros distintos); `S6`–`S8` tras ellos.
 
 ## Registro de sesiones
+
+### `S5` — el audit dice qué cambió, ADR-002 se cierra y `quarkdatasource` entra en el fleet (2026-09-22) · **en curso, parte 1**
+
+- **Parte 1, [orbit#512](https://github.com/jcsvwinston/orbit/pull/512)
+  (`feat(proto)`)**: proto por adición, `buf lint` y `buf breaking` limpios,
+  stubs Go y TS regenerados, la SPA tipa y linta. `AuditEntry.before_json` y
+  `AuditEntry.after_json` (los valores del registro antes y después, como
+  JSON; un create no tiene antes, un delete no tiene después, un bulk lleva
+  un array por lado) y `DataStudioResponse.previous` (`repeated Record`: el
+  agente devuelve el registro tal como estaba antes de un update, un delete
+  o cada registro de un bulk, para que el servidor escriba el lado «antes»
+  sin un segundo viaje). El README de `quarkdatasource` muestra el cableado
+  del fleet por `agent.ExtensionConfig.DataSource`, el paso 4 del plan del
+  ADR-002. Banco sin cambio (**26 de 50**): `FDS-11` sigue `partial` con su
+  razón nueva —el cable declara los campos y el servidor no escribe nada en
+  ellos— como `FDS-05` y `FDS-07` tras `S3`.
+- **Por qué dos partes, otra vez**: agent y server pinan `proto` por tag
+  (ADR-006); el código que rellena o lee los campos nuevos no compila con
+  `GOWORK=off` hasta que exista `proto/v0.6.0`. Y la prueba de
+  `quarkdatasource` en el fleet (un test que corre el handler del agente
+  sobre el adaptador Quark) necesita `agent/v0.10.0`, que tampoco existe:
+  el test no puede vivir en la raíz (Quark no entra en su grafo) ni en el
+  agente (mismo motivo), así que vive en `quarkdatasource` y requiere el
+  agente publicado. Ambas cosas caen en la **parte 2, tras el corte**.
+- **Parte 2 (pendiente)**: el agente devuelve `previous`; el servidor
+  escribe los dos lados en su ring de audit (con tope de tamaño por lado) y
+  `ListAudit` los expone → `FDS-11` a `present`; test en `quarkdatasource`
+  con el handler del agente sobre el adaptador; ADR-002 con estado
+  implementado y su fila del índice → `FDS-12` a `present`. Precondición:
+  orbit cortado (proto/v0.6.0, agent/v0.10.0, server/v0.15.0,
+  datasource/v1.0.0) y sus deberes de convergencia hechos (quitar el
+  `replace` de `datasource` del `go.work`, tidy de root y quarkdatasource,
+  `orbit_modules.datasource` en `versions.yaml`, `./orbit/datasource` en el
+  go.work del paraguas).
+- **Lo que conviene decidir antes de `S6`**: `S6` (retención y export),
+  `S7` (alertas) y `S8` (multi-servidor) tocarán el proto casi seguro. Cada
+  cambio de proto son dos cortes y, a mitad de arco, un re-pin del set. La
+  opción barata es diseñar el proto aditivo de las tres en un solo PR antes
+  de `S6` y pagar UN corte, no tres.
 
 ### `S4` — el módulo `datasource` y el agente que lo habla (2026-09-21) · **hecha**
 

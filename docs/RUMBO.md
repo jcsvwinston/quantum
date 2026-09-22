@@ -41,7 +41,9 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   #507: ADR-012, el proto declara identidad y operadores, el agente aplica
   los operadores y da totales exactos; publicado en 1.36.0) y `S4` (orbit#509
   y #511: el contrato `datasource` es un módulo y el fleet lo habla bajo el
-  operador, con política y tenant; pendiente de publicar)— y ocho hallazgos
+  operador, con política y tenant; pendiente de publicar); `S5` a medias
+  (orbit#512: el cable declara el antes y el después del audit; la parte 2
+  espera el corte)— y ocho hallazgos
   que reescriben el enunciado —el mTLS del
   servidor ya existe y su identidad se tira; el agente no puede hablar
   `datasource` sin una decisión de módulos; el servidor declara que no
