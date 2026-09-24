@@ -45,9 +45,11 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   de orbit cortada entre medias y la 1.14.0 de convergencia después: el audit del fleet dice qué cambió,
   `quarkdatasource` probado en el fleet, ADR-002 implementado; familia
   `datasource` completa) y `S6` (orbit#515: el servidor retiene localmente
-  con ventana y descarga, el agente aparca sin stream; **33** de 50; el lote de proto de
-  `S6`–`S8` en la 1.15.0 de orbit, pendiente de convergencia y de publicar
-  en el set)— y ocho hallazgos
+  con ventana y descarga, el agente aparca sin stream; el lote de proto de `S6`–`S8` en la 1.15.0
+  de orbit) y `S7` (orbit#520: alertas por umbral con canales webhook y
+  correo, colectores propios del servidor, historial de métricas servido;
+  **38** de 50, `alerts` y `retention` completas; pendiente de publicar en
+  el set)— y ocho hallazgos
   que reescriben el enunciado —el mTLS del
   servidor ya existe y su identidad se tira; el agente no puede hablar
   `datasource` sin una decisión de módulos; el servidor declara que no
