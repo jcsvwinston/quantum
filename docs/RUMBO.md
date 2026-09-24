@@ -52,8 +52,10 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   con ventana y descarga, el agente aparca sin stream; el lote de proto de `S6`–`S8` en la 1.15.0
   de orbit) y `S7` (orbit#520: alertas por umbral con canales webhook y
   correo, colectores propios del servidor, historial de métricas servido;
-  **38** de 50, `alerts` y `retention` completas; pendiente de publicar en
-  el set)— y ocho hallazgos
+  publicado en 1.37.0) y `S8` (orbit#522: una flota de servidores con
+  registro compartido, relay de eventos y asignación de nodos, OR-56
+  cerrado; **42** de 50, sólo queda la familia `ui`; pendiente de publicar
+  en el set)— y ocho hallazgos
   que reescriben el enunciado —el mTLS del
   servidor ya existe y su identidad se tira; el agente no puede hablar
   `datasource` sin una decisión de módulos; el servidor declara que no
