@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-24, QUANTUM 1.36.0 — A9 EN CURSO: `S0`–`S6` hechas, el banco del fleet en 33 de 50; orbit cortado en v1.15.0 con el lote de proto, convergencia y re-pin pendientes)
+## 3. Estado al cierre (2026-09-24, QUANTUM 1.36.0 — A9 EN CURSO: `S0`–`S7` hechas, el banco del fleet en 38 de 50; orbit en v1.15.0, la convergencia en orbit#520 sin fusionar, paraguas pendiente de re-pin)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -120,9 +120,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   (agent/server pinan proto v0.6.0): hace falta el corte de convergencia
   —los pines a v0.7.0 los trae la `S7` (o un PR de pines solo) y su
   release PR— antes de que el paraguas pueda re-pinar; v1.14.0 tampoco
-  vale ya (tags de módulo por delante). **Siguiente: `S7`** (alertas por
-  umbral con canales y colectores propios del servidor), que sube los
-  pines y sirve `AlertService` y `MetricsService`. Hallazgos abiertos: **OR-56** (P2, A9, el stream
+  vale ya (tags de módulo por delante). **`S7` hecha** (orbit#520, sin fusionar): reglas por umbral
+  con canales webhook y correo, `AlertService`, colectores `admin_server_*`,
+  `MetricsService` sirve el historial, pines a proto v0.7.0 — ES la
+  convergencia. Banco **38 de 50**, `alerts` y `retention` completas.
+  **Siguiente: `S8`** (multi-servidor: registro compartido, relay de eventos
+  y asignación de agentes, con `PeerService` y `Command.redirect` ya en el
+  proto). Tras fusionar #520 y cortar, el paraguas puede re-pinar. Hallazgos abiertos: **OR-56** (P2, A9, el stream
   superseded que no se termina) y **OR-57** (P3, A12: el enlace identidad↔
   certificado es opt-in hasta el major). **A8** (Quark
   enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
@@ -232,7 +236,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-24 — **A9 `S6` HECHA (orbit#515)**: el servidor retiene localmente (ADR-013), el agente aparca sin stream; banco 33/50
+### Sesión 2026-09-24 — **A9 `S6` y `S7` HECHAS (orbit#515, #518, #520) y orbit v1.15.0 cortado**: retención local (ADR-013), el lote de proto, alertas con canales y colectores propios; banco 38/50
 
 - **Arranque con `/next-session auto`**: quantum#236 abierto y rojo por el
   re-pin pendiente (esperado); orbit en main con v1.14.0. Foco `S6`, que
@@ -262,8 +266,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `tail`) → **v1.15.0, proto/v0.7.0, agent/v0.12.0, server/v0.17.0**.
   Convergencia pendiente (pines a proto v0.7.0 + release) para que el
   paraguas re-pine.
-- **Pendiente de Carlos**: fusionar quantum#236; tras la convergencia,
-  re-pinar el set.
+- **`S7` (orbit#520, `feat(fleet)`)**: `server/alerts` (reglas JSON con
+  validación, motor con `for`, canales webhook y SMTP, notificador con
+  tope), `AlertService`, `MetricsService.ListHostMetrics`, `server/metrics`
+  con registro por servidor (varios servidores en un proceso no chocan),
+  flags `--alert-*`, pines a proto v0.7.0. `alerts` 6/0/0 y `retention`
+  7/0/0; banco **38/50**; tres mutaciones en rojo. quantum#236 fusionado.
+- **Pendiente de Carlos**: fusionar orbit#520 y cortar (la convergencia);
+  re-pinar el set con `orbit_modules.datasource` y `./orbit/datasource`.
 
 ### Sesión 2026-09-22 — **A9 `S4` fusionada y `S5` HECHA (orbit#512, corte v1.13.0, orbit#513)**: el audit del fleet dice qué cambió, `quarkdatasource` en el fleet, ADR-002 implementado; banco 28/50
 

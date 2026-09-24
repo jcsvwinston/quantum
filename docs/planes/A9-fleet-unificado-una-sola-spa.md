@@ -109,7 +109,7 @@ dice que no lo hace nadie.
 | `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | **HECHA** — orbit#509 (el módulo `orbit/datasource`) + orbit#511 (el agente sobre el contrato bajo el operador que el servidor envía): `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present`; banco 26/50 |
 | `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | **HECHA** — orbit#512 (el cable declara el antes y el después del audit) + corte `v1.13.0`/`proto/v0.6.0` + orbit#513 + corte de convergencia `v1.14.0` (el agente devuelve el registro previo, el servidor escribe los dos lados, `quarkdatasource` probado en el fleet, ADR-002 implementado): `FDS-11`, `FDS-12` a `present`; banco 28/50, familia `datasource` completa |
 | `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | **HECHA** — orbit#515 (ADR-013: store SQLite opt-in con ventana, replay calentado, audit y descarga, muestras de métricas; el agente aparca eventos sin stream): `RET-01/02/04/05/06` a `present`; banco 33/50; `RET-03` espera el RPC de historial en el lote de proto |
-| `S7` | Alertas por umbral con canales, y colectores propios del servidor | S6 | familia `alerts` completa |
+| `S7` | Alertas por umbral con canales, y colectores propios del servidor | S6 | **HECHA** — orbit#520 (reglas por umbral sobre métricas de host, canales webhook y correo, `AlertService`, colectores `admin_server_*`, `MetricsService` sirve el historial retenido, pines a proto v0.7.0): familias `alerts` 6/0/0 y `retention` 7/0/0 completas; banco 38/50 |
 | `S8` | Multi-servidor: estado compartido, relay de eventos y asignación de agentes | S6 | familia `ha` completa |
 | `S9` | Una sola SPA: la decisión con datos (ADR-013), tokens compartidos, tests, frescura del dist y presupuesto | S5 | `UI-01` a `UI-05` a `present` |
 | `S10` | connect-es 2 desde `proto/`, el instrumento de navegador sobre el fleet, tenant en la UI | S9 | `UI-06`, `UI-07`, `UI-09` a `present` |
@@ -123,6 +123,44 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 `S3`–`S5` pueden ir en paralelo (ficheros distintos); `S6`–`S8` tras ellos.
 
 ## Registro de sesiones
+
+### `S7` — alertas por umbral, canales y los colectores propios del servidor (2026-09-24) · **hecha**
+
+- **PR**: [orbit#520](https://github.com/jcsvwinston/orbit/pull/520)
+  (`feat(fleet)`). Banco **38 de 50**: `alerts` 6/0/0 y `retention` 7/0/0,
+  las dos familias completas. Es además la **convergencia** del lote de
+  proto: agent, server y `internal/fleettest` pinan `proto v0.7.0`.
+- **`server/alerts`**: reglas por umbral sobre un campo de `HostMetrics`
+  (operador, umbral, `for`, severidad, nodos por glob, canales), leídas de
+  un fichero JSON (`--alert-rules-file`) con defaults y validación; el
+  motor evalúa cada heartbeat, dispara cuando la condición se mantiene
+  `for`, resuelve cuando cesa, guarda los últimos 1024 resueltos, y un
+  notificador único entrega a los canales con tope por entrega. Canales:
+  webhook (POST JSON, `--alert-webhooks name=url`) y correo SMTP
+  (`--alert-smtp-*`, credenciales por entorno). Una regla que nombra un
+  canal no configurado rehúsa arrancar (test): la regla que no avisa a
+  nadie por error es el fallo silencioso que las alertas existen para
+  evitar. `AlertService` (`ListAlertRules`, `ListAlerts`, `StreamAlerts`)
+  tras la cadena de auth de la UI.
+- **Colectores propios** (`server/metrics`): registro por servidor servido
+  junto al registro por defecto (`promhttp.HandlerFor(Gatherers{...})`), así
+  varios servidores en un proceso no chocan por nombre: nodos conectados y
+  conocidos, frames/eventos/heartbeats recibidos, peticiones de Data Studio
+  por resultado, alertas activas/disparadas/resueltas, eventos en replay,
+  publicados y descartados a suscripciones de la UI.
+- **`MetricsService.ListHostMetrics`** sirve el historial retenido desde
+  `S6` (oldest first, ventana y `since`); sin directorio de datos, vacío.
+- **Sondas**: `ALR-01` configura una regla que todo nodo rompe
+  (`goroutines > 0`) y lee la alerta atribuida a regla, nodo, valor y hora;
+  `ALR-02` levanta un webhook y recibe el POST; `ALR-03` lee reglas y
+  alertas y comprueba que un llamante sin credencial es rechazado; `ALR-04`
+  encuentra los colectores propios por espacio negativo; `RET-03` lee tres
+  muestras en orden y honra `since`. Tres mutaciones: motor que no evalúa
+  (`ALR-01` rojo), webhook que no envía (`ALR-02` rojo), historial vacío
+  (`RET-03` rojo).
+- **Lo que no hace**: las alertas no se retienen entre reinicios (viven en
+  memoria); no hay reintento de entrega; la UI del fleet no las muestra
+  todavía (`S9`/`S10`).
 
 ### `S6` — retención local del plano fleet (2026-09-24) · **hecha**
 
