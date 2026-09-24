@@ -427,6 +427,14 @@ GUARD_SCAN_EXCLUDE=(
   # una base de datos; lo que certifica son los tests que corren después.
   # Entra al set con quark v1.6.0.
   "quark/scripts/ci/oracle-up.sh"
+  # UTILLAJE de las lanes standalone de orbit (ADR-012): durante la lane
+  # GOWORK=off añade al go.mod del módulo un `replace` hacia el directorio de
+  # cada hermano cuyo tag todavía no existe, y lo quita antes del diff de
+  # tidy. Edita el árbol para que la lane compile en el minuto en que nace un
+  # módulo; no tiene veredicto sobre él. Lo que sí certifica los pines es
+  # check_internal_pins.sh (orbit-internal-pins). Entra al set con orbit
+  # v1.13.0, el corte que publicó datasource/v1.0.0.
+  "orbit/scripts/ci/link_unpublished_siblings.sh"
   # GENERADOR de entorno para apps consumidoras (DX-24): traduce un .env
   # neutro a las dos gramáticas de configuración (QUARK_* viper / NUCLEUS_*
   # koanf). Emite exports, no tiene veredicto sobre el árbol — no es un guard.
