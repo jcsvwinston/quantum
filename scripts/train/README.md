@@ -660,6 +660,46 @@ release-please@17` y llamar a `parseConventionalCommits` de
 bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
 la línea y la columna.
 
+### Lo que aprendió el tren de 1.37.0 (A9: cuatro cortes de orbit y un sexto módulo)
+
+**Un módulo nuevo en un pilar es un módulo nuevo en el tren.** `bump-set.sh`
+regeneraba los bloques de quark y nucleus desde el manifiesto al pin, pero el
+de orbit lo parcheaba línea a línea con CINCO claves escritas en el script, y
+la tabla de orbit del README igual; `manifest-guard` §4b recorría la misma
+lista fija. `datasource` (orbit v1.13.0, ADR-012) existía en el manifiesto de
+orbit y nada del paraguas lo sabía — el mismo fallo que dejó once módulos de
+nucleus sin registrar en su día. Ahora orbit se regenera con
+`regen_module_block`, las filas del README se reescriben por clave del
+manifiesto (una fila nueva se escribe a mano UNA vez, con su rol) y §4b itera
+`mm_keys orbit_modules`. El go.work del paraguas lleva `./orbit/datasource`.
+
+**El re-pin que trae scripts nuevos de producto pone la lane roja dos veces.**
+La aserción anti-fósil encontró `orbit/scripts/ci/link_unpublished_siblings.sh`
+sin registrar: es utillaje de la lane standalone (edita el go.mod mientras un
+hermano no tiene tag), no un guard, y se excluye en `GUARD_SCAN_EXCLUDE` con
+su porqué. Y la fixture de `orbit-dependabot-floors` se quedó rancia por
+partida doble: copiaba una lista fija de go.mod (sin `datasource/go.mod`, el
+guard fallaba por «directory list is stale», causa distinta de la esperada) y
+borraba el ignore de la raíz de orbit en quarkdatasource, que desde ADR-012
+ya no requiere la raíz — la fixture no habría mordido. Ahora deriva los
+go.mod de la propia config de Dependabot y borra el patrón de hermanos. Regla:
+al mover un pilar que cambió su árbol de módulos, correr `guard-of-guards.sh`
+en local ANTES de lanzar `--desde paraguas`; cuesta dos minutos y ahorra una
+vuelta de CI sobre el PR de set. Ojo con `set -e` en una fixture: un
+`[ -f x ] && echo` que falla en la última vuelta de un `while` mata el script
+en silencio y el harness dice «FIXTURE-ROTA» sin más.
+
+**Cuatro cortes de orbit en tres días con la misma mecánica que 1.36.0** —
+deuda de doc en la rama del bot (notas y luego snapshot), rama anclada,
+`merge-bot-pr.sh` — y dos trampas nuevas fuera del tren que valen para el
+tren: un guard encadenado con `| tail` pierde su exit (se corre solo y se lee
+entero), y un PR apilado sobre otro se cierra solo cuando el de abajo se
+fusiona con squash y borra la rama base (rebase con `--onto` soltando el
+commit ya fusionado, y PR nuevo). La regla de 1.36.0 se cumplió a la letra: el
+árbol de v1.16.0 pasa `check_internal_pins.sh` solo antes de lanzar
+`--desde paraguas`, y el set salió con tres invocaciones y una parada de
+prosa (23 min conducidos).
+
 ### Lo que aprendió el tren de 1.36.0 (A9: un corte de orbit a mitad de arco)
 
 **Un cambio de proto son DOS cortes, y el set sólo certifica el segundo.**
