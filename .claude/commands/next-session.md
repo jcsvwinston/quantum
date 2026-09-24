@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-24, QUANTUM 1.37.0 — A9 EN CURSO: `S0`–`S9` hechas, el banco del fleet en 47 de 50; orbit#524 sin fusionar)
+## 3. Estado al cierre (2026-09-24, QUANTUM 1.37.0 — A9 EN CURSO: `S0`–`S10` hechas, el banco del fleet en 49 de 50; orbit#526 sin fusionar; queda `S11`, el gate y el set)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -134,14 +134,22 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   sin dependencias, que raíz y servidor requieren por tag — nace como
   `datasource`: pin a `ui v1.0.0`, `replace` en el go.work y link script en
   las lanes hasta el corte. Tokens, tsconfig, ESLint, Vitest, lane de
-  frescura y presupuesto por entrada compartidos. Banco **47 de 50**.
-  **Siguiente: `S10`** (connect-es 2 desde `proto/`, instrumento de
-  navegador sobre el fleet, tenant en la UI: `UI-06`, `UI-07`, `UI-09`),
-  precondición orbit#524 fusionado; después `S11`, el gate y el set.
-  Deberes del corte que trae `ui/v1.0.0`: quitar el `replace`; en el
-  paraguas, `./orbit/ui` en el go.work y la fila `orbit/ui` en la tabla
-  del README (`bump-set` ya regenera `orbit_modules` solo). Hallazgos abiertos: **OR-57** (P3, A12: el enlace identidad↔
-  certificado es opt-in hasta el major) y **OR-58** (P3, `S10`). **A8** (Quark
+  frescura y presupuesto por entrada compartidos. **`S10` hecha**
+  (orbit#526, `feat(ui)`, sin fusionar): stubs connect-es 2 desde `proto/`,
+  el proyecto `fleet` del instrumento de navegador (seis `UIF`, cinco
+  presentes; `UIF-02` contraste ausente → OR-59), y el tenant en la SPA
+  sobre `SelfInfo.tenant` y `ModelInfo.tenant_field`, dos campos aditivos
+  que servidor y agente rellenan tras el corte (`UI-09` sigue partial con
+  la sonda comprobando el relleno). Banco **49 de 50**, 1 parcial, 0
+  ausentes. **Siguiente: `S11`** — el gate y el set: clúster de tres
+  agentes en CI, guard `umbrella-fleet-posture` con fixture, y el tren, que
+  esta vez trae DOS cortes de orbit (el primero crea `ui/v1.0.0` y
+  `proto/v0.8.0`; la parte 2 de `S10` sube pines y rellena el tenant; el
+  segundo converge) y los deberes del paraguas: `./orbit/ui` en el go.work
+  y la fila `orbit/ui` en la tabla del README (`bump-set` ya regenera
+  `orbit_modules`). Hallazgos abiertos: **OR-57** (P3, A12: el enlace
+  identidad↔certificado es opt-in hasta el major) y **OR-59** (P3, A12: el
+  contraste del tema claro del fleet, re-skin sobre los tokens compartidos). **A8** (Quark
   enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
   `quark/internal/enterprisebench` de 20 a **47 de 69**, QK-25…QK-31 hechos,
   y los dos rompientes (QK-24, QK-32: la forma plana de `LIKE`) a A12. Lo que
@@ -249,7 +257,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-24 — **A9 `S6` a `S9` HECHAS (orbit#515, #518, #520, #522, #524), orbit v1.15.0/v1.16.0 cortados y Quantum 1.37.0**: retención local, el lote de proto, alertas, la flota de servidores, un solo proyecto de frontend; banco 47/50
+### Sesión 2026-09-24 — **A9 `S6` a `S10` HECHAS (orbit#515, #518, #520, #522, #524, #526), orbit v1.15.0/v1.16.0 cortados y Quantum 1.37.0**: retención, el lote de proto, alertas, la flota de servidores, un solo proyecto de frontend, la familia `ui`; banco 49/50
 
 - **Arranque con `/next-session auto`**: quantum#236 abierto y rojo por el
   re-pin pendiente (esperado); orbit en main con v1.14.0. Foco `S6`, que
@@ -311,8 +319,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `from '@/`; la config de Tailwind se carga por ruta, no con `import` de
   un `.js` desde un `.ts`; `TestBrowserBench` falla en local sin el
   binario de Playwright, no por el cambio.
-- **Siguiente: `S10`** (connect-es 2, navegador sobre el fleet, tenant en
-  la UI), tras fusionar orbit#524.
+- **`S10` (orbit#526, `feat(ui)`)**: connect-es 2 / protobuf-es 2 desde
+  `proto/buf.gen.yaml` (un generador, `create(Schema)`, `createClient`);
+  proyecto `fleet` del instrumento de navegador conducido desde
+  `internal/fleettest` (Chromium headless instalado en local: el banco de
+  navegador se corre antes del CI); `UIF-02` contraste ausente con razón
+  (OR-59, A12); el tenant en la SPA sobre `SelfInfo.tenant` y
+  `ModelInfo.tenant_field`, con la sonda UI-09 comprobando que el servidor
+  rellene lo que la UI lee (partial hasta la parte 2); OR-58 cerrado.
+  Banco **49/50**.
+- **Siguiente: `S11`** (gate, guard `umbrella-fleet-posture`, clúster de
+  tres agentes en CI, y el set con dos cortes de orbit), tras fusionar
+  orbit#526.
 
 ### Sesión 2026-09-22 — **A9 `S4` fusionada y `S5` HECHA (orbit#512, corte v1.13.0, orbit#513)**: el audit del fleet dice qué cambió, `quarkdatasource` en el fleet, ADR-002 implementado; banco 28/50
 
