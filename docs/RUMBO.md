@@ -54,8 +54,9 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   correo, colectores propios del servidor, historial de métricas servido;
   publicado en 1.37.0) y `S8` (orbit#522: una flota de servidores con
   registro compartido, relay de eventos y asignación de nodos, OR-56
-  cerrado; **42** de 50, sólo queda la familia `ui`; pendiente de publicar
-  en el set)— y ocho hallazgos
+  cerrado) y `S9` (orbit#524: un solo proyecto de frontend y el módulo
+  `orbit/ui` que embebe el único dist; **47** de 50, quedan tres controles
+  de `ui` para `S10`; pendiente de publicar en el set)— y ocho hallazgos
   que reescriben el enunciado —el mTLS del
   servidor ya existe y su identidad se tira; el agente no puede hablar
   `datasource` sin una decisión de módulos; el servidor declara que no

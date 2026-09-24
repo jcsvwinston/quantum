@@ -111,7 +111,7 @@ dice que no lo hace nadie.
 | `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | **HECHA** — orbit#515 (ADR-013: store SQLite opt-in con ventana, replay calentado, audit y descarga, muestras de métricas; el agente aparca eventos sin stream): `RET-01/02/04/05/06` a `present`; banco 33/50; `RET-03` espera el RPC de historial en el lote de proto |
 | `S7` | Alertas por umbral con canales, y colectores propios del servidor | S6 | **HECHA** — orbit#520 (reglas por umbral sobre métricas de host, canales webhook y correo, `AlertService`, colectores `admin_server_*`, `MetricsService` sirve el historial retenido, pines a proto v0.7.0): familias `alerts` 6/0/0 y `retention` 7/0/0 completas; banco 38/50 |
 | `S8` | Multi-servidor: estado compartido, relay de eventos y asignación de agentes | S6 | **HECHA** — orbit#522 (ADR-014: malla de un salto sobre el listener de agentes, nodos remotos en el registro, relay de eventos con demanda total, asignación por rendezvous hashing y `Command.redirect`; el stream reemplazado termina, OR-56 cerrado): familia `ha` 5/0/0; banco 42/50 |
-| `S9` | Una sola SPA: la decisión con datos (ADR-013), tokens compartidos, tests, frescura del dist y presupuesto | S5 | `UI-01` a `UI-05` a `present` |
+| `S9` | Una sola SPA: la decisión con datos (ADR-015), tokens compartidos, tests, frescura del dist y presupuesto | S5 | **HECHA** — orbit#524 (ADR-015: el proyecto del panel como base, el fleet como segunda entrada, un dist embebido por el módulo `orbit/ui` que raíz y servidor requieren por tag; tokens, tests, lint, lane de frescura y presupuesto por entrada compartidos): `UI-01`–`UI-05` a `present`; banco 47/50 |
 | `S10` | connect-es 2 desde `proto/`, el instrumento de navegador sobre el fleet, tenant en la UI | S9 | `UI-06`, `UI-07`, `UI-09` a `present` |
 | `S11` | Gate, guard y set: clúster de tres agentes en CI, `umbrella-fleet-posture`, set certificado | todas | guard registrado con fixture; set certificado; ADR-002 implementado |
 
@@ -123,6 +123,50 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 `S3`–`S5` pueden ir en paralelo (ficheros distintos); `S6`–`S8` tras ellos.
 
 ## Registro de sesiones
+
+### `S9` — un solo proyecto de frontend (2026-09-24) · **hecha**
+
+- **PR**: [orbit#524](https://github.com/jcsvwinston/orbit/pull/524)
+  (`feat(ui)`). Banco **47 de 50**: `ui` 7/1/2; quedan `UI-06` (connect-es
+  2), `UI-07` (instrumento de navegador sobre el fleet) y `UI-09` (tenant en
+  la UI), los tres de `S10`.
+- **ADR-015, aceptado e implementado, con los datos delante**: el plan
+  decía «el stack del fleet como base» y la tabla dice lo contrario (panel:
+  10 318 líneas, 116 tests, chunks por ruta, presupuesto y lane de frescura;
+  fleet: 5 306 líneas y nada de eso). El proyecto del panel se mueve a `ui/`
+  como base; las fuentes del fleet pasan a `ui/src/fleet/` como segunda
+  entrada con su Vite y su Tailwind (sus pantallas siguen leyendo la paleta
+  numerada). Un `npm run build` construye `dist/panel` y `dist/fleet`.
+- **Un `//go:embed` no puede salir de su módulo**, y raíz y servidor son
+  módulos distintos por ADR-006: «el mismo dist» sólo es posible si lo embebe
+  un tercer módulo hoja que los dos requieran. Nace
+  `github.com/jcsvwinston/orbit/ui` (sin dependencias; `Panel()`, `Fleet()`,
+  `Dist()`), la raíz sirve `Panel()` bajo su prefijo y el servidor `Fleet()`
+  en su raíz; `server/ui` desaparece. Mecánica del nacimiento como la de
+  `datasource`: pin a `ui v1.0.0` (initial-version), `replace` versionado en
+  el go.work, `link_unpublished_siblings.sh` en las lanes (verificado en
+  local para raíz, servidor y ui), release-please, CodeQL, matrices,
+  Dependabot con un solo proyecto npm.
+- **Compartido por construcción**: `src/shared/tokens.css` importado por las
+  dos hojas de estilos; un tsconfig, un ESLint, un Vitest (el fleet estrena
+  specs), una lane de CI que tipa, linta, prueba, construye y falla con el
+  dist rancio (desaparece la lane `admin-ui`), y `embed_test.go` con
+  presupuesto por entrada (el del fleet, 512 KB, es un techo para el
+  re-skin; su bundle es un chunk de 424 KB).
+- **Sondas adaptadas al layout nuevo** (`UI-01`, `UI-04`, `UI-05`, `UI-10`):
+  el módulo que las dos vertientes importan y sus embeds propios ausentes; la
+  única lane que diffea `ui/dist`; las constantes de presupuesto en
+  `ui/embed_test.go`; el dist del panel en `ui/dist/panel`.
+- **Lo que costó mover**: los imports de efecto (`import '@/index.css'`) no
+  entran en un `from '@/…'` y la build del fleet compilaba la hoja del
+  panel; un comentario de una regla de lint que ya no existe; y un `import`
+  de un `.js` de config en un `.ts` (se carga por ruta).
+- **Deberes del corte y del paraguas**: el corte crea `ui/v1.0.0` y su
+  convergencia quita el `replace`; en el paraguas, `./orbit/ui` en el
+  go.work y una fila `orbit/ui` en la tabla del README (una vez, con su
+  rol; `bump-set` ya regenera `orbit_modules` solo).
+- **Numeración**: la SPA era «ADR-013» en el plan; `S6` tomó el 013 y `S8`
+  el 014, así que es el ADR-015.
 
 ### `S8` — una flota de servidores (2026-09-24) · **hecha**
 
