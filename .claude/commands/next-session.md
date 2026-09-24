@@ -114,9 +114,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   servidor retiene en un fichero SQLite opt-in con ventana (`--data-dir`,
   `--retention`), replay calentado, audit y descarga, muestras de métricas;
   el agente aparca eventos sin stream. Banco **33 de 50**, retention 6/0/1.
-  **Siguiente: el lote de proto de `S6`–`S8`** (historial de métricas para
-  `RET-03`, alertas, plano entre servidores) en UN PR aditivo → un corte; y
-  después `S7` (alertas). Hallazgos abiertos: **OR-56** (P2, A9, el stream
+  **El lote de proto de `S6`–`S8` está escrito en orbit#516** (apilado
+  sobre #515; historial de métricas, alertas, plano entre servidores, en
+  servicios nuevos) y espera decisión: un corte para las tres sesiones.
+  **Siguiente: `S7`** (alertas por umbral con canales, y colectores
+  propios del servidor), que sirve `AlertService` cuando el tag exista. Hallazgos abiertos: **OR-56** (P2, A9, el stream
   superseded que no se termina) y **OR-57** (P3, A12: el enlace identidad↔
   certificado es opt-in hasta el major). **A8** (Quark
   enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
@@ -240,8 +242,17 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   knob); `RET-03` espera el RPC. Dos mutaciones en rojo. Trampa:
   `Subscription.Cancel` del bus no cierra el canal (drenar con canal de
   parada, no con `range`).
-- **Pendiente de Carlos**: fusionar orbit#515; decidir el lote de proto de
-  `S6`–`S8` (un corte); fusionar quantum#236 y re-pinar el set a v1.14.0.
+- **El lote de proto de `S6`–`S8`, escrito para decidir**: orbit#516
+  (`feat(proto)`, apilado sobre #515): `MetricsService.ListHostMetrics`,
+  `AlertRule`/`Alert`/`AlertService`, `Command.redirect`,
+  `PeerService.Sync` con sus frames. Servicios nuevos, no RPCs en los
+  existentes: el primer borrador puso el RPC en `ControlService` y el
+  workspace dejó de compilar (la interfaz del handler gana un método que el
+  servidor no puede implementar hasta pinar el tag). `RET-03`, `ALR-01`,
+  `ALR-03` a partial (declarado ≠ servido); `HA-04` sigue ausente a
+  propósito. Tras fusionar #515 hay que rebasar #516 (squash).
+- **Pendiente de Carlos**: fusionar orbit#515; decidir orbit#516 (un corte
+  para `S6`–`S8`); fusionar quantum#236 y re-pinar el set a v1.14.0.
 
 ### Sesión 2026-09-22 — **A9 `S4` fusionada y `S5` HECHA (orbit#512, corte v1.13.0, orbit#513)**: el audit del fleet dice qué cambió, `quarkdatasource` en el fleet, ADR-002 implementado; banco 28/50
 

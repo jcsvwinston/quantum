@@ -154,10 +154,19 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
   Config); `RET-05` fija una ventana de un segundo y ve irse la entrada.
   Dos mutaciones: servidor sin calentar el replay (`RET-01` rojo), agente
   sin aparcar (`RET-02` rojo).
-- **`RET-03` sigue ausente por la razón de `FDS-11` en `S5`**: las muestras
-  se retienen y el proto no declara el RPC que las devuelve. Va en el
-  **lote de proto de `S6`–`S8`** (un solo corte): historial de métricas,
-  alertas (reglas, estado, canal) y el plano entre servidores.
+- **El lote de proto de `S6`–`S8`, [orbit#516](https://github.com/jcsvwinston/orbit/pull/516)
+  (`feat(proto)`, apilado sobre #515, para decidir)**: `MetricsService.
+  ListHostMetrics` (`RET-03`), `AlertRule`/`Alert` y `AlertService` con
+  `ListAlertRules`/`ListAlerts`/`StreamAlerts` (`S7`), `Command.redirect` y
+  `PeerService.Sync` con `PeerHello`/`NodeInfo`/`NodeGone`/`Event`/
+  `PeerHostMetrics` (`S8`). Medido al escribirlo: un RPC nuevo en un
+  servicio existente cambia la interfaz del handler generado y el servidor
+  no puede implementarla hasta pinar el tag → servicios nuevos, que
+  simplemente no se sirven hasta entonces. `RET-03`, `ALR-01` y `ALR-03`
+  pasan a `partial` con la razón escrita; `HA-04` sigue ausente porque
+  nombrar la asignación antes de que `S8` la decida sería un nombre, no un
+  diseño. Con #515 y #516: 33 present, 5 partial, 12 absent. Tras fusionar
+  #515 hay que rebasar #516 (la pila con squash).
 - **Lo que NO decide** (escrito en el ADR): estado compartido entre
   servidores (`S8`), export de eventos o métricas, cifrado del fichero.
 
