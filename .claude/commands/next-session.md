@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-24, QUANTUM 1.36.0 — A9 EN CURSO: `S0`–`S6` hechas, el banco del fleet en 33 de 50; orbit convergido en v1.14.0, paraguas pendiente de re-pin)
+## 3. Estado al cierre (2026-09-24, QUANTUM 1.36.0 — A9 EN CURSO: `S0`–`S6` hechas, el banco del fleet en 33 de 50; orbit cortado en v1.15.0 con el lote de proto, convergencia y re-pin pendientes)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -114,11 +114,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   servidor retiene en un fichero SQLite opt-in con ventana (`--data-dir`,
   `--retention`), replay calentado, audit y descarga, muestras de métricas;
   el agente aparca eventos sin stream. Banco **33 de 50**, retention 6/0/1.
-  **El lote de proto de `S6`–`S8` está escrito en orbit#516** (apilado
-  sobre #515; historial de métricas, alertas, plano entre servidores, en
-  servicios nuevos) y espera decisión: un corte para las tres sesiones.
-  **Siguiente: `S7`** (alertas por umbral con canales, y colectores
-  propios del servidor), que sirve `AlertService` cuando el tag exista. Hallazgos abiertos: **OR-56** (P2, A9, el stream
+  **El lote de proto de `S6`–`S8` fusionado (orbit#518) y orbit cortado
+  (decisión de Carlos, 2026-09-24): v1.15.0, proto/v0.7.0, agent/v0.12.0,
+  server/v0.17.0.** El árbol de v1.15.0 NO pasa `check_internal_pins.sh`
+  (agent/server pinan proto v0.6.0): hace falta el corte de convergencia
+  —los pines a v0.7.0 los trae la `S7` (o un PR de pines solo) y su
+  release PR— antes de que el paraguas pueda re-pinar; v1.14.0 tampoco
+  vale ya (tags de módulo por delante). **Siguiente: `S7`** (alertas por
+  umbral con canales y colectores propios del servidor), que sube los
+  pines y sirve `AlertService` y `MetricsService`. Hallazgos abiertos: **OR-56** (P2, A9, el stream
   superseded que no se termina) y **OR-57** (P3, A12: el enlace identidad↔
   certificado es opt-in hasta el major). **A8** (Quark
   enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
@@ -251,8 +255,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   servidor no puede implementar hasta pinar el tag). `RET-03`, `ALR-01`,
   `ALR-03` a partial (declarado ≠ servido); `HA-04` sigue ausente a
   propósito. Tras fusionar #515 hay que rebasar #516 (squash).
-- **Pendiente de Carlos**: fusionar orbit#515; decidir orbit#516 (un corte
-  para `S6`–`S8`); fusionar quantum#236 y re-pinar el set a v1.14.0.
+- **Fusiones y corte (decisión de Carlos)**: orbit#515 fusionado; #516 se
+  cerró solo al borrarse la rama base de la pila (trampa conocida) → rebase
+  con `--onto` soltando el commit de S6 y PR nuevo **orbit#518**, fusionado;
+  release PR orbit#517 con la deuda de doc en la rama del bot (guards sin
+  `tail`) → **v1.15.0, proto/v0.7.0, agent/v0.12.0, server/v0.17.0**.
+  Convergencia pendiente (pines a proto v0.7.0 + release) para que el
+  paraguas re-pine.
+- **Pendiente de Carlos**: fusionar quantum#236; tras la convergencia,
+  re-pinar el set.
 
 ### Sesión 2026-09-22 — **A9 `S4` fusionada y `S5` HECHA (orbit#512, corte v1.13.0, orbit#513)**: el audit del fleet dice qué cambió, `quarkdatasource` en el fleet, ADR-002 implementado; banco 28/50
 

@@ -165,8 +165,14 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
   simplemente no se sirven hasta entonces. `RET-03`, `ALR-01` y `ALR-03`
   pasan a `partial` con la razón escrita; `HA-04` sigue ausente porque
   nombrar la asignación antes de que `S8` la decida sería un nombre, no un
-  diseño. Con #515 y #516: 33 present, 5 partial, 12 absent. Tras fusionar
-  #515 hay que rebasar #516 (la pila con squash).
+  diseño. Con #515 y el lote: 33 present, 5 partial, 12 absent. #516 se cerró
+  solo al borrarse la rama base tras fusionar #515 (la pila con squash);
+  rebasado con `--onto` y fusionado como **orbit#518**. **Corte
+  (decisión de Carlos, 2026-09-24)**: release PR orbit#517 → **orbit
+  v1.15.0, proto/v0.7.0, agent/v0.12.0, server/v0.17.0**, deuda de doc en
+  la rama del bot. El árbol de v1.15.0 pina proto v0.6.0 en agent/server:
+  la convergencia (pines a v0.7.0 y su release) va con `S7`, y hasta
+  entonces el paraguas no puede re-pinar.
 - **Lo que NO decide** (escrito en el ADR): estado compartido entre
   servidores (`S8`), export de eventos o métricas, cifrado del fichero.
 
