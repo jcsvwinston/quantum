@@ -41,9 +41,13 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   #507: ADR-012, el proto declara identidad y operadores, el agente aplica
   los operadores y da totales exactos; publicado en 1.36.0) y `S4` (orbit#509
   y #511: el contrato `datasource` es un módulo y el fleet lo habla bajo el
-  operador, con política y tenant; pendiente de publicar); `S5` a medias
-  (orbit#512: el cable declara el antes y el después del audit; la parte 2
-  espera el corte)— y ocho hallazgos
+  operador, con política y tenant) y `S5` (orbit#512 y #513, con la 1.13.0
+  de orbit cortada entre medias y la 1.14.0 de convergencia después: el audit del fleet dice qué cambió,
+  `quarkdatasource` probado en el fleet, ADR-002 implementado; familia
+  `datasource` completa) y `S6` (orbit#515: el servidor retiene localmente
+  con ventana y descarga, el agente aparca sin stream; **33** de 50; el lote de proto de
+  `S6`–`S8` en la 1.15.0 de orbit, pendiente de convergencia y de publicar
+  en el set)— y ocho hallazgos
   que reescriben el enunciado —el mTLS del
   servidor ya existe y su identidad se tira; el agente no puede hablar
   `datasource` sin una decisión de módulos; el servidor declara que no
