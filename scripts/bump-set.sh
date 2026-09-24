@@ -70,13 +70,11 @@ QS=$(git -C quark rev-parse --short=8 HEAD)
 NS=$(git -C nucleus rev-parse --short=8 HEAD)
 OS=$(git -C orbit rev-parse --short=8 HEAD)
 
-# Versiones de los módulos de orbit, leídas del manifest AL PIN (no de tags
-# sueltos): es lo que el tag del root realmente contiene. Se usan para las
-# filas de la tabla de orbit del README.
-read -r O_PROTO O_AGENT O_SERVER O_QB O_QDS <<<"$(python3 -c "
-import json
-m=json.load(open('orbit/.release-please-manifest.json'))
-print('v'+m['proto'],'v'+m['agent'],'v'+m['server'],'v'+m['quarkbridge'],'v'+m['quarkdatasource'])")"
+# Las versiones de los módulos de orbit se leen del manifiesto AL PIN (no de
+# tags sueltos): es lo que el tag del root realmente contiene. La tabla de
+# orbit del README se reescribe fila a fila desde ESAS claves, no desde una
+# lista escrita aquí: la lista fija de cinco dejó al sexto módulo
+# (datasource, ADR-012) sin fila y sin entrada en orbit_modules.
 
 # Comentario de ancestría del pin de un repo: TODOS los módulos hermanos del
 # manifiesto al pin, con la versión que ese manifiesto declara. Hasta la
@@ -132,10 +130,11 @@ Q_COMMENT=$(pin_comment quark "$QT")
 N_COMMENT=$(pin_comment nucleus "$NT")
 O_COMMENT=$(pin_comment orbit "$OT")
 
-export QT NT OT QS NS OS O_PROTO O_AGENT O_SERVER O_QB O_QDS Q_COMMENT N_COMMENT O_COMMENT
+export QT NT OT QS NS OS Q_COMMENT N_COMMENT O_COMMENT
 python3 - <<'PY'
-import os, re
+import os, re, json
 e=os.environ
+orbit_mods = {k: 'v' + v for k, v in json.load(open('orbit/.release-please-manifest.json')).items() if k != '.'}
 p='versions.yaml'; s=open(p).read()
 def sub(pat, rep):
     global s
@@ -145,11 +144,6 @@ def sub(pat, rep):
 sub(r'^(  quark:   )"v[^"]+"', rf'\1"{e["QT"]}"')
 sub(r'^(  nucleus: )"v[^"]+"', rf'\1"{e["NT"]}"')
 sub(r'^(  orbit:   )"v[^"]+"', rf'\1"{e["OT"]}"')
-sub(r'^(  proto:           )"v[^"]+"', rf'\1"{e["O_PROTO"]}"')
-sub(r'^(  agent:           )"v[^"]+"', rf'\1"{e["O_AGENT"]}"')
-sub(r'^(  server:          )"v[^"]+"', rf'\1"{e["O_SERVER"]}"')
-sub(r'^(  quarkbridge:     )"v[^"]+"', rf'\1"{e["O_QB"]}"')
-sub(r'^(  quarkdatasource: )"v[^"]+"', rf'\1"{e["O_QDS"]}"')
 sub(r'^  quark:   "[0-9a-f]+"( +)#.*$', rf'  quark:   "{e["QS"]}"\1# {e["Q_COMMENT"]}')
 sub(r'^  nucleus: "[0-9a-f]+"( +)#.*$', rf'  nucleus: "{e["NS"]}"\1# {e["N_COMMENT"]}')
 sub(r'^  orbit:   "[0-9a-f]+"( +)#.*$', rf'  orbit:   "{e["OS"]}"\1# {e["O_COMMENT"]}')
@@ -165,9 +159,10 @@ rsub(r'`v[\d.]+` \| \[`nucleus/`\]\(nucleus\)', f'`{e["NT"]}` | [`nucleus/`](nuc
 rsub(r'`v[\d.]+` \| \[`quark/`\]\(quark\)', f'`{e["QT"]}` | [`quark/`](quark)')
 rsub(r'`v[\d.]+` \| \[`orbit/`\]\(orbit\)', f'`{e["OT"]}` | [`orbit/`](orbit)')
 # La tabla única de módulos de orbit (QM-15): una fila por hermano, con su
-# versión — las mismas filas que manifest-guard §4b contrasta.
-for mod, ver in (('proto', e["O_PROTO"]), ('agent', e["O_AGENT"]), ('server', e["O_SERVER"]),
-                 ('quarkbridge', e["O_QB"]), ('quarkdatasource', e["O_QDS"])):
+# versión — las mismas filas que manifest-guard §4b contrasta, una por clave
+# del manifiesto al pin. Un módulo del manifiesto sin fila para el tren aquí,
+# con el nombre delante: la fila se escribe a mano una vez, con su rol.
+for mod, ver in sorted(orbit_mods.items()):
     rsub(rf'(\[`orbit/{mod}`\]\(orbit/{mod}\) \| [^|]+\| )`v[\d.]+`', rf'\1`{ver}`')
 rsub(r'(\[`orbit/`\]\(orbit\) \(raíz\) \| [^|]+\| )`v[\d.]+`', rf'\1`{e["OT"]}`')
 open(p,'w').write(s)
@@ -178,6 +173,7 @@ PY
 # manifiesto al pin, asi que el submodulo tiene que estar ya en el tag.
 regen_module_block nucleus nucleus_modules
 regen_module_block quark quark_modules
+regen_module_block orbit orbit_modules
 
 echo
 if [ "$NOTES" -eq 1 ]; then

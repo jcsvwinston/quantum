@@ -32,7 +32,7 @@ uno, qué rol juega en la suite y cómo encajan.
 |---|---|---|---|---|---|
 | **Nucleus** | Framework web — el anfitrión | `github.com/jcsvwinston/nucleus` | `v1.30.1` | [`nucleus/`](nucleus) | Sí (base de apps) |
 | **Quark** | ORM — la capa de datos | `github.com/jcsvwinston/quark` | `v1.15.0` | [`quark/`](quark) | **Sí, en cualquier app Go** |
-| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ cinco módulos hermanos, [tabla en §Orbit](#orbit--admin--submódulo-orbit-multi-módulo)) | `v1.12.0` | [`orbit/`](orbit) | No (requiere Nucleus) |
+| **Orbit** | Admin — monta sobre Nucleus | `github.com/jcsvwinston/orbit` (+ cinco módulos hermanos, [tabla en §Orbit](#orbit--admin--submódulo-orbit-multi-módulo)) | `v1.16.0` | [`orbit/`](orbit) | No (requiere Nucleus) |
 
 Los tres son **multi-módulo**: además de la raíz, cada repo publica módulos
 hermanos (drivers, exportadores, providers, puentes) que se instalan aparte
@@ -186,12 +186,13 @@ Las versiones son las del set certificado (`orbit_modules` en
 
 | Módulo | Rol | Versión |
 |---|---|---|
-| [`orbit/`](orbit) (raíz) | Panel de admin in-process montado en la app Nucleus. | `v1.12.0` |
-| [`orbit/proto`](orbit/proto) | Contrato Connect-RPC + stubs generados (Go y TypeScript). | `v0.5.0` |
-| [`orbit/agent`](orbit/agent) | Agente in-process que embebe en cada proceso del framework y envía eventos a un servidor de admin por un stream bidi. | `v0.9.0` |
-| [`orbit/server`](orbit/server) | Binario de servidor de admin independiente que recibe esos eventos y sirve la UI. | `v0.14.0` |
+| [`orbit/`](orbit) (raíz) | Panel de admin in-process montado en la app Nucleus. | `v1.16.0` |
+| [`orbit/proto`](orbit/proto) | Contrato Connect-RPC + stubs generados (Go y TypeScript). | `v0.7.0` |
+| [`orbit/datasource`](orbit/datasource) | Contrato `datasource` que hablan el panel y el fleet, con su adaptador Nucleus (ADR-012 de orbit). | `v1.0.0` |
+| [`orbit/agent`](orbit/agent) | Agente in-process que embebe en cada proceso del framework y envía eventos a un servidor de admin por un stream bidi. | `v0.13.0` |
+| [`orbit/server`](orbit/server) | Binario de servidor de admin independiente que recibe esos eventos y sirve la UI. | `v0.18.0` |
 | [`orbit/quarkbridge`](orbit/quarkbridge) | Publica los statements de Quark en el feed vivo de Orbit | `v1.9.2` |
-| [`orbit/quarkdatasource`](orbit/quarkdatasource) | Expone los modelos Quark en el Data Studio de Orbit | `v1.10.0` |
+| [`orbit/quarkdatasource`](orbit/quarkdatasource) | Expone los modelos Quark en el Data Studio de Orbit | `v1.12.0` |
 
 **Rol en la suite:** es el **admin** que monta sobre Nucleus; **depende de
 Nucleus**. Se extrajo del core del framework

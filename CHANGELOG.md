@@ -6,6 +6,49 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.36.0 — las tres primeras sesiones del arco A9 (Fleet unificado)
+
+Quantum 1.36.0 publica las tres primeras sesiones del arco A9 (Fleet
+unificado): la identidad del nodo es la del certificado, los certificados
+rotan sin reinicio y el Data Studio del fleet acepta filtros con operador.
+Se mueve orbit (v1.10.3 → v1.12.0, dos cortes: v1.11.0 y el de
+convergencia v1.12.0); quark v1.15.0 y nucleus v1.30.1 siguen donde
+estaban. Módulos hermanos que cambian: orbit agent (v0.7.2 → v0.9.0),
+orbit proto (v0.4.4 → v0.5.0), orbit server (v0.12.2 → v0.14.0) y orbit
+quarkdatasource (v1.9.3 → v1.10.0); quarkbridge sin cambio. Minor de suite
+porque lo es la de orbit (QADR-0002). Corte FUERA de la cadencia semanal
+(QADR-0008): la S3 de A9 necesitaba publicado proto/v0.5.0 para que el
+agente pudiera leer los campos nuevos (agent pina proto por tag, ADR-006
+de orbit), y un corte de orbit deja al paraguas con tags de módulo por
+delante del set pinado, que manifest-guard rechaza; re-pinar es el paso
+siguiente del corte, no una opción.
+
+Qué cambia para quien instala. Todo en el plano fleet de orbit y todo por
+adición. El servidor puede atar la identidad del nodo al certificado
+(--agent-identity-from-cert): una registración cuyo node_id no sea el CN
+del certificado verificado se rehúsa; apagado por defecto, registra lo
+declarado y avisa. El agente carga su certificado por ficheros
+(tls_cert_file, tls_key_file, tls_ca_file, tls_server_name) y, sin
+node_id, se llama como el CN. Los certificados de servidor y agente se
+releen cuando un handshake encuentra los ficheros cambiados: rotar es
+reescribir dos ficheros, sin reinicio. El protocolo gana filtros con
+operador (ListRecordsRequest.where) e identidad del operador
+(DataStudioRequest.operator); el agente aplica los operadores y rehúsa los
+que no conoce, y cada lista del fleet lleva un total exacto. La identidad
+se declara pero el servidor aún no la rellena. El banco
+orbit/internal/fleettest/fleetbench pasa de 16 a 22 de 50. El ADR-012 de
+orbit decide que el contrato datasource será un módulo propio; la
+extracción llega con la S4.
+
+Qué aprendió el tren. Un cambio de proto en orbit son DOS cortes (ADR-006)
+y el set sólo certifica el segundo: el árbol de v1.11.0 llevaba agent y
+server pinando proto v0.4.4 con v0.5.0 publicado, y el guard de pines
+internos lo rechazó dentro de suite-integral; el PR de re-pin a v1.11.0
+se retiró y se rehízo sobre el corte de convergencia v1.12.0. Un corte de
+orbit a mitad de arco pone en rojo TODO PR del paraguas hasta re-pinar. Y
+la deuda de doc de una minor de orbit se paga en la rama del bot en este
+orden: primero la sección de notas, después el snapshot.
+
 ## Quantum 1.35.0 — El arco A8: Quark como capa de datos enterprise
 
 Quantum 1.35.0 publica el arco A8: Quark como capa de datos enterprise. Se

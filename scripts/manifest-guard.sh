@@ -55,6 +55,9 @@ if [[ $status -eq 0 && $skeleton -eq 0 ]]; then echo "OK: §0 las diez claves de
 # `SECTION:` block. No yq dependency: the manifest is a flat, hand-maintained
 # file and awk over its two known sections is enough (and portable to the CI
 # runner). Strips surrounding quotes and any trailing comment.
+# shellcheck source=scripts/lib/manifest-modules.sh
+source "$(dirname "$0")/lib/manifest-modules.sh"
+
 yaml_value() {
   local section=$1 key=$2
   awk -v sec="$section" -v key="$key" '
@@ -309,13 +312,15 @@ for gomod in $(find nucleus quark orbit -name go.mod -not -path '*/examples/*' -
   fi
 done
 
-# 4b. The README's orbit module table repeats the five sibling versions —
+# 4b. The README's orbit module table repeats the sibling versions —
 # hardcoded, they drifted within one train of being added (DX-17, when only
 # the two bridges carried a version). Since the 2026-09-03 audit (QM-15) the
-# README has ONE table for orbit's five siblings, every row with its version,
-# and each must equal the declared orbit_modules version. bump-set.sh rewrites
-# the same rows.
-for mod in proto agent server quarkbridge quarkdatasource; do
+# README has ONE table for orbit's siblings, every row with its version, and
+# each must equal the declared orbit_modules version. The rows are the KEYS
+# of orbit_modules, not a list written here: a fixed list of five let the
+# sixth module (datasource, ADR-012) exist without a row. bump-set.sh
+# rewrites the same rows.
+for mod in $(mm_keys orbit_modules); do
   readme_v=$(grep "orbit/$mod\`" README.md | grep -o 'v[0-9][0-9.]*[0-9]' | head -1 || true)
   declared=$(yaml_value orbit_modules "$mod")
   if [[ -z "$readme_v" ]]; then

@@ -11,18 +11,22 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-09-21)
+## Estado real (2026-09-24)
 
-- **Set certificado: Quantum 1.36.0** (2026-09-21) — quark v1.15.0 (con el
+- **Set certificado: Quantum 1.37.0** (2026-09-24) — quark v1.15.0 (con el
   CLI en v1.1.0 y los cinco drivers en v0.2.2) · nucleus v1.30.1 (doce
-  módulos hermanos) · orbit v1.12.0 (proto v0.5.0, agent v0.9.0, server
-  v0.14.0, quarkbridge v1.9.2, quarkdatasource v1.10.0).
-  1.36.0 publica las tres primeras sesiones de **A9** (Fleet unificado),
-  cortado fuera de cadencia porque la `S3` necesitaba `proto/v0.5.0`
-  publicado y el paraguas no certifica con tags de módulo por delante del
-  pin: identidad del nodo atada al certificado, rotación sin reinicio, y el
-  protocolo con operadores e identidad que el agente ya aplica; banco del
-  fleet de 16 a 22 de 50. 1.35.0 publicó el arco **A8** (Quark enterprise): `LIKE` escapado por
+  módulos hermanos) · orbit v1.16.0 (proto v0.7.0, datasource v1.0.0, agent
+  v0.13.0, server v0.18.0, quarkbridge v1.9.2, quarkdatasource v1.12.0).
+  1.37.0 publica las sesiones `S4` a `S7` de **A9** (Fleet unificado),
+  cortado fuera de cadencia porque el arco cortó orbit dos veces más a mitad
+  de camino (un cambio de proto son dos cortes) y el paraguas no certifica
+  con tags de módulo por delante del pin: el fleet habla el contrato
+  `datasource` bajo el operador, el audit dice qué cambió, el servidor
+  retiene localmente con ventana (ADR-013) y avisa por umbral; banco del
+  fleet de 22 a 38 de 50. 1.36.0 publicó las tres primeras sesiones del
+  mismo arco (identidad del nodo atada al certificado, rotación sin
+  reinicio, operadores en el protocolo) con la 1.12.0 de orbit.
+  1.35.0 publicó el arco **A8** (Quark enterprise): `LIKE` escapado por
   adición con la forma plana intacta, el plan de migración que lleva y emite
   índices, FK y CHECK declarados en el modelo, `ALTER COLUMN` completo en los
   seis motores con SQLite reconstruyendo la tabla, uuid/slices/maps/rangos/

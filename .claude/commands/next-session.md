@@ -64,15 +64,19 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-24, QUANTUM 1.36.0 — A9 EN CURSO: `S0`–`S7` hechas, el banco del fleet en 38 de 50; orbit en v1.15.0, la convergencia en orbit#520 sin fusionar, paraguas pendiente de re-pin)
+## 3. Estado al cierre (2026-09-24, QUANTUM 1.37.0 — A9 EN CURSO: `S0`–`S7` hechas, el banco del fleet en 38 de 50; el set re-pinado a la 1.16.0 de orbit)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.36.0** (2026-09-21, FUERA de cadencia) —
-  quark v1.15.0 y nucleus v1.30.1 sin cambio, orbit v1.12.0 con sus cinco
-  módulos, tal como los lista `versions.yaml` (la fuente; no copies números
-  de aquí). `declared_lags` vacío. Publica las tres primeras sesiones de
-  **A9**; A8 lo publicó 1.35.0.
+- **Set certificado: Quantum 1.37.0** (2026-09-24, FUERA de cadencia, el
+  segundo seguido por los cortes de orbit a mitad de arco) — quark v1.15.0 y
+  nucleus v1.30.1 sin cambio, orbit v1.16.0 con sus SEIS módulos
+  (`datasource` es el nuevo), tal como los lista `versions.yaml` (la fuente;
+  no copies números de aquí). `declared_lags` vacío. Publica `S4`–`S7` de
+  **A9**; 1.36.0 publicó `S0`–`S3`. El tren de este set enseñó a `bump-set`
+  y a `manifest-guard` a leer los módulos de orbit del manifiesto al pin en
+  vez de una lista fija de cinco, y el go.work del paraguas lleva
+  `./orbit/datasource`.
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
@@ -272,8 +276,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   con registro por servidor (varios servidores en un proceso no chocan),
   flags `--alert-*`, pines a proto v0.7.0. `alerts` 6/0/0 y `retention`
   7/0/0; banco **38/50**; tres mutaciones en rojo. quantum#236 fusionado.
-- **Pendiente de Carlos**: fusionar orbit#520 y cortar (la convergencia);
-  re-pinar el set con `orbit_modules.datasource` y `./orbit/datasource`.
+- **Corte de convergencia y set** (decisión de Carlos): orbit#520 fusionado,
+  release PR orbit#521 → **v1.16.0, agent/v0.13.0, server/v0.18.0**; el
+  árbol pasa el guard de pines solo. Re-pin con `train.sh --desde paraguas
+  --hasta cierre` → **Quantum 1.37.0**; el tren paró una vez (la prosa) y
+  llevó con `--incluye` los arreglos de `bump-set`/`manifest-guard` para el
+  sexto módulo.
+- **Siguiente: `S8`** (multi-servidor).
 
 ### Sesión 2026-09-22 — **A9 `S4` fusionada y `S5` HECHA (orbit#512, corte v1.13.0, orbit#513)**: el audit del fleet dice qué cambió, `quarkdatasource` en el fleet, ADR-002 implementado; banco 28/50
 
