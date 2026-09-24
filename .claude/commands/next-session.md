@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-24, QUANTUM 1.37.0 — A9 EN CURSO: `S0`–`S8` hechas, el banco del fleet en 42 de 50; orbit#522 sin fusionar)
+## 3. Estado al cierre (2026-09-24, QUANTUM 1.37.0 — A9 EN CURSO: `S0`–`S9` hechas, el banco del fleet en 47 de 50; orbit#524 sin fusionar)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -123,17 +123,24 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   webhook y correo, `AlertService`, colectores `admin_server_*`,
   `MetricsService` sirve el historial, pines a proto v0.7.0) fue la
   convergencia: orbit v1.16.0 es lo que pina 1.37.0. **`S8` hecha**
-  (orbit#522, `feat(fleet)`, sin fusionar): ADR-014, la malla de servidores
-  (`server/peers`, `services.PeerService`), nodos remotos en el registro,
-  relay de eventos con demanda total mientras hay peer, asignación por
-  rendezvous hashing con `Command.redirect` (el agente sólo acepta endpoints
-  configurados), y el stream reemplazado que termina — **OR-56 cerrado**.
-  Banco **42 de 50**; todas las familias completas salvo `ui`.
-  **Siguiente: `S9`** (una sola SPA: la decisión con datos —ADR-015, la
-  numeración corrió porque `S6` tomó el 013 y `S8` el 014—, tokens
-  compartidos, tests, frescura del dist y presupuesto), precondición
-  orbit#522 fusionado; `S9`–`S10` son la familia `ui`, la última, y `S11`
-  el gate. Hallazgos abiertos: **OR-57** (P3, A12: el enlace identidad↔
+  (orbit#522, fusionado): ADR-014, la malla de servidores (`server/peers`,
+  `services.PeerService`), nodos remotos en el registro, relay de eventos
+  con demanda total mientras hay peer, asignación por rendezvous hashing con
+  `Command.redirect`, y el stream reemplazado que termina — **OR-56
+  cerrado**. **`S9` hecha** (orbit#524, `feat(ui)`, sin fusionar): ADR-015
+  decidió con datos que el PANEL es la base (no el fleet, como decía el
+  plan); un solo proyecto de frontend en `ui/` con dos entradas y un dist
+  (`dist/panel` + `dist/fleet`) embebido por el módulo nuevo `orbit/ui`,
+  sin dependencias, que raíz y servidor requieren por tag — nace como
+  `datasource`: pin a `ui v1.0.0`, `replace` en el go.work y link script en
+  las lanes hasta el corte. Tokens, tsconfig, ESLint, Vitest, lane de
+  frescura y presupuesto por entrada compartidos. Banco **47 de 50**.
+  **Siguiente: `S10`** (connect-es 2 desde `proto/`, instrumento de
+  navegador sobre el fleet, tenant en la UI: `UI-06`, `UI-07`, `UI-09`),
+  precondición orbit#524 fusionado; después `S11`, el gate y el set.
+  Deberes del corte que trae `ui/v1.0.0`: quitar el `replace`; en el
+  paraguas, `./orbit/ui` en el go.work y la fila `orbit/ui` en la tabla
+  del README (`bump-set` ya regenera `orbit_modules` solo). Hallazgos abiertos: **OR-57** (P3, A12: el enlace identidad↔
   certificado es opt-in hasta el major) y **OR-58** (P3, `S10`). **A8** (Quark
   enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
   `quark/internal/enterprisebench` de 20 a **47 de 69**, QK-25…QK-31 hechos,
@@ -242,7 +249,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-24 — **A9 `S6`, `S7` y `S8` HECHAS (orbit#515, #518, #520, #522), orbit v1.15.0/v1.16.0 cortados y Quantum 1.37.0**: retención local, el lote de proto, alertas, la flota de servidores; banco 42/50
+### Sesión 2026-09-24 — **A9 `S6` a `S9` HECHAS (orbit#515, #518, #520, #522, #524), orbit v1.15.0/v1.16.0 cortados y Quantum 1.37.0**: retención local, el lote de proto, alertas, la flota de servidores, un solo proyecto de frontend; banco 47/50
 
 - **Arranque con `/next-session auto`**: quantum#236 abierto y rojo por el
   re-pin pendiente (esperado); orbit en main con v1.14.0. Foco `S6`, que
@@ -293,7 +300,19 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   peer conectado el agente tiene demanda desde el registro, así que
   `waitDemand` no prueba la suscripción de la UI (esperar
   `SubscriberCount`). Tres mutaciones en rojo.
-- **Siguiente: `S9`** (una sola SPA, ADR-015), tras fusionar orbit#522.
+- **`S9` (orbit#524, `feat(ui)`)**: ADR-015 con la tabla que decidió (el
+  panel es la base, no el fleet); proyecto único en `ui/`, dos entradas,
+  un dist `dist/panel` + `dist/fleet` embebido por el módulo `orbit/ui` (un
+  `go:embed` no sale de su módulo; raíz y servidor lo requieren por tag).
+  Tokens, tsconfig, ESLint, Vitest, lane de frescura y presupuesto por
+  entrada compartidos; la lane `admin-ui` desaparece; Dependabot con un
+  solo proyecto npm; sondas UI-01/04/05/10 adaptadas. Banco **47/50**.
+  Trampas: un `import '@/x'` de efecto no lo reescribe un sed de
+  `from '@/`; la config de Tailwind se carga por ruta, no con `import` de
+  un `.js` desde un `.ts`; `TestBrowserBench` falla en local sin el
+  binario de Playwright, no por el cambio.
+- **Siguiente: `S10`** (connect-es 2, navegador sobre el fleet, tenant en
+  la UI), tras fusionar orbit#524.
 
 ### Sesión 2026-09-22 — **A9 `S4` fusionada y `S5` HECHA (orbit#512, corte v1.13.0, orbit#513)**: el audit del fleet dice qué cambió, `quarkdatasource` en el fleet, ADR-002 implementado; banco 28/50
 
