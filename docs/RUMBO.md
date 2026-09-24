@@ -43,9 +43,10 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   y #511: el contrato `datasource` es un módulo y el fleet lo habla bajo el
   operador, con política y tenant) y `S5` (orbit#512 y #513, con la 1.13.0
   de orbit cortada entre medias y la 1.14.0 de convergencia después: el audit del fleet dice qué cambió,
-  `quarkdatasource` probado en el fleet, ADR-002 implementado; **28** de 50,
-  familia `datasource` completa; pendiente de publicar en el set)— y ocho
-  hallazgos
+  `quarkdatasource` probado en el fleet, ADR-002 implementado; familia
+  `datasource` completa) y `S6` (orbit#515: el servidor retiene localmente
+  con ventana y descarga, el agente aparca sin stream; **33** de 50;
+  pendiente de publicar en el set)— y ocho hallazgos
   que reescriben el enunciado —el mTLS del
   servidor ya existe y su identidad se tira; el agente no puede hablar
   `datasource` sin una decisión de módulos; el servidor declara que no

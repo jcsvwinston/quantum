@@ -108,7 +108,7 @@ dice que no lo hace nadie.
 | `S3` | La decisión de módulos (ADR-012) y el proto aditivo: identidad, operadores y total exacto en el cable | S0 | **HECHA** — orbit#506 (ADR-012, proto aditivo, `FDS-09`) + corte `v1.11.0`/`proto/v0.5.0` + orbit#507 (el agente lee `where`, `FDS-08`); `buf breaking` limpio; banco 22/50 |
 | `S4` | El agente sirve Data Studio a través de `datasource.DataSource` con la identidad recibida | S3 | **HECHA** — orbit#509 (el módulo `orbit/datasource`) + orbit#511 (el agente sobre el contrato bajo el operador que el servidor envía): `FDS-05`, `FDS-06`, `FDS-07`, `FDS-10` a `present`; banco 26/50 |
 | `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | **HECHA** — orbit#512 (el cable declara el antes y el después del audit) + corte `v1.13.0`/`proto/v0.6.0` + orbit#513 + corte de convergencia `v1.14.0` (el agente devuelve el registro previo, el servidor escribe los dos lados, `quarkdatasource` probado en el fleet, ADR-002 implementado): `FDS-11`, `FDS-12` a `present`; banco 28/50, familia `datasource` completa |
-| `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | familia `retention` completa |
+| `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | **HECHA** — orbit#515 (ADR-013: store SQLite opt-in con ventana, replay calentado, audit y descarga, muestras de métricas; el agente aparca eventos sin stream): `RET-01/02/04/05/06` a `present`; banco 33/50; `RET-03` espera el RPC de historial en el lote de proto |
 | `S7` | Alertas por umbral con canales, y colectores propios del servidor | S6 | familia `alerts` completa |
 | `S8` | Multi-servidor: estado compartido, relay de eventos y asignación de agentes | S6 | familia `ha` completa |
 | `S9` | Una sola SPA: la decisión con datos (ADR-013), tokens compartidos, tests, frescura del dist y presupuesto | S5 | `UI-01` a `UI-05` a `present` |
@@ -123,6 +123,43 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 `S3`–`S5` pueden ir en paralelo (ficheros distintos); `S6`–`S8` tras ellos.
 
 ## Registro de sesiones
+
+### `S6` — retención local del plano fleet (2026-09-24) · **hecha**
+
+- **PR**: [orbit#515](https://github.com/jcsvwinston/orbit/pull/515)
+  (`feat(fleet)`). Banco **33 de 50** (retention 6/0/1).
+- **ADR-013, aceptado e implementado**: el servidor retiene cuando se le
+  da un directorio de datos (`server.Config.DataDir`, `--data-dir`), en un
+  fichero SQLite (`server/store`, driver puro en Go que el binario ya
+  arrastraba por el driver de Nucleus: sin dependencia nueva). Retiene los
+  eventos que reenvía (el anillo de replay se calienta desde el fichero al
+  arrancar), el rastro de auditoría (`ListAudit` y la descarga leen del
+  fichero) y una muestra de métricas de host por heartbeat y nodo. La
+  ventana (`Retention`, `--retention`, 7 días) acota toda lectura antes de
+  que el purgador borre; un escritor por lotes detrás de un canal;
+  `Flush` para leer lo propio. Descarga en
+  `GET /api/audit/export?format=csv|json`. Sin directorio de datos, el
+  servidor de siempre: la retención es opt-in porque escribir en disco es
+  un cambio que el operador pide.
+- **El agente aparca lo que ocurre sin stream** (`agent/catcher.go`): al
+  terminar un stream recuerda los filtros a los que el servidor estaba
+  suscrito (`Stream.ParkedFilters`), sigue escuchando el bus bajo ellos y
+  empuja al buffer por tipo que ya existía; el siguiente stream lo vacía
+  nada más registrarse. Acotado como el buffer; contador
+  `admin_agent_events_parked_total`.
+- **Medido y decidido de paso**: `Subscription.Cancel` del bus de nucleus
+  NO cierra el canal (lo documenta), así que un drenaje por `range` cuelga;
+  el receptor usa un canal de parada. Las sondas `RET-01`/`RET-04` ponen
+  `DataDir` (el knob que pedían; `restartable` reinicia con el mismo
+  Config); `RET-05` fija una ventana de un segundo y ve irse la entrada.
+  Dos mutaciones: servidor sin calentar el replay (`RET-01` rojo), agente
+  sin aparcar (`RET-02` rojo).
+- **`RET-03` sigue ausente por la razón de `FDS-11` en `S5`**: las muestras
+  se retienen y el proto no declara el RPC que las devuelve. Va en el
+  **lote de proto de `S6`–`S8`** (un solo corte): historial de métricas,
+  alertas (reglas, estado, canal) y el plano entre servidores.
+- **Lo que NO decide** (escrito en el ADR): estado compartido entre
+  servidores (`S8`), export de eventos o métricas, cifrado del fichero.
 
 ### `S5` — el audit dice qué cambió, ADR-002 se cierra y `quarkdatasource` entra en el fleet (2026-09-22) · **hecha**
 
