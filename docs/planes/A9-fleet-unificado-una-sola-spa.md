@@ -110,7 +110,7 @@ dice que no lo hace nadie.
 | `S5` | El servidor rellena la identidad desde la cadena de auth de la UI; audit con antes/después; ADR-002 cerrado | S4 | **HECHA** — orbit#512 (el cable declara el antes y el después del audit) + corte `v1.13.0`/`proto/v0.6.0` + orbit#513 + corte de convergencia `v1.14.0` (el agente devuelve el registro previo, el servidor escribe los dos lados, `quarkdatasource` probado en el fleet, ADR-002 implementado): `FDS-11`, `FDS-12` a `present`; banco 28/50, familia `datasource` completa |
 | `S6` | Retención local: un almacén para eventos, métricas y audit con ventana y export (ADR sucesor de «no persiste») | S0 | **HECHA** — orbit#515 (ADR-013: store SQLite opt-in con ventana, replay calentado, audit y descarga, muestras de métricas; el agente aparca eventos sin stream): `RET-01/02/04/05/06` a `present`; banco 33/50; `RET-03` espera el RPC de historial en el lote de proto |
 | `S7` | Alertas por umbral con canales, y colectores propios del servidor | S6 | **HECHA** — orbit#520 (reglas por umbral sobre métricas de host, canales webhook y correo, `AlertService`, colectores `admin_server_*`, `MetricsService` sirve el historial retenido, pines a proto v0.7.0): familias `alerts` 6/0/0 y `retention` 7/0/0 completas; banco 38/50 |
-| `S8` | Multi-servidor: estado compartido, relay de eventos y asignación de agentes | S6 | familia `ha` completa |
+| `S8` | Multi-servidor: estado compartido, relay de eventos y asignación de agentes | S6 | **HECHA** — orbit#522 (ADR-014: malla de un salto sobre el listener de agentes, nodos remotos en el registro, relay de eventos con demanda total, asignación por rendezvous hashing y `Command.redirect`; el stream reemplazado termina, OR-56 cerrado): familia `ha` 5/0/0; banco 42/50 |
 | `S9` | Una sola SPA: la decisión con datos (ADR-013), tokens compartidos, tests, frescura del dist y presupuesto | S5 | `UI-01` a `UI-05` a `present` |
 | `S10` | connect-es 2 desde `proto/`, el instrumento de navegador sobre el fleet, tenant en la UI | S9 | `UI-06`, `UI-07`, `UI-09` a `present` |
 | `S11` | Gate, guard y set: clúster de tres agentes en CI, `umbrella-fleet-posture`, set certificado | todas | guard registrado con fixture; set certificado; ADR-002 implementado |
@@ -123,6 +123,45 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 `S3`–`S5` pueden ir en paralelo (ficheros distintos); `S6`–`S8` tras ellos.
 
 ## Registro de sesiones
+
+### `S8` — una flota de servidores (2026-09-24) · **hecha**
+
+- **PR**: [orbit#522](https://github.com/jcsvwinston/orbit/pull/522)
+  (`feat(fleet)`). Banco **42 de 50**: `ha` 5/0/0; todas las familias
+  completas salvo `ui` (2/1/7, `S9`–`S10`). **OR-56 cerrado.**
+- **ADR-014, aceptado e implementado**: cada servidor conoce a los demás
+  por configuración (`--peers`) y mantiene UN stream saliente a cada uno
+  sobre el listener de agentes, autenticado como un agente; por él empuja
+  en un solo sentido `PeerHello`, sus nodos, y después cada cambio de nodo,
+  evento y muestra de métricas (`server/peers.Mesh`). El otro extremo
+  (`services.PeerService`) recibe y no reenvía: malla de un salto, dos
+  streams por par, nada que deduplicar. Nodos remotos en el registro
+  (`NodeInfo.Via`; etiqueta `orbit.server` en `ListNodes`; nada se les
+  encola; Data Studio los rechaza con `FailedPrecondition` nombrando al
+  propietario; un anuncio nunca sustituye a un nodo conectado aquí; los
+  nodos de un peer se van con él). Eventos relayados al bus y al replay del
+  peer, no a su store. **Demanda total mientras hay un peer**: la malla
+  lleva eventos, no filtros, así que los agentes envían todo y cada servidor
+  filtra para sus suscriptores — el campo de demanda en `PeerFrame` es la
+  adición natural del corte siguiente. **Asignación** (`--assign-nodes` +
+  `--agent-advertise-addr`): rendezvous hashing sobre este servidor y los
+  peers alcanzados; el agente que se registra donde no le toca recibe
+  `Command.redirect`, y lo acepta SOLO hacia un endpoint que el operador le
+  configuró (`Dialer.Prefer`); si no, avisa y se queda.
+- **OR-56 (`HA-05`)**: el handler del stream lee por una goroutine y hace
+  select sobre su contexto; al ser desalojado por un registro más nuevo
+  devuelve `Aborted` al extremo viejo y descarta el frame que entre en la
+  carrera.
+- **Medido y decidido de paso**: con un peer conectado el agente tiene
+  demanda desde el registro, así que `waitDemand` ya no prueba que la UI
+  esté suscrita — `HA-03` espera a las suscripciones en los dos buses
+  (`SubscriberCount`). Las sondas de dos servidores reservan los puertos
+  antes de arrancar para que cada uno nombre al otro, y esperan a que los
+  dos enlaces estén abiertos. Tres mutaciones: malla sin relay (`HA-03`),
+  servidor sin redirigir (`HA-04`), registro que ignora anuncios (`HA-02`).
+- **Lo que NO decide** (en el ADR): descubrimiento ni consenso (dos vistas
+  distintas de la malla asignan distinto durante una partición); relay de
+  Data Studio o snapshots a otro servidor; cifrado propio entre peers.
 
 ### `S7` — alertas por umbral, canales y los colectores propios del servidor (2026-09-24) · **hecha**
 
