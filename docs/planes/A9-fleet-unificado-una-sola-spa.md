@@ -113,7 +113,7 @@ dice que no lo hace nadie.
 | `S8` | Multi-servidor: estado compartido, relay de eventos y asignación de agentes | S6 | **HECHA** — orbit#522 (ADR-014: malla de un salto sobre el listener de agentes, nodos remotos en el registro, relay de eventos con demanda total, asignación por rendezvous hashing y `Command.redirect`; el stream reemplazado termina, OR-56 cerrado): familia `ha` 5/0/0; banco 42/50 |
 | `S9` | Una sola SPA: la decisión con datos (ADR-015), tokens compartidos, tests, frescura del dist y presupuesto | S5 | **HECHA** — orbit#524 (ADR-015: el proyecto del panel como base, el fleet como segunda entrada, un dist embebido por el módulo `orbit/ui` que raíz y servidor requieren por tag; tokens, tests, lint, lane de frescura y presupuesto por entrada compartidos): `UI-01`–`UI-05` a `present`; banco 47/50 |
 | `S10` | connect-es 2 desde `proto/`, el instrumento de navegador sobre el fleet, tenant en la UI | S9 | **HECHA** — orbit#526 (stubs de segunda generación desde `proto/`, proyecto `fleet` del instrumento de navegador con seis controles `UIF`, el tenant del operador y del modelo en la SPA sobre dos campos aditivos): `UI-06`, `UI-07` a `present`; `UI-09` `partial` hasta que servidor y agente rellenen los campos tras el corte (parte 2, en `S11`); banco 49/50; OR-58 cerrado, OR-59 abierto |
-| `S11` | Gate, guard y set: clúster de tres agentes en CI, `umbrella-fleet-posture`, set certificado | todas | **EN CURSO** — orbit#527 (el clúster de tres agentes detrás de dos servidores, `TestFleetParityThreeAgents`; el servidor rellena `node_id` en las respuestas de Data Studio, OR-60) y el guard `umbrella-fleet-posture` con fixture en la rama `feat/a9-s11-fleet-posture` del paraguas, verificado sobre el árbol de orbit; la deuda de doc de v1.17.0 en la rama del bot. Falta: el primer corte (`ui/v1.0.0`, `proto/v0.8.0`), la parte 2 de `S10` en orbit#527, el corte de convergencia y el tren con el guard (`--incluye`) |
+| `S11` | Gate, guard y set: clúster de tres agentes en CI, `umbrella-fleet-posture`, set certificado | todas | **EN CURSO** — orbit#527 (el clúster de tres agentes detrás de dos servidores; el servidor rellena `node_id` en Data Studio, OR-60; la parte 2 de `S10`: `SelfInfo.tenant` y `ModelInfo.tenant_field` rellenos, `UI-09` present, **banco 50/50**; pines a los tags de v1.17.0; el build de la release resuelve como un consumidor) abierto y en verde; **primer corte hecho**: orbit v1.17.0, proto/v0.8.0, agent/v0.14.0, server/v0.19.0, ui/v1.0.0 (su release sin activos: el nacimiento de `ui` dejó a `server/go.sum` sin la suma, ver registro); guard `umbrella-fleet-posture` en la rama `feat/a9-s11-fleet-posture`. Falta: fusionar orbit#527, deuda de doc v1.18.0, corte de convergencia y el tren con el guard (`--incluye`) |
 
 **El orden no es negociable en tres sitios**: `S3` va antes que `S4` porque
 sin la decisión de módulos el agente no puede importar el contrato; `S6` va
@@ -169,14 +169,39 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
   `proto/v0.8.0`; snapshot 1.17.0; los cinco guards de docs en verde;
   `check-anchored-release-branch.sh orbit 523` OK). El corte publica
   **v1.17.0, proto/v0.8.0, agent/v0.14.0, server/v0.19.0, ui/v1.0.0**.
-- **Falta, en este orden**: `merge-bot-pr.sh orbit 523` (corte 1) → parte 2
-  de `S10` en orbit#527 (`GetSelf` rellena `tenant` desde
-  `auth.Identity.Tenant`; `modelToProto` del agente rellena `tenant_field`;
-  pines de raíz/agent/server/fleettest a proto v0.8.0 y ui v1.0.0; fuera el
-  `replace` de `ui` del go.work; `UI-09` a `present`, banco 50/50 y página)
-  → fusionar orbit#527 → deuda de doc de v1.18.0 y corte de convergencia
-  (v1.18.0, agent/v0.15.0, server/v0.20.0) → `train.sh --desde paraguas
-  --hasta cierre --incluye scripts/check_fleet_posture.sh --incluye
+- **Primer corte hecho** (2026-09-25, `merge-bot-pr.sh orbit 523`):
+  **v1.17.0, proto/v0.8.0, agent/v0.14.0, server/v0.19.0, ui/v1.0.0**. **Su
+  release publicó cero activos**: el workflow de release verifica y compila
+  el servidor con `GOWORK=off` en modo read-only, y `server/go.sum` —tidied
+  cuando `ui/v1.0.0` aún no existía y el go.work lo resolvía por `replace`—
+  no llevaba la suma del módulo recién nacido; `go build` se plantó y no
+  hubo GoReleaser. El nacimiento de `datasource` en v1.13.0 no lo sufrió
+  porque el servidor no lo requería. Un consumidor no lo ve (`go install
+  …@tag` y `go get` resuelven la suma solos). El árbol de v1.17.0 está
+  congelado: esa release queda sin activos y el set pina la convergencia.
+  Endurecido en orbit#527: `GOFLAGS=-mod=mod` en el paso de verificación y
+  en el build de GoReleaser (la lane `tidy` de cada PR es la que vigila el
+  go.sum). **Regla para el próximo nacimiento**: un módulo que nace y un
+  consumidor que lo requiere en el mismo corte dejan ese corte sin activos
+  salvo que el release resuelva como consumidor; con el endurecimiento ya
+  no pasa.
+- **Parte 2 de `S10` hecha** (orbit#527, CI 35 en verde): `GetSelf` rellena
+  `SelfInfo.tenant` desde `auth.Identity.Tenant`; `modelToProto` del agente
+  rellena `ModelInfo.tenant_field` **por el nombre de campo del cable** (el
+  contrato lo nombra a la manera del adaptador, por columna: `tenant_id`; la
+  UI casa nombres de campo: la primera versión enviaba la columna y la sonda
+  lo cazó). La sonda `UI-09` comprueba los dos rellenos contra servidor y
+  agente (dos mutaciones, las dos la bajan a partial). `UI-09` present,
+  **banco 50 de 50**, cero parciales, cero ausentes. Pines: agent y server a
+  proto v0.8.0, fleettest a agent v0.14.0/server v0.19.0/proto v0.8.0, fuera
+  el `replace` de `ui` del go.work; los ocho módulos compilan con
+  `GOWORK=off` y `check_internal_pins.sh` pasa.
+- **Falta, en este orden**: fusionar orbit#527 → deuda de doc de v1.18.0 en
+  la rama del bot (notas: tenant relleno, `node_id`, el clúster, la release
+  que resuelve como consumidor; snapshot 1.18.0) → corte de convergencia
+  (v1.18.0, agent/v0.15.0, server/v0.20.0; el release debe publicar sus
+  activos: comprobarlo) → `train.sh --desde paraguas --hasta cierre
+  --incluye scripts/check_fleet_posture.sh --incluye
   tests/guard-fixtures/umbrella-fleet-posture --incluye
   scripts/lib/guard-registry.sh` con `./orbit/ui` en el go.work del
   paraguas (la fila `orbit/ui` del README la escribe `bump-set`) → A9

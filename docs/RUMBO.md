@@ -58,9 +58,10 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   `orbit/ui` que embebe el único dist) y `S10` (orbit#526: connect-es 2, el
   instrumento de navegador sobre el fleet y el tenant en la UI; **49** de
   50) y `S11` EN CURSO (orbit#527: el clúster de tres agentes detrás de dos
-  servidores y el `node_id` que el servidor no rellenaba, OR-60; el guard
-  `umbrella-fleet-posture` escrito; el primer corte preparado; falta cortar
-  dos veces y el set)— y ocho hallazgos
+  servidores y el `node_id` que el servidor no rellenaba, OR-60; la parte 2
+  de `S10` con el tenant relleno, **50** de 50; el guard
+  `umbrella-fleet-posture` escrito; el primer corte hecho, su release sin
+  activos y el workflow endurecido; falta converger y el set)— y ocho hallazgos
   que reescriben el enunciado —el mTLS del
   servidor ya existe y su identidad se tira; el agente no puede hablar
   `datasource` sin una decisión de módulos; el servidor declara que no
