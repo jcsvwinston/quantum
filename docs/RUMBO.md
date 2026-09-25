@@ -11,21 +11,25 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-09-24)
+## Estado real (2026-09-25)
 
-- **Set certificado: Quantum 1.37.0** (2026-09-24) — quark v1.15.0 (con el
+- **Set certificado: Quantum 1.38.0** (2026-09-25) — quark v1.15.0 (con el
   CLI en v1.1.0 y los cinco drivers en v0.2.2) · nucleus v1.30.1 (doce
-  módulos hermanos) · orbit v1.16.0 (proto v0.7.0, datasource v1.0.0, agent
-  v0.13.0, server v0.18.0, quarkbridge v1.9.2, quarkdatasource v1.12.0).
-  1.37.0 publica las sesiones `S4` a `S7` de **A9** (Fleet unificado),
-  cortado fuera de cadencia porque el arco cortó orbit dos veces más a mitad
-  de camino (un cambio de proto son dos cortes) y el paraguas no certifica
-  con tags de módulo por delante del pin: el fleet habla el contrato
-  `datasource` bajo el operador, el audit dice qué cambió, el servidor
-  retiene localmente con ventana (ADR-013) y avisa por umbral; banco del
-  fleet de 22 a 38 de 50. 1.36.0 publicó las tres primeras sesiones del
-  mismo arco (identidad del nodo atada al certificado, rotación sin
-  reinicio, operadores en el protocolo) con la 1.12.0 de orbit.
+  módulos hermanos) · orbit v1.18.0 (proto v0.8.0, datasource v1.0.0, ui
+  v1.0.0, agent v0.15.0, server v0.20.0, quarkbridge v1.9.2, quarkdatasource
+  v1.12.0). 1.38.0 CIERRA **A9** (Fleet unificado y una sola SPA), cortado
+  fuera de cadencia por tercera vez seguida por la misma razón (dos cortes
+  de orbit para cerrar, tags de módulo por delante del pin): una flota de
+  servidores (ADR-014), un solo proyecto de frontend y el módulo `orbit/ui`
+  (ADR-015), la UI del fleet sobre la segunda generación del protocolo con
+  el tenant relleno, el clúster de tres agentes en CI y el guard
+  `umbrella-fleet-posture`; banco del fleet **50 de 50**. La release
+  v1.17.0 de orbit salió sin activos (nacimiento de `ui`, go.sum sin la
+  suma); v1.18.0 publica sus quince firmados. 1.37.0 publicó `S4` a `S7`
+  (contrato bajo el operador, audit con antes y después, retención con
+  ventana, alertas por umbral) y 1.36.0 las tres primeras sesiones
+  (identidad del nodo atada al certificado, rotación sin reinicio,
+  operadores en el protocolo).
   1.35.0 publicó el arco **A8** (Quark enterprise): `LIKE` escapado por
   adición con la forma plana intacta, el plan de migración que lleva y emite
   índices, FK y CHECK declarados en el modelo, `ALTER COLUMN` completo en los
@@ -37,35 +41,23 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   su nota, y los dos hallazgos rompientes (QK-24, QK-32) esperan al major de
   A12. El detalle, sesión a sesión, en
   [`planes/A8-quark-enterprise.md`](planes/A8-quark-enterprise.md).
-  **A9** (Fleet unificado y una sola SPA) está EN CURSO: su `S0` de
-  medición (orbit#500) dejó el banco `orbit/internal/fleettest/fleetbench`
-  en **16 de 50** —**26** tras `S1` (orbit#501: la identidad del nodo es la
-  del certificado y el agente carga el suyo por ficheros), `S2` (orbit#505:
-  los certificados rotan sin reinicio en los dos lados) y `S3` (orbit#506 y
-  #507: ADR-012, el proto declara identidad y operadores, el agente aplica
-  los operadores y da totales exactos; publicado en 1.36.0) y `S4` (orbit#509
-  y #511: el contrato `datasource` es un módulo y el fleet lo habla bajo el
-  operador, con política y tenant) y `S5` (orbit#512 y #513, con la 1.13.0
-  de orbit cortada entre medias y la 1.14.0 de convergencia después: el audit del fleet dice qué cambió,
-  `quarkdatasource` probado en el fleet, ADR-002 implementado; familia
-  `datasource` completa) y `S6` (orbit#515: el servidor retiene localmente
-  con ventana y descarga, el agente aparca sin stream; el lote de proto de `S6`–`S8` en la 1.15.0
-  de orbit) y `S7` (orbit#520: alertas por umbral con canales webhook y
-  correo, colectores propios del servidor, historial de métricas servido;
-  publicado en 1.37.0) y `S8` (orbit#522: una flota de servidores con
-  registro compartido, relay de eventos y asignación de nodos, OR-56
-  cerrado) y `S9` (orbit#524: un solo proyecto de frontend y el módulo
-  `orbit/ui` que embebe el único dist) y `S10` (orbit#526: connect-es 2, el
-  instrumento de navegador sobre el fleet y el tenant en la UI; **49** de
-  50) y `S11` EN CURSO (orbit#527: el clúster de tres agentes detrás de dos
-  servidores y el `node_id` que el servidor no rellenaba, OR-60; la parte 2
-  de `S10` con el tenant relleno, **50** de 50; el guard
-  `umbrella-fleet-posture` escrito; el primer corte hecho, su release sin
-  activos y el workflow endurecido; falta converger y el set)— y ocho hallazgos
-  que reescriben el enunciado —el mTLS del
-  servidor ya existe y su identidad se tira; el agente no puede hablar
-  `datasource` sin una decisión de módulos; el servidor declara que no
-  persiste—, con el troceado en
+  **A9** (Fleet unificado y una sola SPA) está CERRADO en 1.38.0: doce
+  sesiones (orbit#500 a #527) llevaron el banco
+  `orbit/internal/fleettest/fleetbench` de **16 a 50 de 50**, con cuatro
+  cortes de orbit a mitad de arco y dos para cerrar (un cambio de proto son
+  dos cortes): la identidad del nodo es la del certificado y rota sin
+  reinicio; el contrato `datasource` es un módulo y el fleet lo habla bajo el
+  operador con política y tenant; el audit dice qué cambió; el servidor
+  retiene con ventana (ADR-013) y avisa por umbral; una flota de servidores
+  comparte nodos y eventos y asigna agentes (ADR-014); un solo proyecto de
+  frontend y el módulo `orbit/ui` embeben el único dist (ADR-015); la UI del
+  fleet habla connect-es 2, la mide un banco de navegador y muestra el
+  tenant; el clúster de tres agentes corre en CI y el guard
+  `umbrella-fleet-posture` vigila lo publicado. Ocho hallazgos reescribieron
+  el enunciado (el mTLS ya existía y su identidad se tiraba; el agente no
+  podía hablar `datasource` sin una decisión de módulos; el servidor
+  declaraba que no persistía; «el stack del fleet como base» era la SPA
+  débil). Quedan OR-57 y OR-59 en A12. El detalle, sesión a sesión, en
   [`planes/A9-fleet-unificado-una-sola-spa.md`](planes/A9-fleet-unificado-una-sola-spa.md).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos

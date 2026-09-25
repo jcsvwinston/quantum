@@ -47,6 +47,7 @@ use (
 	./orbit/quarkbridge
 	./orbit/quarkdatasource
 	./orbit/server
+	./orbit/ui
 	./quark
 	./quark/cmd/quark
 	./quark/drivers/mssql

@@ -41,7 +41,10 @@ cp "$ROOT/orbit/.github/workflows/ci.yml" "$TREE/orbit/.github/workflows/"
 perl -0pi -e 's/\*\*\d+ of (\d+) controls present/**11 of $1 controls present/' "$TREE/orbit/docs/admin-bench.md"
 
 # (B) el CI deja de exigir el instrumento.
-perl -0pi -e 's/ORBIT_BENCH_BROWSER: required/ORBIT_BENCH_BROWSER: optional/' "$TREE/orbit/.github/workflows/ci.yml"
+# Sólo el `required` del driver del PANEL: desde A9 S10 la lane corre dos
+# drivers (panel y fleet), cada uno con el suyo, y doctorar «el primero» dejaba
+# el otro en pie y al guard satisfecho por la causa equivocada.
+perl -0pi -e 's/(-run .TestBrowserBench.*?ORBIT_BENCH_BROWSER: )required/${1}optional/s' "$TREE/orbit/.github/workflows/ci.yml"
 
 # (C) el control que prueba el instrumento desaparece de los specs.
 perl -0pi -e 's/UIX-00/UIX-XX/g' "$TREE"/orbit/internal/adminbench/browser/specs/*.spec.ts
