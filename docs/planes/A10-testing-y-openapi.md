@@ -114,7 +114,7 @@ genera el resumen por familias y el catálogo que la página pega.
 | Sesión | Qué entrega | Precondición | Criterio de hecho |
 |---|---|---|---|
 | `S0` | La medición: el banco, su página y los hallazgos | A9 cerrado | **HECHA** — nucleus#574: 12/46, tres hallazgos, gate reescrito sobre el starter |
-| `S1` | El cliente del kit: peticiones JSON con cuerpo y destino, jarra de cookies, token CSRF, actuar como un usuario con sesión (`TK-02`…`TK-05`) | S0 | `TK-02`, `TK-03`, `TK-04`, `TK-05` a `present`; la guía de testing deja de decir «experimental» para el cliente |
+| `S1` | El cliente del kit: peticiones JSON con cuerpo y destino, jarra de cookies, token CSRF, actuar como un usuario con sesión (`TK-02`…`TK-05`) | S0 | **HECHA** — nucleus#576: `TK-02`…`TK-05` a `present`, banco 16/46; la guía describe el cliente sin «experimental» |
 | `S2` | Los datos del test: factories sobre los modelos registrados, transacción por test con rollback sobre la base de la aplicación (`TK-06`, `TK-07`) | S1 | `TK-06`, `TK-07` a `present`; probado en SQLite y en la lane de PostgreSQL |
 | `S3` | Los dobles que capturan: correo (proveedor `memory` y su lectura desde el kit), almacenamiento, tasks encolados, HTTP saliente (`TK-08`…`TK-11`) | S1 | `TK-08`…`TK-11` a `present`; cada doble con su test de que captura lo que la aplicación emitió |
 | `S4` | El kit cubre el starter y los módulos: el test generado por `nucleus new` usa el cliente; kit de conformidad de `ModuleSpec` (`TK-14`, `TK-15`); NU-74 y NU-75 medidos sobre los listados de la página | S1 | `TK-15` a `present`; el test del starter compila y pasa en la lane que genera el proyecto; NU-74/NU-75 hechos |
@@ -151,7 +151,7 @@ Se rellena al terminar cada una: el PR que la cierra y lo que se midió.
 | Sesión | Estado | PR | Qué midió o cambió del plan |
 |---|---|---|---|
 | S0 | **hecha** 2026-09-25 | nucleus#574 | 12/46 (testkit 4/3/8, openapi 2/2/6, http 2/2/8, di 4/1/4). El kit arranca y no ayuda; el 404 del router es texto plano (NU-96); el contrato del scaffold dice «abierta» y la app no lo sirve (NU-97, NU-98); el gate pasa del showcase al starter; binding y errores son una sola sesión; `Requires` nombra bases, no módulos |
-| S1 | pendiente | — | |
+| S1 | **hecha** 2026-09-26 | nucleus#576 | `TK-02`…`TK-05` a present, banco **16/46** (testkit 8/2/5). El cliente del kit: `Request`/`Get`/`Post`… con `Response.JSON`, opciones `WithHeader`/`WithQuery`/`WithBearer`; jarra que conserva las cookies `Secure` sobre el servidor loopback en HTTP plano (la excepción que hacen los navegadores con localhost); `CSRFToken`/`WithCSRF` (el middleware rechaza con 419, no 403); `SignIn`/`SignInAccount`/`SignOut` abren la sesión en el store de la aplicación vía scs. La guía de testing deja de llamar «experimental» al kit; el registro de contratos lo mantiene `experimental` hasta que deje de crecer. Nada del plan cambió |
 | S2 | pendiente | — | |
 | S3 | pendiente | — | |
 | S4 | pendiente | — | |

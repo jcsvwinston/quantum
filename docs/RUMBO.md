@@ -68,7 +68,10 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   dice que la API es abierta y la aplicación generada no lo sirve (NU-97,
   NU-98)— y el gate pasa del showcase, que ya no existe, al starter de
   `nucleus new`: un cliente TypeScript generado consume su API en un test en
-  CI. Troceado en diez sesiones en
+  CI. `S1` (nucleus#576) dio al kit su cliente —peticiones con cuerpo y
+  destino, cookies `Secure` conservadas, token CSRF, sesión abierta en el
+  store de la aplicación— y el banco está en **16** de 46. Troceado en diez
+  sesiones en
   [`planes/A10-testing-y-openapi.md`](planes/A10-testing-y-openapi.md).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
