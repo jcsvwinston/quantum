@@ -112,7 +112,7 @@ dice que no lo hace nadie.
 | `S7` | Alertas por umbral con canales, y colectores propios del servidor | S6 | **HECHA** — orbit#520 (reglas por umbral sobre métricas de host, canales webhook y correo, `AlertService`, colectores `admin_server_*`, `MetricsService` sirve el historial retenido, pines a proto v0.7.0): familias `alerts` 6/0/0 y `retention` 7/0/0 completas; banco 38/50 |
 | `S8` | Multi-servidor: estado compartido, relay de eventos y asignación de agentes | S6 | **HECHA** — orbit#522 (ADR-014: malla de un salto sobre el listener de agentes, nodos remotos en el registro, relay de eventos con demanda total, asignación por rendezvous hashing y `Command.redirect`; el stream reemplazado termina, OR-56 cerrado): familia `ha` 5/0/0; banco 42/50 |
 | `S9` | Una sola SPA: la decisión con datos (ADR-015), tokens compartidos, tests, frescura del dist y presupuesto | S5 | **HECHA** — orbit#524 (ADR-015: el proyecto del panel como base, el fleet como segunda entrada, un dist embebido por el módulo `orbit/ui` que raíz y servidor requieren por tag; tokens, tests, lint, lane de frescura y presupuesto por entrada compartidos): `UI-01`–`UI-05` a `present`; banco 47/50 |
-| `S10` | connect-es 2 desde `proto/`, el instrumento de navegador sobre el fleet, tenant en la UI | S9 | `UI-06`, `UI-07`, `UI-09` a `present` |
+| `S10` | connect-es 2 desde `proto/`, el instrumento de navegador sobre el fleet, tenant en la UI | S9 | **HECHA** — orbit#526 (stubs de segunda generación desde `proto/`, proyecto `fleet` del instrumento de navegador con seis controles `UIF`, el tenant del operador y del modelo en la SPA sobre dos campos aditivos): `UI-06`, `UI-07` a `present`; `UI-09` `partial` hasta que servidor y agente rellenen los campos tras el corte (parte 2, en `S11`); banco 49/50; OR-58 cerrado, OR-59 abierto |
 | `S11` | Gate, guard y set: clúster de tres agentes en CI, `umbrella-fleet-posture`, set certificado | todas | guard registrado con fixture; set certificado; ADR-002 implementado |
 
 **El orden no es negociable en tres sitios**: `S3` va antes que `S4` porque
@@ -123,6 +123,47 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 `S3`–`S5` pueden ir en paralelo (ficheros distintos); `S6`–`S8` tras ellos.
 
 ## Registro de sesiones
+
+### `S10` — connect-es 2, el navegador sobre el fleet y el tenant en la UI (2026-09-24) · **hecha**
+
+- **PR**: [orbit#526](https://github.com/jcsvwinston/orbit/pull/526)
+  (`feat(ui)`). Banco **49 de 50**, 1 parcial (`UI-09`), 0 ausentes; el
+  banco de navegador del fleet, 5 de 6 (`UIF-02` ausente con razón).
+- **connect-es 2 / protobuf-es 2** (`UI-06`): `proto/buf.gen.yaml` genera
+  los stubs TS del fleet con `bufbuild/es` v2 a solas (mensajes y
+  descriptores de servicio de un generador; el de `connectrpc/es`
+  desaparece); `@bufbuild/protobuf ^2.15`, `@connectrpc/connect ^2.2`,
+  `connect-web ^2.2`. Código: `createClient`, `create(Schema, …)`,
+  `timestampDate`, tipos `wkt`; cuatro ficheros del fleet y dos tests. El
+  bundle pasa de 424 a 458 KB (presupuesto 512).
+- **El instrumento de navegador sobre el fleet** (`UI-07`): proyecto
+  `fleet` del mismo Playwright (`specs/fleet.spec.ts`, seis controles
+  `UIF`), conducido desde `internal/fleettest` (`TestFleetBrowserBench`:
+  servidor con operador loopback sin credencial + un agente;
+  `--project=fleet`, informe propio). El driver del panel pasa
+  `--project=panel`. La lane de CI corre los dos. **`UIF-02` (contraste)
+  mide `absent`**: en el tema claro —el de arranque— el texto pequeño
+  atenuado de la vista general queda por debajo de 4.5:1 sobre `--t1`; los
+  rótulos del sidebar pasaron a un token que cumple y `--t27`/`--t32`
+  claros se subieron como se hizo con `--t26`; el resto es el re-skin sobre
+  los tokens compartidos → **OR-59** (P3, A12). Retitular, no forzar.
+- **El tenant en la UI** (`UI-09`): dos campos aditivos, `SelfInfo.tenant`
+  (el tenant del proxy de confianza, junto a quién queda auditado el
+  operador: `alice · tenant acme`, `describeOperator` con test) y
+  `ModelInfo.tenant_field` (Data Studio marca el modelo acotado y su
+  columna). **Sigue `partial`** por la razón de `FDS-11` en `S5`: servidor y
+  agente rellenan los campos cuando pinen el proto que los lleva (parte 2,
+  con el corte de `S11`), y la sonda ahora COMPRUEBA que el servidor
+  devuelve el tenant que el proxy envió — un campo declarado no la pasa. La
+  descripción de Data Studio de **OR-58** dice lo que ocurre desde `S4`.
+- **Lo que costó**: `clean: true` de buf borra el directorio de salida
+  entero (bien para el cambio de generador); protobuf-es 2 quita `toDate`
+  y los constructores `new Msg({})`; el Chromium headless del instrumento
+  se instaló en local (`npx playwright install chromium-headless-shell`) y
+  desde ahí el banco de navegador se puede correr antes del CI.
+- **Parte 2 (con el corte de `S11`)**: `GetSelf` rellena `tenant` desde
+  `auth.Identity.Tenant`; `ListModels` del agente rellena `tenant_field`
+  desde `datasource.ModelInfo.TenantField`; `UI-09` a `present`.
 
 ### `S9` — un solo proyecto de frontend (2026-09-24) · **hecha**
 
