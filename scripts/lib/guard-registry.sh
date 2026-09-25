@@ -151,6 +151,17 @@ GUARDS=(
   "umbrella-admin-posture|.|bash scripts/check_admin_posture.sh"
   "umbrella-jobs-posture|.|bash scripts/check_jobs_posture.sh"
   "umbrella-quark-posture|.|bash scripts/check_quark_posture.sh"
+  # El gate del arco A9: lo que la suite AFIRMA sobre el plano fleet de Orbit
+  # es lo que sus propias medidas dicen. A9 dejó un banco de 50 controles con
+  # su sonda (`orbit/internal/fleettest/fleetbench`), la mitad de navegador
+  # del banco sobre la UI del fleet (proyecto `fleet` del instrumento de A6) y
+  # un test que pone tres agentes detrás de dos servidores y pregunta a los
+  # dos lo que el panel responde para una aplicación. Este guard vigila la
+  # frontera entre lo medido y lo PUBLICADO —la cifra, la tabla por familias
+  # que se quedó tres sesiones rancia bajo un titular al día, la nota de cada
+  # hueco— y que el CI de orbit siga exigiendo el navegador sobre el fleet y
+  # corriendo el clúster, lo único del arco que mide una flota y no un servidor.
+  "umbrella-fleet-posture|.|bash scripts/check_fleet_posture.sh"
   # Toda lane del paraguas con disparador `schedule:` lleva su job
   # `notify-schedule-failure`: el cron rojo no puede degradar al email por
   # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que
