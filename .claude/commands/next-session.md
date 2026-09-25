@@ -281,7 +281,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   **Trampas**: un módulo sin `Prefix` monta en la raíz; el rechazo CSRF es
   419; `git checkout <fichero>` para deshacer una mutación se llevó también
   la jarra (reaplicada); un PR apilado sobre otro squash-mergeado se rebasa
-  con `--onto` soltando los commits ya fusionados.
+  con `--onto` soltando los commits ya fusionados; y **la jarra cambió lo que
+  medía un contrato**: `TestSecurityPosture_MatchesBaseline` leía los
+  `Set-Cookie` de una petición hecha con el cliente del kit, que ahora ya
+  llevaba la cookie `_csrf` del sondeo de readiness, así que el middleware no
+  ponía nada y la postura salía «(no cookies set)» sin haber cambiado — la
+  sonda usa ahora un cliente sin jarra, porque mide el primer contacto.
 - **Siguiente**: fusionar nucleus#576 y arrancar `S2`.
 
 ### Sesión 2026-09-25 (segunda) — **A10 `S0` HECHA (nucleus#574, sin fusionar)**: el banco del API en 12 de 46, tres hallazgos (NU-96, NU-97, NU-98) y el troceado de diez sesiones
