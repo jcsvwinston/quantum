@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-25, QUANTUM 1.38.0 — A9 CERRADO: el banco del fleet en 50 de 50, seis cortes de orbit y tres sets; siguiente arco por `estado.sh`)
+## 3. Estado al cierre (2026-09-25, QUANTUM 1.38.0 — A9 CERRADO; A10 EN CURSO: `S0` hecha, el banco del API en 12 de 46; nucleus#574 sin fusionar; siguiente `S1`, el cliente del kit)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -119,6 +119,31 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   puede ver**. Hallazgos abiertos de orbit: **OR-57** (P3, A12: el enlace
   identidad↔certificado es opt-in hasta el major) y **OR-59** (P3, A12: el
   contraste del tema claro del fleet, re-skin sobre los tokens compartidos).
+  **A10 (Testing y OpenAPI de primera clase) EN CURSO y TROCEADO** por su `S0`
+  de medición (2026-09-25, nucleus#574, `test(apibench)`, sin fusionar): diez
+  sesiones en
+  [`docs/planes/A10-testing-y-openapi.md`](../../docs/planes/A10-testing-y-openapi.md),
+  banco `nucleus/internal/apibench` en **12 de 46** (46 controles en cuatro
+  familias: testkit, openapi, http, di; `TestAPIBench` asserta el veredicto
+  registrado; `NUCLEUS_API_BENCH_TABLE=1` genera las tablas que
+  `nucleus/docs/api-bench.md` pega). Lo que midió y el plan no sabía: el kit
+  `nucleustest` arranca la aplicación y no ayuda con nada más (cliente sin
+  JSON, sin cookies, sin CSRF, sin sesión, sin factories, sin transacción, sin
+  dobles); **el 404 propio del router es el texto plano de Go** incluso con
+  `Accept: application/json` (NU-96); el contrato que escribe `nucleus new`
+  declara la API abierta y la aplicación generada no lo sirve (NU-97, NU-98);
+  `Module.Requires` nombra bases de datos, no módulos, y el arranque es
+  alfabético; NU-41 y NU-44 confirmados por sonda. **El gate cambia**: el
+  showcase ya no existe, así que se mide sobre el starter de `nucleus new`
+  (documento publicado, cliente TypeScript generado que lo consume en un test
+  en CI, kit cubriendo el starter, documento en `contracts/baseline`).
+  **Siguiente: `S1`**, el cliente del kit (`TK-02`…`TK-05`), precondición
+  nucleus#574 fusionado; `S5` (el documento desde el código), `S8` (binding y
+  errores) y `S9` (cableado) pueden ir en paralelo porque tocan paquetes
+  distintos. Trampa dicha por adelantado: casi todo es API pública de
+  `pkg/nucleustest`, `pkg/nucleus` y `pkg/router`, que el baseline de
+  símbolos y el gate de la allowlist vigilan; lo que no sea Go puro (un
+  generador TS) se decide ANTES de escribirse.
   `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
   los copies de aquí.
   El gate de cada arco sigue siendo el registro
@@ -224,6 +249,32 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-25 (segunda) — **A10 `S0` HECHA (nucleus#574, sin fusionar)**: el banco del API en 12 de 46, tres hallazgos (NU-96, NU-97, NU-98) y el troceado de diez sesiones
+
+- **Fusionado** quantum#246 (cierre de A9) por orden de Carlos; `estado.sh`
+  derivó A10 sin troceado.
+- **El banco** `nucleus/internal/apibench`: 46 controles en cuatro familias,
+  modelado sobre `jobsbench` (arnés, env con un módulo mínimo `bench`,
+  sondas) y sobre `fleetbench` (generador de tabla con resumen por familias,
+  gitignored). Las sondas de un helper que no existe preguntan al conjunto de
+  métodos del kit y al fuente bajo los nombres de los demás kits, y dejan
+  escrito qué buscaron. **Trampas del propio banco**: el runtime de jobs es
+  nil hasta que un módulo registra un job (la sonda TK-10 monta uno);
+  `Module.Requires` son alias de BD, no módulos; el paquete del proveedor de
+  tasks en memoria se llama `memoryprovider`; una regex que casaba
+  `ModuleSpec` daba un falso present en TK-15. Verificado por mutación
+  (HT-01 baja a partial sin el tag `validate`). `make check` de nucleus en
+  verde.
+- **Lo que midió**: 12/46. El kit arranca y no ayuda; el 404 del router es
+  texto plano de Go en todas partes (NU-96); el contrato del scaffold dice
+  «abierta» y la app generada no lo sirve (NU-97, NU-98); NU-41 y NU-44
+  confirmados. El gate pasa del showcase (borrado el 2026-09-12) al starter.
+- **Escrituras**: plan `A10-testing-y-openapi.md` con el troceado en diez
+  sesiones y el registro con tabla legible por `estado.sh`; fila de A10 en
+  `docs/planes/README.md`; RUMBO; registro NU-96/97/98 (A10, abiertos) con
+  sus filas en `nucleus.md`; memoria.
+- **Siguiente**: fusionar nucleus#574 y arrancar `S1` (el cliente del kit).
+
 ### Sesión 2026-09-25 — **A9 `S11` HECHA y A9 CERRADO en Quantum 1.38.0 (orbit#527, cortes v1.17.0 y v1.18.0, quantum#245)**: el clúster de tres agentes, OR-60, la tabla rancia del banco, `umbrella-fleet-posture`, la parte 2 de `S10` (50/50), la release sin activos y el tren
 
 - **Fusionados** orbit#526 (`S10`) y quantum#242 por orden de Carlos.
@@ -281,81 +332,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   como en los sets anteriores.
 - **Siguiente**: `bash scripts/estado.sh --breve` dice el arco; A9 no deja
   nada pendiente salvo OR-57 y OR-59 en A12.
-
-### Sesión 2026-09-24 — **A9 `S6` a `S10` HECHAS (orbit#515, #518, #520, #522, #524, #526), orbit v1.15.0/v1.16.0 cortados y Quantum 1.37.0**: retención, el lote de proto, alertas, la flota de servidores, un solo proyecto de frontend, la familia `ui`; banco 49/50
-
-- **Arranque con `/next-session auto`**: quantum#236 abierto y rojo por el
-  re-pin pendiente (esperado); orbit en main con v1.14.0. Foco `S6`, que
-  sólo depende de `S0`.
-- **`S6` (orbit#515, `feat(fleet)`)**: `server/store` (SQLite, driver puro
-  Go ya en el grafo; un escritor por lotes; `Flush`), `DataDir`/`Retention`
-  en `server.Config` y flags; replay calentado al arrancar; `ListAudit` y
-  `GET /api/audit/export` leen del store con ventana; purgador; el agente
-  con `catcher` bajo los filtros aparcados del stream. ADR-013 escrito con
-  lo que no decide. `RET-01/02/04/05/06` a present (sondas que ponen el
-  knob); `RET-03` espera el RPC. Dos mutaciones en rojo. Trampa:
-  `Subscription.Cancel` del bus no cierra el canal (drenar con canal de
-  parada, no con `range`).
-- **El lote de proto de `S6`–`S8`, escrito para decidir**: orbit#516
-  (`feat(proto)`, apilado sobre #515): `MetricsService.ListHostMetrics`,
-  `AlertRule`/`Alert`/`AlertService`, `Command.redirect`,
-  `PeerService.Sync` con sus frames. Servicios nuevos, no RPCs en los
-  existentes: el primer borrador puso el RPC en `ControlService` y el
-  workspace dejó de compilar (la interfaz del handler gana un método que el
-  servidor no puede implementar hasta pinar el tag). `RET-03`, `ALR-01`,
-  `ALR-03` a partial (declarado ≠ servido); `HA-04` sigue ausente a
-  propósito. Tras fusionar #515 hay que rebasar #516 (squash).
-- **Fusiones y corte (decisión de Carlos)**: orbit#515 fusionado; #516 se
-  cerró solo al borrarse la rama base de la pila (trampa conocida) → rebase
-  con `--onto` soltando el commit de S6 y PR nuevo **orbit#518**, fusionado;
-  release PR orbit#517 con la deuda de doc en la rama del bot (guards sin
-  `tail`) → **v1.15.0, proto/v0.7.0, agent/v0.12.0, server/v0.17.0**.
-  Convergencia pendiente (pines a proto v0.7.0 + release) para que el
-  paraguas re-pine.
-- **`S7` (orbit#520, `feat(fleet)`)**: `server/alerts` (reglas JSON con
-  validación, motor con `for`, canales webhook y SMTP, notificador con
-  tope), `AlertService`, `MetricsService.ListHostMetrics`, `server/metrics`
-  con registro por servidor (varios servidores en un proceso no chocan),
-  flags `--alert-*`, pines a proto v0.7.0. `alerts` 6/0/0 y `retention`
-  7/0/0; banco **38/50**; tres mutaciones en rojo. quantum#236 fusionado.
-- **Corte de convergencia y set** (decisión de Carlos): orbit#520 fusionado,
-  release PR orbit#521 → **v1.16.0, agent/v0.13.0, server/v0.18.0**; el
-  árbol pasa el guard de pines solo. Re-pin con `train.sh --desde paraguas
-  --hasta cierre` → **Quantum 1.37.0**; el tren paró una vez (la prosa) y
-  llevó con `--incluye` los arreglos de `bump-set`/`manifest-guard` para el
-  sexto módulo.
-- **`S8` (orbit#522, `feat(fleet)`)**: la malla de servidores del ADR-014;
-  registro compartido (nodos remotos, etiqueta `orbit.server`, Data Studio
-  los rechaza nombrando al propietario), relay al bus y replay del peer,
-  demanda total con peer conectado, asignación por rendezvous hashing y
-  `Command.redirect` que el agente sólo acepta hacia endpoints
-  configurados; OR-56 cerrado. Banco **42/50**, `ha` 5/0/0. Trampa: con
-  peer conectado el agente tiene demanda desde el registro, así que
-  `waitDemand` no prueba la suscripción de la UI (esperar
-  `SubscriberCount`). Tres mutaciones en rojo.
-- **`S9` (orbit#524, `feat(ui)`)**: ADR-015 con la tabla que decidió (el
-  panel es la base, no el fleet); proyecto único en `ui/`, dos entradas,
-  un dist `dist/panel` + `dist/fleet` embebido por el módulo `orbit/ui` (un
-  `go:embed` no sale de su módulo; raíz y servidor lo requieren por tag).
-  Tokens, tsconfig, ESLint, Vitest, lane de frescura y presupuesto por
-  entrada compartidos; la lane `admin-ui` desaparece; Dependabot con un
-  solo proyecto npm; sondas UI-01/04/05/10 adaptadas. Banco **47/50**.
-  Trampas: un `import '@/x'` de efecto no lo reescribe un sed de
-  `from '@/`; la config de Tailwind se carga por ruta, no con `import` de
-  un `.js` desde un `.ts`; `TestBrowserBench` falla en local sin el
-  binario de Playwright, no por el cambio.
-- **`S10` (orbit#526, `feat(ui)`)**: connect-es 2 / protobuf-es 2 desde
-  `proto/buf.gen.yaml` (un generador, `create(Schema)`, `createClient`);
-  proyecto `fleet` del instrumento de navegador conducido desde
-  `internal/fleettest` (Chromium headless instalado en local: el banco de
-  navegador se corre antes del CI); `UIF-02` contraste ausente con razón
-  (OR-59, A12); el tenant en la SPA sobre `SelfInfo.tenant` y
-  `ModelInfo.tenant_field`, con la sonda UI-09 comprobando que el servidor
-  rellene lo que la UI lee (partial hasta la parte 2); OR-58 cerrado.
-  Banco **49/50**.
-- **Siguiente: `S11`** (gate, guard `umbrella-fleet-posture`, clúster de
-  tres agentes en CI, y el set con dos cortes de orbit), tras fusionar
-  orbit#526.
 
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)

@@ -59,6 +59,17 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   declaraba que no persistía; «el stack del fleet como base» era la SPA
   débil). Quedan OR-57 y OR-59 en A12. El detalle, sesión a sesión, en
   [`planes/A9-fleet-unificado-una-sola-spa.md`](planes/A9-fleet-unificado-una-sola-spa.md).
+  **A10** (Testing y OpenAPI de primera clase) está EN CURSO: su `S0` de
+  medición (nucleus#574, 2026-09-25) dejó el banco
+  `nucleus/internal/apibench` en **12 de 46** (testkit 4/3/8, openapi 2/2/6,
+  http 2/2/8, di 4/1/4) y tres hallazgos que reescriben el enunciado —el kit
+  de test arranca la aplicación y no ayuda con nada más; el 404 propio del
+  router es el texto plano de Go (NU-96); el contrato que escribe el scaffold
+  dice que la API es abierta y la aplicación generada no lo sirve (NU-97,
+  NU-98)— y el gate pasa del showcase, que ya no existe, al starter de
+  `nucleus new`: un cliente TypeScript generado consume su API en un test en
+  CI. Troceado en diez sesiones en
+  [`planes/A10-testing-y-openapi.md`](planes/A10-testing-y-openapi.md).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
   TIPADO con el outbox como transporte opcional, CANALES sobre WebSocket y

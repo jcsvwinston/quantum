@@ -136,7 +136,7 @@ que una sesión necesita para orientarse.
 | **A7** | Jobs, eventos y tiempo real | A6 para el panel de colas | [`A7-jobs-eventos-tiempo-real.md`](A7-jobs-eventos-tiempo-real.md) |
 | A8 | Quark enterprise | A4 | [`A8-quark-enterprise.md`](A8-quark-enterprise.md) (cerrado en 1.35.0) |
 | A9 | Fleet unificado y una sola SPA | A6 | [`A9-fleet-unificado-una-sola-spa.md`](A9-fleet-unificado-una-sola-spa.md) (cerrado en 1.38.0) |
-| A10 | Testing y OpenAPI de primera clase | A5 para el cliente de test con sesión | al empezarlo |
+| A10 | Testing y OpenAPI de primera clase | A5 para el cliente de test con sesión | [`A10-testing-y-openapi.md`](A10-testing-y-openapi.md) (en curso desde 2026-09-25) |
 | A11 | Extensibilidad y catálogo | A5, A7 (los módulos que cataloga) | al empezarlo |
 | A12 | Rendimiento, re-auditoría y cierre a 5 | todos | al empezarlo |
 
