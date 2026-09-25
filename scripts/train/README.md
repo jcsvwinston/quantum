@@ -466,6 +466,16 @@ permiso. `--sin-esperar` recupera el comportamiento antiguo para ensayos.
 - **PRs zombi** al cambiar la configuración de ramas de release-please (rama
   vieja sin componente + rama nueva): cerrar el de la rama vieja y borrar la
   rama.
+- **Un módulo que NACE y un consumidor que lo requiere en el MISMO corte
+  dejan esa release sin activos**: el consumidor pina el tag que el corte
+  crea (ADR-012), su go.sum no puede llevar la suma antes de que el tag
+  exista, y un build `GOWORK=off` en modo read-only se planta con «missing
+  go.sum entry». Le pasó a orbit v1.17.0 (nace `ui`, lo requiere `server`):
+  cero binarios, y ningún guard lo vio porque el set pina la convergencia.
+  El workflow de release de orbit resuelve ya con `-mod=mod` (lo que hace
+  `go install …@tag`); en cualquier caso, **comprobar los activos de cada
+  corte** (`gh release view <tag> --json assets`) antes de darlo por bueno.
+  Detalle en «Lo que aprendió el tren de 1.38.0».
 
 ### El orden dentro del tren: qué va ANTES del corte
 
@@ -659,6 +669,55 @@ release-please@17` y llamar a `parseConventionalCommits` de
 `release-please/build/src/commit.js` con `{sha, message, files}`; después
 bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
 la línea y la columna.
+
+### Lo que aprendió el tren de 1.38.0 (A9 cerrado: dos cortes de orbit y un séptimo módulo)
+
+**El nacimiento de un módulo puede dejar una release sin activos.** El
+corte v1.17.0 de orbit creó `ui/v1.0.0` y a la vez publicó un `server`
+que lo requiere por tag. `server/go.sum` se había tidied cuando el tag no
+existía y el go.work resolvía `ui` por `replace` versionado, que no deja
+sumas; el árbol del tag quedó congelado sin la suma, el paso «Build, vet and
+test the server module standalone» del workflow de release (`GOWORK=off`,
+read-only) se plantó con «missing go.sum entry», y GoReleaser nunca corrió:
+**release v1.17.0 con cero activos**. El nacimiento de `datasource` en
+v1.13.0 no lo sufrió porque el servidor no lo requería. Un consumidor no lo
+ve nunca (`go install …@tag` y `go get` resuelven la suma solos), y el
+paraguas tampoco: `umbrella-release-assets` pregunta por los tags que el set
+PINA, y el set pina la convergencia (v1.18.0, quince activos firmados). El
+árbol de un tag no se arregla; orbit#527 puso `GOFLAGS=-mod=mod` en la
+verificación y en el build de GoReleaser, que es resolver como el
+consumidor, y la lane `tidy` sigue vigilando el go.sum. Regla: **tras cada
+corte, mirar los activos de la release** antes de seguir; y si un módulo nace
+y otro lo requiere en el mismo corte, esperarse la trampa.
+
+**La fila nueva del README se escribe a mano UNA vez, ANTES de bump-set.**
+`bump-set` reescribe las filas de la tabla de módulos de orbit por clave del
+manifiesto y PARA si no encuentra la de un módulo nuevo («no encontré el
+patrón … orbit/ui»). Paró a mitad, con `modules.orbit` y `workspace_pins`
+ya escritos y `orbit_modules` sin regenerar; como `repin_ya_escrito` mira
+los tres pines de raíz, relanzar habría saltado bump-set y dejado el
+manifiesto a medias. Se restauró `versions.yaml` (`git checkout`), se escribió
+la fila con su rol y se relanzó: segunda invocación limpia hasta la parada
+de prosa.
+
+**Una fixture que doctora «el primer required» muere con el segundo driver.**
+La regla de 1.37.0 (guard-of-guards en local ANTES de `--desde paraguas`)
+cazó a `umbrella-admin-posture` mordiendo por la CAUSA EQUIVOCADA al pin
+nuevo: desde A9 `S10` la lane de navegador de orbit corre dos drivers
+(panel y fleet), cada uno con su `ORBIT_BENCH_BROWSER: required`; la fixture
+sustituía sólo la primera aparición y el guard, con un `grep -q` suelto,
+seguía encontrando la segunda. Ahora cada guard de postura ancla su
+`required` al driver que vigila (`-run 'TestBrowserBench'` el del panel,
+`TestFleetBrowserBench` el del fleet) y cada fixture doctora ese. Los dos
+arreglos fueron con `--incluye` al PR de set: cinco rutas, y el tren las
+llevó sin parar.
+
+**El tren, esta vez**: tres invocaciones (`bump-set` parado por la fila,
+parada de prosa, fusión y cierre), 15m49s conducidos y 18m46s de punta a
+punta, dentro del objetivo de 30m. El PR de set llevó, además del re-pin,
+el 53º guard con su fixture: al pin anterior no había banco de navegador ni
+clúster que vigilar, así que un PR propio habría salido rojo por
+construcción.
 
 ### Lo que aprendió el tren de 1.37.0 (A9: cuatro cortes de orbit y un sexto módulo)
 
