@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-25, QUANTUM 1.37.0 — A9 EN CURSO: `S0`–`S10` hechas y `S11` EN CURSO, el banco del fleet en 49 de 50; orbit#527 abierto y el primer corte preparado en la rama del bot; falta cortar, la parte 2, converger y el tren)
+## 3. Estado al cierre (2026-09-25, QUANTUM 1.37.0 — A9 EN CURSO: `S0`–`S10` hechas y `S11` EN CURSO, el banco del fleet en 50 de 50; orbit v1.17.0 cortado (release sin activos, endurecido), orbit#527 en verde sin fusionar; falta fusionar, converger y el tren)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -142,24 +142,29 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   que servidor y agente rellenan tras el corte (`UI-09` sigue partial con
   la sonda comprobando el relleno). Banco **49 de 50**, 1 parcial, 0
   ausentes. **`S11` EN CURSO** (2026-09-25): el clúster de tres agentes
-  detrás de dos servidores (`TestFleetParityThreeAgents`, orbit#527, abierto)
+  detrás de dos servidores (`TestFleetParityThreeAgents`, orbit#527)
   encontró el `node_id` vacío de las respuestas de Data Studio (**OR-60**,
-  hecho en el mismo PR); la tabla por familias de `fleet-bench.md` llevaba
-  tres sesiones rancia y ahora la genera el test; el guard
-  `umbrella-fleet-posture` con fixture está en la rama
-  `feat/a9-s11-fleet-posture` del paraguas (FALLA al pin v1.16.0 por
-  construcción: entra con el set vía `--incluye`); la deuda de doc de
-  v1.17.0 está pagada en la rama del bot de orbit (release PR #523,
-  anclado). **Falta, en orden**: `merge-bot-pr.sh orbit 523` (corte 1:
-  v1.17.0, proto/v0.8.0, agent/v0.14.0, server/v0.19.0, ui/v1.0.0) → parte
-  2 de `S10` en orbit#527 (rellenar `SelfInfo.tenant` y
-  `ModelInfo.tenant_field`, pines a los tags nuevos, fuera el `replace` de
-  `ui`, `UI-09` present, 50/50) → fusionar #527 → deuda de doc v1.18.0 y
-  corte de convergencia → `train.sh --desde paraguas --hasta cierre` con
+  hecho); la tabla por familias de `fleet-bench.md` llevaba tres sesiones
+  rancia y ahora la genera el test; el guard `umbrella-fleet-posture` con
+  fixture está en la rama `feat/a9-s11-fleet-posture` del paraguas (FALLA
+  al pin v1.16.0 por construcción: entra con el set vía `--incluye`).
+  **Primer corte hecho**: orbit **v1.17.0, proto/v0.8.0, agent/v0.14.0,
+  server/v0.19.0, ui/v1.0.0** — y **su release publicó cero activos**: el
+  módulo `ui` nació en el mismo corte que el servidor lo requiere, así que
+  `server/go.sum` (tidied con el `replace` del go.work) no llevaba su suma y
+  el build read-only del workflow de release se plantó. Árbol congelado: la
+  release queda así; el set pina la convergencia. Endurecido en orbit#527
+  (`GOFLAGS=-mod=mod` en la verificación y en GoReleaser: resolver como un
+  consumidor). **Parte 2 de `S10` hecha** en el mismo orbit#527 (CI 35 en
+  verde, sin fusionar): `SelfInfo.tenant` y `ModelInfo.tenant_field`
+  rellenos (este por NOMBRE de campo del cable, no por columna), sonda con
+  dos rellenos comprobados, `UI-09` present, **banco 50 de 50**; pines a
+  los tags nuevos, fuera el `replace` de `ui`. **Falta, en orden**:
+  fusionar #527 → deuda de doc v1.18.0 en la rama del bot → corte de
+  convergencia (v1.18.0, agent/v0.15.0, server/v0.20.0; comprobar que la
+  release publica activos) → `train.sh --desde paraguas --hasta cierre` con
   los `--incluye` del guard y `./orbit/ui` en el go.work del paraguas
-  (`bump-set` escribe la fila `orbit/ui` del README). El orden importa: un
-  push a main regenera la rama del bot y se lleva la deuda de doc, así que
-  #527 NO se fusiona antes del corte 1. Hallazgos abiertos: **OR-57** (P3, A12: el enlace
+  (`bump-set` escribe la fila `orbit/ui` del README). Hallazgos abiertos: **OR-57** (P3, A12: el enlace
   identidad↔certificado es opt-in hasta el major) y **OR-59** (P3, A12: el
   contraste del tema claro del fleet, re-skin sobre los tokens compartidos). **A8** (Quark
   enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
@@ -272,7 +277,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-25 — **A9 `S11` EN CURSO (orbit#527 abierto; el guard en rama; el corte 1 preparado)**: el clúster de tres agentes, OR-60, la tabla rancia del banco, `umbrella-fleet-posture`, la deuda de doc de v1.17.0
+### Sesión 2026-09-25 — **A9 `S11` EN CURSO (orbit v1.17.0 cortado, orbit#527 en verde sin fusionar, el guard en rama)**: el clúster de tres agentes, OR-60, la tabla rancia del banco, `umbrella-fleet-posture`, la parte 2 de `S10` (50/50) y la release sin activos
 
 - **Fusionados** orbit#526 (`S10`) y quantum#242 por orden de Carlos.
 - **El clúster**: `TestFleetParityThreeAgents` en
@@ -299,8 +304,23 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   guards de docs, `check-anchored` OK). Se queda ahí hasta la orden de
   cortar; nada más puede entrar en main antes (release-please regenera la
   rama).
-- **Siguiente**: la orden de Carlos para el corte 1; después la parte 2 de
-  `S10` en #527, el corte 2 y el tren (secuencia exacta en el plan, `S11`).
+- **Corte 1 hecho por orden de Carlos** (`merge-bot-pr.sh orbit 523`):
+  v1.17.0, proto/v0.8.0, agent/v0.14.0, server/v0.19.0, ui/v1.0.0. **La
+  release salió sin activos**: `server/go.sum` sin la suma de `ui/v1.0.0`
+  (nació en el mismo corte) y el build read-only del workflow se plantó.
+  El nacimiento de `datasource` no lo sufrió porque el servidor no lo
+  requería. Endurecido en #527 con `GOFLAGS=-mod=mod` en la verificación y
+  en GoReleaser; el árbol de v1.17.0 no se puede arreglar y el set pina la
+  convergencia. Trampa nueva del tren: va a `scripts/train/README.md` con la
+  sección de 1.38.0.
+- **Parte 2 de `S10`** en el mismo #527: tenant relleno en servidor y
+  agente, `UI-09` present, **50 de 50**; pines a los tags nuevos y fuera el
+  `replace` de `ui`. **Trampa**: el contrato nombra el campo tenant por
+  COLUMNA (`tenant_id`) y el cable lleva NOMBRES de campo (`TenantID`); la
+  sonda cazó la columna y el agente traduce ahora como el handler ya hacía.
+- **Siguiente**: la orden de Carlos para fusionar #527 y converger (deuda
+  de doc v1.18.0 primero); después el tren (secuencia exacta en el plan,
+  `S11`).
 
 ### Sesión 2026-09-24 — **A9 `S6` a `S10` HECHAS (orbit#515, #518, #520, #522, #524, #526), orbit v1.15.0/v1.16.0 cortados y Quantum 1.37.0**: retención, el lote de proto, alertas, la flota de servidores, un solo proyecto de frontend, la familia `ui`; banco 49/50
 
