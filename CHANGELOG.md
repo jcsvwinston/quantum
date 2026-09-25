@@ -6,6 +6,55 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.37.0 — las sesiones S4 a S7 del arco A9 (Fleet unificado): el fleet habla el contrato, retiene y avisa
+
+Quantum 1.37.0 publica las sesiones S4 a S7 del arco A9 (Fleet unificado):
+el Data Studio del fleet habla el mismo contrato que el panel bajo el
+operador que el servidor envía, el audit dice qué cambió, el servidor
+retiene localmente y avisa por umbral. Se mueve orbit (v1.12.0 → v1.16.0,
+cuatro cortes: v1.13.0, v1.14.0, v1.15.0 y v1.16.0); quark v1.15.0 y
+nucleus v1.30.1 siguen donde estaban. Módulos hermanos que cambian: orbit
+agent (v0.9.0 → v0.13.0), orbit datasource (nuevo, v1.0.0), orbit proto
+(v0.5.0 → v0.7.0), orbit quarkdatasource (v1.10.0 → v1.12.0) y orbit
+server (v0.14.0 → v0.18.0); el resto sin cambio. Minor de suite porque lo
+es la de orbit (QADR-0002). Corte FUERA de la cadencia semanal (QADR-0008)
+por la misma razón que 1.36.0: el arco cortó orbit a mitad de camino dos
+veces más, porque un cambio de proto son dos cortes y el arco tocó el
+proto dos veces, y cada corte de orbit deja al paraguas con tags de módulo
+por delante del pin. Este set los recoge y devuelve la lane al verde.
+
+Qué cambia para quien instala. Todo en el plano fleet de orbit y todo por
+adición; una aplicación que montaba el panel o el agente no cambia nada.
+El contrato datasource es un módulo propio (orbit/datasource, con el
+adaptador Nucleus dentro) que el panel, el agente y quarkdatasource
+requieren por tag; el agente sirve Data Studio a través de él como el
+operador que el servidor le envía (sujeto, rol, solo lectura y tenant de
+la cabecera del proxy de confianza), con la política de la aplicación por
+modelo y verbo y el confinamiento por tenant, y una aplicación Quark pasa
+su quarkdatasource al agente igual que al panel. El audit del fleet lleva
+los valores antes y después de cada mutación. Con --data-dir el servidor
+retiene eventos, audit y muestras de métricas en un fichero SQLite con
+ventana (--retention, siete días), el anillo de replay se calienta al
+arrancar, el audit se descarga en CSV o JSON, y el agente aparca los
+eventos de una caída hasta el siguiente stream. Reglas por umbral sobre
+las métricas de host (--alert-rules-file) disparan alertas a webhooks y
+correo, la API las expone, y el listener de métricas publica los
+colectores propios del servidor. El proto declara además lo que S8
+necesita (plano entre servidores y redirección del agente), sin servirlo
+todavía. El banco del fleet (orbit/internal/fleettest/fleetbench) pasa de
+22 a 38 de 50; ADR-002 queda implementado y ADR-013 decide la retención.
+
+Qué aprendió el tren. Cuatro cortes de orbit en tres días con la misma
+mecánica que 1.36.0 (deuda de doc en la rama del bot, rama anclada,
+merge-bot-pr) y dos trampas nuevas. Un guard encadenado con tail pierde
+su exit y un aviso rojo pasa por verde: se corre solo y se lee entero. Y
+un PR apilado sobre otro se cierra solo cuando el de abajo se fusiona con
+squash y borra la rama base; se rebasa con --onto soltando el commit ya
+fusionado y se abre de nuevo. El sexto módulo de orbit obligó a que
+bump-set y manifest-guard lean los módulos del manifiesto al pin en vez
+de una lista fija de cinco, que es el fallo que ya dejó once módulos sin
+registrar en su día.
+
 ## Quantum 1.36.0 — las tres primeras sesiones del arco A9 (Fleet unificado)
 
 Quantum 1.36.0 publica las tres primeras sesiones del arco A9 (Fleet

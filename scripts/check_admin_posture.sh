@@ -108,8 +108,11 @@ if [[ "$specs" -lt 1 ]]; then
 fi
 
 if [[ -f "$ORBIT_CI" ]]; then
-  if ! grep -q 'ORBIT_BENCH_BROWSER: required' "$ORBIT_CI"; then
-    report "el CI de orbit no corre el arnés con ORBIT_BENCH_BROWSER=required — sin eso se pone verde cuando el navegador falta"
+  # El `required` tiene que ser el del driver del PANEL (`-run 'TestBrowserBench'`):
+  # desde A9 S10 la lane corre también el driver del fleet con su propio
+  # `required`, y un grep suelto se daba por satisfecho con cualquiera de los dos.
+  if ! awk '/-run .TestBrowserBench./ { seen = NR } seen && NR <= seen + 4 && /ORBIT_BENCH_BROWSER: required/ { found = 1 } END { exit found ? 0 : 1 }' "$ORBIT_CI"; then
+    report "el CI de orbit no corre el arnés del panel (TestBrowserBench) con ORBIT_BENCH_BROWSER=required — sin eso se pone verde cuando el navegador falta"
   fi
   if ! grep -q 'admin-browser-bench' "$ORBIT_CI"; then
     report "la lane del arnés de navegador no está en el CI de orbit"

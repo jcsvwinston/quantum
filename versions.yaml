@@ -4,8 +4,8 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.37.0"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-09-24
+quantum: "1.38.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-09-25
 status: certified           # Minor de suite por la minor de orbit (QADR-0002); escrito por bump-set, revisar al certificar
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
@@ -20,7 +20,7 @@ status: certified           # Minor de suite por la minor de orbit (QADR-0002); 
 modules:
   quark:   "v1.15.0"
   nucleus: "v1.30.1"
-  orbit:   "v1.16.0"
+  orbit:   "v1.18.0"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -65,19 +65,20 @@ quark_modules:
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
-  agent:           "v0.13.0"
+  agent:           "v0.15.0"
   datasource:      "v1.0.0"
-  proto:           "v0.7.0"
+  proto:           "v0.8.0"
   quarkbridge:     "v1.9.2"
   quarkdatasource: "v1.12.0"
-  server:          "v0.18.0"
+  server:          "v0.20.0"
+  ui:              "v1.0.0"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
   quark:   "2a0ef4c0"                                # = v1.15.0 exacto (contiene cmd/quark/v1.1.0, drivers/mssql/v0.2.2, drivers/mysql/v0.2.2, drivers/oracle/v0.2.2, drivers/postgres/v0.2.2, drivers/sqlite/v0.2.2 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
   nucleus: "baaa6ce1"                                # = v1.30.1 exacto (contiene drivers/mssql/v0.1.7, drivers/mysql/v0.1.7, drivers/oracle/v0.1.7, drivers/postgres/v0.1.7, drivers/sqlite/v0.1.7, exporters/otlp/v0.1.7, exporters/prometheus/v0.1.7, providers/ldap/v0.2.11, providers/secrets-aws/v0.1.7, providers/storage-azure/v0.1.7, providers/storage-gcs/v0.1.7, providers/storage-s3/v0.1.7 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  orbit:   "edfeb98a"                                # = v1.16.0 exacto (contiene agent/v0.13.0, datasource/v1.0.0, proto/v0.7.0, quarkbridge/v1.9.2, quarkdatasource/v1.12.0, server/v0.18.0 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  orbit:   "009caca4"                                # = v1.18.0 exacto (contiene agent/v0.15.0, datasource/v1.0.0, proto/v0.8.0, quarkbridge/v1.9.2, quarkdatasource/v1.12.0, server/v0.20.0, ui/v1.0.0 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -91,49 +92,45 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.37.0 publica las sesiones S4 a S7 del arco A9 (Fleet unificado):
-  el Data Studio del fleet habla el mismo contrato que el panel bajo el
-  operador que el servidor envía, el audit dice qué cambió, el servidor
-  retiene localmente y avisa por umbral. Se mueve orbit (v1.12.0 → v1.16.0,
-  cuatro cortes: v1.13.0, v1.14.0, v1.15.0 y v1.16.0); quark v1.15.0 y
+  Quantum 1.38.0 cierra el arco A9 (Fleet unificado y una sola SPA): el
+  plano fleet de orbit tiene identidad, contrato, retención, alertas, una
+  flota de servidores y una sola SPA, y su banco mide 50 de 50. Se mueve
+  orbit (v1.16.0 → v1.18.0, dos cortes: v1.17.0 y v1.18.0); quark v1.15.0 y
   nucleus v1.30.1 siguen donde estaban. Módulos hermanos que cambian: orbit
-  agent (v0.9.0 → v0.13.0), orbit datasource (nuevo, v1.0.0), orbit proto
-  (v0.5.0 → v0.7.0), orbit quarkdatasource (v1.10.0 → v1.12.0) y orbit
-  server (v0.14.0 → v0.18.0); el resto sin cambio. Minor de suite porque lo
-  es la de orbit (QADR-0002). Corte FUERA de la cadencia semanal (QADR-0008)
-  por la misma razón que 1.36.0: el arco cortó orbit a mitad de camino dos
-  veces más, porque un cambio de proto son dos cortes y el arco tocó el
-  proto dos veces, y cada corte de orbit deja al paraguas con tags de módulo
-  por delante del pin. Este set los recoge y devuelve la lane al verde.
+  agent (v0.13.0 → v0.15.0), orbit proto (v0.7.0 → v0.8.0), orbit server
+  (v0.18.0 → v0.20.0) y orbit ui (nuevo, v1.0.0); el resto sin cambio. Minor
+  de suite porque lo es la de orbit (QADR-0002). Corte FUERA de la cadencia
+  semanal (QADR-0008), el tercero seguido por la misma razón: el arco cortó
+  orbit dos veces más para cerrar, porque un cambio de proto son dos cortes,
+  y cada corte deja al paraguas con tags de módulo por delante del pin. Este
+  set los recoge, devuelve la lane al verde y certifica el arco.
 
-  Qué cambia para quien instala. Todo en el plano fleet de orbit y todo por
-  adición; una aplicación que montaba el panel o el agente no cambia nada.
-  El contrato datasource es un módulo propio (orbit/datasource, con el
-  adaptador Nucleus dentro) que el panel, el agente y quarkdatasource
-  requieren por tag; el agente sirve Data Studio a través de él como el
-  operador que el servidor le envía (sujeto, rol, solo lectura y tenant de
-  la cabecera del proxy de confianza), con la política de la aplicación por
-  modelo y verbo y el confinamiento por tenant, y una aplicación Quark pasa
-  su quarkdatasource al agente igual que al panel. El audit del fleet lleva
-  los valores antes y después de cada mutación. Con --data-dir el servidor
-  retiene eventos, audit y muestras de métricas en un fichero SQLite con
-  ventana (--retention, siete días), el anillo de replay se calienta al
-  arrancar, el audit se descarga en CSV o JSON, y el agente aparca los
-  eventos de una caída hasta el siguiente stream. Reglas por umbral sobre
-  las métricas de host (--alert-rules-file) disparan alertas a webhooks y
-  correo, la API las expone, y el listener de métricas publica los
-  colectores propios del servidor. El proto declara además lo que S8
-  necesita (plano entre servidores y redirección del agente), sin servirlo
-  todavía. El banco del fleet (orbit/internal/fleettest/fleetbench) pasa de
-  22 a 38 de 50; ADR-002 queda implementado y ADR-013 decide la retención.
+  Qué cambia para quien instala. Todo en orbit y todo por adición; una
+  aplicación que montaba el panel o el agente no cambia nada. Varios
+  servidores de admin pueden nombrarse entre sí y compartir sus nodos y sus
+  eventos, con asignación determinista de agentes y redirección al
+  propietario, sin estado externo. El panel in-process y la UI del fleet son
+  dos entradas de un solo proyecto de frontend, construidas en un dist que
+  un módulo nuevo (orbit/ui, sin dependencias) embebe y que la raíz y el
+  servidor requieren por tag; rutas y pantallas iguales. La UI del fleet
+  habla la segunda generación del protocolo, muestra el tenant del operador
+  y marca el modelo acotado por tenant, y el servidor dice qué agente
+  respondió cada página de Data Studio, que antes iba en blanco. Un banco de
+  navegador mide la UI del fleet como el del panel, con un hueco escrito
+  (contraste del tema claro) que va a A12. La release v1.17.0 de orbit
+  publicó cero binarios: el módulo ui nació en el mismo corte en que el
+  servidor lo requiere, su suma no podía estar en el go.sum antes del tag, y
+  el build de release en modo read-only se plantó; v1.18.0 publica sus
+  quince activos firmados y el workflow resuelve ya como un consumidor.
 
-  Qué aprendió el tren. Cuatro cortes de orbit en tres días con la misma
-  mecánica que 1.36.0 (deuda de doc en la rama del bot, rama anclada,
-  merge-bot-pr) y dos trampas nuevas. Un guard encadenado con tail pierde
-  su exit y un aviso rojo pasa por verde: se corre solo y se lee entero. Y
-  un PR apilado sobre otro se cierra solo cuando el de abajo se fusiona con
-  squash y borra la rama base; se rebasa con --onto soltando el commit ya
-  fusionado y se abre de nuevo. El sexto módulo de orbit obligó a que
-  bump-set y manifest-guard lean los módulos del manifiesto al pin en vez
-  de una lista fija de cinco, que es el fallo que ya dejó once módulos sin
-  registrar en su día.
+  Qué aprendió el tren. Un módulo que nace y un consumidor que lo requiere
+  en el mismo corte dejan la release de ese corte sin activos si el build
+  exige el go.sum completo, y ningún guard del paraguas lo ve porque el set
+  pina la convergencia; se comprueban los activos de cada corte antes de
+  darlo por bueno. Una fila nueva en la tabla de módulos de orbit del README
+  se escribe a mano UNA vez antes de lanzar bump-set, que la actualiza pero
+  no la inventa. Y dos fixtures del registro dependían de que el CI de orbit
+  corriese UN driver de navegador: con dos, la de admin-posture mordía por
+  la causa equivocada; ahora cada guard ancla su required al driver que
+  vigila. El guard 53, umbrella-fleet-posture, entra con este set porque
+  sólo al pin nuevo hay banco de navegador y clúster que vigilar.
