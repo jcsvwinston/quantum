@@ -70,8 +70,10 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   `nucleus new`: un cliente TypeScript generado consume su API en un test en
   CI. `S1` (nucleus#576) dio al kit su cliente —peticiones con cuerpo y
   destino, cookies `Secure` conservadas, token CSRF, sesión abierta en el
-  store de la aplicación— y el banco está en **16** de 46. Troceado en diez
-  sesiones en
+  store de la aplicación— y `S2` (nucleus#578) sus datos —`Make` sobre los
+  modelos registrados y `Transactional`, la transacción por test un nivel por
+  debajo del pool, medida en SQLite, PostgreSQL y MySQL—; el banco está en
+  **18** de 46. Troceado en diez sesiones en
   [`planes/A10-testing-y-openapi.md`](planes/A10-testing-y-openapi.md).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
