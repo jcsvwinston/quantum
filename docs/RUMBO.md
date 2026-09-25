@@ -57,8 +57,10 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   cerrado) y `S9` (orbit#524: un solo proyecto de frontend y el módulo
   `orbit/ui` que embebe el único dist) y `S10` (orbit#526: connect-es 2, el
   instrumento de navegador sobre el fleet y el tenant en la UI; **49** de
-  50, sólo queda `S11`, el gate y el set; pendiente de publicar en el
-  set)— y ocho hallazgos
+  50) y `S11` EN CURSO (orbit#527: el clúster de tres agentes detrás de dos
+  servidores y el `node_id` que el servidor no rellenaba, OR-60; el guard
+  `umbrella-fleet-posture` escrito; el primer corte preparado; falta cortar
+  dos veces y el set)— y ocho hallazgos
   que reescriben el enunciado —el mTLS del
   servidor ya existe y su identidad se tira; el agente no puede hablar
   `datasource` sin una decisión de módulos; el servidor declara que no

@@ -113,7 +113,7 @@ dice que no lo hace nadie.
 | `S8` | Multi-servidor: estado compartido, relay de eventos y asignación de agentes | S6 | **HECHA** — orbit#522 (ADR-014: malla de un salto sobre el listener de agentes, nodos remotos en el registro, relay de eventos con demanda total, asignación por rendezvous hashing y `Command.redirect`; el stream reemplazado termina, OR-56 cerrado): familia `ha` 5/0/0; banco 42/50 |
 | `S9` | Una sola SPA: la decisión con datos (ADR-015), tokens compartidos, tests, frescura del dist y presupuesto | S5 | **HECHA** — orbit#524 (ADR-015: el proyecto del panel como base, el fleet como segunda entrada, un dist embebido por el módulo `orbit/ui` que raíz y servidor requieren por tag; tokens, tests, lint, lane de frescura y presupuesto por entrada compartidos): `UI-01`–`UI-05` a `present`; banco 47/50 |
 | `S10` | connect-es 2 desde `proto/`, el instrumento de navegador sobre el fleet, tenant en la UI | S9 | **HECHA** — orbit#526 (stubs de segunda generación desde `proto/`, proyecto `fleet` del instrumento de navegador con seis controles `UIF`, el tenant del operador y del modelo en la SPA sobre dos campos aditivos): `UI-06`, `UI-07` a `present`; `UI-09` `partial` hasta que servidor y agente rellenen los campos tras el corte (parte 2, en `S11`); banco 49/50; OR-58 cerrado, OR-59 abierto |
-| `S11` | Gate, guard y set: clúster de tres agentes en CI, `umbrella-fleet-posture`, set certificado | todas | guard registrado con fixture; set certificado; ADR-002 implementado |
+| `S11` | Gate, guard y set: clúster de tres agentes en CI, `umbrella-fleet-posture`, set certificado | todas | **EN CURSO** — orbit#527 (el clúster de tres agentes detrás de dos servidores, `TestFleetParityThreeAgents`; el servidor rellena `node_id` en las respuestas de Data Studio, OR-60) y el guard `umbrella-fleet-posture` con fixture en la rama `feat/a9-s11-fleet-posture` del paraguas, verificado sobre el árbol de orbit; la deuda de doc de v1.17.0 en la rama del bot. Falta: el primer corte (`ui/v1.0.0`, `proto/v0.8.0`), la parte 2 de `S10` en orbit#527, el corte de convergencia y el tren con el guard (`--incluye`) |
 
 **El orden no es negociable en tres sitios**: `S3` va antes que `S4` porque
 sin la decisión de módulos el agente no puede importar el contrato; `S6` va
@@ -123,6 +123,64 @@ fleet que ya tiene identidad y permisos, no con el de hoy. `S1`–`S2` y
 `S3`–`S5` pueden ir en paralelo (ficheros distintos); `S6`–`S8` tras ellos.
 
 ## Registro de sesiones
+
+### `S11` — el gate, el guard y el set (2026-09-25) · **en curso**
+
+- **PR de orbit**: [orbit#527](https://github.com/jcsvwinston/orbit/pull/527)
+  (`test(fleet)`), abierto; crece con la parte 2 de `S10` tras el primer
+  corte y se fusiona ANTES del corte de convergencia, no antes del primero
+  (la deuda de doc de v1.17.0 ya está en la rama del bot y release-please
+  la regenera con cada push a main).
+- **El clúster de tres agentes**: `TestFleetParityThreeAgents` en
+  `internal/fleettest/fleetbench/cluster_test.go` — dos servidores en malla,
+  tres agentes con base de datos propia (dos detrás de A, uno detrás de B) —
+  pregunta a los DOS servidores lo que el panel de A6 responde para una
+  aplicación: inventario (tres nodos, cada remoto nombrando su servidor),
+  eventos (un suscriptor en cualquiera oye a los tres), Data Studio (cada
+  nodo por su servidor; en el otro, rechazo nombrando al propietario), audit
+  (la mutación atribuida a su nodo) y vida (el agente que para no está
+  conectado en ninguno). 0,6 s; corre con `internal/fleettest` en la lane
+  `test`. Verificado por mutación (sin el fix del servidor, seis respuestas
+  vacías; sin el `stop` del agente, el nodo sigue conectado).
+- **Lo que encontró**: `ListModelsResponse.node_id` y
+  `PaginatedRecords.node_id` («qué agente respondió») declarados en el cable
+  y VACÍOS: el servidor descartaba el nodo que `dispatch` devuelve. Con
+  varios nodos una UI no sabía de quién era la página que leía. Ninguna de
+  las cincuenta sondas pone dos nodos detrás de un servidor. **OR-60**,
+  hecho en el mismo PR.
+- **La página del banco tenía la tabla por familias tres sesiones rancia**
+  (26/3/21 bajo un titular de 49 de 50): se retipaba a mano. El generador
+  (`TestFleetBenchTable`) emite ahora también el resumen por familias, la
+  página lleva el generado, y el guard compara los dos con el catálogo.
+- **El guard `umbrella-fleet-posture`** (`scripts/check_fleet_posture.sh`,
+  fixture con cuatro roturas): 50 controles con nota en cada hueco; la cifra
+  publicada y la tabla por familias iguales al catálogo, familia a familia;
+  la mitad de navegador en el pin con su violación plantada (`UIF-00`) y el
+  CI de orbit corriendo `TestFleetBrowserBench` con
+  `ORBIT_BENCH_BROWSER=required`; el test del clúster presente, sin `t.Skip`,
+  y la lane corriendo `internal/fleettest`. Al pin actual (v1.16.0) FALLA por
+  construcción —no hay proyecto fleet del navegador ni clúster, y la tabla
+  ya estaba rancia— así que entra con el set (`train.sh --incluye`), no en
+  un PR propio. Verificado en OK sobre el árbol de orbit#527 y en las cuatro
+  causas sobre su fixture, en una copia con `orbit` apuntando al hermano.
+- **La deuda de doc de v1.17.0** está pagada en la rama
+  `release-please--branches--main` de orbit (notas: la flota de servidores,
+  un proyecto de frontend, la UI sobre la segunda generación del protocolo,
+  `proto/v0.8.0`; snapshot 1.17.0; los cinco guards de docs en verde;
+  `check-anchored-release-branch.sh orbit 523` OK). El corte publica
+  **v1.17.0, proto/v0.8.0, agent/v0.14.0, server/v0.19.0, ui/v1.0.0**.
+- **Falta, en este orden**: `merge-bot-pr.sh orbit 523` (corte 1) → parte 2
+  de `S10` en orbit#527 (`GetSelf` rellena `tenant` desde
+  `auth.Identity.Tenant`; `modelToProto` del agente rellena `tenant_field`;
+  pines de raíz/agent/server/fleettest a proto v0.8.0 y ui v1.0.0; fuera el
+  `replace` de `ui` del go.work; `UI-09` a `present`, banco 50/50 y página)
+  → fusionar orbit#527 → deuda de doc de v1.18.0 y corte de convergencia
+  (v1.18.0, agent/v0.15.0, server/v0.20.0) → `train.sh --desde paraguas
+  --hasta cierre --incluye scripts/check_fleet_posture.sh --incluye
+  tests/guard-fixtures/umbrella-fleet-posture --incluye
+  scripts/lib/guard-registry.sh` con `./orbit/ui` en el go.work del
+  paraguas (la fila `orbit/ui` del README la escribe `bump-set`) → A9
+  cerrado.
 
 ### `S10` — connect-es 2, el navegador sobre el fleet y el tenant en la UI (2026-09-24) · **hecha**
 
