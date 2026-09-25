@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-24, QUANTUM 1.37.0 — A9 EN CURSO: `S0`–`S10` hechas, el banco del fleet en 49 de 50; orbit#526 sin fusionar; queda `S11`, el gate y el set)
+## 3. Estado al cierre (2026-09-25, QUANTUM 1.37.0 — A9 EN CURSO: `S0`–`S10` hechas y `S11` EN CURSO, el banco del fleet en 49 de 50; orbit#527 abierto y el primer corte preparado en la rama del bot; falta cortar, la parte 2, converger y el tren)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -114,7 +114,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   pin) hasta el re-pin del set a v1.14.0, con `orbit_modules.datasource`
   en `versions.yaml` y `./orbit/datasource` en el go.work del paraguas
   (`train.sh --desde paraguas`, set fuera de cadencia, razón en `notes:`).
-  **`S6` hecha** (orbit#515, 2026-09-24, sin fusionar): ADR-013, el
+  **`S6` hecha** (orbit#515, 2026-09-24): ADR-013, el
   servidor retiene en un fichero SQLite opt-in con ventana (`--data-dir`,
   `--retention`), replay calentado, audit y descarga, muestras de métricas;
   el agente aparca eventos sin stream. Banco **33 de 50**, retention 6/0/1.
@@ -127,7 +127,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `services.PeerService`), nodos remotos en el registro, relay de eventos
   con demanda total mientras hay peer, asignación por rendezvous hashing con
   `Command.redirect`, y el stream reemplazado que termina — **OR-56
-  cerrado**. **`S9` hecha** (orbit#524, `feat(ui)`, sin fusionar): ADR-015
+  cerrado**. **`S9` hecha** (orbit#524, `feat(ui)`, fusionado): ADR-015
   decidió con datos que el PANEL es la base (no el fleet, como decía el
   plan); un solo proyecto de frontend en `ui/` con dos entradas y un dist
   (`dist/panel` + `dist/fleet`) embebido por el módulo nuevo `orbit/ui`,
@@ -135,19 +135,31 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `datasource`: pin a `ui v1.0.0`, `replace` en el go.work y link script en
   las lanes hasta el corte. Tokens, tsconfig, ESLint, Vitest, lane de
   frescura y presupuesto por entrada compartidos. **`S10` hecha**
-  (orbit#526, `feat(ui)`, sin fusionar): stubs connect-es 2 desde `proto/`,
+  (orbit#526, `feat(ui)`, fusionado): stubs connect-es 2 desde `proto/`,
   el proyecto `fleet` del instrumento de navegador (seis `UIF`, cinco
   presentes; `UIF-02` contraste ausente → OR-59), y el tenant en la SPA
   sobre `SelfInfo.tenant` y `ModelInfo.tenant_field`, dos campos aditivos
   que servidor y agente rellenan tras el corte (`UI-09` sigue partial con
   la sonda comprobando el relleno). Banco **49 de 50**, 1 parcial, 0
-  ausentes. **Siguiente: `S11`** — el gate y el set: clúster de tres
-  agentes en CI, guard `umbrella-fleet-posture` con fixture, y el tren, que
-  esta vez trae DOS cortes de orbit (el primero crea `ui/v1.0.0` y
-  `proto/v0.8.0`; la parte 2 de `S10` sube pines y rellena el tenant; el
-  segundo converge) y los deberes del paraguas: `./orbit/ui` en el go.work
-  y la fila `orbit/ui` en la tabla del README (`bump-set` ya regenera
-  `orbit_modules`). Hallazgos abiertos: **OR-57** (P3, A12: el enlace
+  ausentes. **`S11` EN CURSO** (2026-09-25): el clúster de tres agentes
+  detrás de dos servidores (`TestFleetParityThreeAgents`, orbit#527, abierto)
+  encontró el `node_id` vacío de las respuestas de Data Studio (**OR-60**,
+  hecho en el mismo PR); la tabla por familias de `fleet-bench.md` llevaba
+  tres sesiones rancia y ahora la genera el test; el guard
+  `umbrella-fleet-posture` con fixture está en la rama
+  `feat/a9-s11-fleet-posture` del paraguas (FALLA al pin v1.16.0 por
+  construcción: entra con el set vía `--incluye`); la deuda de doc de
+  v1.17.0 está pagada en la rama del bot de orbit (release PR #523,
+  anclado). **Falta, en orden**: `merge-bot-pr.sh orbit 523` (corte 1:
+  v1.17.0, proto/v0.8.0, agent/v0.14.0, server/v0.19.0, ui/v1.0.0) → parte
+  2 de `S10` en orbit#527 (rellenar `SelfInfo.tenant` y
+  `ModelInfo.tenant_field`, pines a los tags nuevos, fuera el `replace` de
+  `ui`, `UI-09` present, 50/50) → fusionar #527 → deuda de doc v1.18.0 y
+  corte de convergencia → `train.sh --desde paraguas --hasta cierre` con
+  los `--incluye` del guard y `./orbit/ui` en el go.work del paraguas
+  (`bump-set` escribe la fila `orbit/ui` del README). El orden importa: un
+  push a main regenera la rama del bot y se lleva la deuda de doc, así que
+  #527 NO se fusiona antes del corte 1. Hallazgos abiertos: **OR-57** (P3, A12: el enlace
   identidad↔certificado es opt-in hasta el major) y **OR-59** (P3, A12: el
   contraste del tema claro del fleet, re-skin sobre los tokens compartidos). **A8** (Quark
   enterprise) se cerró en un día, 2026-09-20, en doce sesiones: banco
@@ -179,7 +191,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   OR-55. Y el corolario: **OPS-14**, el control de A6 que debía cazar OR-53,
   medía que el endpoint devolviera 200 sobre un panel ciego. Un control cuyo
   título afirma más de lo que su sonda comprueba pasa para siempre.
-- **52 guards en el registro**: los 51 de 1.34.0 más
+- **52 guards en el registro** (y el 53º, **`umbrella-fleet-posture`**, el
+  gate de A9, escrito y verificado en la rama `feat/a9-s11-fleet-posture`,
+  que entra con el set que re-pina orbit: al pin actual no hay nada que
+  vigilar y lo dice): los 51 de 1.34.0 más
   **`umbrella-quark-posture`**, el gate de A8 (2026-09-20): el banco de quark
   tiene sus 69 controles y ningún ausente sin razón escrita, la cifra que
   publica `quark/docs/enterprise-bench.md` es la que cuenta la tabla, y las
@@ -257,6 +272,36 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-09-25 — **A9 `S11` EN CURSO (orbit#527 abierto; el guard en rama; el corte 1 preparado)**: el clúster de tres agentes, OR-60, la tabla rancia del banco, `umbrella-fleet-posture`, la deuda de doc de v1.17.0
+
+- **Fusionados** orbit#526 (`S10`) y quantum#242 por orden de Carlos.
+- **El clúster**: `TestFleetParityThreeAgents` en
+  `orbit/internal/fleettest/fleetbench/cluster_test.go` (orbit#527). Dos
+  servidores en malla, tres agentes con BD propia; las cinco preguntas del
+  operador a los dos servidores. Verificado por mutación (dos mutaciones,
+  las dos tiran el test), `-count=3` estable, `server` y `fleettest` en
+  verde. **Trampa del propio test**: al parar, el agente envía Goodbye y el
+  servidor BORRA la entrada del registro (no la marca desconectada), así que
+  «ausente» también es «no conectado»; la primera versión trataba la
+  ausencia como fallo y culpaba al producto.
+- **OR-60** (P3, hecho): `ListModelsResponse.node_id` y
+  `PaginatedRecords.node_id` vacíos — el servidor tiraba el nodo que
+  `dispatch` devuelve. Lo vio el clúster; ninguna sonda pone dos nodos
+  detrás de un servidor.
+- **La tabla por familias de `fleet-bench.md`** decía 26/3/21 desde `S5`
+  bajo un titular al día: se retipaba a mano. `TestFleetBenchTable` la
+  genera ahora y el guard nuevo la compara con el catálogo. Contra el pin
+  v1.16.0 el guard ya la habría cazado (38/2/10 medidos, 26/3/21 escritos).
+- **`umbrella-fleet-posture`** con fixture de cuatro roturas, verificado en
+  una copia del paraguas con `orbit` apuntando al hermano (OK sobre #527;
+  las cuatro causas sobre la fixture). En rama, no en PR: al pin es rojo.
+- **Deuda de doc de v1.17.0** en la rama del bot (notas, snapshot, cinco
+  guards de docs, `check-anchored` OK). Se queda ahí hasta la orden de
+  cortar; nada más puede entrar en main antes (release-please regenera la
+  rama).
+- **Siguiente**: la orden de Carlos para el corte 1; después la parte 2 de
+  `S10` en #527, el corte 2 y el tren (secuencia exacta en el plan, `S11`).
+
 ### Sesión 2026-09-24 — **A9 `S6` a `S10` HECHAS (orbit#515, #518, #520, #522, #524, #526), orbit v1.15.0/v1.16.0 cortados y Quantum 1.37.0**: retención, el lote de proto, alertas, la flota de servidores, un solo proyecto de frontend, la familia `ui`; banco 49/50
 
 - **Arranque con `/next-session auto`**: quantum#236 abierto y rojo por el
@@ -332,48 +377,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   tres agentes en CI, y el set con dos cortes de orbit), tras fusionar
   orbit#526.
 
-### Sesión 2026-09-22 — **A9 `S4` fusionada y `S5` HECHA (orbit#512, corte v1.13.0, orbit#513)**: el audit del fleet dice qué cambió, `quarkdatasource` en el fleet, ADR-002 implementado; banco 28/50
-
-- **Fusiones autorizadas**: orbit#511 (`S4` parte 2) y quantum#234; la rama
-  `wip/a9-s3-part2` de orbit, cuyo contenido llegó a main con #507, borrada.
-  quantum#231 quedó cerrado sin fusionar a propósito: era el re-pin a orbit
-  v1.11.0, que no certificaba (agent/server con proto v0.4.4), y #232 lo
-  sustituyó.
-- **`S5` parte 1 (orbit#512, `feat(proto)`)**: `AuditEntry.before_json` y
-  `after_json`, `DataStudioResponse.previous` (`repeated Record`), aditivos,
-  `buf breaking` limpio, stubs regenerados, la SPA tipa y linta; README de
-  `quarkdatasource` con el cableado del fleet. Banco sin cambio: `FDS-11`
-  sigue `partial` porque declarar no es hacer.
-- **Lo que partió la sesión en dos, por segunda vez**: además del proto
-  (ADR-006, dos cortes), la PRUEBA de `quarkdatasource` en el fleet sólo
-  puede vivir en el módulo `quarkdatasource` (Quark no entra en el grafo de
-  la raíz ni del agente) y por tanto requiere `agent/v0.10.0` publicado. La
-  parte 2 es: agente devuelve `previous`, servidor escribe los dos lados en
-  el ring con tope, `ListAudit` los expone, test del handler del agente
-  sobre el adaptador Quark, ADR-002 a implementado con su fila del índice.
-- **El corte (decisión de Carlos) y la parte 2**: release PR orbit#510 con
-  la deuda de doc en la rama del bot (notas `## v1.13.0` y snapshot, en ese
-  orden; los cuatro guards de docs en verde en el worktree),
-  `check-anchored-release-branch` OK, `merge-bot-pr.sh` → siete tags:
-  **v1.13.0, proto/v0.6.0, agent/v0.10.0, server/v0.15.0, datasource/v1.0.0
-  (el primero), quarkdatasource/v1.11.0**; el proxy sirvió los tags al
-  minuto. **orbit#513** (`feat(fleet)`): agente devuelve `previous`
-  renderizado ANTES de escribir (el test cazó el aliasing de un store que
-  muta el mapa que entrega), servidor escribe `before_json`/`after_json`
-  (objeto con claves ordenadas, array en bulk, tope 64 KiB con marcador),
-  pines a proto v0.6.0, `replace` fuera del go.work, tidy de los cuatro
-  módulos, fleettest a los tags del corte. `TestQuarkDataSourceInTheFleet`
-  en `internal/fleettest` (Quark sólo cabe ahí). ADR-002 `implemented` con
-  sección «Ejecución». `FDS-11` mide un update; dos mutaciones en rojo.
-  Banco **28/50**.
-- **El corte de convergencia**: orbit#513 fusionado, release PR orbit#514
-  con la deuda de doc en la rama del bot → **v1.14.0, agent/v0.11.0,
-  server/v0.16.0, quarkdatasource/v1.12.0**. Trampa nueva: `guard | tail`
-  tapa el exit del guard; la voz de producto rechazó «ADR-002» en las notas
-  y hubo un segundo push a la rama del bot antes de fusionar.
-- **Para antes de `S6`**: `S6`–`S8` tocarán el proto; diseñar su adición en
-  un solo PR y pagar un corte, no tres (está en el registro de `S5`). Y el
-  paraguas queda en rojo hasta el re-pin a v1.14.0.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
