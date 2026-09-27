@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-26, QUANTUM 1.38.0 — A9 CERRADO; A10 EN CURSO: `S0`–`S2` hechas, el banco del API en 18 de 46; nucleus#578 sin fusionar; siguiente `S3`, los dobles que capturan)
+## 3. Estado al cierre (2026-09-27, QUANTUM 1.38.0 — A9 CERRADO; A10 EN CURSO: `S0`–`S3` hechas, el banco del API en 22 de 46; nucleus#579 sin fusionar; siguiente `S4`, el kit sobre el starter y los módulos)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -157,9 +157,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   son savepoints), medido en SQLite, PostgreSQL y MySQL con Docker local y en
   la lane de matriz. Plumbing aditivo: `db.Config.DriverName`,
   `app.DatabaseConfig.Driver`, `db.ResolveDriver`. `TK-06`, `TK-07` present,
-  banco **18 de 46**. **Siguiente: `S3`**, los dobles que capturan (correo
-  con proveedor `memory` legible desde el kit, almacenamiento, tasks
-  encolados, HTTP saliente; `TK-08`…`TK-11`), precondición nucleus#578
+  banco **18 de 46**. **`S3` hecha** (2026-09-27, nucleus#579,
+  `feat(nucleustest)`, sin fusionar): los dobles — driver de correo `memory`
+  en `pkg/mail` (el kit lo elige cuando la app descartaría el correo:
+  `SentMail`), proveedor de almacenamiento `memory` en `pkg/storage`
+  (`Stored`/`StoredKeys`), `EnqueueRecord`/`EnqueueRecorder` en `pkg/tasks`
+  con el proveedor en proceso registrando cada encolado (`EnqueuedTasks`), y
+  `NewHTTPRecorder` que suplanta a otro servicio y recuerda lo que la app le
+  envió (`rec.Client()` redirige cualquier host). `TK-08`…`TK-11` present,
+  banco **22 de 46**, familia `testkit` 14/0/1. **Siguiente: `S4`**, el kit
+  sobre el starter y los módulos (el test generado por `nucleus new` usa el
+  cliente; kit de conformidad de `ModuleSpec`, `TK-15`; NU-74 y NU-75
+  medidos sobre los listados de la página), precondición nucleus#579
   fusionado; `S5` (el documento desde el código), `S8` (binding y errores) y
   `S9` (cableado) pueden ir en paralelo porque tocan paquetes distintos. Trampa dicha por adelantado: casi todo es API pública de
   `pkg/nucleustest`, `pkg/nucleus` y `pkg/router`, que el baseline de
@@ -270,7 +279,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-26 — **A10 `S1` y `S2` HECHAS (nucleus#576 fusionado, nucleus#578 sin fusionar) y la lane de MinIO a RustFS (nucleus#575)**: el cliente y los datos del kit, banco 18/46
+### Sesión 2026-09-26/27 — **A10 `S1`, `S2` y `S3` HECHAS (nucleus#576 y #578 fusionados, nucleus#579 sin fusionar) y la lane de MinIO a RustFS (nucleus#575)**: el cliente, los datos y los dobles del kit, banco 22/46
 
 - **Fusionados por orden de Carlos**: nucleus#574 (`S0`) y quantum#247, tras
   desbloquear el gate de nucleus: MinIO ya no publica imagen en ningún
@@ -311,7 +320,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   original); en MySQL el DDL hace commit implícito → el test de matriz crea
   la tabla FUERA del scope; los drivers pgx y mysql son deps de la raíz
   (clasificación de errores) y se registran en un `_test.go` del kit.
-- **Siguiente**: fusionar nucleus#578 y arrancar `S3`.
+- **`S3` el 27** (nucleus#579, tras fusionar #578 y quantum#249 por orden de
+  Carlos): `pkg/mail/memory.go` (+ registro `memory`, sin breaker),
+  `pkg/storage/memory.go` (+ registro en `builtins.go`; `Validate` acepta
+  cualquier proveedor registrado), `tasks.EnqueueRecord`/`EnqueueRecorder` +
+  `record()` en `EnqueueJSONCtxWithPolicy` del proveedor en proceso,
+  `pkg/nucleustest/doubles.go` (`SentMail`, `Stored`, `StoredKeys`,
+  `EnqueuedTasks`, `HTTPRecorder`), `StartApp` cambia `noop`→`memory` en el
+  correo. Tres mutaciones verificadas. **Trampas**: `storage.ErrNotFound` es
+  un TIPO (`ErrNotFound(key)`), no una variable; el breaker de correo va
+  activado por defecto y envolvería al `memory` (se excluye como al `noop`);
+  el runtime de tasks sigue exigiendo un job registrado.
+- **Siguiente**: fusionar nucleus#579 y arrancar `S4`.
 
 ### Sesión 2026-09-25 (segunda) — **A10 `S0` HECHA (nucleus#574, sin fusionar)**: el banco del API en 12 de 46, tres hallazgos (NU-96, NU-97, NU-98) y el troceado de diez sesiones
 
