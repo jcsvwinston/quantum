@@ -72,8 +72,11 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   destino, cookies `Secure` conservadas, token CSRF, sesión abierta en el
   store de la aplicación— y `S2` (nucleus#578) sus datos —`Make` sobre los
   modelos registrados y `Transactional`, la transacción por test un nivel por
-  debajo del pool, medida en SQLite, PostgreSQL y MySQL—; el banco está en
-  **18** de 46. Troceado en diez sesiones en
+  debajo del pool, medida en SQLite, PostgreSQL y MySQL— y `S3`
+  (nucleus#579) sus dobles —correo y almacenamiento `memory`, el registro de
+  cada encolado y un grabador HTTP para los servicios a los que la app
+  llama—; el banco está en **22** de 46 y la familia `testkit` en 14 de 15.
+  Troceado en diez sesiones en
   [`planes/A10-testing-y-openapi.md`](planes/A10-testing-y-openapi.md).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
