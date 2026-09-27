@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-26, QUANTUM 1.38.0 — A9 CERRADO; A10 EN CURSO: `S0` y `S1` hechas, el banco del API en 16 de 46; nucleus#576 sin fusionar; siguiente `S2`, los datos del test)
+## 3. Estado al cierre (2026-09-26, QUANTUM 1.38.0 — A9 CERRADO; A10 EN CURSO: `S0`–`S2` hechas, el banco del API en 18 de 46; nucleus#578 sin fusionar; siguiente `S3`, los dobles que capturan)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -148,11 +148,20 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   estuvo roja del 20 al 26 en todo PR; RustFS fijado por digest, los seis
   `TestS3Live_*` pasan sin tocar el test, el id del job no cambia. Docker
   local está disponible en esta máquina para probar lanes de contenedor.
-  **Siguiente: `S2`**, los datos del test (factories sobre los modelos
-  registrados, transacción por test con rollback; `TK-06`, `TK-07`),
-  precondición nucleus#576 fusionado; `S5` (el documento desde el código),
-  `S8` (binding y errores) y `S9` (cableado) pueden ir en paralelo porque
-  tocan paquetes distintos. Trampa dicha por adelantado: casi todo es API pública de
+  **`S2` hecha** (2026-09-26, nucleus#578, `feat(nucleustest)`, sin
+  fusionar): `Make[T]`/`MakeN` construyen registros de un modelo registrado
+  con defaults desde su metadata y los escriben por `model.CRUD` con el
+  dialecto de la app; `Transactional` corre el test entero —rutas incluidas—
+  dentro de una transacción que se deshace al final, un nivel por debajo del
+  pool (driver por test que entrega UNA conexión; las transacciones de la app
+  son savepoints), medido en SQLite, PostgreSQL y MySQL con Docker local y en
+  la lane de matriz. Plumbing aditivo: `db.Config.DriverName`,
+  `app.DatabaseConfig.Driver`, `db.ResolveDriver`. `TK-06`, `TK-07` present,
+  banco **18 de 46**. **Siguiente: `S3`**, los dobles que capturan (correo
+  con proveedor `memory` legible desde el kit, almacenamiento, tasks
+  encolados, HTTP saliente; `TK-08`…`TK-11`), precondición nucleus#578
+  fusionado; `S5` (el documento desde el código), `S8` (binding y errores) y
+  `S9` (cableado) pueden ir en paralelo porque tocan paquetes distintos. Trampa dicha por adelantado: casi todo es API pública de
   `pkg/nucleustest`, `pkg/nucleus` y `pkg/router`, que el baseline de
   símbolos y el gate de la allowlist vigilan; lo que no sea Go puro (un
   generador TS) se decide ANTES de escribirse.
@@ -261,7 +270,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-26 — **A10 `S1` HECHA (nucleus#576, sin fusionar) y la lane de MinIO a RustFS (nucleus#575, fusionado)**: el cliente del kit, banco 16/46
+### Sesión 2026-09-26 — **A10 `S1` y `S2` HECHAS (nucleus#576 fusionado, nucleus#578 sin fusionar) y la lane de MinIO a RustFS (nucleus#575)**: el cliente y los datos del kit, banco 18/46
 
 - **Fusionados por orden de Carlos**: nucleus#574 (`S0`) y quantum#247, tras
   desbloquear el gate de nucleus: MinIO ya no publica imagen en ningún
@@ -287,7 +296,22 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   llevaba la cookie `_csrf` del sondeo de readiness, así que el middleware no
   ponía nada y la postura salía «(no cookies set)» sin haber cambiado — la
   sonda usa ahora un cliente sin jarra, porque mide el primer contacto.
-- **Siguiente**: fusionar nucleus#576 y arrancar `S2`.
+- **`S2` en la misma sesión** (nucleus#578, tras fusionar #576 y quantum#248
+  por orden de Carlos): `pkg/nucleustest/factory.go` (`Make[T]`, `MakeN`) y
+  `txdb.go` (`Transactional` + el driver transaccional: `Open` comparte una
+  conexión con la transacción abierta, `BeginTx` → `SAVEPOINT`, mutex por
+  llamada, no durante la iteración de filas — la limitación de una conexión
+  la dice la guía). Probado en local con Docker (PostgreSQL 16 y MySQL 8) y
+  la lane `db-matrix` corre `TestTransactionalOnTheMatrixDatabase`. Dos
+  mutaciones verificadas (commit en vez de rollback → TK-07 partial; `Make`
+  sin insertar → TK-06 partial). **Trampas**: en SQLite cerrar la conexión ya
+  deshace la transacción, así que «sin rollback» no es una mutación que
+  muerda (usar commit); `git checkout <fichero>` no restaura un fichero
+  NUEVO sin commitear (la mutación se quedó puesta hasta reaplicar el
+  original); en MySQL el DDL hace commit implícito → el test de matriz crea
+  la tabla FUERA del scope; los drivers pgx y mysql son deps de la raíz
+  (clasificación de errores) y se registran en un `_test.go` del kit.
+- **Siguiente**: fusionar nucleus#578 y arrancar `S3`.
 
 ### Sesión 2026-09-25 (segunda) — **A10 `S0` HECHA (nucleus#574, sin fusionar)**: el banco del API en 12 de 46, tres hallazgos (NU-96, NU-97, NU-98) y el troceado de diez sesiones
 
