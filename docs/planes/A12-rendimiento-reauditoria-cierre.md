@@ -38,6 +38,12 @@ recomendación hasta que Carlos diga otra cosa.
    lista de 100 filas ya cuesta un 10–23 % más que pgx nativo antes de que
    quark haga nada. **Recomendación**: frente a `database/sql` + pgx en
    todas las operaciones, y frente a pgx nativo sólo en las de una fila.
+   **Y la decisión tiene que nombrar la máquina** (lo midió `Q1`): el
+   trabajo propio de quark en un InsertOne cuesta unos 6 µs en un M4 Pro y
+   unos 35 µs en la vCPU de un runner de GitHub, mientras el viaje de ida y
+   vuelta sólo se multiplica por 2,4; las operaciones de una fila están en
+   el umbral en el portátil (1,11–1,16×) y ausentes en el runner
+   (1,24–1,31×). El banco registra el runner como referencia.
 2. **«Panel ≤ 400 KB comprimido», ¿qué carga?** **Recomendación**: la carga
    inicial MÁS la navegación más pesada (el deep-link a Data Studio), por
    entrada y en gzip; el total con todo lo lazy no lo ve ningún usuario.
@@ -180,7 +186,7 @@ en serie.
 | Sesión | Estado | PR | Qué midió o cambió del plan |
 |---|---|---|---|
 | S0 | **hecha** 2026-10-04 | este PR | las cinco mediciones, nueve hallazgos (QK-34…38, NU-106, OR-61, QM-20, QM-21), NU-87 ampliado y NU-50 duplicado renumerado (NU-105); NU-8 a A11 `N3` |
-| Q1 | pendiente | — | |
+| Q1 | **hecha** 2026-10-05 | quark#431 | el banco de PG y MySQL (`benchmarks/engines`, workflow propio no requerido): las seis operaciones ausentes en el runner (PG 1,24–1,98× sobre `database/sql`; MySQL 1,42× por llamada). En Preload100 la forma de la consulta pesa más que el mapeo (≈240 µs de ≈325 en el portátil). `interpolateParams=true` ya da −41 % en MySQL. Trampa: `align-module-floors.sh` no hace tidy de `benchmarks/`, así que el banco importa los drivers de `database/sql` directamente |
 | Q2 | pendiente | — | |
 | Q3 | pendiente | — | |
 | N1 | pendiente | — | |
