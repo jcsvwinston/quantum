@@ -261,6 +261,7 @@ NU-102,P3,nucleus,A11,abierto,"nacido en A11 S0 (nucleus#587): plugins externos 
 NU-103,P2,nucleus,A12,abierto,"visto en A11 S0 (nucleus#587, fuera del banco): con jobs_provider sql el apagado tarda ~9 s y el scheduler dispara contra la base cerrada",nucleus.md,`pkg/tasks/providers/sql/scheduler.go` ; `pkg/nucleus/jobs.go`
 NU-104,P3,nucleus,A11,abierto,"visto en A11 S0 (nucleus#587): nucleus new recomienda examples/mvc_api, que no existe",nucleus.md,`internal/cli/new.go:419`
 NU-106,P3,nucleus,A12,abierto,"nacido en A12 S0: tests y CLI cargan el go.mod raíz, nucleustest importa SQLite, y el hello sin driver pasó de 87 a 92 módulos sin que nada lo vigilara",nucleus.md,`go.mod` raíz ; `pkg/nucleustest/runtime.go` ; `cmd/nucleus/drivers.go:19`
+NU-107,P2,nucleus,A11,abierto,"nacido en A11 Q9 (quark#427): BindJSON valida con el validador de structs y rechaza todo array JSON con 400",nucleus.md,`pkg/nucleus/context.go` (BindJSON) ; `router.Bind`
 QK-33,P2,quark,A11,abierto,"nacido en A11 S0 (quark#422): Where(col, ""IN"", []string{...}) hace panic en query_exec.go:1475 (aserción a []any sin ok); reproducido sobre SQLite",quark.md,`query_exec.go:1475`
 QK-34,P2,quark,A12,abierto,"nacido en A12 S0: List hace json.Marshal de todo el resultado sin caché (13,6 % de la CPU de List100)",quark.md,`query_exec.go:407`
 QK-35,P2,quark,A12,abierto,"nacido en A12 S0: preload con IN ($1..$N) replanifica en PostgreSQL; Preload100 +127 % sobre database/sql",quark.md,`preload_loaders.go:101`
