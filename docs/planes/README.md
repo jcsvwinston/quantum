@@ -137,7 +137,7 @@ que una sesión necesita para orientarse.
 | A8 | Quark enterprise | A4 | [`A8-quark-enterprise.md`](A8-quark-enterprise.md) (cerrado en 1.35.0) |
 | A9 | Fleet unificado y una sola SPA | A6 | [`A9-fleet-unificado-una-sola-spa.md`](A9-fleet-unificado-una-sola-spa.md) (cerrado en 1.38.0) |
 | A10 | Testing y OpenAPI de primera clase | A5 para el cliente de test con sesión | [`A10-testing-y-openapi.md`](A10-testing-y-openapi.md) (en curso desde 2026-09-25) |
-| A11 | Extensibilidad y catálogo | A5, A7 (los módulos que cataloga) | al empezarlo |
+| A11 | Extensibilidad y catálogo | A5, A7 (los módulos que cataloga) | [`A11-extensibilidad-y-catalogo.md`](A11-extensibilidad-y-catalogo.md) (en curso desde 2026-10-04) |
 | A12 | Rendimiento, re-auditoría y cierre a 5 | todos | al empezarlo |
 
 **A4 y A5 pueden ir en paralelo** (tocan repos distintos), igual que A8 y A9.

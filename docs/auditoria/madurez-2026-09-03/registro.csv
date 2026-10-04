@@ -27,7 +27,7 @@ NU-4,P2,nucleus,—,hecho,nucleus#471,nucleus.md,"`pkg/router/middleware.go:12-2
 NU-5,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`pkg/router/context.go:163-165`
 NU-6,P2,nucleus,—,hecho,nucleus#471,nucleus.md,`pkg/router/httputil.go:241` ; `pkg/app/app.go:1226-1234`
 NU-7,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`pkg/auth/session_runtime.go:150-176` ; `pkg/observability/hooks/http.go:110`
-NU-8,P2,nucleus,A12,abierto,,nucleus.md,`go.mod:22-46` ; `internal/dbclassify/link.go:17-18` ; `cmd/nucleus/drivers.go:19`
+NU-8,P2,nucleus,A11,abierto,"reasignado de A12 a A11 (N3) el 2026-10-04: el banco del catálogo lo mide en la aplicación (CAT-11, nucleus#587)",nucleus.md,`go.mod:22-46` ; `internal/dbclassify/link.go:17-18` ; `cmd/nucleus/drivers.go:19`
 NU-9,P2,nucleus,—,hecho,nucleus#472,nucleus.md,"`pkg/auth/session.go:32,172-226`"
 NU-10,P2,nucleus,—,hecho,nucleus#455,nucleus.md,`pkg/nucleus/context.go:24-31`
 NU-11,P2,nucleus,—,hecho,nucleus#472,nucleus.md,"`pkg/errors/handler.go:126,141-174`"
@@ -250,3 +250,10 @@ OR-60,P3,orbit,A9,hecho,"orbit#527 (A9 S11): ListModelsResponse.node_id y Pagina
 NU-96,P3,nucleus,A10,hecho,nucleus#584,nucleus.md,`pkg/router` — el 404 propio del router: `HT-10`/`HT-12` del banco `internal/apibench` (nucleus#574)
 NU-97,P3,nucleus,A10,hecho,nucleus#581,nucleus.md,`internal/cli/contracts_scaffold.go` y `internal/cli/startapp.go` (`Register%sContract`): el contrato generado no declara ningún esquema de seguridad — `OA-08` del banco `internal/apibench`
 NU-98,P3,nucleus,A10,hecho,nucleus#581,nucleus.md,plantillas de `nucleus new`: ninguna llama a `WithOpenAPIHandler`; el documento sólo sale con `nucleus openapi --out` — `OA-10` del banco `internal/apibench`
+NU-99,P2,nucleus,A11,abierto,"nacido en A11 S0 (nucleus#587): el starter api (WithoutDefaults) ignora storage.provider en silencio; EN-10..EN-12 partial",nucleus.md,`internal/cli/startapp.go` (plantilla api)
+NU-100,P3,nucleus,A11,abierto,"nacido en A11 S0 (nucleus#587): la validación estricta rechaza auth.ldap.* antes de la pista de instalación; CAT-01 partial",nucleus.md,`pkg/app/config_validate*.go`
+NU-101,P3,nucleus,A11,abierto,"nacido en A11 S0 (nucleus#587): plugin test --execute no manda envelope; EX-10 partial",nucleus.md,`internal/cli/plugin.go`
+NU-102,P3,nucleus,A11,abierto,"nacido en A11 S0 (nucleus#587): plugins externos sin allowlist y claves plugins.* rechazadas; EX-12 absent",nucleus.md,`pkg/plugins` ; `docs/reference/PLUGIN_SDK.md`
+NU-103,P2,nucleus,A12,abierto,"visto en A11 S0 (nucleus#587, fuera del banco): con jobs_provider sql el apagado tarda ~9 s y el scheduler dispara contra la base cerrada",nucleus.md,`pkg/tasks/providers/sql/scheduler.go` ; `pkg/nucleus/jobs.go`
+NU-104,P3,nucleus,A11,abierto,"visto en A11 S0 (nucleus#587): nucleus new recomienda examples/mvc_api, que no existe",nucleus.md,`internal/cli/new.go:419`
+QK-33,P2,quark,A11,abierto,"nacido en A11 S0 (quark#422): Where(col, ""IN"", []string{...}) hace panic en query_exec.go:1475 (aserción a []any sin ok); reproducido sobre SQLite",quark.md,`query_exec.go:1475`
