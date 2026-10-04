@@ -162,6 +162,18 @@ GUARDS=(
   # hueco— y que el CI de orbit siga exigiendo el navegador sobre el fleet y
   # corriendo el clúster, lo único del arco que mide una flota y no un servidor.
   "umbrella-fleet-posture|.|bash scripts/check_fleet_posture.sh"
+  # El gate del arco A10: lo que la suite AFIRMA sobre cómo se prueba una
+  # aplicación Nucleus y cómo se describe su API es lo que sus propias medidas
+  # dicen. A10 dejó un banco de 46 controles (`nucleus/internal/apibench`) y
+  # una afirmación que no se comprueba leyendo: el starter de la suite publica
+  # su documento OpenAPI y un cliente TypeScript GENERADO desde él consume su
+  # API en un test que corre en el CI de nucleus. Este guard vigila la
+  # frontera entre lo medido y lo PUBLICADO —la cifra y la tabla por familias
+  # de la página—, que el starter siga publicando su documento con endpoints
+  # tipados, que el test del gate siga existiendo y comprobando un error (el
+  # 409) a través del cliente, que la lane lo corra con node y tsc, y que el
+  # documento del starter siga congelado y comparado en el CI.
+  "umbrella-api-posture|.|bash scripts/check_api_posture.sh"
   # Toda lane del paraguas con disparador `schedule:` lleva su job
   # `notify-schedule-failure`: el cron rojo no puede degradar al email por
   # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que
@@ -353,13 +365,6 @@ GUARD_SCAN_EXCLUDE=(
   # formatea. Lo que sí certifica cada una de esas cosas son los guards que este
   # script invoca o resume.
   "scripts/estado.sh"
-  # El gate de A10 (umbrella-api-posture), escrito con su fixture y FUERA del
-  # registro hasta que el pin de nucleus contenga lo que comprueba: el banco
-  # del API en 46/46, el starter con endpoints tipados y el test del cliente
-  # TypeScript generado. El escaneo anti-fósil recorre los productos AL PIN, y
-  # al pin de 1.38.0 nada de eso existe todavía. Entra en el registro (y sale
-  # de aquí) en el commit del set que mueve el gitlink de nucleus.
-  "scripts/check_api_posture.sh"
   # Utillaje de ESCRITURA del manifiesto (capa 1 de automatización de docs):
   # mueve los submódulos al tag y reescribe las 8 versiones, los pins y las
   # tablas del README. No certifica nada — PROPONE el re-pin; quien lo juzga

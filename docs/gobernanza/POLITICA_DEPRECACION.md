@@ -186,7 +186,9 @@ publica un aviso nuevo o una retirada.
 
 | Aviso | Producto | Qué se deprecia | Recambio | Estado | Retirada no antes de |
 |---|---|---|---|---|---|
-| — | nucleus | — | — | — | ninguna viva: los 8 avisos de nucleus están en `removed` |
+| `DEP-2026-009` | nucleus | `Context.HTML(code, html)`, que escribe una cadena cruda con el nombre del render de plantillas (NU-41) | `Context.RawHTML` (cadena) y `Context.Render` (plantilla) | `active` | 2027-01-04, retirada en v2.0.0 |
+| `DEP-2026-011` | nucleus | `Context.Get` / `Context.Set`, el almacén por clave con aserción de tipo en cada lectura | `NewKey` + `SetValue` / `Value` (valores tipados); el mapa de `Render` o `BindData` para datos de plantilla | `active` | 2027-01-02, retirada en v2.0.0 |
+| `DEP-2026-012` | nucleus | constructores que hacen panic con entrada mala: `auth.NewJWTManager`, `db.NewModuleMigrator`, `db.NewModuleFSMigrator`, `router.CSRFMiddleware` (NU-41) | `NewJWTManagerFromSecret`, `NewMigratorFromConfig`, `NewCSRFMiddleware`, que devuelven el error | `active` | 2027-01-02, retirada en v2.0.0 |
 | `DEP-2026-001` | quark | `RowLevelSecurity` (alias de constante) | `RowLevelSecurityClient` | `active` | 2026-12-08, retirada en v2.0.0 |
 | `DEP-2026-002` | quark | forma anterior del registro de listeners (4 símbolos) | `ListenerFactory` + `RegisterListenerFactory` | `active` | 2026-12-08, retirada en v2.0.0 |
 | — | orbit | — | — | — | ninguna |

@@ -6,6 +6,51 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.38.0 — el arco A9 cerrado: Fleet unificado y una sola SPA
+
+Quantum 1.38.0 cierra el arco A9 (Fleet unificado y una sola SPA): el
+plano fleet de orbit tiene identidad, contrato, retención, alertas, una
+flota de servidores y una sola SPA, y su banco mide 50 de 50. Se mueve
+orbit (v1.16.0 → v1.18.0, dos cortes: v1.17.0 y v1.18.0); quark v1.15.0 y
+nucleus v1.30.1 siguen donde estaban. Módulos hermanos que cambian: orbit
+agent (v0.13.0 → v0.15.0), orbit proto (v0.7.0 → v0.8.0), orbit server
+(v0.18.0 → v0.20.0) y orbit ui (nuevo, v1.0.0); el resto sin cambio. Minor
+de suite porque lo es la de orbit (QADR-0002). Corte FUERA de la cadencia
+semanal (QADR-0008), el tercero seguido por la misma razón: el arco cortó
+orbit dos veces más para cerrar, porque un cambio de proto son dos cortes,
+y cada corte deja al paraguas con tags de módulo por delante del pin. Este
+set los recoge, devuelve la lane al verde y certifica el arco.
+
+Qué cambia para quien instala. Todo en orbit y todo por adición; una
+aplicación que montaba el panel o el agente no cambia nada. Varios
+servidores de admin pueden nombrarse entre sí y compartir sus nodos y sus
+eventos, con asignación determinista de agentes y redirección al
+propietario, sin estado externo. El panel in-process y la UI del fleet son
+dos entradas de un solo proyecto de frontend, construidas en un dist que
+un módulo nuevo (orbit/ui, sin dependencias) embebe y que la raíz y el
+servidor requieren por tag; rutas y pantallas iguales. La UI del fleet
+habla la segunda generación del protocolo, muestra el tenant del operador
+y marca el modelo acotado por tenant, y el servidor dice qué agente
+respondió cada página de Data Studio, que antes iba en blanco. Un banco de
+navegador mide la UI del fleet como el del panel, con un hueco escrito
+(contraste del tema claro) que va a A12. La release v1.17.0 de orbit
+publicó cero binarios: el módulo ui nació en el mismo corte en que el
+servidor lo requiere, su suma no podía estar en el go.sum antes del tag, y
+el build de release en modo read-only se plantó; v1.18.0 publica sus
+quince activos firmados y el workflow resuelve ya como un consumidor.
+
+Qué aprendió el tren. Un módulo que nace y un consumidor que lo requiere
+en el mismo corte dejan la release de ese corte sin activos si el build
+exige el go.sum completo, y ningún guard del paraguas lo ve porque el set
+pina la convergencia; se comprueban los activos de cada corte antes de
+darlo por bueno. Una fila nueva en la tabla de módulos de orbit del README
+se escribe a mano UNA vez antes de lanzar bump-set, que la actualiza pero
+no la inventa. Y dos fixtures del registro dependían de que el CI de orbit
+corriese UN driver de navegador: con dos, la de admin-posture mordía por
+la causa equivocada; ahora cada guard ancla su required al driver que
+vigila. El guard 53, umbrella-fleet-posture, entra con este set porque
+sólo al pin nuevo hay banco de navegador y clúster que vigilar.
+
 ## Quantum 1.37.0 — las sesiones S4 a S7 del arco A9 (Fleet unificado): el fleet habla el contrato, retiene y avisa
 
 Quantum 1.37.0 publica las sesiones S4 a S7 del arco A9 (Fleet unificado):
