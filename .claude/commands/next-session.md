@@ -64,121 +64,55 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-09-27, QUANTUM 1.38.0 — A9 CERRADO; A10 EN CURSO: `S0`–`S3` hechas, el banco del API en 22 de 46; nucleus#579 sin fusionar; siguiente `S4`, el kit sobre el starter y los módulos)
+## 3. Estado al cierre (2026-10-05, QUANTUM 1.39.0 — A10 CERRADO; A11 y A12 EN CURSO: sus `S0` hechas y troceadas, sesiones de los dos arcos en PRs abiertos e integrándose)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.38.0** (2026-09-25, FUERA de cadencia por
-  tercera vez seguida, por la misma razón: los cortes de orbit a mitad y al
-  cierre de A9 dejan tags de módulo por delante del pin) — quark v1.15.0 y
-  nucleus v1.30.1 sin cambio, orbit v1.18.0 con sus SIETE módulos (`ui` es
-  el nuevo), tal como los lista `versions.yaml` (la fuente; no copies
-  números de aquí). `declared_lags` vacío. **Cierra A9**. El tren enseñó
-  tres cosas (sección 1.38.0 de `scripts/train/README.md`): un módulo que
-  nace y un consumidor que lo requiere en el mismo corte dejan esa release
-  SIN activos si el build exige el go.sum completo (v1.17.0 de orbit; el
-  workflow de release resuelve ya como un consumidor, y se comprueban los
-  activos de cada corte); la fila nueva del README de un módulo nuevo se
-  escribe a mano ANTES de bump-set; y una fixture que doctora «el primer
-  `required`» de una lane con dos drivers muerde por la causa equivocada.
+- **Set certificado: Quantum 1.39.0** (2026-10-05, corte por cierre de
+  arco) — quark v1.15.2, nucleus v1.31.0 y orbit v1.18.1 con sus módulos,
+  tal como los lista `versions.yaml` (la fuente; no copies números de aquí).
+  `declared_lags` vacío. **Cierra A10** y publica **QK-39 (P0)**: desde la
+  primera release, `DeleteBy`, `UpdateMap` y `UpdateFields` ignoraban la
+  lógica de cada condición y `WhereNot(…).DeleteBy()` borraba las filas que
+  excluía (quark v1.15.2). El tren enseñó tres cosas (sección 1.39.0 de
+  `scripts/train/README.md`): un defecto grave con el tren en marcha se
+  mete en el mismo set dejando avanzar nucleus, cortando quark otra vez y
+  alineando orbit UNA vez; fusionar los suelos de nucleus regenera la rama
+  del release y se lleva las notas y el snapshot escritos a mano (se guardan
+  como parches antes); y un `go.mod` suelto en la raíz de `$TMPDIR` (lo dejó
+  un agente) tumba `check_exit0_regressions` en local porque el CLI de
+  nucleus lo toma y Go no (NU-109).
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
-- **Trabajo por arcos del plan 5/5**: A1…A9 CERRADOS (1.28.0 … 1.38.0).
-  **A9 (Fleet unificado y una sola SPA) se cerró el 2026-09-25 en Quantum
-  1.38.0**, en doce sesiones del 2026-09-20 al 25 (orbit#500 a #527), con el
-  banco `orbit/internal/fleettest/fleetbench` de **16 a 50 de 50**, seis
-  cortes de orbit (v1.11.0, v1.12.0, v1.13.0, v1.14.0, v1.15.0, v1.16.0,
-  v1.17.0, v1.18.0: un cambio de proto son DOS cortes y el arco tocó el
-  proto cuatro veces) y tres sets (1.36.0, 1.37.0, 1.38.0). Lo que dejó: la
-  identidad del nodo es la del certificado y rota sin reinicio (`S1`–`S2`);
-  el contrato `datasource` es un módulo (ADR-012) y el fleet lo habla bajo
-  el operador con política y tenant (`S3`–`S4`); el audit dice qué cambió y
-  ADR-002 está implementado (`S5`); el servidor retiene con ventana
-  (ADR-013) y avisa por umbral (`S6`–`S7`); una flota de servidores comparte
-  nodos y eventos y asigna agentes (ADR-014, `S8`); un solo proyecto de
-  frontend y el módulo `orbit/ui` embeben el único dist (ADR-015: el PANEL
-  es la base, no el fleet, como decía el plan; `S9`); la UI del fleet habla
-  connect-es 2, la mide un banco de navegador y muestra el tenant relleno
-  (`S10` en dos partes por el corte); y el clúster de tres agentes detrás
-  de dos servidores corre en CI, el guard `umbrella-fleet-posture` vigila lo
-  publicado y el servidor dice qué agente respondió (`S11`, OR-60). Lo que
-  fue, sesión a sesión y con lo que cada una midió, está en
-  [`docs/planes/A9-fleet-unificado-una-sola-spa.md`](../../docs/planes/A9-fleet-unificado-una-sola-spa.md);
-  A4…A8, en sus ficheros. Cuatro lecciones que valen para el arco
-  siguiente: la medición corrigió el enunciado por quinta vez (el mTLS ya
-  existía y su identidad se tiraba; «el stack del fleet como base» era la
-  SPA débil); **una fila del banco que se retipa a mano se queda rancia
-  bajo un titular al día** (la tabla por familias, tres sesiones), así que
-  se genera y el guard la compara; **un campo declarado en el cable y vacío
-  no es una capacidad** (FDS-09, UI-09 y el `node_id` de Data Studio, los
-  tres cazados por sondas que comprueban el relleno); y **un test que pone
-  varios nodos donde las sondas ponen uno encuentra lo que ninguna sonda
-  puede ver**. Hallazgos abiertos de orbit: **OR-57** (P3, A12: el enlace
-  identidad↔certificado es opt-in hasta el major) y **OR-59** (P3, A12: el
-  contraste del tema claro del fleet, re-skin sobre los tokens compartidos).
-  **A10 (Testing y OpenAPI de primera clase) EN CURSO y TROCEADO** por su `S0`
-  de medición (2026-09-25, nucleus#574, `test(apibench)`, sin fusionar): diez
-  sesiones en
-  [`docs/planes/A10-testing-y-openapi.md`](../../docs/planes/A10-testing-y-openapi.md),
-  banco `nucleus/internal/apibench` en **12 de 46** (46 controles en cuatro
-  familias: testkit, openapi, http, di; `TestAPIBench` asserta el veredicto
-  registrado; `NUCLEUS_API_BENCH_TABLE=1` genera las tablas que
-  `nucleus/docs/api-bench.md` pega). Lo que midió y el plan no sabía: el kit
-  `nucleustest` arranca la aplicación y no ayuda con nada más (cliente sin
-  JSON, sin cookies, sin CSRF, sin sesión, sin factories, sin transacción, sin
-  dobles); **el 404 propio del router es el texto plano de Go** incluso con
-  `Accept: application/json` (NU-96); el contrato que escribe `nucleus new`
-  declara la API abierta y la aplicación generada no lo sirve (NU-97, NU-98);
-  `Module.Requires` nombra bases de datos, no módulos, y el arranque es
-  alfabético; NU-41 y NU-44 confirmados por sonda. **El gate cambia**: el
-  showcase ya no existe, así que se mide sobre el starter de `nucleus new`
-  (documento publicado, cliente TypeScript generado que lo consume en un test
-  en CI, kit cubriendo el starter, documento en `contracts/baseline`).
-  **`S1` hecha** (2026-09-26, nucleus#576, `feat(nucleustest)`, sin
-  fusionar): el kit tiene cliente — `Request`/`Get`/`Post`… con
-  `Response.JSON`, jarra que conserva las cookies `Secure` sobre loopback en
-  HTTP plano, `CSRFToken`/`WithCSRF` (el middleware responde 419), y
-  `SignIn`/`SignInAccount`/`SignOut` que abren la sesión en el store de la
-  aplicación por scs — `TK-02`…`TK-05` present, banco **16 de 46**. **La
-  lane de MinIO de nucleus pasó a RustFS** (nucleus#575): MinIO dejó de
-  publicar imagen en Docker Hub, quay.io y GHCR, y la lane `storage-minio`
-  estuvo roja del 20 al 26 en todo PR; RustFS fijado por digest, los seis
-  `TestS3Live_*` pasan sin tocar el test, el id del job no cambia. Docker
-  local está disponible en esta máquina para probar lanes de contenedor.
-  **`S2` hecha** (2026-09-26, nucleus#578, `feat(nucleustest)`, sin
-  fusionar): `Make[T]`/`MakeN` construyen registros de un modelo registrado
-  con defaults desde su metadata y los escriben por `model.CRUD` con el
-  dialecto de la app; `Transactional` corre el test entero —rutas incluidas—
-  dentro de una transacción que se deshace al final, un nivel por debajo del
-  pool (driver por test que entrega UNA conexión; las transacciones de la app
-  son savepoints), medido en SQLite, PostgreSQL y MySQL con Docker local y en
-  la lane de matriz. Plumbing aditivo: `db.Config.DriverName`,
-  `app.DatabaseConfig.Driver`, `db.ResolveDriver`. `TK-06`, `TK-07` present,
-  banco **18 de 46**. **`S3` hecha** (2026-09-27, nucleus#579,
-  `feat(nucleustest)`, sin fusionar): los dobles — driver de correo `memory`
-  en `pkg/mail` (el kit lo elige cuando la app descartaría el correo:
-  `SentMail`), proveedor de almacenamiento `memory` en `pkg/storage`
-  (`Stored`/`StoredKeys`), `EnqueueRecord`/`EnqueueRecorder` en `pkg/tasks`
-  con el proveedor en proceso registrando cada encolado (`EnqueuedTasks`), y
-  `NewHTTPRecorder` que suplanta a otro servicio y recuerda lo que la app le
-  envió (`rec.Client()` redirige cualquier host). `TK-08`…`TK-11` present,
-  banco **22 de 46**, familia `testkit` 14/0/1. **Siguiente: `S4`**, el kit
-  sobre el starter y los módulos (el test generado por `nucleus new` usa el
-  cliente; kit de conformidad de `ModuleSpec`, `TK-15`; NU-74 y NU-75
-  medidos sobre los listados de la página), precondición nucleus#579
-  fusionado; `S5` (el documento desde el código), `S8` (binding y errores) y
-  `S9` (cableado) pueden ir en paralelo porque tocan paquetes distintos. Trampa dicha por adelantado: casi todo es API pública de
-  `pkg/nucleustest`, `pkg/nucleus` y `pkg/router`, que el baseline de
-  símbolos y el gate de la allowlist vigilan; lo que no sea Go puro (un
-  generador TS) se decide ANTES de escribirse.
-  `bash scripts/estado.sh --breve` deriva el arco y la sesión siguientes; no
-  los copies de aquí.
-  El gate de cada arco sigue siendo el registro
-  `docs/auditoria/madurez-2026-09-03/registro.csv` con su guard
-  `umbrella-audit-backlog` (cero abiertos en un arco cerrado).
+- **Trabajo por arcos del plan 5/5**: A1…A10 CERRADOS (1.28.0 … 1.39.0).
+  **A10 (Testing y OpenAPI de primera clase) se cerró el 2026-10-05 en
+  Quantum 1.39.0** (nucleus v1.31.0), en once sesiones del 2026-09-25 al
+  2026-10-05 (nucleus#574…#586): banco `nucleus/internal/apibench` de **12 a
+  46 de 46**. Lo que dejó: el kit de test completo (cliente con sesión,
+  datos, dobles, `CheckModule`); el documento OpenAPI derivado de las rutas,
+  los structs y la seguridad (`WithOpenAPIDocument`), exigido
+  (`WithOpenAPIValidation`, `AssertConforms`, `nucleus openapi --check`) y
+  con cliente TypeScript generado por un generador propio en Go; endpoints
+  tipados (`nucleus.Handle`); problem+json junto al sobre;
+  `Provide`/`Resolve` y `DependsOn`. El gate corre en la lane
+  `suite-starter` de nucleus (obligatoria) y lo vigila
+  `umbrella-api-posture`. Detalle en
+  [`docs/planes/A10-testing-y-openapi.md`](../../docs/planes/A10-testing-y-openapi.md).
+  **A11 (Extensibilidad y catálogo) y A12 (Rendimiento, re-auditoría y
+  cierre a 5) EN CURSO** desde el 2026-10-04, con sus `S0` hechas y sus
+  troceados en
+  [`docs/planes/A11-extensibilidad-y-catalogo.md`](../../docs/planes/A11-extensibilidad-y-catalogo.md)
+  (33 sesiones en carriles N/O/Q/W) y
+  [`docs/planes/A12-rendimiento-reauditoria-cierre.md`](../../docs/planes/A12-rendimiento-reauditoria-cierre.md)
+  (12 sesiones; **cuatro decisiones escritas como propuesta, pendientes de
+  Carlos**). Decisiones de Carlos para A11: ejemplos como fixtures probados,
+  construir saml/redis-cache/stripe/sentry, catálogo de `nucleus add`
+  embebido y fijado a la release. El estado de cada sesión (hecha, PR
+  abierto, fusionada) está en el registro de sesiones de cada plan; la cola
+  de integración de esta noche, en la sesión de abajo.
 - **Lo que A7 enseñó, y vale para cualquier arco**: **escribir la
   documentación es una MEDICIÓN, y más severa que el banco.** El banco conduce
   el código; la doc obliga a afirmar qué hace, y una afirmación se contrasta.
@@ -190,7 +124,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   OR-55. Y el corolario: **OPS-14**, el control de A6 que debía cazar OR-53,
   medía que el endpoint devolviera 200 sobre un panel ciego. Un control cuyo
   título afirma más de lo que su sonda comprueba pasa para siempre.
-- **53 guards en el registro**: los 52 de 1.37.0 más
+- **54 guards en el registro**: los 53 de 1.38.0 más **`umbrella-api-posture`**, el gate de A10 (2026-10-05, en el PR de set de 1.39.0): la cifra de `nucleus/docs/api-bench.md` y su tabla por familias contra el catálogo, el starter con `WithOpenAPIDocument` y endpoints tipados, el test del gate y la lane que lo corre con node y `tsc`, y la línea base del documento del starter. Los 53: los 52 de 1.37.0 más
   **`umbrella-fleet-posture`**, el gate de A9 (2026-09-25, en el PR de set
   de 1.38.0 porque sólo al pin nuevo hay qué vigilar): el banco del fleet
   tiene sus 50 controles y ningún hueco sin nota, la cifra que publica
@@ -279,86 +213,33 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-09-26/27 — **A10 `S1`, `S2` y `S3` HECHAS (nucleus#576 y #578 fusionados, nucleus#579 sin fusionar) y la lane de MinIO a RustFS (nucleus#575)**: el cliente, los datos y los dobles del kit, banco 22/46
+### Sesión 2026-10-04/05 — **A10 CERRADO (Quantum 1.39.0), QK-39 (P0) arreglado dentro del set, y A11 y A12 arrancados en paralelo**
 
-- **Fusionados por orden de Carlos**: nucleus#574 (`S0`) y quantum#247, tras
-  desbloquear el gate de nucleus: MinIO ya no publica imagen en ningún
-  registro público (quay.io 401 con token anónimo, Docker Hub sin tags, GHCR
-  403) y la lane `storage-minio` llevaba roja desde el 20. **RustFS**
-  (fork Apache-2.0 compatible) fijado por digest en `ci.yml`, credenciales en
-  `RUSTFS_ACCESS_KEY/SECRET_KEY`, readiness `/health`; probado en local con
-  Docker contra el mismo digest: los seis `TestS3Live_*` pasan sin cambios.
-- **`S1`**: `pkg/nucleustest/client.go` (+ tests): `Request`/verbos con
-  `Response.JSON`; `loopbackJar` (guarda las cookies quitando `Secure`, como
-  hace un navegador con localhost — sin eso la cookie de sesión y la de CSRF,
-  `Secure` por defecto, se perdían en HTTP plano); `CSRFToken`/`WithCSRF`;
-  `SignIn`/`SignInAccount`/`SignOut` vía `Runtime().Session().SCS()`
-  (Load/Put/Commit + cookie). Las sondas `TK-02`…`TK-05` ejercitan el cliente
-  (sonda que crece cuando aparece la superficie), verificado por dos
-  mutaciones. Guía `getting-started/testing.md` con dos secciones nuevas.
-  **Trampas**: un módulo sin `Prefix` monta en la raíz; el rechazo CSRF es
-  419; `git checkout <fichero>` para deshacer una mutación se llevó también
-  la jarra (reaplicada); un PR apilado sobre otro squash-mergeado se rebasa
-  con `--onto` soltando los commits ya fusionados; y **la jarra cambió lo que
-  medía un contrato**: `TestSecurityPosture_MatchesBaseline` leía los
-  `Set-Cookie` de una petición hecha con el cliente del kit, que ahora ya
-  llevaba la cookie `_csrf` del sondeo de readiness, así que el middleware no
-  ponía nada y la postura salía «(no cookies set)» sin haber cambiado — la
-  sonda usa ahora un cliente sin jarra, porque mide el primer contacto.
-- **`S2` en la misma sesión** (nucleus#578, tras fusionar #576 y quantum#248
-  por orden de Carlos): `pkg/nucleustest/factory.go` (`Make[T]`, `MakeN`) y
-  `txdb.go` (`Transactional` + el driver transaccional: `Open` comparte una
-  conexión con la transacción abierta, `BeginTx` → `SAVEPOINT`, mutex por
-  llamada, no durante la iteración de filas — la limitación de una conexión
-  la dice la guía). Probado en local con Docker (PostgreSQL 16 y MySQL 8) y
-  la lane `db-matrix` corre `TestTransactionalOnTheMatrixDatabase`. Dos
-  mutaciones verificadas (commit en vez de rollback → TK-07 partial; `Make`
-  sin insertar → TK-06 partial). **Trampas**: en SQLite cerrar la conexión ya
-  deshace la transacción, así que «sin rollback» no es una mutación que
-  muerda (usar commit); `git checkout <fichero>` no restaura un fichero
-  NUEVO sin commitear (la mutación se quedó puesta hasta reaplicar el
-  original); en MySQL el DDL hace commit implícito → el test de matriz crea
-  la tabla FUERA del scope; los drivers pgx y mysql son deps de la raíz
-  (clasificación de errores) y se registran en un `_test.go` del kit.
-- **`S3` el 27** (nucleus#579, tras fusionar #578 y quantum#249 por orden de
-  Carlos): `pkg/mail/memory.go` (+ registro `memory`, sin breaker),
-  `pkg/storage/memory.go` (+ registro en `builtins.go`; `Validate` acepta
-  cualquier proveedor registrado), `tasks.EnqueueRecord`/`EnqueueRecorder` +
-  `record()` en `EnqueueJSONCtxWithPolicy` del proveedor en proceso,
-  `pkg/nucleustest/doubles.go` (`SentMail`, `Stored`, `StoredKeys`,
-  `EnqueuedTasks`, `HTTPRecorder`), `StartApp` cambia `noop`→`memory` en el
-  correo. Tres mutaciones verificadas. **Trampas**: `storage.ErrNotFound` es
-  un TIPO (`ErrNotFound(key)`), no una variable; el breaker de correo va
-  activado por defecto y envolvería al `memory` (se excluye como al `noop`);
-  el runtime de tasks sigue exigiendo un job registrado.
-- **Siguiente**: fusionar nucleus#579 y arrancar `S4`.
-
-### Sesión 2026-09-25 (segunda) — **A10 `S0` HECHA (nucleus#574, sin fusionar)**: el banco del API en 12 de 46, tres hallazgos (NU-96, NU-97, NU-98) y el troceado de diez sesiones
-
-- **Fusionado** quantum#246 (cierre de A9) por orden de Carlos; `estado.sh`
-  derivó A10 sin troceado.
-- **El banco** `nucleus/internal/apibench`: 46 controles en cuatro familias,
-  modelado sobre `jobsbench` (arnés, env con un módulo mínimo `bench`,
-  sondas) y sobre `fleetbench` (generador de tabla con resumen por familias,
-  gitignored). Las sondas de un helper que no existe preguntan al conjunto de
-  métodos del kit y al fuente bajo los nombres de los demás kits, y dejan
-  escrito qué buscaron. **Trampas del propio banco**: el runtime de jobs es
-  nil hasta que un módulo registra un job (la sonda TK-10 monta uno);
-  `Module.Requires` son alias de BD, no módulos; el paquete del proveedor de
-  tasks en memoria se llama `memoryprovider`; una regex que casaba
-  `ModuleSpec` daba un falso present en TK-15. Verificado por mutación
-  (HT-01 baja a partial sin el tag `validate`). `make check` de nucleus en
-  verde.
-- **Lo que midió**: 12/46. El kit arranca y no ayuda; el 404 del router es
-  texto plano de Go en todas partes (NU-96); el contrato del scaffold dice
-  «abierta» y la app generada no lo sirve (NU-97, NU-98); NU-41 y NU-44
-  confirmados. El gate pasa del showcase (borrado el 2026-09-12) al starter.
-- **Escrituras**: plan `A10-testing-y-openapi.md` con el troceado en diez
-  sesiones y el registro con tabla legible por `estado.sh`; fila de A10 en
-  `docs/planes/README.md`; RUMBO; registro NU-96/97/98 (A10, abiertos) con
-  sus filas en `nucleus.md`; memoria.
-- **Siguiente**: fusionar nucleus#574 y arrancar `S1` (el cliente del kit).
-
+- **A10**: `S4`–`S9` como seis PRs apilados de nucleus (#581…#586),
+  fusionados en orden con cada capa reconstruida sobre el squash de la
+  anterior; banco 46/46; set 1.39.0 certificado con `umbrella-api-posture`.
+- **QK-39**: lo encontró el agente de A11 `Q1` buscando QK-33; reproducido;
+  el tren se dejó avanzar sólo hasta nucleus, quark se cortó dos veces
+  (v1.15.1 suelos, v1.15.2 arreglo) y orbit se alineó una vez.
+- **A11/A12 `S0`**: los bancos (nucleus catalogbench 6/38, orbit extension
+  1/13, quark extbench 5/22, sitio 0/12) y la medición de rendimiento de
+  A12, con 18 hallazgos nuevos en el registro (QK-33…41, NU-99…110 salvo
+  los cerrados, OR-61, OR-62, QM-20, QM-21) — quantum#253.
+- **Sesiones hechas por agentes, verdes, y su estado de fusión** al cerrar
+  la sesión: nucleus — `S0` #587, N1 #590 y N2 #589 FUSIONADAS, NU-107
+  #591 FUSIONADA; N3 #593 reconstruida sobre N2 y en CI; A12 N2 #592 (cola
+  SQL) y N4 (en marcha) pendientes. quark — `S0` #422, QK-39 #428 y A12 Q1
+  #431 FUSIONADAS; Q1 #425 rebasada (en CI); Q2 #432→#433 (retitular a
+  `feat(schema)` al fusionar), Q8 #426→Q9 #427 pendientes. orbit — `S0`
+  #531, O1 #532→O2 #534→O5 #538 y O3 #533→O4 #535 pendientes: al
+  integrarlas hay que reconstruir `ui/dist`, renumerar el `UIX-09` de O2 a
+  `UIX-10` (choca con el de O3) y, en el corte, re-pinar `orbit/ui` en la
+  raíz y en `server/`.
+- **Lo que vale para la próxima**: integrar en local antes de fusionar
+  (N1+N2+N3 chocaban en la misma nota del banco y en el mismo mensaje de
+  oidc); un PR en conflicto NO lanza CI y `gh pr checks` sale vacío sin
+  error (mirar `mergeStateStatus`); con muchos agentes a la vez los runners
+  de GitHub se saturan y el tren tarda (2 h 55 min).
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 

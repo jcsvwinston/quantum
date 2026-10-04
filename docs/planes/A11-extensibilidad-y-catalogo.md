@@ -198,9 +198,9 @@ cableado (lo dice la página del banco).
 | Sesión | Estado | PR | Qué midió o cambió del plan |
 |---|---|---|---|
 | S0 | **hecha** 2026-10-04 | nucleus#587, orbit#531, quark#422, este PR | los cuatro bancos y este troceado; QK-33 abierto |
-| N1 | pendiente | — | |
-| N2 | pendiente | — | |
-| N3 | pendiente | — | |
+| N1 | **hecha** 2026-10-05 | nucleus#590 | una tabla (`internal/knownproviders/catalog.go`) para `add`, `new --with`, la ayuda, la referencia y las negativas; `modules.json` embebido que release-please reescribe (ruta con `/` inicial: sin ella apunta dentro del paquete y no falla nada); quark y orbit siguen sin fijar (`CAT-04`: el set se certifica después del tag de nucleus); ADR-034; banco 6→12 |
+| N2 | **hecha** 2026-10-05 | nucleus#589 | `WithStorage()` para apps `WithoutDefaults()`; sin ella el bloque declarado se IGNORA con una línea ERROR (negarse a arrancar sería una ruptura: DEP-2026-013 lo programa para v2.0.0); negativas que nombran `nucleus add`; banco 15/38 con N1 |
+| N3 | **hecha** 2026-10-05 | nucleus#593 | cada driver clasifica su motor; `dbclassify` sólo stdlib (con los nombres antiguos, para que los drivers ya publicados compilen contra la raíz nueva); starter api 137→108 módulos, 49,6→29,0 MB; banco **17/38** con N1+N2 (`CAT-01` 8/8, `CAT-11`) |
 | N4 | pendiente | — | |
 | N5 | pendiente | — | |
 | N6 | pendiente | — | |
@@ -209,21 +209,21 @@ cableado (lo dice la página del banco).
 | N9 | pendiente | — | |
 | N10 | pendiente | — | |
 | N11 | pendiente | — | |
-| O1 | pendiente | — | |
-| O2 | pendiente | — | |
-| O3 | pendiente | — | |
-| O4 | pendiente | — | |
-| O5 | pendiente | — | |
+| O1 | PR verde | orbit#532 | 63/72, navegador 7/8; el logo del propio banco daba 404 y `EXT-08` contaba cualquier fallo de arranque |
+| O2 | PR verde | orbit#534 | 65/72; tema aplicado antes del primer frame con un script clásico de `'self'`; su `UIX-09` se renumera a `UIX-10` al integrar |
+| O3 | PR verde | orbit#533 | 61/72; sin `delete` no había selección en la rejilla; OR-62 (contraste de los errores) |
+| O4 | PR verde | orbit#535 | 63/72 en su rama; ruta `/actions/{action}/{id}` (la otra chocaba con el catch-all); Data Studio con estado en la URL |
+| O5 | PR verde | orbit#538 | 67/72, navegador 9/10; un operador sólo con permiso de dashboard no podía entrar; los assets relativos rompían el deep-link |
 | O6 | pendiente | — | |
-| Q1 | pendiente | — | |
-| Q2 | pendiente | — | |
+| Q1 | PR verde, rebasado | quark#425 | registro con `RWMutex`, QK-33 (`listOperand`), ADR-0026 aceptado; al buscar QK-33 apareció **QK-39 (P0)**, arreglado en quark#428 dentro de 1.39.0 |
+| Q2 | PRs verdes | quark#432 → quark#433 | seis interfaces opcionales nuevas en `quarkdriver`; Oracle declaraba DDL transaccional y no lo tiene; `DRV-04` present (7/22); retitular a `feat(schema)` al fusionar |
 | Q3 | pendiente | — | |
 | Q4 | pendiente | — | |
 | Q5 | pendiente | — | |
 | Q6 | pendiente | — | |
 | Q7 | pendiente | — | |
-| Q8 | pendiente | — | |
-| Q9 | pendiente | — | |
+| Q8 | PR verde | quark#426 | `internal/integrations` (módulo propio no publicado); la guía de frameworks comprobada línea a línea contra las fixtures; banco 8/22 |
+| Q9 | PR verde | quark#427 | gRPC y Nucleus; NU-107 (`BindJSON` con arrays, ya arreglado en nucleus#591); banco 10/22 |
 | Q10 | pendiente | — | |
 | Q11 | pendiente | — | |
 | W1 | pendiente | — | |
