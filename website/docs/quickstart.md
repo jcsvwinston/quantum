@@ -12,7 +12,7 @@ concepts:
 embeds:
   - 'main.go | ^// Command blog | nucleus.New( | quark.New( | shop.Migrate( | quarkdatasource.New( | quarkdatasource.Register[ | orbit.Module( | DataSource: | Mount( | Start()'
   - 'shop/models.go | type Author struct | type Article struct | rel:"belongs_to" | db:"'
-  - 'shop/module.go#L24-L66 | ^// Module returns | func Module( | Policies: | CSRFExempt: | OnStart: | quarkbridge.New(rt.Observability()) | Routes: | }.Build() | }$'
+  - 'shop/module.go#L24-L96 | ^// Module returns | func Module( | Policies: | CSRFExempt: | OnStart: | quarkbridge.New(rt.Observability()) | Routes: | Handle(r, http.MethodPost | type CreateArticle struct | }$'
 ---
 
 import {GoInstallCLI} from '@site/src/components/CertifiedSet';
@@ -194,6 +194,10 @@ func main() {
 	// its own session login under /admin, so neither needs a row here.
 	if err := nucleus.New().
 		FromConfigFile("nucleus.yml").
+		// The API's OpenAPI document, derived from the routes the modules
+		// register and the policy that opens them, served at
+		// /openapi.json (`nucleus openapi` exports the same document).
+		WithOpenAPIDocument("/openapi.json").
 		Mount(shop.Module(client)).
 		Mount(orbit.Module(orbit.Config{
 			Prefix:     "/admin",
@@ -316,12 +320,42 @@ func Module(base *quark.Client) nucleus.ModuleSpec {
 			return nil
 		},
 
+		// Typed endpoints: each handler's signature says what it reads and
+		// what it answers, so the framework binds and validates the input,
+		// writes the output, and describes both in the OpenAPI document the
+		// application serves at /openapi.json — the document `nucleus
+		// openapi --client typescript` writes a client from.
 		Routes: func(r nucleus.Router, _ struct{}) {
-			r.Get("/api/authors", m.listAuthors)
-			r.Get("/api/articles", m.listArticles)
-			r.Post("/api/articles", m.createArticle)
+			nucleus.Handle(r, http.MethodGet, "/api/authors", m.listAuthors)
+			nucleus.Handle(r, http.MethodGet, "/api/articles", m.listArticles)
+			nucleus.Handle(r, http.MethodPost, "/api/articles", m.createArticle, nucleus.Status(http.StatusCreated))
 		},
 	}.Build()
+}
+
+// AuthorList is what GET /api/authors answers.
+type AuthorList struct {
+	Authors []Author `json:"authors"`
+	Count   int      `json:"count"`
+}
+
+// ArticleList is what GET /api/articles answers.
+type ArticleList struct {
+	Articles []Article `json:"articles"`
+	Count    int       `json:"count"`
+}
+
+// ArticleFilter is the query GET /api/articles reads.
+type ArticleFilter struct {
+	AuthorID int64 `query:"author_id" doc:"Only the articles of this author"`
+}
+
+// CreateArticle is the body POST /api/articles reads. The validate tags
+// are checked before the handler runs, and the document carries them.
+type CreateArticle struct {
+	AuthorID int64  `json:"author_id" validate:"required"`
+	Title    string `json:"title" validate:"required,max=200"`
+	Body     string `json:"body,omitempty"`
 }
 ```
 
@@ -332,6 +366,15 @@ mentions the API, and an operator deny there always overrides. Anonymous
 scope it to a role before the app faces a network. `CSRFExempt` frees the
 JSON API from the origin check: a header-token API cannot be forged by a
 cross-site form, while the admin login form stays guarded.
+
+**The routes say what they read and answer.** Each one is a typed endpoint:
+its handler takes the request's input as a struct (`CreateArticle`, the
+`ArticleFilter` query) and returns its answer as one (`Article`,
+`ArticleList`), so the framework binds and validates the input before the
+handler runs and writes the output as JSON. The same types describe the API:
+`curl -s localhost:8080/openapi.json` is the application's OpenAPI document,
+derived from these routes, and `nucleus openapi --client typescript` writes a
+typed client for a frontend from it.
 
 **`quarkbridge.New(rt.Observability())` is the live SQL feed.** Orbit sees
 every request the app serves, but the SQL Quark runs is invisible to it

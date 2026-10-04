@@ -39,6 +39,7 @@ const sidebars: SidebarsConfig = {
         'concepts/application',
         'concepts/configuration',
         'concepts/routing',
+        'concepts/modules',
         'concepts/models-and-database',
       ],
     },
