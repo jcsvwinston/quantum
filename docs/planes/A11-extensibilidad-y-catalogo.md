@@ -86,7 +86,11 @@ lo que mide son páginas, sidebars y lanes del paraguas.
    introspección, ni los savepoints, y `CreateBatch`/`Exec`/`RawQuery` se
    saltan uno u otro. otel y `orbit/quarkbridge` heredan esos huecos.
 4. **Un panic con una entrada normal: `Where(col, "IN", []string{...})`**
-   (QK-33, P2, abierto aquí y reproducido sobre SQLite).
+   (QK-33, P2, abierto aquí y reproducido sobre SQLite). Y buscándolo, algo
+   peor: **las escrituras con condiciones ignoraban `WhereNot`** —`WhereNot(…).DeleteBy()`
+   borraba las filas que excluía— (QK-39, P0, arreglado en quark v1.15.2 dentro
+   del set que cierra A10), y dos huecos más del mismo `Where` (QK-40, QK-41)
+   que van a `Q11`.
 5. **El sitio no tiene nada de lo que el arco pide**, y su página de entrada
    dice que la suite no compite en «breadth of plugins»: el catálogo la pone
    en duda y nada la reconcilia.
@@ -171,7 +175,8 @@ cableado (lo dice la página del banco).
 | `Q7` | Observación completa: DDL, introspección, savepoints y raw pasan por middleware y observer; `CreateBatch` llega al observer | `S0` | `CON-04` present; otel y quarkbridge verdes |
 | `Q8` | Fixtures probados de chi, Echo y Gin; la guía de frameworks reescrita sobre ellos | `S0` | `INT-01`…`INT-03` present |
 | `Q9` | Fixtures de gRPC y de Nucleus | `Q8` | `INT-04`, `INT-05` present |
-| `Q10` | `quark init --with chi\|echo\|gin\|grpc`, su salida compilada contra los fixtures | `Q8`, `Q9` | `INT-06` present |
+| `Q10` | `quark init --with chi\|echo\|gin\|grpc`, su salida compilada contra los fixtures (la sonda debe COMPILAR la salida, no contar módulos que requieren el framework) | `Q8`, `Q9` | `INT-06` present |
+| `Q11` | Lo que ignora el `Where`: las escrituras por clave (`Update`, `UpdateBatch`, `Delete`, `HardDelete`) aplican el del llamador además de la PK (QK-40) y el borrado lógico entra en los grupos `Or` (QK-41) | QK-39 (quark#428) | QK-40 y QK-41 hechos; `RLS-03` del banco de A8 re-medido y retitulado |
 
 ### Sitio (paraguas)
 
@@ -220,6 +225,7 @@ cableado (lo dice la página del banco).
 | Q8 | pendiente | — | |
 | Q9 | pendiente | — | |
 | Q10 | pendiente | — | |
+| Q11 | pendiente | — | |
 | W1 | pendiente | — | |
 | W2 | pendiente | — | |
 | W3 | pendiente | — | |
