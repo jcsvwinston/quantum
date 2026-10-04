@@ -670,6 +670,40 @@ release-please@17` y llamar a `parseConventionalCommits` de
 bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
 la línea y la columna.
 
+### Lo que aprendió el tren de 1.39.0 (A10 cerrado, y un P0 de quark con el tren en marcha)
+
+- **Un defecto grave encontrado con el tren en marcha entra en el MISMO
+  set.** QK-39 (las escrituras de quark ignoraban `WhereNot`) apareció con
+  quark v1.15.1 ya etiquetada. En vez de certificar con el defecto y cortar
+  otro set detrás: parar el driver al entrar en nucleus, dejar que nucleus
+  siga (no depende de quark), fusionar el arreglo, cortar quark otra vez con
+  `--desde quark --hasta quark` (que vuelve a subir los suelos de los
+  módulos, ahora a la patch anterior), y lanzar `--desde orbit` UNA vez,
+  cuando los dos pilares ya están en su versión final. Orbit se alinea una
+  sola vez. Ojo: `--desde quark` sin `--hasta` vuelve a pasar por nucleus y
+  abriría OTRO PR de suelos.
+- **Fusionar los suelos de nucleus regenera la rama del release y se lleva
+  lo escrito a mano en ella** (las notas y el snapshot de docs de RT-9). Ya
+  estaba avisado para quark; en nucleus pasa igual, y el driver no lo
+  repone. Antes de lanzar la fase: `git format-patch` de esos commits de la
+  rama del release a un sitio fuera del repo, y `git am` sobre la rama
+  regenerada si desaparecen. Los dos guards de doc de nucleus
+  (`check_version_claims`, `check_docs_archive_freshness`) dicen en
+  segundos si la rama vuelve a estar completa.
+- **Un `go.mod` suelto en la raíz de `$TMPDIR` tumba la certificación en
+  local.** Un agente dejó una copia del `go.mod` de orbit en
+  `/var/folders/.../T/`; Go la ignora («ignoring go.mod in system temp
+  root»), pero el CLI de nucleus la toma al buscar el proyecto hacia arriba,
+  y la regresión A7 de `check_exit0_regressions.sh` sale roja en el
+  `--cierre`. En CI no pasa. Antes de `--desde cierre` en local: `ls
+  "$TMPDIR"/go.mod` debe fallar. El defecto del CLI es NU-109.
+- **Lanzar el driver en segundo plano con `&` dentro de un comando que ya va
+  en segundo plano pierde el aviso de fin**: el proceso queda huérfano y
+  nadie avisa cuando para. Un solo nivel de segundo plano.
+- **Con muchos PRs de agentes abiertos a la vez, los runners de GitHub se
+  saturan** y el CI de cada release PR espera en cola: el tren tardó 2 h 55
+  min. La prioridad de runners es del tren; las sesiones esperan.
+
 ### Lo que aprendió el tren de 1.38.0 (A9 cerrado: dos cortes de orbit y un séptimo módulo)
 
 **El nacimiento de un módulo puede dejar una release sin activos.** El
