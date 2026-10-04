@@ -353,6 +353,13 @@ GUARD_SCAN_EXCLUDE=(
   # formatea. Lo que sí certifica cada una de esas cosas son los guards que este
   # script invoca o resume.
   "scripts/estado.sh"
+  # El gate de A10 (umbrella-api-posture), escrito con su fixture y FUERA del
+  # registro hasta que el pin de nucleus contenga lo que comprueba: el banco
+  # del API en 46/46, el starter con endpoints tipados y el test del cliente
+  # TypeScript generado. El escaneo anti-fósil recorre los productos AL PIN, y
+  # al pin de 1.38.0 nada de eso existe todavía. Entra en el registro (y sale
+  # de aquí) en el commit del set que mueve el gitlink de nucleus.
+  "scripts/check_api_posture.sh"
   # Utillaje de ESCRITURA del manifiesto (capa 1 de automatización de docs):
   # mueve los submódulos al tag y reescribe las 8 versiones, los pins y las
   # tablas del README. No certifica nada — PROPONE el re-pin; quien lo juzga
