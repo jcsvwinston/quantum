@@ -475,6 +475,15 @@ GUARD_SCAN_EXCLUDE=(
   # estática (comandos y conceptos de la página) es el guard registrado
   # umbrella-quickstart-cost, que esta lane también ejecuta como último paso.
   "scripts/ci/quickstart_smoke.sh"
+  # Arnés PESADO del arco A11 (W2): ejecuta los tres tutoriales del sitio paso
+  # a paso — compila el CLI de nucleus al pin, escribe los ficheros de cada
+  # página, ARRANCA cada app y compara sus salidas con las de la página. Lane
+  # de integration.yml (job tutorials-smoke), misma familia run_* que
+  # quickstart_smoke — no un check estático que la certificación repita. Lo
+  # que sí la vigila de forma estática es el banco del sitio
+  # (tests/sitebench/sitebench.sh, ST-04…ST-06), que exige que la lista de
+  # páginas de este script y el job que lo llama existan.
+  "scripts/ci/tutorials_smoke.sh"
 )
 
 # guard_registry_selfcheck — EXIT!=0 si algún script escaneado no está ni

@@ -214,6 +214,41 @@ jobs:
           QUICKSTART_CACHE_LABEL: ${{ steps.go.outputs.cache-hit == 'true' && 'restaurada' || 'sin restaurar (miss)' }}
         run: bash scripts/ci/quickstart_smoke.sh
 
+  # Arco A11 (W2): los tres tutoriales del sitio —SaaS multi-tenant, API-only
+  # y monolito MVC—, EJECUTADOS paso a paso contra el set pinado con el parser
+  # de fences del quickstart (qs_steps): cada comando de la página, cada
+  # fichero que manda escribir y cada salida que enseña, comparada con lo que
+  # el comando imprimió; después, las sondas de lo que la página sólo cuenta
+  # (el panel, el feed en vivo, el documento OpenAPI) y 0 WARN. Presupuesto de
+  # 60 s por tutorial sobre la caché restaurada, como el quickstart. Node 24
+  # porque el tutorial API-only ejecuta un .ts con el cliente generado.
+  tutorials-smoke:
+    name: tutoriales del sitio al set pinado (tres apps, paso a paso)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout (con submódulos — son el trío fijado)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: recursive
+
+      - name: Setup Go (versión declarada en go.work, caché de módulos restaurada)
+        id: go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.work
+          cache-dependency-path: '**/go.sum'
+
+      - name: Setup Node (el tutorial API-only ejecuta el cliente TypeScript generado)
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+
+      - name: Los tres tutoriales, ejecutados paso a paso
+        env:
+          TUTORIALS_CACHE_LABEL: ${{ steps.go.outputs.cache-hit == 'true' && 'restaurada' || 'sin restaurar (miss)' }}
+        run: bash scripts/ci/tutorials_smoke.sh
+
   orbit-lockstep:
     name: tests de orbit contra el nucleus fijado (lockstep, A-7)
     runs-on: ubuntu-latest
@@ -255,7 +290,7 @@ jobs:
     name: aviso activo del schedule rojo/cancelado (issue)
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [manifest-guard, go-install-tag, build, quickstart-smoke, orbit-lockstep]
+    needs: [manifest-guard, go-install-tag, build, quickstart-smoke, tutorials-smoke, orbit-lockstep]
     if: (failure() || cancelled()) && github.event_name == 'schedule'
     permissions:
       contents: read
