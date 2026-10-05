@@ -125,6 +125,17 @@ lo que mide son páginas, sidebars y lanes del paraguas.
     unos 9 s y el scheduler sigue disparando contra la base cerrada (NU-103,
     a A12, que mide la cola SQL); y `nucleus new` recomienda
     `examples/mvc_api`, que no existe desde el 2026-09-12 (NU-104).
+11. **Lo que encontró el primer tutorial ejecutado (W2, no `S0`).** Escribir
+    el SaaS multi-tenant contra el set pinado midió lo que ningún banco
+    miraba: **`Find(id)` sobre un `TenantRouter` con `RowLevelSecurityClient`
+    lee la fila de otro tenant** (QK-42, P0) —`Find` sustituye el `Where` por
+    la PK y el predicado del tenant viaja en el `Where`—, y `Update(&row)` y
+    `Delete(&row)` escriben en ella (la mitad de tenant de QK-40, medida aquí
+    sobre el router). Y en nucleus, **`/healthz` dispara la política de
+    tenant del storage** en toda aplicación multi-tenant (NU-111): WARN en el
+    primer `/healthz`, 503 con `require_tenant_storage`. El tutorial usa
+    `Where("id","=",id).First()` y avisa de `Find`; la lane exige ese aviso y
+    tolera esa línea WARN mientras cada hallazgo siga abierto en el registro.
 
 ## El troceado
 
@@ -176,7 +187,7 @@ cableado (lo dice la página del banco).
 | `Q8` | Fixtures probados de chi, Echo y Gin; la guía de frameworks reescrita sobre ellos | `S0` | `INT-01`…`INT-03` present |
 | `Q9` | Fixtures de gRPC y de Nucleus | `Q8` | `INT-04`, `INT-05` present |
 | `Q10` | `quark init --with chi\|echo\|gin\|grpc`, su salida compilada contra los fixtures (la sonda debe COMPILAR la salida, no contar módulos que requieren el framework) | `Q8`, `Q9` | `INT-06` present |
-| `Q11` | Lo que ignora el `Where`: las escrituras por clave (`Update`, `UpdateBatch`, `Delete`, `HardDelete`) aplican el del llamador además de la PK (QK-40) y el borrado lógico entra en los grupos `Or` (QK-41) | QK-39 (quark#428) | QK-40 y QK-41 hechos; `RLS-03` del banco de A8 re-medido y retitulado |
+| `Q11` | Lo que ignora el `Where`: las escrituras por clave (`Update`, `UpdateBatch`, `Delete`, `HardDelete`) aplican el del llamador además de la PK (QK-40), `Find` también (QK-42: sobre un `TenantRouter` lee otro tenant), y el borrado lógico entra en los grupos `Or` (QK-41) | QK-39 (quark#428) | QK-40, QK-41 y QK-42 hechos; `RLS-03` del banco de A8 re-medido y retitulado; tras el re-pin, el tutorial multi-tenant vuelve a `Find` sin la nota (la lane de tutoriales lo pide en cuanto QK-42 se marca hecho) |
 
 ### Sitio (paraguas)
 
@@ -227,7 +238,7 @@ cableado (lo dice la página del banco).
 | Q10 | pendiente | — | |
 | Q11 | pendiente | — | |
 | W1 | pendiente | — | |
-| W2 | pendiente | — | |
+| W2 | PR abierto | quantum#255 | tres tutoriales en `website/docs/` (SaaS multi-tenant con las tres piezas, API-only con documento, `--check` y cliente TypeScript ejecutado con node, monolito MVC con formulario, CSRF, sesión y flash) y la lane `tutorials-smoke` que los ejecuta paso a paso: `qs_steps` en el parser del quickstart (comandos, ficheros por `title=` y salidas pegadas a su comando, comparadas), sondas de lo que la página sólo cuenta y 0 WARN; ~8 s, ~8 s y ~2,5 s en local (presupuesto 60 s por tutorial). Banco del sitio 0→**3/12**; la sonda de tutorial ya no se conforma con un script que lo nombre: tiene que llamarlo un workflow. Encontró QK-42 (P0) y NU-111 (punto 11) |
 | W3 | pendiente | — | |
 | W4 | pendiente | — | |
 | S-fin | pendiente | — | |

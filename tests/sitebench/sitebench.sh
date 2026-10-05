@@ -59,13 +59,26 @@ probe_ST03() {
 
 # Un tutorial: una página cuyo título lo diga, y una lane que ejecute sus
 # bloques (el patrón del quickstart: scripts/ci/quickstart_smoke.sh extrae los
-# curl de la página).
+# curl de la página; scripts/ci/tutorials_smoke.sh ejecuta cada paso de los
+# tutoriales). La lane es un workflow que nombra la página, o un script de
+# scripts/ci/ que la nombra Y que un workflow llama: un script que nadie
+# ejecuta no es una lane (W2 lo endureció así; antes bastaba con el script).
 tutorial_probe() {
-  local what=$1 re=$2 page lane
+  local what=$1 re=$2 page lane="" f
   page=$(grep -lEi "^title:.*($re)" "$DOCS"/*.md "$DOCS"/*.mdx 2>/dev/null | head -1)
   if [[ -z "$page" ]]; then echo "  sin página: ningún title de $DOCS casa /$re/ ($what)"; echo absent; return; fi
-  lane=$(grep -l "$(basename "$page")" "$WF"/*.yml scripts/ci/*.sh 2>/dev/null | head -1)
-  if [[ -n "$lane" ]]; then echo present; else echo "  $page existe y ninguna lane la ejecuta"; echo partial; fi
+  # La página tiene que aparecer en una línea que no sea comentario: que un
+  # comentario la nombre no la ejecuta.
+  local base_re
+  base_re=$(basename "$page" | sed 's/[.]/[.]/g')
+  for f in $(grep -lE "^[[:space:]]*[^#[:space:]].*$base_re" "$WF"/*.yml scripts/ci/*.sh 2>/dev/null); do
+    case "$f" in
+      "$WF"/*) lane=$f; break ;;
+      *) if grep -qE "^[[:space:]]*[^#[:space:]].*$(sed 's/[.]/[.]/g' <<<"$f")" "$WF"/*.yml 2>/dev/null; then lane=$f; break; fi ;;
+    esac
+  done
+  if [[ -n "$lane" ]]; then echo present
+  else echo "  $page existe y ninguna lane la ejecuta (ni un workflow la nombra, ni un script de scripts/ci/ que la nombre lo llama un workflow)"; echo partial; fi
 }
 probe_ST04() { tutorial_probe "SaaS multi-tenant" 'multi-?tenant'; }
 probe_ST05() { tutorial_probe "API-only" 'api[- ]only|json api'; }
@@ -109,9 +122,9 @@ CONTROLS=(
   "ST-01|why|absent|a «Why Quantum» page in the reader's path|ningún title de website/docs habla de por qué o compara; what-is-quantum.md tiene un «cuándo no usarla» sin cifras"
   "ST-02|why|absent|every number on it has a source a guard checks|no hay página, así que no hay cifras ni guard que las ate a su fuente"
   "ST-03|why|absent|the comparison names its alternatives|no hay comparación en el sitio de la suite (quark tiene la suya propia en reference/comparison.mdx)"
-  "ST-04|tutorials|absent|a multi-tenant SaaS tutorial executed in CI|no existe; sólo el quickstart se ejecuta (quickstart_smoke.sh)"
-  "ST-05|tutorials|absent|an API-only tutorial executed in CI|no existe en el sitio de la suite; nucleus minimal-api.md es la página más cercana y no es un tutorial"
-  "ST-06|tutorials|absent|an MVC monolith tutorial executed in CI|no existe"
+  "ST-04|tutorials|present|a multi-tenant SaaS tutorial executed in CI|"
+  "ST-05|tutorials|present|an API-only tutorial executed in CI|"
+  "ST-06|tutorials|present|an MVC monolith tutorial executed in CI|"
   "ST-07|migration|absent|a migration guide from Gin+GORM with executed snippets|no existe; «coming from»/«migrating from» sólo encuentra notas de versión"
   "ST-08|migration|absent|a migration guide from Django with executed snippets|no existe"
   "ST-09|reference|absent|an API reference generated from the frozen surfaces, with a drift check|las páginas de API de quark se escriben a mano y las de nucleus (docs/reference/api) son prosa interna fuera del sitio"

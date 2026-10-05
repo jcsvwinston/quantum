@@ -8,9 +8,12 @@
 # bloques de código igual), el guard contaría mal y la lane ejecutaría
 # basura — los dos en verde. También prueba el predicado de encendido que
 # guard y lane comparten (qs_nucleus_knows_with) y el lector de fences
-# `file=…` del guard umbrella-quickstart-embeds (qs_embeds). La lane lo corre como paso 0 en cada
-# PR (scripts/ci/quickstart_smoke.sh) y se puede lanzar a mano desde la raíz
-# del paraguas: bash tests/quickstart-fences/selftest.sh
+# `file=…` del guard umbrella-quickstart-embeds (qs_embeds), y los PASOS que
+# la lane de tutoriales ejecuta (qs_steps: comandos, ficheros con título y
+# salidas pegadas a su fence de shell; qs_fence_body: el contenido sin la
+# sangría de la apertura). Las dos lanes lo corren como paso 0 en cada PR
+# (scripts/ci/quickstart_smoke.sh, scripts/ci/tutorials_smoke.sh) y se puede
+# lanzar a mano desde la raíz del paraguas: bash tests/quickstart-fences/selftest.sh
 set -uo pipefail
 
 cd "$(dirname "$0")/../.."
@@ -191,8 +194,79 @@ check "qs_embeds cuenta 2" "2" "$(qs_embeds "$PAGE" | wc -l | tr -d ' ')"
 check "qs_embeds fence anidada es contenido" "" "$(qs_embeds "$PAGE" | grep 'inside-a-fence' || true)"
 check "qs_embeds vacío" "" "$(qs_embeds "$TMP/nofm.md")"
 
+# 7. Pasos de un tutorial (qs_steps): comandos con la línea de la PÁGINA
+#    donde empiezan (front matter incluido), ficheros por title="…" en una
+#    fence que no es de shell, y salidas: la fence json/text sin título que
+#    pega con la fence de shell anterior (sólo líneas en blanco en medio).
+#    Con prosa en medio la salida es ilustrativa y no es un paso; una fence
+#    de shell con título sigue siendo de comandos.
+cat > "$TMP/tutorial.md" <<'MD'
+---
+title: "Tutorial probe"
+---
+
+Create the file:
+
+```go title="tasks/tasks.go"
+package tasks
+
+func Answer() int { return 42 }
+```
+
+```bash
+cd app
+curl -s localhost:8080/tasks \
+    -H 'X-Probe: 1'
+```
+
+```json
+{"tasks":[],"count":0}
+```
+
+```bash title="terminal"
+go run .
+```
+
+The last lines look like this:
+
+```text
+level=INFO msg="not compared: prose in between"
+```
+
+1. A file inside a list item:
+
+   ```yaml title="nucleus.yml"
+   port: 8080
+     nested: kept
+   ```
+
+```sh
+curl -s -o /dev/null -w '%{http_code}\n' localhost:8080/nope
+```
+```text
+404
+```
+
+```go
+// a fence with neither title nor shell: skipped
+```
+MD
+want_steps=$'file\t7\ttasks/tasks.go\ncmd\t14\tcd app\ncmd\t15\tcurl -s localhost:8080/tasks -H \'X-Probe: 1\'\nout\t19\tjson\ncmd\t24\tgo run .\nfile\t35\tnucleus.yml\ncmd\t41\tcurl -s -o /dev/null -w \'%{http_code}\\n\' localhost:8080/nope\nout\t43\ttext'
+check "qs_steps" "$want_steps" "$(qs_steps "$TMP/tutorial.md")"
+check "qs_steps: la salida con prosa en medio no es un paso" "" "$(qs_steps "$TMP/tutorial.md" | grep 'not compared' || true)"
+check "qs_commands es la vista cmd de qs_steps" "$(qs_steps "$TMP/tutorial.md" | awk -F'\t' '$1=="cmd"' | cut -f3-)" "$(qs_commands "$TMP/tutorial.md")"
+
+# 8. qs_fence_body: el contenido tal cual (líneas en blanco incluidas), sin
+#    los delimitadores y sin la sangría de la apertura (la sangría PROPIA del
+#    contenido se queda); una línea que no abre fence es EXIT 2.
+check "qs_fence_body fichero" $'package tasks\n\nfunc Answer() int { return 42 }' "$(qs_fence_body "$TMP/tutorial.md" 7)"
+check "qs_fence_body fence sangrada" $'port: 8080\n  nested: kept' "$(qs_fence_body "$TMP/tutorial.md" 35)"
+check "qs_fence_body salida" '{"tasks":[],"count":0}' "$(qs_fence_body "$TMP/tutorial.md" 19)"
+qs_fence_body "$TMP/tutorial.md" 5 >/dev/null; check "qs_fence_body en una línea de prosa es 2" "2" "$?"
+qs_fence_body "$TMP/tutorial.md" 999 >/dev/null; check "qs_fence_body tras el final es 2" "2" "$?"
+
 if [[ $fails -ne 0 ]]; then
   echo "quickstart-fences selftest: FALLO ($fails aserciones)" >&2
   exit 1
 fi
-echo "quickstart-fences selftest: OK — el parser compartido lee comandos, front matter e identificadores como se documenta"
+echo "quickstart-fences selftest: OK — el parser compartido lee comandos, pasos, front matter e identificadores como se documenta"

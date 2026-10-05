@@ -9,6 +9,18 @@ const sidebars: SidebarsConfig = {
     'what-is-quantum',
     'quickstart',
     'install',
+    {
+      // Tres aplicaciones de punta a punta, cada una ejecutada paso a paso
+      // por la lane tutorials-smoke (scripts/ci/tutorials_smoke.sh).
+      type: 'category',
+      label: 'Tutorials',
+      collapsed: false,
+      items: [
+        'tutorial-multi-tenant-saas',
+        'tutorial-api-only',
+        'tutorial-mvc-monolith',
+      ],
+    },
     'choosing-a-data-layer',
     'certified-sets',
     'verifying-a-set',
