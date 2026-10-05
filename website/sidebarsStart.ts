@@ -24,6 +24,17 @@ const sidebars: SidebarsConfig = {
         'tutorial-mvc-monolith',
       ],
     },
+    {
+      // Desde otra pila: el mapa de conceptos y una app portada, con los
+      // pasos del lado Quantum ejecutados por la misma lane tutorials-smoke.
+      type: 'category',
+      label: 'Migration guides',
+      collapsed: false,
+      items: [
+        'coming-from-gin-gorm',
+        'coming-from-django',
+      ],
+    },
     'choosing-a-data-layer',
     'certified-sets',
     'verifying-a-set',

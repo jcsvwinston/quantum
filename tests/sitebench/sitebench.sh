@@ -73,7 +73,8 @@ probe_ST03() {
   if [[ $n -ge 4 ]]; then echo present; else echo "  la página nombra $n de 7 alternativas (Gin, GORM, Echo, Django, Rails, Laravel, Spring)"; echo partial; fi
 }
 
-# Un tutorial: una página cuyo título lo diga, y una lane que ejecute sus
+# Un tutorial —o una guía de migración, que es el mismo contrato para su lado
+# Quantum (W3)—: una página cuyo título lo diga, y una lane que ejecute sus
 # bloques (el patrón del quickstart: scripts/ci/quickstart_smoke.sh extrae los
 # curl de la página; scripts/ci/tutorials_smoke.sh ejecuta cada paso de los
 # tutoriales). La lane es un workflow que nombra la página, o un script de
@@ -155,8 +156,8 @@ CONTROLS=(
   "ST-04|tutorials|present|a multi-tenant SaaS tutorial executed in CI|"
   "ST-05|tutorials|present|an API-only tutorial executed in CI|"
   "ST-06|tutorials|present|an MVC monolith tutorial executed in CI|"
-  "ST-07|migration|absent|a migration guide from Gin+GORM with executed snippets|no existe; «coming from»/«migrating from» sólo encuentra notas de versión"
-  "ST-08|migration|absent|a migration guide from Django with executed snippets|no existe"
+  "ST-07|migration|present|a migration guide from Gin+GORM with executed snippets|"
+  "ST-08|migration|present|a migration guide from Django with executed snippets|"
   "ST-09|reference|absent|an API reference generated from the frozen surfaces, with a drift check|las páginas de API de quark se escriben a mano y las de nucleus (docs/reference/api) son prosa interna fuera del sitio"
   "ST-10|reference|absent|one post per certified set|docusaurus.config.ts tiene blog: false; las notas del set sólo están en las releases de GitHub"
   "ST-11|catalog|absent|the catalog of nucleus add on the site, generated from the CLI's table|no hay página de catálogo; la lista vive compilada en nucleus/internal/knownproviders"
