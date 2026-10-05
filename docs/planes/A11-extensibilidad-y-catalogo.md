@@ -188,6 +188,7 @@ cableado (lo dice la página del banco).
 | `Q9` | Fixtures de gRPC y de Nucleus | `Q8` | `INT-04`, `INT-05` present |
 | `Q10` | `quark init --with chi\|echo\|gin\|grpc`, su salida compilada contra los fixtures (la sonda debe COMPILAR la salida, no contar módulos que requieren el framework) | `Q8`, `Q9` | `INT-06` present |
 | `Q11` | Lo que ignora el `Where`: las escrituras por clave (`Update`, `UpdateBatch`, `Delete`, `HardDelete`) aplican el del llamador además de la PK (QK-40), `Find` también (QK-42: sobre un `TenantRouter` lee otro tenant), y el borrado lógico entra en los grupos `Or` (QK-41) | QK-39 (quark#428) | QK-40, QK-41 y QK-42 hechos; `RLS-03` del banco de A8 re-medido y retitulado; tras el re-pin, el tutorial multi-tenant vuelve a `Find` sin la nota (la lane de tutoriales lo pide en cuanto QK-42 se marca hecho) |
+| `Q12` | Los upserts y las actualizaciones por mapa dentro del tenant (QK-43, QK-44), encontrados por `Q11` | `Q11` | QK-43 y QK-44 hechos en los seis motores |
 
 ### Sitio (paraguas)
 
@@ -213,30 +214,31 @@ cableado (lo dice la página del banco).
 | N2 | **hecha** 2026-10-05 | nucleus#589 | `WithStorage()` para apps `WithoutDefaults()`; sin ella el bloque declarado se IGNORA con una línea ERROR (negarse a arrancar sería una ruptura: DEP-2026-013 lo programa para v2.0.0); negativas que nombran `nucleus add`; banco 15/38 con N1 |
 | N3 | **hecha** 2026-10-05 | nucleus#593 | cada driver clasifica su motor; `dbclassify` sólo stdlib (con los nombres antiguos, para que los drivers ya publicados compilen contra la raíz nueva); starter api 137→108 módulos, 49,6→29,0 MB; banco **17/38** con N1+N2 (`CAT-01` 8/8, `CAT-11`) |
 | N4 | **hecha** 2026-10-05 | nucleus#595 | recetas en el catálogo (ADR-035): `nucleus add` inserta la opción o el `Mount` en `main.go` y escribe el bloque de configuración; `WithAPIKeys()` y `FederatedSignIn()`; oidc, apikeys y sql-queue cableados con su comprobación (oidc contra un IdP simulado); accounts y websockets a `N5`; NU-112 (el RBAC no ve al dueño de una clave); banco **21/38** |
-| N5 | pendiente | — | |
-| N6 | pendiente | — | |
-| N7 | pendiente | — | |
-| N8 | pendiente | — | |
+| N5 | en curso | — | accounts y realtime desde el runtime, y NU-112 |
+| N6 | en curso | — | |
+| N7 | **hecha** 2026-10-05 | nucleus#597 | `providers/errors-sentry`: errores 500 y panics con contexto de la petición y redacción; el core ganó `interceptor.ErrorReporter` (aditivo); primera entrada de tipo módulo con receta; NU-113 (`Mux.With`); banco **32/38** |
+| N8 | en curso | — | |
 | N9 | pendiente | — | |
-| N10 | pendiente | — | |
-| N11 | pendiente | — | |
-| O1 | PR verde | orbit#532 | 63/72, navegador 7/8; el logo del propio banco daba 404 y `EXT-08` contaba cualquier fallo de arranque |
-| O2 | PR verde | orbit#534 | 65/72; tema aplicado antes del primer frame con un script clásico de `'self'`; su `UIX-09` se renumera a `UIX-10` al integrar |
-| O3 | PR verde | orbit#533 | 61/72; sin `delete` no había selección en la rejilla; OR-62 (contraste de los errores) |
-| O4 | PR verde | orbit#535 | 63/72 en su rama; ruta `/actions/{action}/{id}` (la otra chocaba con el catch-all); Data Studio con estado en la URL |
-| O5 | PR verde | orbit#538 | 67/72, navegador 9/10; un operador sólo con permiso de dashboard no podía entrar; los assets relativos rompían el deep-link |
-| O6 | pendiente | — | |
+| N10 | **hecha** 2026-10-05 | nucleus#596 | `plugins.Serve`, plugin de ejemplo probado (`internal/fixtures/plugins`), `plugin test --execute` real (NU-101), comandos externos en la ayuda, allowlist opcional (NU-102, DEP-2026-014); no existe un «plugins dir»: sólo PATH; banco 27/38 |
+| N11 | **hecha** 2026-10-05 | nucleus#599 | bridge `plugin` del outbox para `queue.publish` y `webhook.deliver`, `outbox.Permanent` (el outbox no distinguía fallos definitivos), ejemplo in-process y `nucleus new --template module` con `CheckModule`; banco 31/38 |
+| O1 | **hecha** 2026-10-05 | orbit#532 | 63/72, navegador 7/8; el logo del propio banco daba 404 y `EXT-08` contaba cualquier fallo de arranque |
+| O2 | **hecha** 2026-10-05 | orbit#534 | 65/72; tema aplicado antes del primer frame con un script clásico de `'self'`; su `UIX-09` se renumera a `UIX-10` al integrar |
+| O3 | **hecha** 2026-10-05 | orbit#533 | 61/72; sin `delete` no había selección en la rejilla; OR-62 (contraste de los errores) |
+| O4 | **hecha** 2026-10-05 | orbit#535 | 63/72 en su rama; ruta `/actions/{action}/{id}` (la otra chocaba con el catch-all); Data Studio con estado en la URL |
+| O5 | **hecha** 2026-10-05 | orbit#538 | 67/72, navegador 9/10; un operador sólo con permiso de dashboard no podía entrar; los assets relativos rompían el deep-link |
+| O6 | **hecha** 2026-10-05 | orbit#540 | código de cliente de la aplicación bajo la CSP (con SRI, sin aflojar `script-src`) y renderers de campo (`window.orbit` v1); banco **72/72**, navegador 12/12; OR-63 (iconos de AG Grid bloqueados por la CSP) |
 | Q1 | **hecha** 2026-10-05 | quark#425 | registro con `RWMutex`, QK-33 (`listOperand`), ADR-0026 aceptado; al buscar QK-33 apareció **QK-39 (P0)**, arreglado en quark#428 dentro de 1.39.0 |
 | Q2 | **hecha** 2026-10-05 | quark#432 → quark#433 | seis interfaces opcionales nuevas en `quarkdriver`; Oracle declaraba DDL transaccional y no lo tiene; `DRV-04` present (7/22) (fusionados como `feat(schema)`: añaden API) |
-| Q3 | pendiente | — | |
-| Q4 | pendiente | — | |
+| Q3 | **hecha** 2026-10-05 | quark#436 | el contrato del dialecto en `quarkdriver` con alias en `quark` (ADR-0026); `DRV-02` present con una fixture que sólo importa `quarkdriver`; el generador de superficie registra `alias_of`; banco 13/22 |
+| Q4 | en curso | — | |
 | Q5 | pendiente | — | |
 | Q6 | pendiente | — | |
 | Q7 | pendiente | — | |
 | Q8 | **hecha** 2026-10-05 | quark#426 | `internal/integrations` (módulo propio no publicado); la guía de frameworks comprobada línea a línea contra las fixtures; banco 8/22 |
 | Q9 | **hecha** 2026-10-05 | quark#427 | gRPC y Nucleus; NU-107 (`BindJSON` con arrays, ya arreglado en nucleus#591); banco 10/22 |
-| Q10 | pendiente | — | |
-| Q11 | en curso | — | ampliada con **QK-42 (P0)**: `Find(id)` bajo `RowLevelSecurityClient` lee la fila de otro tenant (lo encontró el tutorial multi-tenant de `W2`); primero QK-42, luego QK-40 y QK-41 |
+| Q10 | **hecha** 2026-10-05 | quark#438 | `quark init --with chi\|echo\|gin\|grpc\|nucleus`; el CLI embebe copias byte a byte de las fixtures y CI compila su salida; banco 14/22 |
+| Q11 | **hecha** 2026-10-05 | quark#435 | QK-42 (P0), QK-40, QK-41: `Find` dentro del tenant, escrituras por clave con tenant y `Where`, ámbitos con paréntesis; `RLS-03` present (enterprise 48/69); encontró QK-43…QK-46 |
+| Q12 | **hecha** 2026-10-05 | quark#437 | QK-43 (P0): el upsert no escribe en otro tenant (guarda por motor); QK-44: `UpdateMap` no mueve filas de tenant |
 | W1 | **hecha** 2026-10-05 | quantum#257 | «Why Quantum» (`website/docs/why-quantum.md`, en el sidebar tras «What is Quantum?»): la suite frente a Gin+GORM, Echo, Django, Rails, Laravel y Spring Boot en diez ejes, con un «Where the others are ahead» en cada sección y una de ecosistema y madurez donde todos van por delante, sin matices. Quince cifras en la página (seis titulares de banco y una familia, dos filas de la tabla de ns/op de quark, módulos y MB del starter, los comandos del quickstart, los módulos de `nucleus add` por clase) y una en `what-is-quantum.md`, cada una citada en su párrafo. Guard `umbrella-why-quantum` (el 55º) con fixture de cuatro roturas: compara cada cifra con su fuente al pin, prohíbe cualquier otro número en la prosa —también en palabras— y ata la frase que sustituyó a «not breadth of plugins» a `versions.yaml` y a la tabla de `nucleus add` al pin. **Al re-pinar nucleus con el catálogo de N1/N4 pondrá rojo el PR de set**: esa tabla cablea capacidades del core (3 en el main de hoy) y las dos frases cuentan sólo módulos; se reescriben ahí. `ST-02` y `ST-12` endurecidas: exigen el guard registrado y en verde, así que una cifra cambiada las tumba (verificado por mutación). Banco del sitio 3→**7/12** |
 | W2 | **hecha** 2026-10-05 | quantum#255 | tres tutoriales en `website/docs/` (SaaS multi-tenant con las tres piezas, API-only con documento, `--check` y cliente TypeScript ejecutado con node, monolito MVC con formulario, CSRF, sesión y flash) y la lane `tutorials-smoke` que los ejecuta paso a paso: `qs_steps` en el parser del quickstart (comandos, ficheros por `title=` y salidas pegadas a su comando, comparadas), sondas de lo que la página sólo cuenta y 0 WARN; ~8 s, ~8 s y ~2,5 s en local (presupuesto 60 s por tutorial). Banco del sitio 0→**3/12**; la sonda de tutorial ya no se conforma con un script que lo nombre: tiene que llamarlo un workflow. Encontró QK-42 (P0) y NU-111 (punto 11) |
 | W3 | pendiente | — | |
