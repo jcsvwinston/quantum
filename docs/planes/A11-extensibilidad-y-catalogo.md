@@ -212,7 +212,7 @@ cableado (lo dice la página del banco).
 | N1 | **hecha** 2026-10-05 | nucleus#590 | una tabla (`internal/knownproviders/catalog.go`) para `add`, `new --with`, la ayuda, la referencia y las negativas; `modules.json` embebido que release-please reescribe (ruta con `/` inicial: sin ella apunta dentro del paquete y no falla nada); quark y orbit siguen sin fijar (`CAT-04`: el set se certifica después del tag de nucleus); ADR-034; banco 6→12 |
 | N2 | **hecha** 2026-10-05 | nucleus#589 | `WithStorage()` para apps `WithoutDefaults()`; sin ella el bloque declarado se IGNORA con una línea ERROR (negarse a arrancar sería una ruptura: DEP-2026-013 lo programa para v2.0.0); negativas que nombran `nucleus add`; banco 15/38 con N1 |
 | N3 | **hecha** 2026-10-05 | nucleus#593 | cada driver clasifica su motor; `dbclassify` sólo stdlib (con los nombres antiguos, para que los drivers ya publicados compilen contra la raíz nueva); starter api 137→108 módulos, 49,6→29,0 MB; banco **17/38** con N1+N2 (`CAT-01` 8/8, `CAT-11`) |
-| N4 | pendiente | — | |
+| N4 | **hecha** 2026-10-05 | nucleus#595 | recetas en el catálogo (ADR-035): `nucleus add` inserta la opción o el `Mount` en `main.go` y escribe el bloque de configuración; `WithAPIKeys()` y `FederatedSignIn()`; oidc, apikeys y sql-queue cableados con su comprobación (oidc contra un IdP simulado); accounts y websockets a `N5`; NU-112 (el RBAC no ve al dueño de una clave); banco **21/38** |
 | N5 | pendiente | — | |
 | N6 | pendiente | — | |
 | N7 | pendiente | — | |
@@ -226,19 +226,19 @@ cableado (lo dice la página del banco).
 | O4 | PR verde | orbit#535 | 63/72 en su rama; ruta `/actions/{action}/{id}` (la otra chocaba con el catch-all); Data Studio con estado en la URL |
 | O5 | PR verde | orbit#538 | 67/72, navegador 9/10; un operador sólo con permiso de dashboard no podía entrar; los assets relativos rompían el deep-link |
 | O6 | pendiente | — | |
-| Q1 | PR verde, rebasado | quark#425 | registro con `RWMutex`, QK-33 (`listOperand`), ADR-0026 aceptado; al buscar QK-33 apareció **QK-39 (P0)**, arreglado en quark#428 dentro de 1.39.0 |
-| Q2 | PRs verdes | quark#432 → quark#433 | seis interfaces opcionales nuevas en `quarkdriver`; Oracle declaraba DDL transaccional y no lo tiene; `DRV-04` present (7/22); retitular a `feat(schema)` al fusionar |
+| Q1 | **hecha** 2026-10-05 | quark#425 | registro con `RWMutex`, QK-33 (`listOperand`), ADR-0026 aceptado; al buscar QK-33 apareció **QK-39 (P0)**, arreglado en quark#428 dentro de 1.39.0 |
+| Q2 | **hecha** 2026-10-05 | quark#432 → quark#433 | seis interfaces opcionales nuevas en `quarkdriver`; Oracle declaraba DDL transaccional y no lo tiene; `DRV-04` present (7/22) (fusionados como `feat(schema)`: añaden API) |
 | Q3 | pendiente | — | |
 | Q4 | pendiente | — | |
 | Q5 | pendiente | — | |
 | Q6 | pendiente | — | |
 | Q7 | pendiente | — | |
-| Q8 | PR verde | quark#426 | `internal/integrations` (módulo propio no publicado); la guía de frameworks comprobada línea a línea contra las fixtures; banco 8/22 |
-| Q9 | PR verde | quark#427 | gRPC y Nucleus; NU-107 (`BindJSON` con arrays, ya arreglado en nucleus#591); banco 10/22 |
+| Q8 | **hecha** 2026-10-05 | quark#426 | `internal/integrations` (módulo propio no publicado); la guía de frameworks comprobada línea a línea contra las fixtures; banco 8/22 |
+| Q9 | **hecha** 2026-10-05 | quark#427 | gRPC y Nucleus; NU-107 (`BindJSON` con arrays, ya arreglado en nucleus#591); banco 10/22 |
 | Q10 | pendiente | — | |
-| Q11 | pendiente | — | |
+| Q11 | en curso | — | ampliada con **QK-42 (P0)**: `Find(id)` bajo `RowLevelSecurityClient` lee la fila de otro tenant (lo encontró el tutorial multi-tenant de `W2`); primero QK-42, luego QK-40 y QK-41 |
 | W1 | pendiente | — | |
-| W2 | PR abierto | quantum#255 | tres tutoriales en `website/docs/` (SaaS multi-tenant con las tres piezas, API-only con documento, `--check` y cliente TypeScript ejecutado con node, monolito MVC con formulario, CSRF, sesión y flash) y la lane `tutorials-smoke` que los ejecuta paso a paso: `qs_steps` en el parser del quickstart (comandos, ficheros por `title=` y salidas pegadas a su comando, comparadas), sondas de lo que la página sólo cuenta y 0 WARN; ~8 s, ~8 s y ~2,5 s en local (presupuesto 60 s por tutorial). Banco del sitio 0→**3/12**; la sonda de tutorial ya no se conforma con un script que lo nombre: tiene que llamarlo un workflow. Encontró QK-42 (P0) y NU-111 (punto 11) |
+| W2 | **hecha** 2026-10-05 | quantum#255 | tres tutoriales en `website/docs/` (SaaS multi-tenant con las tres piezas, API-only con documento, `--check` y cliente TypeScript ejecutado con node, monolito MVC con formulario, CSRF, sesión y flash) y la lane `tutorials-smoke` que los ejecuta paso a paso: `qs_steps` en el parser del quickstart (comandos, ficheros por `title=` y salidas pegadas a su comando, comparadas), sondas de lo que la página sólo cuenta y 0 WARN; ~8 s, ~8 s y ~2,5 s en local (presupuesto 60 s por tutorial). Banco del sitio 0→**3/12**; la sonda de tutorial ya no se conforma con un script que lo nombre: tiene que llamarlo un workflow. Encontró QK-42 (P0) y NU-111 (punto 11) |
 | W3 | pendiente | — | |
 | W4 | pendiente | — | |
 | S-fin | pendiente | — | |
