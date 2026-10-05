@@ -26,6 +26,11 @@ on:
       - 'go.work'
       - 'docs/RUMBO.md'
       - 'README.md'
+      # El registro de hallazgos y la escala de la re-auditoría
+      # (audit-backlog, audit-criteria): un PR que sólo toca registro.csv
+      # —el que cierra un hallazgo, o el que mete un id repetido— es justo el
+      # que tiene que correrlos, no el cron del lunes.
+      - 'docs/auditoria/**'
       # Todo el directorio de workflows, no sólo esta lane (que queda
       # subsumida). El guard `umbrella-actions-pinned` vive en el registro y
       # el registro sólo lo ejecuta esta lane: si el filtro no nombra
