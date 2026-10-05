@@ -54,7 +54,12 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
-- **Certificación mecánica:** 54 guards en el registro — el 54º,
+- **Certificación mecánica:** 55 guards en el registro — el 55º,
+  `umbrella-why-quantum`, es el gate W1 de A11: cada cifra de la página «Why
+  Quantum» contra su fuente al pin, ningún número sin fuente en su prosa, y
+  la frase de `what-is-quantum.md` sobre lo que instala `nucleus add`
+  (registrado sin esperar a un set: sus fuentes ya están en el pin de
+  1.39.0); el 54º,
   `umbrella-api-posture`, es el gate de A10 (la cifra de
   `nucleus/docs/api-bench.md` y su tabla, el starter con el documento y los
   endpoints tipados, el test del gate y la lane que lo corre con node y

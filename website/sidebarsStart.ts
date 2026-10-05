@@ -7,6 +7,9 @@ import type {SidebarsConfig} from '@docusaurus/plugin-content-docs';
 const sidebars: SidebarsConfig = {
   startSidebar: [
     'what-is-quantum',
+    // Por qué la suite y no otra pila, con cada cifra atada a su fuente por
+    // scripts/check_why_quantum.sh (guard umbrella-why-quantum).
+    'why-quantum',
     'quickstart',
     'install',
     {
