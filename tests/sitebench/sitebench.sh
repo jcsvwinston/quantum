@@ -41,12 +41,28 @@ probe_ST01() {
   if grep -q "'$id'" "$SIDEBAR"; then echo present; else echo "  $p existe y no está en $SIDEBAR"; echo partial; fi
 }
 
+# El guard que ata las cifras de una página: un scripts/check_*.sh que la
+# nombra. Que exista no basta (W1 lo endureció así): tiene que estar en el
+# registro —si no, ni la certificación lo corre ni guard-of-guards prueba que
+# muerda— y tiene que PASAR hoy. Una cifra cambiada en la página lo pone rojo,
+# y con él este control.
+page_guard() { grep -lF "$(basename "$1")" scripts/check_*.sh 2>/dev/null | head -1; }
+
 probe_ST02() {
-  local p; p=$(why_page)
+  local p g out
+  p=$(why_page)
   [[ -n "$p" ]] || { echo "  sin página que medir"; echo absent; return; }
-  # Cada cifra de la página con su fuente, y un guard que las cruce.
-  if grep -lq "$(basename "$p")" scripts/check_*.sh 2>/dev/null; then echo present
-  else echo "  ningún guard de scripts/ lee $p: sus cifras no tienen quien las compruebe"; echo partial; fi
+  g=$(page_guard "$p")
+  if [[ -z "$g" ]]; then echo "  ningún guard de scripts/ lee $p: sus cifras no tienen quien las compruebe"; echo partial; return; fi
+  if ! grep -qF "bash $g" scripts/lib/guard-registry.sh; then
+    echo "  $g lee $p y no está en scripts/lib/guard-registry.sh: ni la certificación lo corre ni guard-of-guards prueba que muerda"; echo partial; return
+  fi
+  if ! out=$(bash "$g" 2>&1); then
+    echo "  $g falla: la página dice algo que su fuente al pin no dice"
+    printf '%s\n' "$out" | grep 'FAIL' | head -5 | sed 's/^/    /'
+    echo partial; return
+  fi
+  echo present
 }
 
 probe_ST03() {
@@ -109,19 +125,33 @@ probe_ST11() {
 }
 
 probe_ST12() {
-  # La frase que A11 contradice: el sitio dice que la suite no compite en
-  # amplitud de plugins. Mientras el catálogo no exista es cierta; al
-  # cerrar A11 tiene que reconciliarse con lo que el catálogo publica.
-  if grep -qi 'breadth of plugins' "$DOCS/what-is-quantum.md"; then
-    echo "  $DOCS/what-is-quantum.md: «not breadth of plugins» — el catálogo de A11 la deja en duda; reconciliarla con un guard de afirmaciones"; echo partial
-  else echo present; fi
+  # La frase que A11 contradecía: el sitio decía que la suite no compite en
+  # amplitud de plugins. W1 la sustituyó por lo que `nucleus add` instala, con
+  # el número; present exige además que un guard registrado compare ese número
+  # con el catálogo al pin y que hoy coincida — si la tabla de `add` gana
+  # entradas en un re-pin, la frase se queda corta y el control cae.
+  local intro="$DOCS/what-is-quantum.md" g out
+  if grep -qi 'breadth of plugins' "$intro"; then
+    echo "  $intro: «not breadth of plugins» — el catálogo de A11 la deja en duda; reconciliarla con un guard de afirmaciones"; echo partial; return
+  fi
+  g=$(page_guard "$intro")
+  if [[ -z "$g" ]] || ! grep -qF "bash $g" scripts/lib/guard-registry.sh; then
+    echo "  ningún guard registrado comprueba lo que $intro dice que instala nucleus add"; echo partial; return
+  fi
+  out=$(bash "$g" 2>&1)
+  if grep -q '\[catalog' <<<"$out"; then
+    echo "  $g: lo que el sitio dice del catálogo no es lo que el pin publica"
+    grep '\[catalog' <<<"$out" | head -3 | sed 's/^/    /'
+    echo partial; return
+  fi
+  echo present
 }
 
 # ---- el banco: id|familia|veredicto registrado|título|nota
 CONTROLS=(
-  "ST-01|why|absent|a «Why Quantum» page in the reader's path|ningún title de website/docs habla de por qué o compara; what-is-quantum.md tiene un «cuándo no usarla» sin cifras"
-  "ST-02|why|absent|every number on it has a source a guard checks|no hay página, así que no hay cifras ni guard que las ate a su fuente"
-  "ST-03|why|absent|the comparison names its alternatives|no hay comparación en el sitio de la suite (quark tiene la suya propia en reference/comparison.mdx)"
+  "ST-01|why|present|a «Why Quantum» page in the reader's path|"
+  "ST-02|why|present|every number on it has a source a guard checks|"
+  "ST-03|why|present|the comparison names its alternatives|"
   "ST-04|tutorials|present|a multi-tenant SaaS tutorial executed in CI|"
   "ST-05|tutorials|present|an API-only tutorial executed in CI|"
   "ST-06|tutorials|present|an MVC monolith tutorial executed in CI|"
@@ -130,7 +160,7 @@ CONTROLS=(
   "ST-09|reference|absent|an API reference generated from the frozen surfaces, with a drift check|las páginas de API de quark se escriben a mano y las de nucleus (docs/reference/api) son prosa interna fuera del sitio"
   "ST-10|reference|absent|one post per certified set|docusaurus.config.ts tiene blog: false; las notas del set sólo están en las releases de GitHub"
   "ST-11|catalog|absent|the catalog of nucleus add on the site, generated from the CLI's table|no hay página de catálogo; la lista vive compilada en nucleus/internal/knownproviders"
-  "ST-12|catalog|partial|no claim on the site contradicts the catalog|what-is-quantum.md dice que la suite no compite en «breadth of plugins»: el catálogo de A11 la pone en duda y nada la reconcilia"
+  "ST-12|catalog|present|no claim on the site contradicts the catalog|"
 )
 
 table=0

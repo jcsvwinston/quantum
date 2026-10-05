@@ -174,6 +174,18 @@ GUARDS=(
   # 409) a través del cliente, que la lane lo corra con node y tsc, y que el
   # documento del starter siga congelado y comparado en el CI.
   "umbrella-api-posture|.|bash scripts/check_api_posture.sh"
+  # El gate W1 del arco A11: cada cifra de «Why Quantum»
+  # (website/docs/why-quantum.md) es la de su fuente AL PIN —el titular o la
+  # familia de un banco de producto, la tabla de ns/op de quark, los MB del
+  # starter, los comandos del quickstart contados con el parser que la lane
+  # ejecuta, los módulos que `nucleus add` instala según versions.yaml y la
+  # tabla que el CLI lee— y la cita en el mismo párrafo; ninguna otra cifra
+  # en la prosa, ni en palabras; y la frase de what-is-quantum.md que
+  # sustituyó a «not breadth of plugins» dice lo que el catálogo publica. Lo
+  # que la página dice de los OTROS frameworks no lleva cifras: nada en este
+  # árbol los mide. Sus fuentes están en el pin de 1.39.0, así que entra sin
+  # esperar al set (README de planes §7).
+  "umbrella-why-quantum|.|bash scripts/check_why_quantum.sh"
   # Toda lane del paraguas con disparador `schedule:` lleva su job
   # `notify-schedule-failure`: el cron rojo no puede degradar al email por
   # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que
