@@ -88,20 +88,28 @@ Orbit mounts inside the Nucleus process: Data Studio browses and edits your
 models with their validation, search, sorting, bulk actions, import and
 export; a live feed shows each request with the SQL it ran; operators get
 their own sessions, role-based access control and an audit trail. The web UI
-is embedded in its Go module, so there are no assets to deploy. Its bench:
-**59 of 59** controls present
+is embedded in its Go module, so there are no assets to deploy. An
+application extends it from Go: actions that ask the operator for input in a
+form before they run, actions on one record that answer with a page of the
+panel or a file to download, cards that draw a value, a list, a table or a
+line or bar chart, dashboards beyond the overview, and its own scripts and
+field renderers, served under the panel's Content Security Policy; the
+actions, cards and screens it adds answer to the panel's role-based access
+control. The theme the panel opens in and its palette are set from
+configuration. Its bench: **72 of 72** controls present
 ([admin bench](https://github.com/jcsvwinston/orbit/blob/main/docs/admin-bench.md)).
 
 **Where the others are ahead.** Django's admin is the closest equivalent, has
 been in production use far longer, and has a large set of third-party
 extensions. Rails applications add ActiveAdmin, Administrate or Avo; Spring
 Boot has nothing for editing data (Spring Boot Admin, a community project,
-monitors applications). Laravel's Nova and Filament let an application customize more of
-the interface: in this set, application code can add actions, widgets and
-pages to Orbit, but actions that take a form, actions on a single record,
-chart widgets and custom field renderers are not available yet. And Orbit only
-mounts on Nucleus: there is no standalone Orbit for an application built on
-anything else.
+monitors applications). Laravel's Nova and Filament still let an application
+reshape more of the interface, and have plugin ecosystems Orbit lacks: in
+Orbit, a field renderer draws a value while the panel's own input still edits
+it, and a screen of the application's own that is more than cards is a page
+its own handler writes, linked from the panel's navigation rather than drawn
+inside it. And Orbit only mounts on Nucleus: there is no standalone Orbit for
+an application built on anything else.
 
 ## ORM
 
@@ -113,16 +121,21 @@ read replicas, schema-diff migrations and multi-tenancy are part of the
 library. Of the queries in its query bench, **58 of 60** are expressed with
 the typed API, and **2** run but emit SQL that only SQLite accepts
 ([query bench](https://github.com/jcsvwinston/quark/blob/main/docs/query-bench.md)).
-Its enterprise bench has **47 of 69** controls present, **18** partial and
+Its enterprise bench has **48 of 69** controls present, **17** partial and
 **4** absent, each partial or absent row saying what is missing
 ([enterprise bench](https://github.com/jcsvwinston/quark/blob/main/docs/enterprise-bench.md)).
 
-On the published microbenchmarks against in-memory SQLite, Quark inserts a
-row in **12,940** ns where GORM takes **19,120** ns, and reads one by primary
-key in **14,140** ns where GORM takes **10,400** ns
-([benchmarks](/quark/reference/benchmarks/)). They are in the same performance
-class; that page explains why the ratios matter more than the absolute
-numbers.
+Quark's speed is measured against hand-written SQL on real PostgreSQL and
+MySQL servers, not against other ORMs. On its engine bench a single-row insert
+takes **1.26** times as long as through `database/sql` and **1.31** times as
+long as through pgx's own pool, and a read by primary key **1.24** and
+**1.30** times. The project proposes a target of at most **1.15** times each
+baseline, and has not adopted it yet; **0 of 6** of its controls meet it, and
+the benchmarks page says what each distance is made of
+([benchmarks](/quark/reference/benchmarks/)). The comparison with GORM, ent
+and sqlc that the same page keeps is dated — measured once, on SQLite,
+against a release from before Quark's first stable version — and is not
+quoted here.
 
 You do not have to use Quark at all: Nucleus has its own SQL-first data layer,
 and [choosing a data layer](choosing-a-data-layer.md) explains when it is
@@ -218,11 +231,18 @@ not.
 Nucleus resolves the tenant of each request, Quark confines the queries to it
 — a database per tenant, a schema per tenant, or rows tagged with the tenant:
 added to each query by Quark on every engine, or enforced by PostgreSQL's
-row-level security — and Orbit confines its views to it. In this set,
-client-side row scoping does not cover reads and writes by primary key
-(`Find`, and the key-based `Update` and `Delete`); the
-[multi-tenant tutorial](tutorial-multi-tenant-saas.md) shows the pattern that
-does, and the enterprise bench records the gap.
+row-level security — and Orbit confines its views to it. When Quark adds the
+tenant itself, it adds it to the operations that address a row by its key as
+well: `Find` looks the key up inside the tenant, so another tenant's id is
+not found; the key-based `Update` and `Delete`, the batch writes, upserts and
+map updates change only the tenant's rows; and every insert and update writes
+the resolved tenant, whatever the entity carried
+([multi-tenant strategies](/quark/advanced/multi-tenant/)). Raw SQL is outside
+that scoping — PostgreSQL's row-level security filters it in the engine — and
+so are reads through a sharded client, which ignore the tenant; the
+[enterprise bench](https://github.com/jcsvwinston/quark/blob/main/docs/enterprise-bench.md)
+records both. The [multi-tenant tutorial](tutorial-multi-tenant-saas.md)
+builds an application on it and pins the isolation down with a test.
 
 **Where the others are ahead.** Hibernate has multi-tenancy built in — per
 database, per schema or by a discriminator column — and Rails has multiple
