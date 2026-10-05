@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-05, QUANTUM 1.39.0 — A10 CERRADO; A11 y A12 EN CURSO: sus `S0` hechas y troceadas, sesiones de los dos arcos en PRs abiertos e integrándose)
+## 3. Estado al cierre (2026-10-05, QUANTUM 1.39.0 certificado; SET 1.40.0 A MEDIAS — quark v1.16.0 y orbit v1.19.x publicados, falta la fase paraguas; A11 casi cerrado, A12 en curso)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -213,33 +213,90 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-10-04/05 — **A10 CERRADO (Quantum 1.39.0), QK-39 (P0) arreglado dentro del set, y A11 y A12 arrancados en paralelo**
+### Sesión 2026-10-05 — **PAUSA a petición de Carlos con el set 1.40.0 a medias. LEE ESTO ANTES DE NADA**
 
-- **A10**: `S4`–`S9` como seis PRs apilados de nucleus (#581…#586),
-  fusionados en orden con cada capa reconstruida sobre el squash de la
-  anterior; banco 46/46; set 1.39.0 certificado con `umbrella-api-posture`.
-- **QK-39**: lo encontró el agente de A11 `Q1` buscando QK-33; reproducido;
-  el tren se dejó avanzar sólo hasta nucleus, quark se cortó dos veces
-  (v1.15.1 suelos, v1.15.2 arreglo) y orbit se alineó una vez.
-- **A11/A12 `S0`**: los bancos (nucleus catalogbench 6/38, orbit extension
-  1/13, quark extbench 5/22, sitio 0/12) y la medición de rendimiento de
-  A12, con 18 hallazgos nuevos en el registro (QK-33…41, NU-99…110 salvo
-  los cerrados, OR-61, OR-62, QM-20, QM-21) — quantum#253.
-- **Sesiones hechas por agentes, verdes, y su estado de fusión** al cerrar
-  la sesión: nucleus — `S0` #587, N1 #590 y N2 #589 FUSIONADAS, NU-107
-  #591 FUSIONADA; N3 #593 reconstruida sobre N2 y en CI; A12 N2 #592 (cola
-  SQL) y N4 (en marcha) pendientes. quark — `S0` #422, QK-39 #428 y A12 Q1
-  #431 FUSIONADAS; Q1 #425 rebasada (en CI); Q2 #432→#433 (retitular a
-  `feat(schema)` al fusionar), Q8 #426→Q9 #427 pendientes. orbit — `S0`
-  #531, O1 #532→O2 #534→O5 #538 y O3 #533→O4 #535 pendientes: al
-  integrarlas hay que reconstruir `ui/dist`, renumerar el `UIX-09` de O2 a
-  `UIX-10` (choca con el de O3) y, en el corte, re-pinar `orbit/ui` en la
-  raíz y en `server/`.
-- **Lo que vale para la próxima**: integrar en local antes de fusionar
-  (N1+N2+N3 chocaban en la misma nota del banco y en el mismo mensaje de
-  oidc); un PR en conflicto NO lanza CI y `gh pr checks` sale vacío sin
-  error (mirar `mergeStateStatus`); con muchos agentes a la vez los runners
-  de GitHub se saturan y el tren tarda (2 h 55 min).
+**1. Terminar el set 1.40.0 (lo primero).** Publica los arreglos de tenants de
+quark — QK-42 y QK-43 son P0: `Find(id)` y la rama de actualización de
+`Upsert` cruzaban tenants bajo `RowLevelSecurityClient` — y A11 en el panel.
+- **Ya publicado**: quark **v1.16.0** (CLI v1.2.0, drivers v0.2.5) · orbit
+  **v1.19.0** (ui v1.1.0, quarkbridge v1.9.4, quarkdatasource v1.12.2) y el
+  patch **v1.19.1** (server v0.20.2) que re-pina `orbit/ui` en la raíz y en
+  `server/` (orbit#542 → release orbit#543, tags cortados). nucleus se queda
+  en **v1.31.0** (no se corta en este set). Activos: quark v1.16.0 y orbit
+  v1.19.0 con sus 15; orbit v1.19.1 tenía 0 al pausar (build en curso) —
+  comprobarlo con `gh release view v1.19.1 -R jcsvwinston/orbit --json assets`
+  antes de certificar. El set pina orbit **v1.19.1**.
+- **Falta la fase paraguas**: `bash scripts/train/train.sh --desde paraguas`
+  → para en la prosa. Antes de relanzar `--desde paraguas --hasta cierre`:
+  (a) traer los extras de la rama **`chore/set-1.40.0-extras`** (tres
+  commits: «Why Quantum» con las cifras al pin nuevo y su guard, el tutorial
+  multi-tenant con `Find` y su lane, la fixture de admin-posture; y QK-42
+  `hecho` en el registro — tiene que ir EN el PR de set, la lane de
+  tutoriales falla si la página y el registro no cambian a la vez);
+  (b) `go work use ./quark/internal/integrations` (módulo nuevo de quark; sin
+  él `check_gowork_covers_manifest.sh` falla); (c) QK-38 `hecho` (quark#431);
+  (d) prosa de `versions.yaml` y «Estado real» de RUMBO; (e) `bash
+  scripts/guard-of-guards.sh` en local; (f) `ls "$TMPDIR"/go.mod` debe fallar
+  antes del cierre. Relanzar con `--incluye` de cada ruta extra.
+- **Trampas que este tren ya pagó** (al README del tren con 1.40.0): el
+  banco de rendimiento de quark (workflow NO requerido) tumbó dos veces el
+  release por un modelo de CPU nuevo — se fusionó a mano con el gate
+  obligatorio en verde, y quark#444 ya ata los tiempos al modelo (QK-47); la
+  minor de quark necesita su snapshot de docs y `quark-doc-debt.sh` no lo
+  corta (se corta con `npm run docusaurus -- docs:version X` enlazando
+  `website/node_modules` del checkout principal); el guard de voz de quark
+  rechaza ids de ADR en las notas publicadas; el tren escribió para orbit
+  v1.19.0 notas de «alineación sin cambios» y eran falsas (se reescribieron);
+  y un módulo `ui` que sube en el mismo corte que la raíz deja la raíz con el
+  `ui` viejo → segundo corte (v1.19.1).
+
+**2. Cola de fusiones, DESPUÉS del set**: quantum#260 (W3, guías de
+migración; sus rojos son los tags por delante del pin) ·
+**nucleus#603** (A11 N9: `pkg/billing` + `providers/billing-stripe`,
+ADR-037; verde, catálogo 37/38) — OJO antes de fusionar: el módulo nuevo
+requiere nucleus por una pseudo-versión de un commit que sólo existe en la
+rama del PR (`ec1a69e7`); con squash queda huérfano de main. Re-pinarlo como
+N7/N8 (`0.0.0` en el manifiesto, primera release v0.1.0) o a la versión que
+lo contenga · **quark#446** (A11 Q5: plantilla de driver en `internal/drivertemplate` y guía «Writing a driver»; verde, extensión de quark 21/22) ·
+**quark#447** (A11 Q7, DRAFT: el middleware y el observer ven las 27
+sentencias; falta pasar `migrate` y `quarktenant` por el gancho, el
+atributo de tipo en `quark/otel`, el banco y docs, y la mutación).
+
+**3. Registro y planes por actualizar** (no se escribieron al pausar):
+hechos — QK-34, QK-35, QK-36 (mitad CPU), QK-47 (quark#444), NU-112 (nucleus#598),
+OR-59, OR-61, OR-62, OR-63 (orbit#544, A12 O1, fusionado en orbit main tras
+v1.19.1: entra en el próximo corte de orbit, que re-pinará `ui` otra vez); nuevos — QK-48 (`Upsert` con
+`updateCols` vacío no actualiza), QK-49 y QK-50 (Oracle: acciones de FK,
+`VARCHAR2` en bytes), QK-51 (checkpoint de `ApplyPlan` sin DDL transaccional),
+QK-52 (RLS-10 intermitente en la lane de race de quark), NU-116
+(`TestScheduler_OnlyTheLeaderFires` intermitente con -race en nucleus), NU-114 (`mail_driver`
+ignorado en una app `WithoutDefaults()` sin `WithMail()`), NU-115 (el log
+«server listening» sale antes del bind). Filas del plan de A11: N5, N6, N8, Q4,
+Q6, W3 hechas; N9 y Q5 con PR verde, Q7 en draft. Y `versions.yaml`
+necesita a mano las filas de `errors-sentry`, `auth-saml` y `billing-stripe`
+en el primer set que certifique sus releases. Filas de A12: Q2, O1, R0 hechas.
+
+**4. Decisiones pendientes de Carlos**: las cuatro de A12 (en su plan; la 1
+tiene que nombrar la máquina: el runner y el portátil dan veredictos
+distintos) y la política de compatibilidad que propone la página de contrato
+de quark (quark#443: un punto de extensión no gana métodos en v1, una
+interfaz de «fontanería» sí; estrecha la promesa de `upgrade.mdx`, pide ADR).
+
+**5. Lo que queda de los arcos**: A11 — N9, Q5, Q7 (en PR), W4 (referencia
+generada y catálogo en el sitio) y `S-fin` (guards de postura; el de admin
+sube su suelo a 72; bancos a la cifra final: catálogo 36/38 en main, panel
+72/72, extensión de quark 20/22, sitio 9/12 con W3). A12 — Q3 (lotes, COPY,
+sentencias en MySQL), N1 (grafo: tests y CLI fuera del módulo raíz), y al
+final M0 → R1 → M1 → R2. Al re-pinar quark con Q5 y Q6 dentro (el set
+SIGUIENTE a 1.40.0: no están en v1.16.0), añadir `guides/writing-a-driver` y
+`reference/extension-contract` a `website/sidebarsQuark.ts`
+(`check_sidebar_sync.sh` falla si no); al certificar
+la primera release de `errors-sentry` y `auth-saml`, añadirlos a mano a
+`nucleus_modules` de `versions.yaml`.
+
+**Worktrees** que dejó la sesión (borrables): `~/GolandProjects/*-a11-*`,
+`*-a12-*`, `quantum-set-1-40`, `orbit-a11-integ`, `nucleus-nu107`,
+`quark-qk39`.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
