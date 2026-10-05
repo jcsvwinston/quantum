@@ -54,7 +54,11 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
-- **Certificación mecánica:** 55 guards en el registro — el 55º,
+- **Certificación mecánica:** 56 guards en el registro — el 56º,
+  `umbrella-audit-criteria` (A12 `R0`), vigila la escala con la que se
+  repite la auditoría de madurez (`docs/auditoria/criterios-5.csv`: las 36
+  dimensiones del 2026-09-03, qué es un 1, un 3 y un 5, y con qué se mide
+  cada una); el 55º,
   `umbrella-why-quantum`, es el gate W1 de A11: cada cifra de la página «Why
   Quantum» contra su fuente al pin, ningún número sin fuente en su prosa, y
   la frase de `what-is-quantum.md` sobre lo que instala `nucleus add`

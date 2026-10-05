@@ -39,10 +39,19 @@ GUARDS=(
   # --- paraguas -------------------------------------------------------------
   # pin ↔ tag ↔ gitlink + tags de módulo de orbit + disclosure de lags (§1-§5).
   "umbrella-manifest-guard|.|bash scripts/manifest-guard.sh"
-  # Contabilidad de los hallazgos de la auditoría de madurez 2026-09-03: cada
-  # id de los informes tiene fila, cada fila abierta tiene arco, y un arco
+  # Contabilidad de los hallazgos de la auditoría de madurez 2026-09-03 y de
+  # sus re-auditorías: cada id de los informes tiene fila, ningún id está
+  # repetido (hubo dos NU-50 y nada lo vio), cada fila abierta tiene arco
+  # —A<n>, sin techo: lo que A12 deje abierto va a un A13— y un arco
   # declarado cerrado no deja hallazgos abiertos (gate de A1 del plan 5/5).
   "umbrella-audit-backlog|.|bash scripts/check_audit_backlog.sh"
+  # La escala de la re-auditoría (A12 R0, QM-21): docs/auditoria/criterios-5.csv
+  # tiene una fila por cada dimensión que la auditoría del 2026-09-03 puntuó
+  # —la lista sale de los propios informes—, con su nota de entonces, qué es
+  # un 1, un 3 y un 5, y un instrumento que EXISTE en el árbol al pin o la
+  # palabra «juicio»; y cada re-auditoría consolidada puntúa exactamente esas
+  # dimensiones. La escala vivía sólo en un artefacto fuera del repo.
+  "umbrella-audit-criteria|.|bash scripts/check_audit_criteria.sh"
   # Jerga interna en el HTML SERVIDO (QM5-1 + IDs de hallazgo, 7ª ronda).
   # Requiere website/build construido — suite-integral construye el sitio antes.
   "umbrella-served-jargon|.|bash scripts/check_served_jargon.sh website/build"

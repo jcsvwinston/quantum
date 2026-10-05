@@ -41,15 +41,21 @@ cerrados=$(sed -nE '1s/^# arcos_cerrados:[[:space:]]*//p' "$reg")
 abiertos=$(awk -F, 'NR>2 && $5=="abierto" {print $4}' "$reg" | sort | uniq -c | awk '{printf "%s(%s) ", $2, $1}')
 printf 'Arcos cerrados: \033[1m%s\033[0m · abiertos por arco: %s\n' "$cerrados" "${abiertos:-ninguno}"
 
-# El siguiente arco es el primero de A1..A12 que no está en la lista de
-# cerrados. Se deriva, no se escribe: una lista escrita se queda vieja.
+# El siguiente arco es el primero de A1..A<n> que no está en la lista de
+# cerrados, con <n> el mayor arco que el registro nombra (A12 hasta que la
+# re-auditoría abra un A13). Se deriva, no se escribe: una lista escrita se
+# queda vieja.
+ultimo=$(awk -F, 'NR>2 && $4 ~ /^A[1-9][0-9]*$/ {n=substr($4,2)+0; if (n>m) m=n} END {print (m>12 ? m : 12)}' "$reg")
 siguiente=""
-for n in $(seq 1 12); do
+for n in $(seq 1 "$ultimo"); do
   case " $cerrados " in *" A$n "*) continue ;; esac
   siguiente="A$n"; break
 done
-plan=$(ls docs/planes/ 2>/dev/null | grep -E "^${siguiente}-" | head -1)
-if [ -n "$plan" ]; then
+plan=""
+[ -n "$siguiente" ] && plan=$(ls docs/planes/ 2>/dev/null | grep -E "^${siguiente}-" | head -1)
+if [ -z "$siguiente" ]; then
+  printf 'Siguiente: \033[1mninguno\033[0m — los %s arcos del registro están cerrados.\n' "$ultimo"
+elif [ -n "$plan" ]; then
   # La primera fila del registro de sesiones que no está hecha. Se lee SOLO
   # bajo «## Registro de sesiones»: un fichero de arco puede llevar otras
   # tablas cuya primera celda también empieza por Sn — la de A4 lleva la de

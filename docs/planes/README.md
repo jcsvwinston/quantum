@@ -44,7 +44,7 @@ hallazgos abiertos por arco. El 3 lo dice en prosa y el guard
 Y una sexta, que sólo hace falta si vas a certificar o sospechas deriva:
 
 ```bash
-bash scripts/suite-integral.sh --cierre   # los 47 guards sobre el árbol pinado
+bash scripts/suite-integral.sh --cierre   # todos los guards del registro sobre el árbol pinado
 ```
 
 ## 2. Lo que una sesión NO decide sola
