@@ -37,7 +37,12 @@ cp "$ROOT"/orbit/internal/adminbench/browser/specs/*.spec.ts "$TREE/orbit/intern
 cp "$ROOT/orbit/docs/admin-bench.md" "$TREE/orbit/docs/"
 cp "$ROOT/orbit/.github/workflows/ci.yml" "$TREE/orbit/.github/workflows/"
 
-# (A) la página publica otra cifra.
+# (A) la página publica otra cifra. El total se lee del banco al pin, no se
+# escribe aquí: el banco crece con cada arco (59 en A6, 72 al cerrar A11 en
+# orbit v1.19.0), y una fixture con el total fijo deja de prepararse en el
+# primer re-pin que lo mueve — falla el arnés por la fixture, no por el guard.
+total=$(grep -oE '\*\*[0-9]+ of [0-9]+ controls present' "$ROOT/orbit/docs/admin-bench.md" | head -1 | grep -oE 'of [0-9]+' | grep -oE '[0-9]+')
+[[ -n "$total" ]] || { echo "fixture: orbit/docs/admin-bench.md no publica «**N of M controls present**» al pin" >&2; exit 1; }
 perl -0pi -e 's/\*\*\d+ of (\d+) controls present/**11 of $1 controls present/' "$TREE/orbit/docs/admin-bench.md"
 
 # (B) el CI deja de exigir el instrumento.
@@ -49,10 +54,10 @@ perl -0pi -e 's/(-run .TestBrowserBench.*?ORBIT_BENCH_BROWSER: )required/${1}opt
 # (C) el control que prueba el instrumento desaparece de los specs.
 perl -0pi -e 's/UIX-00/UIX-XX/g' "$TREE"/orbit/internal/adminbench/browser/specs/*.spec.ts
 
-fx_assert_doctored "$TREE/orbit/docs/admin-bench.md" '11 of 59 controls present'
+fx_assert_doctored "$TREE/orbit/docs/admin-bench.md" "11 of $total controls present"
 fx_assert_doctored "$TREE/orbit/.github/workflows/ci.yml" 'ORBIT_BENCH_BROWSER: optional'
 
 echo "workdir=$TREE"
-echo "expect=la página dice 11/59 y el banco mide"
+echo "expect=la página dice 11/$total y el banco mide"
 echo "expect=ORBIT_BENCH_BROWSER=required"
 echo "expect=planta una violación"
