@@ -462,6 +462,15 @@ permiso. `--sin-esperar` recupera el comportamiento antiguo para ensayos.
 - **Merges estrictamente seriales** donde main exige ramas al día (nucleus):
   cada merge deja al resto en BEHIND → `update-branch` + otra vuelta de
   checks. El driver lo hace; no intentes paralelizar.
+- **Un revert con titular propio NO borra del changelog lo revertido.**
+  release-please sólo empareja un `revert:` cuyo titular es el del commit
+  original y cuyo cuerpo dice `This reverts commit <sha>.`; un revert squash
+  de dos PRs con titular nuevo dejó en el release PR de nucleus las dos
+  entradas de Stripe MÁS una sección «Reverted» (nucleus#606, 2026-10-06).
+  Arreglo: `BEGIN_COMMIT_OVERRIDE` / `chore: …` / `END_COMMIT_OVERRIDE` al
+  final del cuerpo de cada PR ya fusionado (los revertidos y el revert;
+  `chore` está oculto en los tres repos) y `gh workflow run "Release
+  Please"`. Sin paréntesis en el mensaje override.
 - **release-please se auto-bloquea con un release PR de UNA sola release, la
   de la raíz** («untagged, merged release PRs outstanding» es el síntoma: PR
   merged con `autorelease: pending` y sin tag). Causa y arreglo en «Lo que

@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-06, QUANTUM 1.40.0 — los P0 de tenants publicados; A11 casi cerrado: queda S-fin; A12 en curso)
+## 3. Estado al cierre (2026-10-06, QUANTUM 1.40.0 — los P0 de tenants publicados; A11 a falta de S-fin (b) en el set del 2026-10-12; A12 en curso)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -229,22 +229,57 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   generada con el catálogo y un post por set (W4, quantum#266; banco del
   sitio **12/12**, guard 57º `umbrella-generated-pages`) y la preparación
   de la re-auditoría (R0).
-- **En marcha al cerrar**: A12 N1 (nucleus#607: el CLI y las dependencias
-  de test fuera del módulo raíz de nucleus) y A12 Q3 (lotes con COPY,
-  backfill sin un INSERT por fila y caché opcional de sentencias en quark).
-- **Lo que queda**: A11 — la mitad (b) de `S-fin`, en el set del
-  2026-10-12 (la (a) —guards del sitio y de extensión de quark, suelo de
-  admin a 72— se hizo el 2026-10-06): registrar `umbrella-catalog-posture`
-  desde la rama `feat/a11-sfin-catalog-posture` (el banco del catálogo
-  cierra en 36/38 o 37/38 según el parcial que quede, con `EN-08` ausente
-  por decisión), subir a 22 el suelo de `umbrella-quark-extension-posture`
-  y A11 en `arcos_cerrados`. A12 — Q3, N1, y al
-  final M0 → R1 → M1 → R2. El próximo set publicará nucleus (minor con todo
-  A11) y tendrá que añadir a mano `errors-sentry` y `auth-saml` a
-  `nucleus_modules` de `versions.yaml`, y
-  `guides/writing-a-driver` y `reference/extension-contract` a
-  `website/sidebarsQuark.ts` cuando pine quark con Q5/Q6.
-- **Decisiones pendientes de Carlos**: las cuatro de A12 (la 1 debe nombrar
+- **Arreglado el 2026-10-06 (en main, sin publicar)**: los tres hallazgos
+  abiertos de A11 en nucleus — NU-109 (#611, el CLI ya ignora un `go.mod`
+  en la raíz del temporal, como Go), NU-111 (#609, `/healthz` multi-tenant
+  sin WARN ni 503) y NU-113 (#610, `Mux.With` ya no repite la pila de
+  middleware) —, y cuatro nuevos: NU-117 (#608) y NU-118 (#612), dos
+  degradaciones silenciosas del clasificador de errores; QK-53 (quark#453,
+  `CreateBatch` en SQL Server tapaba la violación de unicidad). A12 Q3
+  hecha (quark#452: caché de sentencias opcional, lotes en un viaje en
+  MySQL y SQL Server).
+- **También arreglados**: NU-119 (nucleus#613, los helpers de storage del
+  kit en apps multi-tenant) y QK-56 (quark#454: el banco de motores vuelve
+  a verde registrando por modelo de CPU la ratio de MY-01 frente a la
+  sentencia reutilizada; MY-02 tiene 5–7 puntos de margen entre modelos —
+  si tumba el tren, fusionar con el gate obligatorio en verde).
+- **En marcha al cerrar**: QK-57 (P1: `UpdateBatch` ignora `ForTx` — en
+  SQLite se cuelga, en los demás confirma por su cuenta).
+- **El tren del 2026-10-12 (set 1.41.0, cadencia) — lista**:
+  1. **nucleus#607 (A12 N1) se fusiona JUSTO antes de la fase nucleus**
+     (rebasado: main exige rama al día). Desde su merge hasta el primer tag
+     `cmd/nucleus/v*`, `go install …/cmd/nucleus@latest` da «ambiguous
+     import». El release PR debe llevar reescrita la línea de framework de
+     `cmd/nucleus/go.mod` (marcador `x-release-please-version`) o el job
+     `tag-cli-module` falla; la CLI NO es paquete de release-please (va en
+     lockstep, sin manifest ni `modules.json`), y `align-module-floors.sh`
+     no debe bajar ese require. `drivers/postgres` sale con patch.
+  2. **`versions.yaml`**: añadir a mano a `nucleus_modules` `errors-sentry`,
+     `auth-saml` y `nucleus: "v1.32.0"` (la CLI; manifest-guard deriva la
+     clave del último segmento, como `cmd/quark`). **`go.work`**:
+     `./nucleus/cmd/nucleus`. `quickstart_smoke.sh`, `tutorials_smoke.sh` y
+     `check_exit0_regressions.sh` construyen `./nucleus/cmd/nucleus` y
+     necesitan ese workspace.
+  3. **`website/sidebarsQuark.ts`**: `guides/writing-a-driver` y
+     `reference/extension-contract` (Q5/Q6).
+  4. **A11 S-fin (b)**, en el PR de re-pin con `--incluye` o justo después
+     y antes del cierre: registrar `umbrella-catalog-posture` desde la rama
+     `feat/a11-sfin-catalog-posture` (suelo = lo que mida el pin, 36 hoy;
+     cuenta a 60); subir a 22 el suelo de
+     `umbrella-quark-extension-posture`; reescribir las dos frases del
+     catálogo de «Why Quantum» (el guard se pondrá rojo con la tabla de
+     N1/N4 y arrastra a `umbrella-site-posture`); marcar **NU-111 hecho**
+     SÓLO al pinar (la lane de tutoriales tolera su WARN mientras siga
+     abierto) y quitar su comentario de `tolerated_warn`; A11 a
+     `arcos_cerrados`.
+  5. El release PR de nucleus ya no anuncia Stripe: los PRs #603/#604/#606
+     llevan `BEGIN_COMMIT_OVERRIDE` con `chore:`. Si reaparece, revisar.
+- **Lo que queda de A12**: M0 (preparar el 2.0; necesita A11 cerrado y
+  decide cada volteo, con NU-121 en la lista) → R1 → M1 → R2.
+- **Decisiones pendientes de Carlos**: **QK-45** (`UpdateBatch` y el bloqueo
+  optimista: el contrato documentado no lo promete para lotes — fix en
+  minor, opción explícita ahora y default en el 2.0, o sólo la versión en
+  memoria; QK-58 lista las demás escrituras con el mismo hueco); las cuatro de A12 (la 1 debe nombrar
   la máquina: el runner y el portátil dan veredictos distintos) y la
   política de compatibilidad que propone la página de contrato de quark (un
   punto de extensión no gana métodos en v1; una interfaz de «fontanería»
