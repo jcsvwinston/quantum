@@ -462,6 +462,11 @@ permiso. `--sin-esperar` recupera el comportamiento antiguo para ensayos.
 - **Merges estrictamente seriales** donde main exige ramas al día (nucleus):
   cada merge deja al resto en BEHIND → `update-branch` + otra vuelta de
   checks. El driver lo hace; no intentes paralelizar.
+- **En quark y orbit `main` NO exige rama al día**: dos PRs verdes
+  fusionados seguidos pueden dejar `main` sin compilar sin que GitHub lo vea
+  (quark#457 llamaba a un helper que quark#458 acababa de borrar,
+  2026-10-06). En una tanda de merges al mismo repo, rebasar antes de cada
+  merge o mirar el CI de `main` antes del siguiente.
 - **Un revert con titular propio NO borra del changelog lo revertido.**
   release-please sólo empareja un `revert:` cuyo titular es el del commit
   original y cuyo cuerpo dice `This reverts commit <sha>.`; un revert squash

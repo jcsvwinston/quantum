@@ -246,6 +246,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 - **QK-57 (P1) arreglado** en quark#455: `UpdateBatch` bajo `ForTx` ya no
   abre su propia transacción (savepoint en la del llamador). Y NU-120 en
   nucleus#614 (godoc).
+- **Tanda de la tarde del 2026-10-06 (todo en main, sin publicar)**: los P3
+  de A12 que no pedían decisión y lo que destaparon — veintidós hallazgos
+  arreglados en los tres productos (NU-114…116, NU-122…124, NU-126; QK-48,
+  QK-49, QK-51, QK-52, QK-61…64, QK-66, QK-67; OR-64…66, OR-68, OR-69), varios de seguridad:
+  la exportación del panel sacaba filas y campos fuera del alcance del
+  operador (OR-66), una app core-only servía `pprof` sin autorización y
+  daba por activo un rate limit que no se aplicaba (NU-124, NU-122), y en
+  MySQL `Upsert` escribía en la entidad la clave de otra fila (QK-63). El
+  scheduler SQL podía disparar dos veces (NU-116). La familia «aplicación
+  core-only» (`WithoutDefaults()`) queda con líneas ERROR al arrancar y
+  avisos DEP-2026-015…018 para el 2.0, y abierta a la decisión de
+  `WithAuthz()` (NU-125, NU-127…130).
 - **El tren del 2026-10-12 (set 1.41.0, cadencia) — lista**:
   1. **nucleus#607 (A12 N1) se fusiona JUSTO antes de la fase nucleus**
      (rebasado: main exige rama al día). Desde su merge hasta el primer tag
@@ -273,11 +285,19 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
      SÓLO al pinar (la lane de tutoriales tolera su WARN mientras siga
      abierto) y quitar su comentario de `tolerated_warn`; A11 a
      `arcos_cerrados`.
-  5. El release PR de nucleus ya no anuncia Stripe: los PRs #603/#604/#606
+  5. **orbit `ui` cambió dos veces** (OR-64, OR-65): el corte de orbit
+     re-pina `ui` en la raíz (trampa 5 de 1.40.0: si `ui` sube en el mismo
+     corte que la raíz hace falta un segundo corte).
+  6. El release PR de nucleus ya no anuncia Stripe: los PRs #603/#604/#606
      llevan `BEGIN_COMMIT_OVERRIDE` con `chore:`. Si reaparece, revisar.
 - **Lo que queda de A12**: M0 (preparar el 2.0; necesita A11 cerrado y
   decide cada volteo, con NU-121 en la lista) → R1 → M1 → R2.
-- **Decisiones pendientes de Carlos**: **QK-45** (`UpdateBatch` y el bloqueo
+- **Decisiones pendientes de Carlos**: **`WithAuthz()`** para aplicaciones
+  core-only (default-deny opcional; resolvería NU-125, NU-127…130 y el
+  opt-in de DEP-2026-017/018); **OR-67** (`import_data`/`loaddata` sobre
+  `admin:*` sin el permiso de cada modelo, ADR-007); **QK-59, QK-60,
+  QK-65** (divergencias de Upsert y FK entre motores, a la lista del major);
+  **QK-45** (`UpdateBatch` y el bloqueo
   optimista: el contrato documentado no lo promete para lotes — fix en
   minor, opción explícita ahora y default en el 2.0, o sólo la versión en
   memoria; QK-58 lista las demás escrituras con el mismo hueco); las cuatro de A12 (la 1 debe nombrar
