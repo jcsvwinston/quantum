@@ -32,10 +32,10 @@ de la plantilla de módulo comunitario).
    de test que el CI compila y ejecuta; no se reabre `examples/` (la decisión
    del 2026-09-12 se mantiene).
 2. **Los cuatro módulos que faltan se construyen**: SAML, redis-cache, Stripe
-   y Sentry.
-3. **El catálogo va embebido en el CLI y fijado a la versión de la
-   release.** Sin índice remoto ni claves: el CLI vive en el módulo raíz
-   (NU-8), y cada dependencia que añada la hereda toda aplicación.
+   y Sentry. **Revisada el 2026-10-06**: Stripe se construyó (N9) y Carlos
+   decidió retirarlo antes de publicarlo —los pagos quedan en manos de la
+   aplicación, como en los frameworks con los que la suite se compara—, así
+   que el catálogo cierra con tres de los cuatro y `EN-08` ausente con razón.
 
 **Gate del arco**: los tres bancos de producto y el del sitio sin ausentes sin
 razón escrita; `nucleus add <cualquier entrada del catálogo>` sobre un
@@ -154,7 +154,7 @@ cierre. Dentro de cada carril, el orden de la tabla.
 | `N6` | redis-cache: backend Redis de `pkg/cache` y su cableado por configuración; core o módulo según el grafo (go-redis ya está en el del core) | `N1` | `EN-06` present |
 | `N7` | sentry: módulo que registra un interceptor de errores | `N1` | `EN-09` present |
 | `N8` | saml: módulo sobre el registro federado, con revisión de seguridad propia | `N4` | `EN-02` present |
-| `N9` | stripe: ADR del seam de facturación y el módulo | `N4` | `EN-08` present |
+| `N9` | stripe: ADR del seam de facturación y el módulo (**retirada** el 2026-10-06 por decisión de Carlos) | `N4` | `EN-08` absent con razón escrita |
 | `N10` | El lado plugin: plugin de ejemplo como fixture probado, helper `plugins.Serve`, `plugin test --execute` con envelope real (NU-101), `PLUGIN_SDK.md` apuntando al ejemplo, comandos externos en la ayuda, allowlist opcional (NU-102; denegar por defecto espera al major, QADR-0010) | `S0` | `EX-01`, `EX-08`…`EX-12` present |
 | `N11` | Puentes, ejemplo y plantilla: bridge `plugin` del outbox para `queue.publish` y `webhook.deliver`, ejemplo in-process probado, `nucleus new --template module` con su test `CheckModule` | `N10` | `EX-03`…`EX-06` present; banco 38 de 38 |
 
@@ -218,7 +218,7 @@ cableado (lo dice la página del banco).
 | N6 | **hecha** 2026-10-05 | nucleus#601 | caché de framework (no existía): `cache.provider` memory/sql/redis, `App.Cache`, `/healthz`; el backend Redis en el core (`pkg/cache/rediscache`) porque go-redis ya se enlaza en todo hello-world; banco 33/38 |
 | N7 | **hecha** 2026-10-05 | nucleus#597 | `providers/errors-sentry`: errores 500 y panics con contexto de la petición y redacción; el core ganó `interceptor.ErrorReporter` (aditivo); primera entrada de tipo módulo con receta; NU-113 (`Mux.With`); banco **32/38** |
 | N8 | **hecha** 2026-10-05 | nucleus#602 | `providers/auth-saml` sobre `crewjam/saml` v0.5.1: SP iniciado por la app, aserciones firmadas exigidas, audiencia, tiempo, replay y seis formas de signature wrapping probadas; fuera: SLO, aserciones cifradas, metadatos firmados, estado entre réplicas; banco 36/38 |
-| N9 | **hecha** 2026-10-06 | nucleus#603, nucleus#604 | `pkg/billing` (seam neutral, ADR-037) y `providers/billing-stripe` con webhooks verificados y deduplicados en el outbox; claves sólo como referencias; banco **37/38** |
+| N9 | **retirada** 2026-10-06 | nucleus#603, nucleus#604 → revertidos en nucleus#606 | se construyeron `pkg/billing` (ADR-037) y `providers/billing-stripe`; **Carlos decidió retirarlos antes de cualquier release** (2026-10-06): los pagos son cosa de la aplicación, como en los frameworks con los que la suite se compara. `EN-08` queda ausente con esa razón; el catálogo vuelve a 36/38 |
 | N10 | **hecha** 2026-10-05 | nucleus#596 | `plugins.Serve`, plugin de ejemplo probado (`internal/fixtures/plugins`), `plugin test --execute` real (NU-101), comandos externos en la ayuda, allowlist opcional (NU-102, DEP-2026-014); no existe un «plugins dir»: sólo PATH; banco 27/38 |
 | N11 | **hecha** 2026-10-05 | nucleus#599 | bridge `plugin` del outbox para `queue.publish` y `webhook.deliver`, `outbox.Permanent` (el outbox no distinguía fallos definitivos), ejemplo in-process y `nucleus new --template module` con `CheckModule`; banco 31/38 |
 | O1 | **hecha** 2026-10-05 | orbit#532 | 63/72, navegador 7/8; el logo del propio banco daba 404 y `EXT-08` contaba cualquier fallo de arranque |
@@ -233,7 +233,7 @@ cableado (lo dice la página del banco).
 | Q4 | **hecha** 2026-10-05 | quark#441 | `drivertest.VerifyDialect` contra el motor del driver y `quarkdriver/drivertest/suite` importable; los cinco drivers lo corren (postgres por primera vez); arregló `DROP CHECK` de MariaDB y `HOLDLOCK`+`READPAST` de SQL Server; banco 17/22 |
 | Q5 | **hecha** 2026-10-06 | quark#446 | plantilla de driver en `internal/drivertemplate` (módulo propio, sólo `quarkdriver`) que pasa el kit, y la guía «Writing a driver» sostenida bloque a bloque; banco 21/22 |
 | Q6 | **hecha** 2026-10-05 | quark#443 | página de contrato con los 52 tipos implementables y su estabilidad (la política queda como PROPUESTA pendiente de Carlos), firmas en la superficie congelada, `TableNamer`/`Validator`/`SQLStater`; banco 20/22 |
-| Q7 | en curso | quark#447 | el middleware y el observer ven las 27 sentencias del motor (antes 10 y 11) |
+| Q7 | **hecha** 2026-10-06 | quark#447 | un único punto de paso: el middleware y el observer ven las 27 sentencias del motor (antes 10 y 11) con su tipo (query, exec, ddl, introspection, savepoint, raw), spans de DDL y savepoints en `quark/otel`, y un guard estático contra sentencias que se lo salten; extensión de quark **22/22** |
 | Q8 | **hecha** 2026-10-05 | quark#426 | `internal/integrations` (módulo propio no publicado); la guía de frameworks comprobada línea a línea contra las fixtures; banco 8/22 |
 | Q9 | **hecha** 2026-10-05 | quark#427 | gRPC y Nucleus; NU-107 (`BindJSON` con arrays, ya arreglado en nucleus#591); banco 10/22 |
 | Q10 | **hecha** 2026-10-05 | quark#438 | `quark init --with chi\|echo\|gin\|grpc\|nucleus`; el CLI embebe copias byte a byte de las fixtures y CI compila su salida; banco 14/22 |

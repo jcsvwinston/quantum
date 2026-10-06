@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-06, QUANTUM 1.40.0 — los P0 de tenants publicados; A11 casi cerrado: quedan Q7, W4 y S-fin; A12 en curso)
+## 3. Estado al cierre (2026-10-06, QUANTUM 1.40.0 — los P0 de tenants publicados; A11 casi cerrado: quedan W4 y S-fin; A12 en curso)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -107,7 +107,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   [`docs/planes/A12-rendimiento-reauditoria-cierre.md`](../../docs/planes/A12-rendimiento-reauditoria-cierre.md)
   (12 sesiones; **cuatro decisiones escritas como propuesta, pendientes de
   Carlos**). Decisiones de Carlos para A11: ejemplos como fixtures probados,
-  construir saml/redis-cache/stripe/sentry, catálogo de `nucleus add`
+  construir saml/redis-cache/sentry (Stripe se construyó y se
+  retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
   embebido y fijado a la release. El estado de cada sesión (hecha, PR
   abierto, fusionada) está en el registro de sesiones de cada plan; la cola
   de integración de esta noche, en la sesión de abajo.
@@ -217,22 +218,24 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   nucleus el catálogo con recetas (`nucleus add` cablea lo que instala),
   el lado plugin (`plugins.Serve`, plugin de ejemplo, allowlist opcional),
   puentes del outbox, plantilla de módulo, accounts y realtime desde el
-  runtime, redis-cache, y los módulos `errors-sentry`, `auth-saml` y
-  `billing-stripe` (banco del catálogo **37/38**); la cola SQL con `SKIP
+  runtime, redis-cache, y los módulos `errors-sentry` y `auth-saml` (banco del catálogo
+  **36/38**; Stripe se construyó y se retiró antes de publicarlo por
+  decisión de Carlos, nucleus#606); la cola SQL con `SKIP
   LOCKED` (A12 N2). En quark el kit de conformidad, la plantilla de driver,
-  la página de contrato y el trabajo de CPU de A12 (extensión **21/22**). En
+  la página de contrato, la observación completa y el trabajo de CPU de A12
+  (extensión **22/22**). En
   orbit la compresión y el presupuesto del panel (A12 O1). En el paraguas
   «Why Quantum», tutoriales, guías de migración (W3) y la preparación de la
   re-auditoría (R0).
-- **En marcha al cerrar**: quark#447 (A11 Q7, observación completa), W4 (A11:
-  referencia generada, catálogo en el sitio, una entrada por set) y A12 N1
+- **En marcha al cerrar**: W4 (quantum#266: referencia generada, catálogo
+  en el sitio y un post por set; banco del sitio 10/12) y A12 N1
   (el CLI y las dependencias de test fuera del módulo raíz de nucleus).
-- **Lo que queda**: A11 — Q7, W4 y `S-fin` (guards de postura, el de admin
-  sube a 72; el banco del catálogo cerrará en 37/38 o 38/38 según el
-  parcial que quede). A12 — Q3 (lotes, COPY, sentencias en MySQL), N1, y al
+- **Lo que queda**: A11 — W4 y `S-fin` (guards de postura, el de admin
+  sube a 72; el banco del catálogo cierra en 36/38 o 37/38 según el
+  parcial que quede, con `EN-08` ausente por decisión). A12 — Q3 (lotes, COPY, sentencias en MySQL), N1, y al
   final M0 → R1 → M1 → R2. El próximo set publicará nucleus (minor con todo
-  A11) y tendrá que añadir a mano `errors-sentry`, `auth-saml` y
-  `billing-stripe` a `nucleus_modules` de `versions.yaml`, y
+  A11) y tendrá que añadir a mano `errors-sentry` y `auth-saml` a
+  `nucleus_modules` de `versions.yaml`, y
   `guides/writing-a-driver` y `reference/extension-contract` a
   `website/sidebarsQuark.ts` cuando pine quark con Q5/Q6.
 - **Decisiones pendientes de Carlos**: las cuatro de A12 (la 1 debe nombrar
