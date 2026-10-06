@@ -25,6 +25,10 @@ on:
       # fuente: un cambio en ellos tiene que verse en esta lane.
       - 'scripts/check_quickstart_cost.sh'
       - 'scripts/lib/quickstart-fences.sh'
+      # Las páginas generadas del pin (API, catálogo, posts) y su guard: el
+      # generador corre aquí sobre el árbol del PR.
+      - 'scripts/check_generated_pages.sh'
+      - 'scripts/lib/site-pages.py'
   workflow_dispatch:
 
 permissions:
@@ -45,6 +49,9 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           submodules: recursive
+          # Los tags de suite: cada post de «Releases» sale del versions.yaml
+          # de su tag, y el guard de las páginas generadas los regenera.
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -73,6 +80,14 @@ jobs:
       # traiga, exige (cabecera del script). Necesita el submódulo.
       - name: Coste del quickstart (comandos y conceptos)
         run: bash scripts/check_quickstart_cost.sh website/docs/quickstart.md
+
+      # Arco A11 (W4): la API congelada de cada producto, el catálogo de
+      # `nucleus add` y un post por set se GENERAN del árbol al pin
+      # (scripts/lib/site-pages.py). Antes del build: un re-pin que no las
+      # regeneró publicaría la API y el catálogo del set anterior, y un set sin
+      # post no aparecería en «Releases».
+      - name: Páginas generadas del pin (API, catálogo, posts)
+        run: bash scripts/check_generated_pages.sh
 
       - name: Build
         working-directory: website

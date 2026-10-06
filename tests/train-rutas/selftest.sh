@@ -55,7 +55,7 @@ monta() {
   # Guards y bump-set de pega: esta prueba es sobre el reparto del árbol, no
   # sobre lo que ellos comprueban.
   local g
-  for g in bump-set manifest-guard check_rumbo_estado check_gowork_covers_manifest; do
+  for g in bump-set manifest-guard check_rumbo_estado check_gowork_covers_manifest check_generated_pages; do
     printf '#!/usr/bin/env bash\nexit 0\n' > "$t/scripts/$g.sh"
     chmod +x "$t/scripts/$g.sh"
   done

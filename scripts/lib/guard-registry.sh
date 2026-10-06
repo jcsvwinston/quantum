@@ -195,6 +195,18 @@ GUARDS=(
   # árbol los mide. Sus fuentes están en el pin de 1.39.0, así que entra sin
   # esperar al set (README de planes §7).
   "umbrella-why-quantum|.|bash scripts/check_why_quantum.sh"
+  # El gate W4 del arco A11: las páginas del sitio que se GENERAN del árbol
+  # al pin —la API congelada de cada producto (website/docs/reference/api-*.md,
+  # de los ficheros con los que el CI de cada producto compara su código), el
+  # catálogo de `nucleus add` (de la tabla que lee el CLI) y un post por set
+  # certificado (website/releases/, de los tags de suite y versions.yaml)—
+  # son lo que el generador (scripts/lib/site-pages.py) produce hoy, y el set
+  # que declara versions.yaml tiene su post. Un re-pin sin regenerar dejaba
+  # al sitio publicando la API y el catálogo del set anterior; un set sin
+  # post, sin entrada en «Releases». bump-set.sh corre el generador. Sus
+  # fuentes están en el pin de 1.40.0, así que entra sin esperar al set
+  # (README de planes §7).
+  "umbrella-generated-pages|.|bash scripts/check_generated_pages.sh"
   # Toda lane del paraguas con disparador `schedule:` lleva su job
   # `notify-schedule-failure`: el cron rojo no puede degradar al email por
   # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que

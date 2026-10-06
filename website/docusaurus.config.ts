@@ -167,7 +167,10 @@ const config: Config = {
         hashed: true,
         language: ['en'],
         docsRouteBasePath: ['start', 'nucleus', 'quark', 'orbit'],
-        indexBlog: false,
+        // Los posts de cada set (instancia blog en /releases, arriba).
+        indexBlog: true,
+        blogRouteBasePath: 'releases',
+        blogDir: 'releases',
         indexPages: false,
         highlightSearchTermsOnTargetPage: true,
       },
@@ -181,7 +184,31 @@ const config: Config = {
         // La instancia de docs por defecto se desactiva: usamos una instancia
         // por producto (abajo, en `plugins`).
         docs: false,
-        blog: false,
+        // «Releases»: un post por set certificado (arco A11, W4). Los posts los
+        // ESCRIBE scripts/lib/site-pages.py desde los tags de suite y
+        // versions.yaml —el tren lo corre dentro de bump-set— y el guard
+        // umbrella-generated-pages falla si falta el del set vigente o si uno
+        // no es lo que su manifiesto dice. Sin editUrl: no se editan a mano.
+        blog: {
+          path: 'releases',
+          routeBasePath: 'releases',
+          blogTitle: 'Releases',
+          blogDescription:
+            'One post per certified Quantum set: the versions it pins, what moved since the previous set, and where each product\'s notes are.',
+          blogSidebarTitle: 'Certified sets',
+          blogSidebarCount: 'ALL',
+          postsPerPage: 10,
+          showReadingTime: false,
+          feedOptions: {
+            type: ['rss', 'atom'],
+            title: 'Quantum certified sets',
+            description: 'One post per certified Quantum set.',
+            copyright: 'Quantum · suite · Apache-2.0',
+          },
+          // Cada post lleva su <!-- truncate --> tras el párrafo de entrada; si
+          // el generador dejara de escribirlo, que el build lo diga.
+          onUntruncatedBlogPosts: 'throw',
+        },
         theme: {customCss: './src/css/custom.css'},
       } satisfies Preset.Options,
     ],
@@ -451,6 +478,12 @@ const config: Config = {
           position: 'right',
         },
         {
+          // Un post por set certificado (blog en /releases).
+          to: '/releases',
+          label: 'Releases',
+          position: 'left',
+        },
+        {
           href: 'https://github.com/jcsvwinston/quantum',
           label: 'GitHub',
           position: 'right',
@@ -472,6 +505,7 @@ const config: Config = {
         {
           title: 'Suite',
           items: [
+            {label: 'Releases', to: '/releases'},
             {label: 'quantum', href: 'https://github.com/jcsvwinston/quantum'},
             {label: 'nucleus', href: 'https://github.com/jcsvwinston/nucleus'},
             {label: 'quark', href: 'https://github.com/jcsvwinston/quark'},
