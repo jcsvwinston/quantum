@@ -29,10 +29,12 @@ registrado; la re-auditoría con 5 en todas las dimensiones salvo comunidad,
 o un A13 abierto con lo que falte; y el set 2.0.0 certificado sin ninguna
 marca viva que prometa 2.0.0.
 
-## Decisiones que el arco necesita (propuestas, pendientes de Carlos)
+## Decisiones del arco (APROBADAS por Carlos el 2026-10-06)
 
-`S0` las deja escritas con la recomendación; el troceado asume la
-recomendación hasta que Carlos diga otra cosa.
+`S0` las dejó escritas con la recomendación; Carlos las aprobó tal cual el
+2026-10-06, junto con que **el 2.0 respeta la ventana de 90 días de
+`POLITICA_DEPRECACION.md` y no sale antes de 2027-01-04** (varios avisos
+vencen ese día).
 
 1. **«A un 15 % de pgx», ¿frente a qué?** Pasando por `database/sql`, una
    lista de 100 filas ya cuesta un 10–23 % más que pgx nativo antes de que
@@ -163,11 +165,12 @@ filas con su aviso):
   rate limit, claves de authz, filas de política de módulo o el profiler sin
   la opción que los monta deja de arrancar en v2.0.0. **`WithAuthz()` se
   ofrece como opción** (decisión de Carlos) y es la salida de las de authz y
-  del profiler.
-- **Propuestos para la misma lista, sin decidir todavía**: QK-58 (las demás
-  escrituras fuera del bloqueo optimista; seguiría a QK-45), QK-46 (efectos
-  laterales de una escritura que no tocó filas) y NU-121 (`nucleustest` sin
-  SQLite).
+  del profiler (nucleus#620).
+- **También al 2.0 (decididos la misma tarde)**: QK-58 (las demás escrituras
+  fuera del bloqueo optimista; sigue a QK-45), QK-46 (efectos laterales de
+  una escritura que no tocó filas) y NU-121 (`nucleustest` sin SQLite).
+- **OR-67** no espera al major: import y `loaddata` exigen ya el permiso de
+  cada modelo (orbit#551).
 
 ### La re-auditoría
 
