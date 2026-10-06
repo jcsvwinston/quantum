@@ -53,8 +53,18 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
-- **Certificación mecánica:** 57 guards en el registro — el 57º,
-  `umbrella-generated-pages`, es el gate W4 de A11: la API congelada de
+- **Certificación mecánica:** 59 guards en el registro — el 58º,
+  `umbrella-site-posture`, y el 59º, `umbrella-quark-extension-posture`,
+  son los gates de postura de A11 que ya pasan al pin de 1.40.0 (S-fin,
+  primera mitad): el banco del sitio (`tests/sitebench/sitebench.sh`), que
+  hasta ahora no corría nadie, corre en la certificación con lo medido igual
+  a lo registrado y un suelo de 12 de 12; y la cifra y las cabeceras por
+  familia de `quark/docs/extension-bench.md` son las que cuenta
+  `quark/internal/extbench`, con un suelo de 14 present al pin que sube a 22
+  en el set del 2026-10-12. Con ellos `umbrella-admin-posture` sube su suelo
+  de 59 a los 72 controles del panel (y la mitad de navegador de 7 a 13). El
+  del catálogo de nucleus espera a ese set: su banco no está en el pin. El
+  57º, `umbrella-generated-pages`, es el gate W4 de A11: la API congelada de
   cada producto, el catálogo de `nucleus add` y un post por set certificado
   se GENERAN del árbol al pin (`scripts/lib/site-pages.py`, que corre
   `bump-set`), y el guard falla si el sitio publica otra cosa o si el set

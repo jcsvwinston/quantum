@@ -207,6 +207,25 @@ GUARDS=(
   # fuentes están en el pin de 1.40.0, así que entra sin esperar al set
   # (README de planes §7).
   "umbrella-generated-pages|.|bash scripts/check_generated_pages.sh"
+  # El gate del sitio en A11 (S-fin): el banco del sitio
+  # (tests/sitebench/sitebench.sh, 12 controles que W1…W4 llevaron a 12 de
+  # 12) corre en la certificación y lo medido es lo registrado, con 12
+  # controles, ningún hueco sin nota y un suelo de 12 present. Hasta aquí no
+  # lo corría nada: lo que sólo el banco comprueba —una página que sale del
+  # sidebar, un script de tutoriales que ningún workflow llama— se podía
+  # romper sin que nada se pusiera rojo. Sus fuentes están en el árbol de hoy,
+  # así que entra sin esperar al set (README de planes §7).
+  "umbrella-site-posture|.|bash scripts/check_site_posture.sh"
+  # El gate de quark en A11 (S-fin): lo que la suite AFIRMA sobre lo que un
+  # tercero puede construir sobre Quark es lo que sus propias medidas dicen.
+  # A11 dejó un banco de 22 controles (`quark/internal/extbench`: el contrato
+  # de extensión, un driver de fuera, las integraciones con chi, Echo, Gin,
+  # gRPC y Nucleus) y su página (`quark/docs/extension-bench.md`). Este guard
+  # vigila la frontera entre lo medido y lo PUBLICADO —el titular y la
+  # cabecera de cada familia— y un suelo de present: 14 al pin de 1.40.0
+  # (quark v1.16.0); sube a 22 en el re-pin del set del 2026-10-12, con
+  # Q4…Q7 publicadas.
+  "umbrella-quark-extension-posture|.|bash scripts/check_quark_extension_posture.sh"
   # Toda lane del paraguas con disparador `schedule:` lleva su job
   # `notify-schedule-failure`: el cron rojo no puede degradar al email por
   # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fixture de umbrella-admin-posture. Tres roturas, todas de la misma clase:
+# Fixture de umbrella-admin-posture. Cuatro roturas, todas de la misma clase:
 # una medición a la que alguien le cambia el resultado sin cambiar lo que
 # mide.
 #
@@ -16,6 +16,11 @@
 #     que comprueba que el motor de accesibilidad muerde; sin él, un motor
 #     mal configurado informa de cero violaciones y TODOS los demás controles
 #     pasan midiendo nada.
+#
+# (D) un control `present` se registra `partial`, con su nota: la salida
+#     fácil cuando una sonda se pone roja. La nota está, así que sólo el suelo
+#     que A11 dejó (72 present) lo caza; sin el suelo, el banco volvería a
+#     verde con una cifra menor y nadie lo habría decidido a la vista.
 #
 # El árbol parte del estado real al pin, conforme, así que el EXIT!=0 es
 # atribuible a las roturas.
@@ -54,10 +59,15 @@ perl -0pi -e 's/(-run .TestBrowserBench.*?ORBIT_BENCH_BROWSER: )required/${1}opt
 # (C) el control que prueba el instrumento desaparece de los specs.
 perl -0pi -e 's/UIX-00/UIX-XX/g' "$TREE"/orbit/internal/adminbench/browser/specs/*.spec.ts
 
+# (D) DS-01 pasa de present a partial con nota.
+perl -0pi -e 's/(\{id: "DS-01",[^\n]*\n\s*)want: present,/${1}want: partial, note: "fixture: retrocede a la vista",/' "$TREE/orbit/internal/adminbench/adminbench_cases_test.go"
+
 fx_assert_doctored "$TREE/orbit/docs/admin-bench.md" "11 of $total controls present"
+fx_assert_doctored "$TREE/orbit/internal/adminbench/adminbench_cases_test.go" 'want: partial, note: "fixture: retrocede a la vista"'
 fx_assert_doctored "$TREE/orbit/.github/workflows/ci.yml" 'ORBIT_BENCH_BROWSER: optional'
 
 echo "workdir=$TREE"
 echo "expect=la página dice 11/$total y el banco mide"
 echo "expect=ORBIT_BENCH_BROWSER=required"
 echo "expect=planta una violación"
+echo "expect=registra [0-9]+ controles present; el suelo de A11 es [0-9]+"
