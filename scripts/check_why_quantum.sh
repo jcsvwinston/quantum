@@ -33,7 +33,12 @@
 #   nucleus/docs/{api,auth,jobs}-bench.md          titulares y familias de banco
 #   orbit/docs/admin-bench.md                      titular del banco del panel
 #   quark/docs/{query,enterprise}-bench.md         titulares de los bancos de quark
-#   quark/website/docs/reference/benchmarks.mdx    la tabla de ns/op publicada
+#   quark/website/docs/reference/benchmarks.mdx    el banco de motores: el bloque de
+#                                                  veredictos que escribe
+#                                                  TestEngineBenchPage y el objetivo
+#                                                  propuesto (la comparación con
+#                                                  GORM de esa página está fechada
+#                                                  y la página no la cita)
 #   nucleus/website/docs/getting-started/installation.md   módulos y MB del starter
 #   website/docs/quickstart.md                     sus comandos, contados con el
 #                                                  parser que ejecuta la lane
@@ -67,7 +72,7 @@ JOBS_BENCH=nucleus/docs/jobs-bench.md
 ADMIN_BENCH=orbit/docs/admin-bench.md
 QUERY_BENCH=quark/docs/query-bench.md
 ENTERPRISE_BENCH=quark/docs/enterprise-bench.md
-MICROBENCH=quark/website/docs/reference/benchmarks.mdx
+ENGINE_BENCH=quark/website/docs/reference/benchmarks.mdx
 INSTALL=nucleus/website/docs/getting-started/installation.md
 ADD_TABLE_DIR=nucleus/internal/knownproviders
 
@@ -79,7 +84,7 @@ L_JOBS="$GH/nucleus/blob/main/docs/jobs-bench.md"
 L_ADMIN="$GH/orbit/blob/main/docs/admin-bench.md"
 L_QUERY="$GH/quark/blob/main/docs/query-bench.md"
 L_ENTERPRISE="$GH/quark/blob/main/docs/enterprise-bench.md"
-L_MICRO="/quark/reference/benchmarks/"
+L_ENGINE="/quark/reference/benchmarks/"
 L_INSTALL="/nucleus/getting-started/installation/"
 L_QUICKSTART="quickstart.md"
 L_SET="$GH/quantum/blob/main/versions.yaml"
@@ -89,7 +94,7 @@ fail=0
 report() { echo "FAIL: why-quantum — $1" >&2; fail=1; }
 
 for f in "$PAGE" "$INTRO" "$QUICKSTART" "$API_BENCH" "$AUTH_BENCH" "$JOBS_BENCH" \
-         "$ADMIN_BENCH" "$QUERY_BENCH" "$ENTERPRISE_BENCH" "$MICROBENCH" "$INSTALL"; do
+         "$ADMIN_BENCH" "$QUERY_BENCH" "$ENTERPRISE_BENCH" "$ENGINE_BENCH" "$INSTALL"; do
   [[ -f "$f" ]] || report "falta $f — sin la página o sin su fuente no hay nada que comparar (¿submódulos sin inicializar?)"
 done
 add_files=""
@@ -114,19 +119,34 @@ bench_family() {
       p = $3 + 0; pa = $4 + 0; a = $5 + 0; print p " of " (p + pa + a); exit
     }' "$1"
 }
-# La celda <columna> de la fila <operación> de la tabla de ns/op (la primera
-# tabla tras la línea que dice ns/op; la segunda es de allocs/op).
-microbench() {
-  awk -F'|' -v op="$1" -v col="$2" '
-    /ns\/op/ { armed = 1 }
-    armed && !hdr && /^\| *Operation/ {
-      for (i = 2; i < NF; i++) { h = $i; gsub(/ /, "", h); if (h == col) c = i }
-      hdr = 1; next
+# El banco de motores de quark, del bloque que escribe TestEngineBenchPage
+# (entre engine-bench:begin y engine-bench:end): una celda de la fila de un
+# control, por el nombre de su columna, con «;» donde la tabla pone «·»
+# entre baselines y sin espacios.
+engine_cell() {
+  awk -F'|' -v id="$1" -v col="$2" '
+    /engine-bench:begin/ { on = 1; next }
+    /engine-bench:end/   { on = 0 }
+    on && !c && /^\| *control *\|/ {
+      for (i = 2; i < NF; i++) { h = $i; gsub(/^ +| +$/, "", h); if (h == col) c = i }
+      next
     }
-    hdr && c {
-      o = $2; gsub(/^ +| +$/, "", o)
-      if (o == op) { v = $c; gsub(/ /, "", v); print v; exit }
-    }' "$MICROBENCH"
+    on && c {
+      k = $2; gsub(/[ `]/, "", k)
+      if (k == id) { print $c; exit }
+    }' "$ENGINE_BENCH" | perl -CSD -ne 'chomp; s/[\s`]+//g; s/\x{b7}/;/g; print "$_\n"'
+}
+# «presentes of controles» del mismo bloque.
+engine_present() {
+  awk -F'|' '
+    /engine-bench:begin/ { on = 1; next }
+    /engine-bench:end/   { on = 0 }
+    on && $2 ~ /^ *`[A-Z]+-[0-9]+` *$/ { n++; if ($0 ~ /\*\*present\*\*/) p++ }
+    END { if (n) print (p + 0) " of " n }' "$ENGINE_BENCH"
+}
+# El objetivo propuesto: «… stays at or under **1.15** …».
+engine_target() {
+  perl -0777 -ne 's/\s+/ /g; print "$1\n" if /stays at or under \*\*([0-9.]+)\*\*/' "$ENGINE_BENCH"
 }
 # «módulos;MB;MB stripped» del párrafo del starter con el driver de SQLite.
 install_figures() {
@@ -140,8 +160,17 @@ E_JOBS=$(bench_headline "$JOBS_BENCH")
 E_ADMIN=$(bench_headline "$ADMIN_BENCH")
 E_QUERY="$(grep -oE '^\*\*[0-9]+ of [0-9]+ typed' "$QUERY_BENCH" | head -1 | grep -oE '[0-9]+ of [0-9]+');$(grep -oE '^\*\*[0-9]+ of [0-9]+ typed\. [0-9]+ emit the wrong SQL' "$QUERY_BENCH" | head -1 | grep -oE '[0-9]+ emit' | grep -oE '[0-9]+')"
 E_ENTERPRISE="$(bench_headline "$ENTERPRISE_BENCH");$(bench_count "$ENTERPRISE_BENCH" partial);$(bench_count "$ENTERPRISE_BENCH" absent)"
-E_INSERT="$(microbench InsertOne Quark);$(microbench InsertOne GORM)"
-E_READ="$(microbench FindByPK Quark);$(microbench FindByPK GORM)"
+E_INSERT=$(engine_cell PG-01 'recorded ratio')
+E_READ=$(engine_cell PG-02 'recorded ratio')
+E_TARGET=$(engine_target)
+E_ENGINE=$(engine_present)
+# La frase dice qué baseline es cada cifra («`database/sql` … pgx»): si la
+# fila cambia de baselines o de orden, la cifra seguiría casando con la
+# fila y diría otra cosa.
+for pk in PG-01 PG-02; do
+  against=$(engine_cell "$pk" 'judged against')
+  [[ "$against" == 'database/sql;pgx' ]] || report "[engine] $pk se juzga contra «$against» en $ENGINE_BENCH y la página dice «\`database/sql\` … pgx» en ese orden: reescribe la frase"
+done
 E_INSTALL=$(install_figures)
 E_QUICKSTART=$(qs_commands "$QUICKSTART" | grep -c .)
 
@@ -203,8 +232,10 @@ claim catalog-intro intro '`nucleus add` installs the (\d+) optional modules' "$
 claim admin-bench why 'Its bench: \*\*(\d+ of \d+)\*\* controls present' "$E_ADMIN" "$L_ADMIN"
 claim query-bench why '\*\*(\d+ of \d+)\*\* are expressed with the typed API, and \*\*(\d+)\*\* run' "$E_QUERY" "$L_QUERY"
 claim enterprise-bench why 'enterprise bench has \*\*(\d+ of \d+)\*\* controls present, \*\*(\d+)\*\* partial and \*\*(\d+)\*\* absent' "$E_ENTERPRISE" "$L_ENTERPRISE"
-claim microbench-insert why 'inserts a row in \*\*([\d,]+)\*\* ns where GORM takes \*\*([\d,]+)\*\* ns' "$E_INSERT" "$L_MICRO"
-claim microbench-read why 'by primary key in \*\*([\d,]+)\*\* ns where GORM takes \*\*([\d,]+)\*\* ns' "$E_READ" "$L_MICRO"
+claim engine-insert why 'a single-row insert takes \*\*([\d.]+)\*\* times as long as through `database/sql` and \*\*([\d.]+)\*\* times as long as through pgx' "$E_INSERT" "$L_ENGINE"
+claim engine-read why 'a read by primary key \*\*([\d.]+)\*\* and \*\*([\d.]+)\*\* times' "$E_READ" "$L_ENGINE"
+claim engine-target why 'a target of at most \*\*([\d.]+)\*\* times each baseline' "$E_TARGET" "$L_ENGINE"
+claim engine-verdicts why '\*\*(\d+ of \d+)\*\* of its controls meet it' "$E_ENGINE" "$L_ENGINE"
 claim api-bench why 'OpenAPI document has \*\*(\d+ of \d+)\*\* controls present' "$E_API" "$L_API"
 claim api-bench-openapi why 'OpenAPI family: \*\*(\d+ of \d+)\*\* present' "$E_API_OA" "$L_API"
 claim auth-bench why 'Its auth bench: \*\*(\d+ of \d+)\*\* controls present' "$E_AUTH" "$L_AUTH"

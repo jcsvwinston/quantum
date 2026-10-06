@@ -56,4 +56,5 @@ use (
 	./quark/drivers/postgres
 	./quark/drivers/sqlite
 	./quark/internal/enginesuite
+	./quark/internal/integrations
 )

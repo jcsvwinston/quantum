@@ -6,6 +6,62 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.39.0 — el arco A10 cerrado: Testing y OpenAPI de primera clase, y QK-39 arreglado dentro del set
+
+Quantum 1.39.0 cierra el arco A10 (Testing y OpenAPI de primera clase) y
+publica el arreglo de un defecto de quark que borraba las filas
+equivocadas. El banco del API de nucleus mide 46 de 46, y el starter de
+suite publica su documento OpenAPI y lo consume un cliente TypeScript
+generado, en una lane obligatoria del CI de nucleus. Se mueven nucleus
+(v1.30.1 → v1.31.0, minor) y quark (v1.15.0 → v1.15.2, dos patches: la
+primera sólo sube los suelos de sus módulos; la segunda trae QK-39); orbit
+v1.18.0 → v1.18.1, un patch que sólo alinea sus pines con quark v1.15.2 y
+nucleus v1.31.0. Módulos hermanos que cambian: los doce de nucleus (drivers y
+exportadores v0.1.8, providers/ldap v0.2.12, los cuatro de nube v0.1.8),
+los seis de quark (CLI v1.1.2, drivers v0.2.4)
+y cuatro de orbit por la misma alineación (agent v0.15.1, quarkbridge
+v1.9.3, quarkdatasource v1.12.1, server v0.20.1). Minor de suite
+porque lo es la de nucleus (QADR-0002). Corte por cierre de arco.
+
+Qué cambia para quien instala. En quark, la corrección de QK-39 (P0):
+desde la primera release, DeleteBy, UpdateMap y UpdateFields pintaban su
+propio WHERE sin mirar la lógica de cada condición, así que
+WhereNot("status", "=", "active").DeleteBy() borraba justo las filas
+activas que excluía; los grupos Or se unían con AND, e IN y BETWEEN
+fallaban. Las escrituras pasan ahora por el mismo renderizador que List, y
+un test comprueba en los seis motores que cada escritura toca exactamente
+las filas que List devuelve con las mismas condiciones. Quien llamara a
+esos tres métodos después de WhereNot debe revisar los datos que tocaron.
+La referencia de quark además decía que Update(entity) respetaba el Where
+de la consulta como guarda, y nunca lo hizo: ahora lo dice (QK-40 lo
+arreglará en A11). En nucleus, todo por adición; las formas que se retiran
+en el major 2.0 llevan su aviso de deprecación con fecha (DEP-2026-009,
+-011 y -012). Un kit de test que arranca la aplicación entera y la recorre
+por HTTP (cliente con sesión, datos, dobles de mail, storage, colas y HTTP
+saliente, CheckModule para módulos). Un documento OpenAPI que se deriva de
+las rutas, de los structs y de la seguridad que la aplicación aplica
+(WithOpenAPIDocument), que la aplicación puede exigir a sus peticiones
+(WithOpenAPIValidation) y el test a sus respuestas (AssertConforms), y que
+`nucleus openapi --check` compara con una línea base para cazar rupturas.
+Endpoints tipados (nucleus.Handle) que dan sus tipos al documento; binding
+tipado de query, path y cabeceras; problem+json junto al sobre de error,
+incluido el 404 del propio router; Provide/Resolve y DependsOn entre
+módulos; y un generador de cliente TypeScript propio, en Go y sin
+dependencias (`nucleus openapi --client typescript`).
+
+Qué aprendió el tren. El defecto de quark apareció con el tren ya en
+marcha y v1.15.1 recién etiquetada: se dejó avanzar nucleus, se cortó
+quark otra vez y orbit se alineó una sola vez, en vez de certificar un set
+con el defecto y cortar otro detrás. Fusionar los suelos de nucleus
+regeneró la rama del release y se llevó las notas y el snapshot escritos a
+mano en ella, como ya avisaba el README del tren: guardarlos como parches
+antes de lanzar la fase cuesta un minuto y ahorra reescribirlos. Y la
+integración de A10 vio lo que ningún PR suelto veía: seis sesiones
+fusionadas como PRs apilados dejaron cinco costuras entre ellas, cazadas
+montando la pila en local antes de fusionar. El guard 54,
+umbrella-api-posture, entra con este set porque sólo al pin nuevo hay
+banco del API que vigilar.
+
 ## Quantum 1.38.0 — el arco A9 cerrado: Fleet unificado y una sola SPA
 
 Quantum 1.38.0 cierra el arco A9 (Fleet unificado y una sola SPA): el

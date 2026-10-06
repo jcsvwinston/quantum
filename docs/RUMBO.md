@@ -11,37 +11,36 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-10-05)
+## Estado real (2026-10-06)
 
-- **Set certificado: Quantum 1.39.0** (2026-10-05) — quark v1.15.2 (con el
-  CLI en v1.1.2 y los cinco drivers en v0.2.4) · nucleus v1.31.0 (doce
-  módulos hermanos: drivers y exportadores v0.1.8, providers/ldap v0.2.12,
-  los cuatro de nube v0.1.8) · orbit v1.18.1 (proto v0.8.0, datasource
-  v1.0.0, ui v1.0.0, agent v0.15.1, server v0.20.1, quarkbridge v1.9.3,
-  quarkdatasource v1.12.1). 1.39.0 CIERRA **A10** (Testing y OpenAPI de
-  primera clase): once sesiones (nucleus#574…#586) llevaron el banco
-  `nucleus/internal/apibench` de **12 a 46 de 46** — un kit de test que
-  arranca la aplicación y la recorre por HTTP con sesión, datos y dobles; un
-  documento OpenAPI derivado de las rutas, los structs y la seguridad, que
-  la aplicación puede exigir y el test comprobar, con `nucleus openapi
-  --check` contra una línea base; endpoints tipados; problem+json junto al
-  sobre; `Provide`/`Resolve` y `DependsOn`; y un generador de cliente
-  TypeScript propio. El gate corre en la lane `suite-starter` del CI de
-  nucleus (obligatoria) y el guard `umbrella-api-posture` vigila lo
-  publicado. El set publica además **QK-39 (P0)**, encontrado en A11 con el
-  tren en marcha: desde la primera release, `DeleteBy`, `UpdateMap` y
-  `UpdateFields` ignoraban la lógica de cada condición y
-  `WhereNot(…).DeleteBy()` borraba las filas que excluía; quark v1.15.2 los
-  pasa por el mismo renderizador que `List`, con una prueba de igualdad
-  escritura=lectura en los seis motores. 1.38.0 cerró **A9** (Fleet
-  unificado y una sola SPA, banco del fleet 50 de 50; OR-57 y OR-59 a A12).
-  El detalle de cada arco cerrado, en su plan de [`planes/`](planes/README.md).
+- **Set certificado: Quantum 1.40.0** (2026-10-06) — quark v1.16.0 (con el
+  CLI en v1.2.0 y los cinco drivers en v0.2.5) · nucleus v1.31.0 (sin
+  cambio: doce módulos hermanos, drivers y exportadores v0.1.8,
+  providers/ldap v0.2.12, los cuatro de nube v0.1.8) · orbit v1.19.1 (proto
+  v0.8.0, datasource v1.0.0, ui v1.1.0, agent v0.15.1, server v0.20.2,
+  quarkbridge v1.9.4, quarkdatasource v1.12.2). 1.40.0 se cortó fuera de
+  cadencia para publicar los arreglos de tenants de quark bajo
+  `RowLevelSecurityClient` —**QK-42 (P0)**: `Find(id)` leía la fila de otro
+  tenant; **QK-43 (P0)**: la rama de actualización de `Upsert` escribía en
+  la de otro tenant; y QK-40, QK-41, QK-44— y la mayor parte de **A11**: en
+  quark el contrato del dialecto en `quarkdriver`, el esquema que pregunta al
+  dialecto, integraciones probadas con chi, Echo, Gin, gRPC y Nucleus y
+  `quark init --with`; en el panel acciones con formulario y sobre un
+  registro, widgets y varios dashboards, tema por configuración y el código
+  de cliente de la aplicación bajo la CSP (banco del panel **72 de 72**).
+  1.39.0 cerró **A10** (Testing y OpenAPI, banco del API 46 de 46) y 1.38.0
+  **A9** (Fleet unificado, 50 de 50). El detalle de cada arco cerrado, en su
+  plan de [`planes/`](planes/README.md).
   **A11** (Extensibilidad y catálogo) y **A12** (Rendimiento, re-auditoría
-  y cierre a 5) están EN CURSO desde el 2026-10-04, troceados por su `S0`
-  de medición en
+  y cierre a 5) siguen EN CURSO, troceados en
   [`planes/A11-extensibilidad-y-catalogo.md`](planes/A11-extensibilidad-y-catalogo.md)
-  y [`planes/A12-rendimiento-reauditoria-cierre.md`](planes/A12-rendimiento-reauditoria-cierre.md);
-  A12 tiene cuatro decisiones escritas como propuesta, pendientes de Carlos.
+  y [`planes/A12-rendimiento-reauditoria-cierre.md`](planes/A12-rendimiento-reauditoria-cierre.md).
+  En `main` de los productos y aún sin publicar: el catálogo de `nucleus add`
+  con sus recetas, el lado plugin y los módulos Sentry, SAML y redis-cache
+  (banco del catálogo 36 de 38), la cola SQL con `SKIP LOCKED`, el kit de
+  conformidad de dialectos y la página de contrato de quark, y la
+  compresión del panel. A12 tiene cuatro decisiones escritas como
+  propuesta, pendientes de Carlos.
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
   TIPADO con el outbox como transporte opcional, CANALES sobre WebSocket y

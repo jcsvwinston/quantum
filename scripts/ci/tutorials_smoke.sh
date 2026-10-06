@@ -114,9 +114,13 @@ s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()
 EOF
 }
 
-# ¿Sigue abierto un hallazgo en el registro de la auditoría? Las dos
-# excepciones de esta lane (abajo) viven mientras su hallazgo esté abierto y
-# mueren solas cuando alguien lo marca hecho: sin lista que recordar vaciar.
+# ¿Sigue abierto un hallazgo en el registro de la auditoría? La excepción de
+# esta lane (abajo, NU-111) vive mientras su hallazgo esté abierto y muere sola
+# cuando alguien lo marca hecho: sin lista que recordar vaciar. Hubo una
+# segunda, QK-42 (la página avisaba de que Find leía la fila de otro tenant y
+# leía con Where(...).First()); murió así en Quantum 1.40.0, con quark
+# v1.16.0, y en su sitio queda una sonda positiva en
+# sondas_tutorial-multi-tenant-saas.
 REGISTRO="$ROOT/docs/auditoria/madurez-2026-09-03/registro.csv"
 registry_open() { grep -qE "^$1,[^,]*,[^,]*,[^,]*,abierto," "$REGISTRO"; }
 
@@ -362,15 +366,29 @@ if loose:
     print("  SELECT sin tenant_id:\n    " + "\n    ".join(loose), file=sys.stderr); sys.exit(1)
 print("     sonda: feed en vivo — %d SELECT sobre projects, todos con tenant_id" % len(reads))
 EOF
-  # QK-42: en el set pinado, Find(id) sobre un TenantRouter con
-  # RowLevelSecurityClient lee la fila de otro tenant. La página lo avisa y
-  # usa Where(...).First(); el aviso vive mientras el hallazgo esté abierto.
-  if registry_open QK-42; then
-    grep -qF 'Find(id)' "$PAGE_FILE" || fail "$PAGE: QK-42 sigue abierto y la página ya no avisa de que Find(id) no lleva el predicado del tenant"
-    echo "     sonda: la página avisa de Find(id) mientras QK-42 siga abierto"
-  else
-    ! grep -qF 'Find(id)' "$PAGE_FILE" || fail "$PAGE: QK-42 está hecho y la página sigue avisando de Find(id): quitar la nota y volver a Find en show"
+  # La lectura por clave: `show` lee con Find por el router, y el 404 del paso
+  # «Project 2 exists, but it is globex's» es lo que prueba que Find queda
+  # dentro del tenant (QK-42, cerrado en quark v1.16.0, Quantum 1.40.0). Si la
+  # página volviera al rodeo Where(...).First() de cuando Find leía otro
+  # tenant, el 404 seguiría saliendo y ya no probaría nada de Find: la página
+  # tiene que leer con Find, y el feed tiene que haber visto ese SELECT por
+  # clave, con el predicado del tenant.
+  grep -qF '.Find(in.ID)' "$PAGE_FILE" || fail "$PAGE: \`show\` ya no lee con Find(in.ID): el 404 entre tenants dejaría de probar que una lectura por clave queda dentro del tenant"
+  if grep -qE 'Where\("id", *"=",' "$PAGE_FILE"; then
+    fail "$PAGE: la página vuelve a leer una fila por su id con Where(\"id\", \"=\", …).First(), el rodeo de cuando Find leía otro tenant (QK-42, cerrado): léela con Find"
   fi
+  python3 - "$(command curl -s -b "$jar" "http://127.0.0.1:$PORT/admin/api/live/snapshot")" <<'EOF' || fail "$PAGE: el feed en vivo no enseña el SELECT por clave de show con el predicado del tenant"
+import json, re, sys
+qs = [q.get("query", "") for q in json.loads(sys.argv[1]).get("queries", [])]
+proj = [q for q in qs if q.lstrip().upper().startswith("SELECT") and '"projects"' in q]
+bykey = [q for q in proj if re.search(r'(^|\W)"?id"?\s*=\s*\?', q)]
+if not bykey:
+    print("  ningún SELECT por clave sobre projects en el feed (¿show dejó de usar Find, o el paso del 404 no llegó a la base?):\n    " + "\n    ".join(proj), file=sys.stderr); sys.exit(1)
+loose = [q for q in bykey if "tenant_id" not in q]
+if loose:
+    print("  SELECT por clave sin tenant_id:\n    " + "\n    ".join(loose), file=sys.stderr); sys.exit(1)
+print("     sonda: show lee con Find, y su SELECT por clave lleva tenant_id (%d en el feed)" % len(bykey))
+EOF
 }
 
 # API-only: el documento describe cada operación con su respuesta de éxito
