@@ -150,6 +150,25 @@ unos 14 sitios (`authz.New`, `NewWrapResponseWriter`), lee los errores sólo
 del sobre (`ui/src/services/api.ts`) y construye su LIKE con escape propio:
 tiene que migrar ANTES, en una minor.
 
+**Decisiones de Carlos del 2026-10-06 para el major** (`M0` las convierte en
+filas con su aviso):
+
+- **Al 2.0 por decisión**: QK-45 (`UpdateBatch` comprueba la versión por
+  defecto; la opción explícita llega antes, en una minor), y las
+  divergencias entre motores QK-59 (`Upsert` con `updateCols` vacío), QK-60
+  (`ON DELETE SET DEFAULT` en MySQL/MariaDB) y QK-65 (`Upsert` con el
+  duplicado en otra clave única).
+- **Negativas ya programadas con aviso** (DEP-2026-013…018, de la tanda del
+  2026-10-06): una aplicación `WithoutDefaults()` que declara storage, mail,
+  rate limit, claves de authz, filas de política de módulo o el profiler sin
+  la opción que los monta deja de arrancar en v2.0.0. **`WithAuthz()` se
+  ofrece como opción** (decisión de Carlos) y es la salida de las de authz y
+  del profiler.
+- **Propuestos para la misma lista, sin decidir todavía**: QK-58 (las demás
+  escrituras fuera del bloqueo optimista; seguiría a QK-45), QK-46 (efectos
+  laterales de una escritura que no tocó filas) y NU-121 (`nucleustest` sin
+  SQLite).
+
 ### La re-auditoría
 
 La del 2026-09-03 no se puede repetir tal cual (QM-21): los prompts de los

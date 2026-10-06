@@ -292,19 +292,19 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
      llevan `BEGIN_COMMIT_OVERRIDE` con `chore:`. Si reaparece, revisar.
 - **Lo que queda de A12**: M0 (preparar el 2.0; necesita A11 cerrado y
   decide cada volteo, con NU-121 en la lista) → R1 → M1 → R2.
-- **Decisiones pendientes de Carlos**: **`WithAuthz()`** para aplicaciones
-  core-only (default-deny opcional; resolvería NU-125, NU-127…130 y el
-  opt-in de DEP-2026-017/018); **OR-67** (`import_data`/`loaddata` sobre
-  `admin:*` sin el permiso de cada modelo, ADR-007); **QK-59, QK-60,
-  QK-65** (divergencias de Upsert y FK entre motores, a la lista del major);
-  **QK-45** (`UpdateBatch` y el bloqueo
-  optimista: el contrato documentado no lo promete para lotes — fix en
-  minor, opción explícita ahora y default en el 2.0, o sólo la versión en
-  memoria; QK-58 lista las demás escrituras con el mismo hueco); las cuatro de A12 (la 1 debe nombrar
-  la máquina: el runner y el portátil dan veredictos distintos) y la
-  política de compatibilidad que propone la página de contrato de quark (un
-  punto de extensión no gana métodos en v1; una interfaz de «fontanería»
-  sí — estrecha la promesa de `upgrade.mdx`, pide ADR).
+- **Decisiones de Carlos (2026-10-06)**: `WithAuthz()` se ofrece como
+  OPCIÓN para aplicaciones core-only (en curso en nucleus); QK-45 opción
+  explícita ahora y comportamiento por defecto en el 2.0 (en curso en
+  quark); QK-59, QK-60 y QK-65 a la lista del 2.0. Detalle en la sección
+  «El major 2.0» del plan de A12.
+- **Decisiones pendientes de Carlos**: OR-67 (`import_data`/`loaddata` sobre
+  `admin:*` sin el permiso de cada modelo, ADR-007; se le propuso exigir el
+  permiso del modelo y el alcance de escritura ya, como arreglo de
+  seguridad), las cuatro de A12 (la 1 debe nombrar la máquina: el runner y
+  el portátil dan veredictos distintos) y la política de compatibilidad que
+  propone la página de contrato de quark (un punto de extensión no gana
+  métodos en v1; una interfaz de «fontanería» sí — estrecha la promesa de
+  `upgrade.mdx`, pide ADR).
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
