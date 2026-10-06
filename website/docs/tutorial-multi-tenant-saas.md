@@ -206,8 +206,9 @@ func (m *module) show(c *nucleus.Context, in ProjectRef) (Project, error) {
 	if err != nil {
 		return Project{}, err
 	}
-	// Where + First, not Find: see the note below.
-	p, err := quark.For[Project](ctx, m.router).Where("id", "=", in.ID).First()
+	// Find looks the key up inside the request's tenant: another tenant's
+	// id is not found.
+	p, err := quark.For[Project](ctx, m.router).Find(in.ID)
 	if errors.Is(err, quark.ErrNotFound) {
 		return Project{}, nucleusErrors.NotFound("project", fmt.Sprint(in.ID))
 	}
@@ -217,7 +218,11 @@ func (m *module) show(c *nucleus.Context, in ProjectRef) (Project, error) {
 
 **The model carries its tenant.** `TenantID` maps to `tenant_id`. The API
 never sets it: the router fills it in on `Create` from the tenant of the
-context, and adds `tenant_id = ?` to every query it builds.
+context, and adds `tenant_id = ?` to every query it builds — reads and writes
+by primary key included. `show` reads with `Find`, which looks the key up
+inside the tenant, so an id that belongs to another tenant answers
+`quark.ErrNotFound` and the handler turns it into a 404; the key-based
+`Update(&row)` and `Delete(&row)` are confined the same way.
 
 **The router is where the confinement lives.** `quark.NewTenantRouter` with
 the `RowLevelSecurityClient` strategy wraps a client;
@@ -232,17 +237,6 @@ live view.
 `^[a-z0-9_-]+$`; the handler turns that into a 400. The routes are typed
 endpoints (`nucleus.Handle`), so the input types are bound and validated
 before the handler runs and the API is described in `/openapi.json`.
-
-:::note Read one row with `Where("id", "=", id).First()`
-
-In this certified set, `Find(id)` and the key-based `Update(&row)` and
-`Delete(&row)` look the row up by its primary key alone, without the tenant
-predicate — on a tenant router they can reach another tenant's row. Read one
-row with `Where(...).First()`, and write with `UpdateFields` or after a read
-that went through the router. The test in step 7 fails if `show` is switched
-to `Find`.
-
-:::
 
 ## 4 — Wire it in `main.go`
 
