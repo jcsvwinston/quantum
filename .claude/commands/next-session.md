@@ -292,19 +292,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
      llevan `BEGIN_COMMIT_OVERRIDE` con `chore:`. Si reaparece, revisar.
 - **Lo que queda de A12**: M0 (preparar el 2.0; necesita A11 cerrado y
   decide cada volteo, con NU-121 en la lista) → R1 → M1 → R2.
-- **Decisiones de Carlos (2026-10-06)**: `WithAuthz()` se ofrece como
-  OPCIÓN para aplicaciones core-only (en curso en nucleus); QK-45 opción
-  explícita ahora y comportamiento por defecto en el 2.0 (en curso en
-  quark); QK-59, QK-60 y QK-65 a la lista del 2.0. Detalle en la sección
-  «El major 2.0» del plan de A12.
-- **Decisiones pendientes de Carlos**: OR-67 (`import_data`/`loaddata` sobre
-  `admin:*` sin el permiso de cada modelo, ADR-007; se le propuso exigir el
-  permiso del modelo y el alcance de escritura ya, como arreglo de
-  seguridad), las cuatro de A12 (la 1 debe nombrar la máquina: el runner y
-  el portátil dan veredictos distintos) y la política de compatibilidad que
-  propone la página de contrato de quark (un punto de extensión no gana
-  métodos en v1; una interfaz de «fontanería» sí — estrecha la promesa de
-  `upgrade.mdx`, pide ADR).
+- **Decisiones de Carlos (2026-10-06) — no queda ninguna pendiente**:
+  `WithAuthz()` como opción (hecha, nucleus#620); QK-45 opción explícita
+  (hecha, quark#463) y por defecto en el 2.0; OR-67 permiso por modelo ya
+  (hecho, orbit#551); a la lista del 2.0 QK-58, QK-59, QK-60, QK-65, QK-46
+  y NU-121; las cuatro decisiones de A12 aprobadas tal cual; la política de
+  compatibilidad de quark se formaliza en un ADR (en curso); y **el 2.0 no
+  sale antes de 2027-01-04** (ventana de 90 días de los avisos DEP).
+- **En marcha al cerrar**: OR-72 y OR-73 (dos huecos de alcance en el panel,
+  sin detallar aquí hasta que estén arreglados) y el ADR de compatibilidad de
+  quark.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
