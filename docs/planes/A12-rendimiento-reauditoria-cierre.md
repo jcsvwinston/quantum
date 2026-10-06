@@ -139,6 +139,11 @@ presupuesto de CI mide raw e inicial; y admin-server embebe el dist entero,
 
 ### El major 2.0
 
+> **El contrato completo del 2.0** —qué entra, qué tiene que estar hecho antes
+> y cuándo está terminado, rediseño estético incluido— está en
+> [`quantum-2.0.md`](quantum-2.0.md). Lo de abajo es la medición de `S0` y
+> las decisiones que lo alimentaron.
+
 Doce símbolos deprecados con aviso y fecha (quark 5: DEP-2026-001/002;
 nucleus 7: DEP-2026-009/011/012; orbit ninguno). Lo que el guard NO ve
 (QM-20): los **volteos de comportamiento** no tienen aviso DEP —NU-72
