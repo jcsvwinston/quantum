@@ -103,7 +103,9 @@ patch may exist for days before a set certifies it alongside the others.
   products' own release notes.
 
 The full history of sets lives in the manifest's git log — every certified
-combination since the first one, one commit each.
+combination since the first one, one commit each. [Releases](/releases) has
+one post per set with a suite tag: the versions it pins, what moved since the
+set before it, and links to each product's release notes.
 
 ## Checking that a set is the one we published
 

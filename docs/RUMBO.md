@@ -53,7 +53,12 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
-- **Certificación mecánica:** 56 guards en el registro — el 56º,
+- **Certificación mecánica:** 57 guards en el registro — el 57º,
+  `umbrella-generated-pages`, es el gate W4 de A11: la API congelada de
+  cada producto, el catálogo de `nucleus add` y un post por set certificado
+  se GENERAN del árbol al pin (`scripts/lib/site-pages.py`, que corre
+  `bump-set`), y el guard falla si el sitio publica otra cosa o si el set
+  vigente no tiene su post; el 56º,
   `umbrella-audit-criteria` (A12 `R0`), vigila la escala con la que se
   repite la auditoría de madurez (`docs/auditoria/criterios-5.csv`: las 36
   dimensiones del 2026-09-03, qué es un 1, un 3 y un 5, y con qué se mide

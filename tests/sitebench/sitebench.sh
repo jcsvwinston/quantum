@@ -103,26 +103,74 @@ probe_ST06() { tutorial_probe "monolito MVC" 'mvc|monolith'; }
 probe_ST07() { tutorial_probe "migración desde Gin+GORM" 'gin|gorm'; }
 probe_ST08() { tutorial_probe "migración desde Django" 'django'; }
 
+# Las páginas GENERADAS del pin (W4): las escribe scripts/lib/site-pages.py y
+# las compara con lo que el pin da el guard umbrella-generated-pages, con una
+# familia por control. Que la página exista no basta: el guard tiene que estar
+# en el registro —si no, ni la certificación lo corre ni guard-of-guards prueba
+# que muerda— y tiene que PASAR hoy para su familia. Una página editada a mano,
+# o una fuente que se movió en un re-pin sin regenerar, lo tumba, y con él el
+# control.
+GEN_GUARD=scripts/check_generated_pages.sh
+generated_guard() {
+  local fam=$1 out
+  if [[ ! -f "$GEN_GUARD" ]] || ! grep -qF "bash $GEN_GUARD" scripts/lib/guard-registry.sh; then
+    echo "  $GEN_GUARD no está en scripts/lib/guard-registry.sh: nada compara la página con su fuente al pin"; echo partial; return
+  fi
+  if ! out=$(bash "$GEN_GUARD" "$fam" 2>&1); then
+    echo "  $GEN_GUARD $fam falla: el sitio publica algo que el pin no da"
+    printf '%s\n' "$out" | grep 'FAIL' | head -3 | sed 's/^/    /'
+    echo partial; return
+  fi
+  echo present
+}
+in_sidebar() { grep -q "'$1'" "$SIDEBAR"; }
+
 probe_ST09() {
-  # Referencia generada: un generador en scripts/ que escriba páginas de API
-  # desde las superficies congeladas de los productos, y un drift check.
-  local gen; gen=$(grep -lE 'api_exported_symbols|apisurface\.json' scripts/*.sh scripts/ci/*.sh scripts/website/*.sh 2>/dev/null | head -1)
-  if [[ -z "$gen" ]]; then echo "  ningún script lee nucleus/contracts/baseline/api_exported_symbols.txt ni quark/acceptance/apisurface.json para generar referencia"; echo absent; return; fi
-  echo "  $gen lee una superficie congelada"; echo partial
+  # Referencia generada: una página por producto que congela su API, que cita
+  # el fichero congelado del que sale y está en el sidebar.
+  local repo src page n=0
+  for pair in nucleus:contracts/baseline/api_exported_symbols.txt \
+              quark:acceptance/apisurface.json \
+              orbit:contracts/baseline/api_exported_symbols.txt; do
+    repo=${pair%%:*}; src=${pair#*:}
+    [[ -f "$repo/$src" ]] || { echo "  $repo/$src no existe al pin"; echo partial; return; }
+    page=$(grep -lF "$src" "$DOCS"/reference/api-*.md 2>/dev/null | xargs grep -lE "^title:.*$(tr '[:lower:]' '[:upper:]' <<<"${repo:0:1}")${repo:1}.*API" 2>/dev/null | head -1)
+    if [[ -z "$page" ]]; then echo "  ninguna página de $DOCS/reference/ es la API de $repo sacada de $src"; continue; fi
+    n=$((n + 1))
+    local id=${page#"$DOCS"/}; id=${id%.md}
+    in_sidebar "$id" || { echo "  $page existe y no está en $SIDEBAR"; echo partial; return; }
+  done
+  if [[ $n -eq 0 ]]; then echo absent; return; fi
+  if [[ $n -lt 3 ]]; then echo "  $n de 3 productos con su API en el sitio"; echo partial; return; fi
+  generated_guard api
 }
 
 probe_ST10() {
+  # Un post por set certificado: el blog encendido en «Releases» y un post por
+  # tag de suite vX.Y.Z (más el set de versions.yaml si aún no tiene tag),
+  # cada uno con lo que dice su manifiesto (eso lo compara el guard).
   if grep -qE 'blog:[[:space:]]*false' "$CONFIG"; then echo "  $CONFIG: blog: false — las notas de cada set sólo viven en las releases de GitHub"; echo absent; return; fi
-  local sets posts
-  sets=$(git tag -l 'v1.*' | grep -cE '^v[0-9]+\.[0-9]+\.[0-9]+$')
-  posts=$(ls website/blog 2>/dev/null | grep -c . || true)
-  if [[ ${posts:-0} -ge $sets ]]; then echo present; else echo "  $posts entradas para $sets sets"; echo partial; fi
+  local dir
+  dir=$(awk '/^[[:space:]]*blog:[[:space:]]*\{/ {b=1} b && /path:/ { if (match($0, /'"'"'[^'"'"']+'"'"'/)) { print substr($0, RSTART+1, RLENGTH-2); exit } }' "$CONFIG")
+  if [[ -z "$dir" || ! -d "website/$dir" ]]; then echo "  el blog está encendido y no encuentro su directorio (path: en el bloque blog de $CONFIG)"; echo partial; return; fi
+  local v missing="" cur
+  cur=$(sed -nE 's/^quantum:[[:space:]]+"([^"]+)".*/\1/p' versions.yaml | head -1)
+  for v in $( (git tag -l 'v*' | grep -E '^v[1-9][0-9]*\.[0-9]+\.[0-9]+$' | sed 's/^v//'; echo "$cur") | sort -u); do
+    grep -lqE "^title: \"?Quantum ${v//./\\.}\"?$" "website/$dir"/*.md 2>/dev/null || missing+=" $v"
+  done
+  if [[ -n "$missing" ]]; then echo "  sets sin post en website/$dir:$missing"; echo partial; return; fi
+  generated_guard releases
 }
 
 probe_ST11() {
   # El catálogo de `nucleus add` en el sitio, generado desde la tabla del CLI.
-  if grep -rlqiE 'nucleus add' "$DOCS" 2>/dev/null && grep -rlqiE '^title:.*catalog' "$DOCS" 2>/dev/null; then echo partial; return; fi
-  echo "  ninguna página de $DOCS es el catálogo (title /catalog/); la lista vive sólo en internal/knownproviders de nucleus"; echo absent
+  local page
+  page=$(grep -rlE '^title:.*[Cc]atalog' "$DOCS" 2>/dev/null | head -1)
+  if [[ -z "$page" ]]; then echo "  ninguna página de $DOCS es el catálogo (title /catalog/); la lista vive sólo en internal/knownproviders de nucleus"; echo absent; return; fi
+  local id=${page#"$DOCS"/}; id=${id%.md}
+  in_sidebar "$id" || { echo "  $page existe y no está en $SIDEBAR"; echo partial; return; }
+  grep -q 'internal/knownproviders' "$page" || { echo "  $page no dice que sale de la tabla del CLI (internal/knownproviders)"; echo partial; return; }
+  generated_guard catalog
 }
 
 probe_ST12() {
@@ -158,9 +206,9 @@ CONTROLS=(
   "ST-06|tutorials|present|an MVC monolith tutorial executed in CI|"
   "ST-07|migration|present|a migration guide from Gin+GORM with executed snippets|"
   "ST-08|migration|present|a migration guide from Django with executed snippets|"
-  "ST-09|reference|absent|an API reference generated from the frozen surfaces, with a drift check|las páginas de API de quark se escriben a mano y las de nucleus (docs/reference/api) son prosa interna fuera del sitio"
-  "ST-10|reference|absent|one post per certified set|docusaurus.config.ts tiene blog: false; las notas del set sólo están en las releases de GitHub"
-  "ST-11|catalog|absent|the catalog of nucleus add on the site, generated from the CLI's table|no hay página de catálogo; la lista vive compilada en nucleus/internal/knownproviders"
+  "ST-09|reference|present|an API reference generated from the frozen surfaces, with a drift check|"
+  "ST-10|reference|present|one post per certified set|"
+  "ST-11|catalog|present|the catalog of nucleus add on the site, generated from the CLI's table|"
   "ST-12|catalog|present|no claim on the site contradicts the catalog|"
 )
 

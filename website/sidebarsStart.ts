@@ -38,6 +38,24 @@ const sidebars: SidebarsConfig = {
     'choosing-a-data-layer',
     'certified-sets',
     'verifying-a-set',
+    {
+      // Generadas del árbol al pin por scripts/lib/site-pages.py (la tabla
+      // del CLI de nucleus y los ficheros con los que cada producto congela
+      // su API) y comparadas con él por el guard umbrella-generated-pages:
+      // no se editan a mano.
+      type: 'category',
+      label: 'Reference',
+      collapsed: false,
+      items: [
+        'reference/catalog',
+        {
+          type: 'category',
+          label: 'API surface',
+          collapsed: true,
+          items: ['reference/api-nucleus', 'reference/api-quark', 'reference/api-orbit'],
+        },
+      ],
+    },
   ],
 };
 

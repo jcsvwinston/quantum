@@ -759,7 +759,13 @@ repin_ya_escrito() {
 # trabajo, un .orig de un conflicto, la salida de un script— sin que ningún
 # guard del paraguas se entere. `--incluye <ruta>` amplía la lista a
 # propósito: nombrar el fichero es la revisión que el paso automático quitó.
-RUTAS_REPIN=(versions.yaml README.md CHANGELOG.md docs/RUMBO.md go.work go.work.sum quark nucleus orbit)
+# Los dos directorios del sitio son los que escribe scripts/lib/site-pages.py
+# desde bump-set (arco A11, W4): la API congelada y el catálogo al pin nuevo, y
+# el post del set. Van enteros porque son SÓLO del generador —el guard
+# umbrella-generated-pages falla con cualquier fichero que él no produzca—, así
+# que dentro no puede viajar nada que no sea el re-pin.
+RUTAS_REPIN=(versions.yaml README.md CHANGELOG.md docs/RUMBO.md go.work go.work.sum quark nucleus orbit
+             website/docs/reference website/releases)
 
 # ruta_del_repin <ruta> — ¿está en RUTAS_REPIN (o bajo una de ellas) o en las
 # que se pasaron con --incluye?
@@ -1204,6 +1210,8 @@ fase_paraguas() {
     || die "docs/RUMBO.md no declara el set del manifiesto (regla de mantenimiento del RUMBO): actualiza su cabecera «Estado real» y relanza --desde paraguas"
   run bash scripts/check_gowork_covers_manifest.sh \
     || die "el go.work no cubre el manifiesto: el «use» de un módulo nuevo del pin va EN el PR de re-pin (1.26.2). Añádelo y relanza --desde paraguas"
+  run bash scripts/check_generated_pages.sh \
+    || die "las páginas generadas del sitio no son las del pin (la API, el catálogo o el post del set): bump-set las escribe; a mano, python3 scripts/lib/site-pages.py. Relanza --desde paraguas"
 
   # DÓNDE está el re-pin no se infiere del árbol. Un árbol limpio significaba
   # aquí «ya está en main», y es falso justo en el camino de recuperación que

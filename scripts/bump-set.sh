@@ -26,6 +26,11 @@
 #      llevó la clave declared_lags. `--set X.Y.Z` fuerza el número (corte
 #      deliberado); `--sin-notas` deja los pasos 1-4 solos.
 #
+#   6. (scripts/lib/site-pages.py) regenera las páginas del sitio que salen
+#      del pin: la API congelada de cada producto, el catálogo de `nucleus
+#      add` y el post del set nuevo en «Releases» (guard
+#      umbrella-generated-pages).
+#
 # Certificar sigue siendo una decisión humana: redactar las notes (sustituir
 # cada REDACTAR) y correr scripts/suite-integral.sh. manifest-guard sigue
 # siendo el juez.
@@ -44,7 +49,7 @@ while [ $# -gt 0 ]; do
     --set) shift; SET_OVERRIDE="${1:-}" ;;
     --set=*) SET_OVERRIDE="${1#--set=}" ;;
     --sin-notas) NOTES=0 ;;
-    -h|--help) sed -n '2,36p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,41p' "$0"; exit 0 ;;
     -*) echo "bump-set: flag desconocido: $1" >&2; exit 64 ;;
     *) POS="$POS $1" ;;
   esac
@@ -175,6 +180,21 @@ regen_module_block nucleus nucleus_modules
 regen_module_block quark quark_modules
 regen_module_block orbit orbit_modules
 
+# 6. Las páginas del sitio que se GENERAN del pin (arco A11, W4): la API
+# congelada de cada producto y el catálogo de `nucleus add` siguen a los pines
+# nuevos, y el set nuevo tiene su post en «Releases» (website/releases/). Va
+# DESPUÉS de set-notes, que es quien escribe la versión de suite que nombra el
+# post. El guard umbrella-generated-pages pone rojo el PR de set si no van en
+# él; train.sh los cuenta entre las rutas del re-pin (RUTAS_REPIN). Con --set
+# se vuelve a correr y el post del número anterior desaparece solo: el
+# directorio es del generador.
+gen_site_pages() {
+  python3 scripts/lib/site-pages.py | grep -v '^escrito ' || {
+    echo "bump-set: el generador de páginas del sitio falló (arriba, la fuente que no supo leer)" >&2
+    exit 1
+  }
+}
+
 echo
 if [ "$NOTES" -eq 1 ]; then
   # Versión de suite, released, status, notes anteriores al CHANGELOG y el
@@ -186,14 +206,19 @@ if [ "$NOTES" -eq 1 ]; then
     python3 scripts/lib/set-notes.py --old "$OLD_STATE"
   fi
   echo
+  gen_site_pages
+  echo
   echo "Hecho. Queda lo HUMANO de la certificación:"
   echo "  1. redacta las notes de versions.yaml: sustituye cada REDACTAR (manifest-guard §0 lo"
   echo "     rechaza) y revisa el título de la entrada nueva de CHANGELOG.md"
   echo "  2. QUANTUM_ALLOW_NOTES_SKELETON=1 bash scripts/manifest-guard.sh  (mientras redactas)"
   echo "  3. bash scripts/manifest-guard.sh && bash scripts/suite-integral.sh"
 else
+  gen_site_pages
+  echo
   echo "Hecho (--sin-notas). Te queda la parte HUMANA de la certificación:"
   echo "  1. quantum: sube la versión de suite (QADR-0002) + released + status"
   echo "  2. mueve las notes del set anterior a CHANGELOG.md y redacta las nuevas (DX-25)"
-  echo "  3. bash scripts/manifest-guard.sh && bash scripts/suite-integral.sh"
+  echo "  3. python3 scripts/lib/site-pages.py  (otra vez: el post nombra la versión de suite)"
+  echo "  4. bash scripts/manifest-guard.sh && bash scripts/suite-integral.sh"
 fi

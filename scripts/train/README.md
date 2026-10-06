@@ -129,6 +129,20 @@ esqueleto de notes con los movimientos del set y marcadores `REDACTAR`
 driver lo tolera en local con `QUANTUM_ALLOW_NOTES_SKELETON=1` mientras se
 redacta; el CI nunca.
 
+Desde A11 (W4), `bump-set` corre además `scripts/lib/site-pages.py`, que
+reescribe las páginas del sitio que salen del pin: la API congelada de cada
+producto (`website/docs/reference/api-*.md`), el catálogo de `nucleus add`
+(`website/docs/reference/catalog.md`) y el **post del set nuevo** en
+«Releases» (`website/releases/quantum-X-Y-Z.md`). No hay nada que redactar en
+ellas: salen de los ficheros congelados de cada producto, de la tabla del CLI
+de nucleus y de `versions.yaml`. El guard `umbrella-generated-pages` las
+compara con el pin, así que **un PR de set sin el post de su set, o con la API
+del pin anterior, sale rojo** —la lane del sitio y suite-integral lo corren—, y
+el driver lo corre en local antes de abrir el PR. Si `bump-set` se saltó o
+se re-pinó a mano: `python3 scripts/lib/site-pages.py` y commitear. Con
+`bump-set.sh --set X.Y.Z` el generador vuelve a correr y el post del número
+anterior desaparece solo (los dos directorios son del generador).
+
 Desde A3 esta fase para en UN solo sitio, y por una sola razón: **la prosa**.
 Con marcadores `REDACTAR` en `versions.yaml` el driver sale con EXIT=2 y pide
 lo que no se delega — redactar las notes, revisar el título que `bump-set`
@@ -173,8 +187,9 @@ condiciones del driver:
   fichero suelto del árbol —una nota de trabajo, un `.orig` de un conflicto, un
   backup del editor, la salida de un script— entraba en el PR y se fusionaba.
   Ahora entran solo `versions.yaml`, `README.md`, `CHANGELOG.md`,
-  `docs/RUMBO.md`, `go.work`/`go.work.sum` y los gitlinks `quark`, `nucleus` y
-  `orbit` (`RUTAS_REPIN`), y lo que quede fuera **para el tren** (EXIT=2) con
+  `docs/RUMBO.md`, `go.work`/`go.work.sum`, los gitlinks `quark`, `nucleus` y
+  `orbit` y los dos directorios que escribe el generador de páginas del sitio,
+  `website/docs/reference/` y `website/releases/` (`RUTAS_REPIN`), y lo que quede fuera **para el tren** (EXIT=2) con
   los ficheros por delante. Si alguno va de verdad en el set, se nombra:
   `--desde paraguas --incluye docs/handoff/<fichero>.md`. Nombrarlo es la
   revisión que el paso automático quitó, y la parada imprime la orden de
