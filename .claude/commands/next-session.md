@@ -225,10 +225,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   la página de contrato, la observación completa y el trabajo de CPU de A12
   (extensión **22/22**). En
   orbit la compresión y el presupuesto del panel (A12 O1). En el paraguas
-  «Why Quantum», tutoriales, guías de migración (W3) y la preparación de la
-  re-auditoría (R0).
+  «Why Quantum», tutoriales, guías de migración (W3, quantum#260; banco del sitio
+  9/12) y la preparación de la re-auditoría (R0).
 - **En marcha al cerrar**: W4 (quantum#266: referencia generada, catálogo
-  en el sitio y un post por set; banco del sitio 10/12) y A12 N1
+  en el sitio y un post por set; con W3 dentro, el banco del sitio sube a
+  12/12) y A12 N1
   (el CLI y las dependencias de test fuera del módulo raíz de nucleus).
 - **Lo que queda**: A11 — W4 y `S-fin` (guards de postura, el de admin
   sube a 72; el banco del catálogo cierra en 36/38 o 37/38 según el
