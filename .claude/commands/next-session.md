@@ -243,8 +243,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   a verde registrando por modelo de CPU la ratio de MY-01 frente a la
   sentencia reutilizada; MY-02 tiene 5–7 puntos de margen entre modelos —
   si tumba el tren, fusionar con el gate obligatorio en verde).
-- **En marcha al cerrar**: QK-57 (P1: `UpdateBatch` ignora `ForTx` — en
-  SQLite se cuelga, en los demás confirma por su cuenta).
+- **QK-57 (P1) arreglado** en quark#455: `UpdateBatch` bajo `ForTx` ya no
+  abre su propia transacción (savepoint en la del llamador). Y NU-120 en
+  nucleus#614 (godoc).
 - **El tren del 2026-10-12 (set 1.41.0, cadencia) — lista**:
   1. **nucleus#607 (A12 N1) se fusiona JUSTO antes de la fase nucleus**
      (rebasado: main exige rama al día). Desde su merge hasta el primer tag
