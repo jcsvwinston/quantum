@@ -238,10 +238,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `CreateBatch` en SQL Server tapaba la violación de unicidad). A12 Q3
   hecha (quark#452: caché de sentencias opcional, lotes en un viaje en
   MySQL y SQL Server).
-- **En marcha al cerrar**: NU-119 (nucleus#613), QK-45 (`UpdateBatch` y el
-  bloqueo optimista, P2) y QK-56 (el banco de motores de quark, rojo en
-  main desde quark#452 — no requerido, pero `merge-bot-pr.sh` para ante
-  cualquier rojo: **tiene que estar verde antes del tren**).
+- **También arreglados**: NU-119 (nucleus#613, los helpers de storage del
+  kit en apps multi-tenant) y QK-56 (quark#454: el banco de motores vuelve
+  a verde registrando por modelo de CPU la ratio de MY-01 frente a la
+  sentencia reutilizada; MY-02 tiene 5–7 puntos de margen entre modelos —
+  si tumba el tren, fusionar con el gate obligatorio en verde).
+- **En marcha al cerrar**: QK-57 (P1: `UpdateBatch` ignora `ForTx` — en
+  SQLite se cuelga, en los demás confirma por su cuenta).
 - **El tren del 2026-10-12 (set 1.41.0, cadencia) — lista**:
   1. **nucleus#607 (A12 N1) se fusiona JUSTO antes de la fase nucleus**
      (rebasado: main exige rama al día). Desde su merge hasta el primer tag
@@ -273,7 +276,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
      llevan `BEGIN_COMMIT_OVERRIDE` con `chore:`. Si reaparece, revisar.
 - **Lo que queda de A12**: M0 (preparar el 2.0; necesita A11 cerrado y
   decide cada volteo, con NU-121 en la lista) → R1 → M1 → R2.
-- **Decisiones pendientes de Carlos**: las cuatro de A12 (la 1 debe nombrar
+- **Decisiones pendientes de Carlos**: **QK-45** (`UpdateBatch` y el bloqueo
+  optimista: el contrato documentado no lo promete para lotes — fix en
+  minor, opción explícita ahora y default en el 2.0, o sólo la versión en
+  memoria; QK-58 lista las demás escrituras con el mismo hueco); las cuatro de A12 (la 1 debe nombrar
   la máquina: el runner y el portátil dan veredictos distintos) y la
   política de compatibilidad que propone la página de contrato de quark (un
   punto de extensión no gana métodos en v1; una interfaz de «fontanería»
