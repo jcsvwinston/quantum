@@ -288,7 +288,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   5. **orbit `ui` cambió dos veces** (OR-64, OR-65): el corte de orbit
      re-pina `ui` en la raíz (trampa 5 de 1.40.0: si `ui` sube en el mismo
      corte que la raíz hace falta un segundo corte).
-  6. El release PR de nucleus ya no anuncia Stripe: los PRs #603/#604/#606
+  6. Las notas de la minor de quark deben **anunciar el estrechamiento de
+     compatibilidad** (quark#464): un `docs` no corta release y nada lo
+     recuerda solo; el guard de voz rechaza el id del ADR en lo publicado.
+  7. El release PR de nucleus ya no anuncia Stripe: los PRs #603/#604/#606
      llevan `BEGIN_COMMIT_OVERRIDE` con `chore:`. Si reaparece, revisar.
 - **Lo que queda de A12**: M0 (preparar el 2.0; necesita A11 cerrado y
   decide cada volteo, con NU-121 en la lista) → R1 → M1 → R2.
@@ -299,9 +302,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   y NU-121; las cuatro decisiones de A12 aprobadas tal cual; la política de
   compatibilidad de quark se formaliza en un ADR (en curso); y **el 2.0 no
   sale antes de 2027-01-04** (ventana de 90 días de los avisos DEP).
-- **En marcha al cerrar**: OR-72 y OR-73 (dos huecos de alcance en el panel,
-  sin detallar aquí hasta que estén arreglados) y el ADR de compatibilidad de
-  quark.
+- **Cerrado al terminar el día**: OR-72 (P1) y OR-73 (orbit#552, #553) y el
+  ADR de compatibilidad de quark (quark#464, ADR-0029, con un test que
+  congela los 41 puntos de extensión). **Antes que nada, la próxima sesión
+  lee la memoria de Claude**: hay un arreglo de seguridad de orbit pendiente
+  que no se detalla en este repo público.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
