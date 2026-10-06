@@ -214,16 +214,18 @@ jobs:
           QUICKSTART_CACHE_LABEL: ${{ steps.go.outputs.cache-hit == 'true' && 'restaurada' || 'sin restaurar (miss)' }}
         run: bash scripts/ci/quickstart_smoke.sh
 
-  # Arco A11 (W2): los tres tutoriales del sitio —SaaS multi-tenant, API-only
-  # y monolito MVC—, EJECUTADOS paso a paso contra el set pinado con el parser
-  # de fences del quickstart (qs_steps): cada comando de la página, cada
-  # fichero que manda escribir y cada salida que enseña, comparada con lo que
-  # el comando imprimió; después, las sondas de lo que la página sólo cuenta
-  # (el panel, el feed en vivo, el documento OpenAPI) y 0 WARN. Presupuesto de
-  # 60 s por tutorial sobre la caché restaurada, como el quickstart. Node 24
-  # porque el tutorial API-only ejecuta un .ts con el cliente generado.
+  # Arco A11 (W2, W3): los tres tutoriales del sitio —SaaS multi-tenant,
+  # API-only y monolito MVC— y las dos guías de migración —desde Gin + GORM y
+  # desde Django, su lado Quantum—, EJECUTADOS paso a paso contra el set
+  # pinado con el parser de fences del quickstart (qs_steps): cada comando de
+  # la página, cada fichero que manda escribir y cada salida que enseña,
+  # comparada con lo que el comando imprimió; después, las sondas de lo que la
+  # página sólo cuenta (el panel, el feed en vivo, el documento OpenAPI, el
+  # borrado suave) y 0 WARN. Presupuesto de 60 s por página sobre la caché
+  # restaurada, como el quickstart. Node 24 porque el tutorial API-only
+  # ejecuta un .ts con el cliente generado.
   tutorials-smoke:
-    name: tutoriales del sitio al set pinado (tres apps, paso a paso)
+    name: tutoriales y guías de migración del sitio al set pinado (paso a paso)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -244,7 +246,7 @@ jobs:
         with:
           node-version: 24
 
-      - name: Los tres tutoriales, ejecutados paso a paso
+      - name: Los tutoriales y las guías de migración, ejecutados paso a paso
         env:
           TUTORIALS_CACHE_LABEL: ${{ steps.go.outputs.cache-hit == 'true' && 'restaurada' || 'sin restaurar (miss)' }}
         run: bash scripts/ci/tutorials_smoke.sh

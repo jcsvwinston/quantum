@@ -282,4 +282,6 @@ on this page are taken from them.
 
 Still here? [The quickstart](quickstart.md) builds the whole suite in a few
 commands; [what is Quantum](what-is-quantum.md) explains how the products fit
-together.
+together. Moving an application you already have? The guides for coming from
+[Gin + GORM](coming-from-gin-gorm.md) and from [Django](coming-from-django.md)
+map each piece onto the suite and port a small app.

@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
-# tutorials_smoke.sh — los tutoriales del sitio de la suite, EJECUTADOS paso a
-# paso contra el set pinado (arco A11, sesión W2).
+# tutorials_smoke.sh — los tutoriales y las guías de migración del sitio de la
+# suite, EJECUTADOS paso a paso contra el set pinado (arco A11, sesiones W2 y
+# W3).
 #
 # Un tutorial es una página que manda teclear comandos y escribir ficheros.
+# Una guía de migración (W3: desde Gin + GORM, desde Django) es lo mismo para
+# su lado Quantum, y además enseña el código de la pila de origen para
+# compararlo: ese código va en fences SIN título (```go, ```python), que
+# qs_steps no toma por fichero, y la página dice que el CI no lo ejecuta. Un
+# comando de la pila de origen no va nunca en una fence de shell: la lane lo
+# ejecutaría.
 # Esta lane hace lo que haría el lector, en el orden de la página, con el
 # parser compartido con el quickstart (scripts/lib/quickstart-fences.sh,
 # qs_steps): no hay un segundo lector de markdown que pueda entender otra cosa.
@@ -49,7 +56,8 @@
 # TUTORIALS_BUDGET_WARN (45) — las cifras del quickstart. La caché de módulos
 # restaurada es la condición del número, como en quickstart_smoke.sh; el
 # desglose se imprime siempre (stdout y $GITHUB_STEP_SUMMARY). Medido en local
-# el 2026-10-05 con caché caliente: 8,3 s, 7,9 s y 2,5 s.
+# el 2026-10-05 con caché caliente: 8,3 s, 7,9 s y 2,5 s los tutoriales;
+# 5,2 s (Gin + GORM) y 8,0 s (Django) las guías.
 #
 # Requisitos: go (el del go.work), python3 (comparar salidas), curl ≥ 7.76
 # (--fail-with-body) y node ≥ 22.18 (el tutorial API-only ejecuta un .ts con
@@ -59,7 +67,11 @@
 # ENSAYO: TUTORIALS_PAGES="ruta/a.md ruta/b.md" sustituye la lista (para
 # depurar una página o romper un paso a propósito y ver caer la lane).
 # Fallo: «FAIL tutorials_smoke: <página>:<línea>» con el paso, su salida y la
-# cola del log de la app; el trap para la app y borra el temporal.
+# cola del log de la app; el trap para la app y borra el temporal. Cuando la
+# salida del paso nombra un fichero que escribió una fence de la página (un
+# error de compilación en el `go run .`, un test rojo en el `go test`), la
+# línea «en la página: <página>:<línea>» dice dónde está el fallo en la fence,
+# no sólo qué comando lo destapó (fence_lines, abajo).
 #
 # Compatibilidad: bash 3.2 (macOS) — sin mapfile, sin arrays asociativos.
 set -uo pipefail
@@ -73,7 +85,7 @@ source scripts/lib/quickstart-fences.sh
 source scripts/lib/background-app.sh
 
 # Las páginas que la lane ejecuta. El banco del sitio (tests/sitebench/
-# sitebench.sh, ST-04…ST-06) busca el nombre de cada página (con su .md) en
+# sitebench.sh, ST-04…ST-08) busca el nombre de cada página (con su .md) en
 # una línea de este script que no sea comentario, y que un workflow llame al
 # script: quitar una de aquí la deja «sin lane». Por eso el resto del script
 # nombra las páginas sin la extensión (sondas_<página>, tolerated_warn).
@@ -81,6 +93,8 @@ TUTORIAL_PAGES=(
   website/docs/tutorial-multi-tenant-saas.md
   website/docs/tutorial-api-only.md
   website/docs/tutorial-mvc-monolith.md
+  website/docs/coming-from-gin-gorm.md
+  website/docs/coming-from-django.md
 )
 if [[ -n "${TUTORIALS_PAGES:-}" ]]; then
   # shellcheck disable=SC2206
@@ -142,8 +156,56 @@ PAGE=""; PAGE_FILE=""; WORK=""; PORT=""; STEP_DESC=""; STEP_OUT=""; STEP_ERR="";
 
 app_logs() { ls "$WORK"/app.*.log 2>/dev/null; }
 
+# fence_lines <fichero>… — los «ruta.go:N» que nombra la salida de un paso
+# fallido, traducidos a líneas de la PÁGINA. Cada fichero del proyecto lo
+# escribió una fence con título (write_file lo apunta en $WORK/files.tsv con
+# la línea de la fence), y la línea N del fichero es la línea fence+N de la
+# página: un error de compilación o un test rojo en un fichero que la página
+# manda escribir apunta así a donde se edita, no a la línea del `go run .` o
+# del `go test` que lo destapó. Rutas relativas al directorio del paso, o sólo
+# el nombre del fichero (así cita `go test` la línea de un t.Errorf) cuando un
+# único fichero escrito se llama así.
+fence_lines() {
+  [[ -n "$WORK" && -s "$WORK/files.tsv" ]] || return 0
+  python3 - "$WORK/files.tsv" "$PWD" "$PAGE" "$@" <<'EOF'
+import os, re, sys
+tsv, cwd, page = sys.argv[1:4]
+files = {}
+for row in open(tsv):
+    path, line = row.rstrip("\n").split("\t")
+    files[path] = int(line)
+by_base = {}
+for path in files:
+    by_base.setdefault(os.path.basename(path), []).append(path)
+seen = []
+for src in sys.argv[4:]:
+    try:
+        text = open(src, errors="replace").read()
+    except OSError:
+        continue
+    for m in re.finditer(r"([\w./-]+\.\w+):(\d+)(?::\d+)?:", text):
+        ref, n = m.group(1), int(m.group(2))
+        path = ref if os.path.isabs(ref) else os.path.normpath(os.path.join(cwd, ref))
+        if path not in files:
+            cands = by_base.get(ref, []) if "/" not in ref else []
+            if len(cands) != 1:
+                continue
+            path = cands[0]
+        hit = "%s:%d (%s:%d)" % (page, files[path] + n, ref, n)
+        if hit not in seen:
+            seen.append(hit)
+for hit in seen[:5]:
+    print(hit)
+EOF
+}
+
 fail() {
+  local where w
+  where=$(fence_lines "$STEP_OUT" "$STEP_ERR" 2>/dev/null || true)
   echo "FAIL tutorials_smoke: $*" >&2
+  if [[ -n "$where" ]]; then
+    while IFS= read -r w; do echo "  en la página: $w" >&2; done <<<"$where"
+  fi
   if [[ -n "$STEP_DESC" ]]; then
     echo "  paso: $STEP_DESC" >&2
   fi
@@ -161,7 +223,7 @@ fail() {
     echo "--- últimas 40 líneas del log de la app ---" >&2
     tail -40 "$log" >&2
   fi
-  [[ -n "${GITHUB_STEP_SUMMARY:-}" ]] && echo "tutorials-smoke: FALLO — $*${STEP_DESC:+ (paso: $STEP_DESC)}" >> "$GITHUB_STEP_SUMMARY"
+  [[ -n "${GITHUB_STEP_SUMMARY:-}" ]] && echo "tutorials-smoke: FALLO — $*${where:+ — en la página: $(head -1 <<<"$where")}${STEP_DESC:+ (paso: $STEP_DESC)}" >> "$GITHUB_STEP_SUMMARY"
   exit 1
 }
 
@@ -271,7 +333,7 @@ start_app() {
 # --- Los tres tipos de paso -------------------------------------------------
 
 run_cmd() {
-  local cmd=$1 rc
+  local cmd=$1 line=$2 rc
   cmd=${cmd//localhost:8080/localhost:$PORT}
   cmd=${cmd//127.0.0.1:8080/127.0.0.1:$PORT}
   : > "$STEP_OUT"; : > "$STEP_ERR"
@@ -279,7 +341,7 @@ run_cmd() {
   eval "$cmd" < /dev/null > "$STEP_OUT" 2> "$STEP_ERR"
   rc=$?
   set -u
-  [[ $rc -eq 0 ]] || fail "$PAGE: el comando salió con $rc"
+  [[ $rc -eq 0 ]] || fail "$PAGE:$line: el comando salió con $rc"
   if [[ -s "$STEP_OUT" ]]; then sed -e 's/^/     | /' "$STEP_OUT" | head -8; fi
 }
 
@@ -290,6 +352,7 @@ write_file() {
   esac
   mkdir -p "$(dirname "$rel")" || fail "$PAGE:$line: no se pudo crear el directorio de $rel"
   qs_fence_body "$PAGE_FILE" "$line" > "$rel" || fail "$PAGE:$line: qs_fence_body no leyó la fence de $rel"
+  printf '%s\t%s\n' "$PWD/$rel" "$line" >> "$WORK/files.tsv"
   echo "     escrito $PWD/$rel ($(wc -l < "$rel" | tr -d ' ') líneas)"
 }
 
@@ -425,6 +488,64 @@ sondas_tutorial-mvc-monolith() {
   echo "     sonda: una firma vacía vuelve a pintar el formulario (HTML, 422)"
 }
 
+# Desde Gin + GORM (W3): lo que la página cuenta y no teclea. El borrado es
+# suave —la fila sigue en la tabla, con deleted_at— y un `%` en la búsqueda
+# busca un signo de porcentaje en vez de casar con todo (la diferencia con la
+# versión de Gin que la página declara). La base es la del proyecto: la app
+# arranca en el directorio de la página y nucleus.yml nombra sqlite://app.db.
+sondas_coming-from-gin-gorm() {
+  local db="$PWD/app.db"
+  [[ -f "$db" ]] || fail "$PAGE: no está $db — la app no escribió en la base que nombra nucleus.yml"
+  python3 - "$db" <<'EOF' || fail "$PAGE: la página dice que el bookmark borrado sigue en la tabla con deleted_at, y la base dice otra cosa"
+import sqlite3, sys
+row = sqlite3.connect(sys.argv[1]).execute("SELECT deleted_at FROM bookmarks WHERE id = 1").fetchone()
+if row is None:
+    print("  el bookmark 1 ya no está en la tabla: el DELETE lo borró de verdad", file=sys.stderr); sys.exit(1)
+if row[0] is None:
+    print("  el bookmark 1 sigue en la tabla sin deleted_at", file=sys.stderr); sys.exit(1)
+EOF
+  echo "     sonda: el bookmark borrado sigue en la tabla, con deleted_at (borrado suave)"
+  python3 - "$(command curl -s "http://127.0.0.1:$PORT/api/bookmarks?q=%25")" <<'EOF' || fail "$PAGE: la página dice que ?q=% busca un signo de porcentaje, y la búsqueda casó con otra cosa"
+import json, sys
+doc = json.loads(sys.argv[1])
+if doc.get("count") != 0:
+    print("  ?q=%% devolvió %s" % json.dumps(doc), file=sys.stderr); sys.exit(1)
+EOF
+  echo "     sonda: ?q=% no casa con ningún título (WhereContains escapa el comodín)"
+}
+
+# Desde Django (W3): el admin que la página sólo cuenta —Data Studio lista
+# los dos modelos con las filas que crearon los curl, y edita Choice inline
+# con su Question, el TabularInline del original— y el hueco que declara: la
+# relación no crea FOREIGN KEY. Si Quark empieza a crearla, la página miente
+# en «What has no equivalent yet» y la lane lo dice.
+sondas_coming-from-django() {
+  local jar="$WORK/cookies.admin"
+  admin_login "$jar"
+  python3 - "$(command curl -s -b "$jar" "http://127.0.0.1:$PORT/admin/api/models")" \
+    "$(command curl -s -b "$jar" "http://127.0.0.1:$PORT/admin/api/models/Question/schema")" <<'EOF' || fail "$PAGE: Data Studio no enseña los modelos del port como la página dice"
+import json, sys
+models = {m["name"]: m for m in json.loads(sys.argv[1])["models"]}
+for name, want in (("Question", 2), ("Choice", 5)):
+    m = models.get(name)
+    if m is None:
+        print("  Data Studio no lista %s: %s" % (name, sorted(models)), file=sys.stderr); sys.exit(1)
+    if m.get("count") != want:
+        print("  %s tiene count=%r; los curl de la página crean %d" % (name, m.get("count"), want), file=sys.stderr); sys.exit(1)
+inlines = [i.get("model") for i in (json.loads(sys.argv[2]).get("inlines") or [])]
+if "Choice" not in inlines:
+    print("  el esquema de Question no trae Choice como inline: %r" % inlines, file=sys.stderr); sys.exit(1)
+EOF
+  echo "     sonda: Data Studio lista Question (2) y Choice (5) y edita Choice inline con su Question"
+  python3 - "$PWD/app.db" <<'EOF' || fail "$PAGE: la página dice que la relación no crea FOREIGN KEY y la tabla choices la tiene — corrige «What has no equivalent yet»"
+import sqlite3, sys
+fks = sqlite3.connect(sys.argv[1]).execute("PRAGMA foreign_key_list(choices)").fetchall()
+if fks:
+    print("  choices tiene FOREIGN KEY: %r" % (fks,), file=sys.stderr); sys.exit(1)
+EOF
+  echo "     sonda: choices sin FOREIGN KEY, el hueco que la página declara"
+}
+
 # --- Un tutorial ------------------------------------------------------------
 
 run_tutorial() {
@@ -464,7 +585,7 @@ run_tutorial() {
         echo "-- [$((k + 1))/$n] $PAGE:$line \$ $value"
         NEXT_IS_OUT=0
         [[ "${KINDS[k + 1]:-}" == out ]] && NEXT_IS_OUT=1
-        run_cmd "$value"
+        run_cmd "$value" "$line"
         ;;
       file)
         STEP_DESC="$PAGE:$line (fichero $value)"
@@ -562,5 +683,5 @@ T_ALL=$(now_ms)
 for p in "${TUTORIAL_PAGES[@]}"; do
   run_tutorial "$p"
 done
-summary "tutorials-smoke: ${#TUTORIAL_PAGES[@]} tutoriales en $(secs $(( $(now_ms) - T_ALL ))) s"
-echo "tutorials_smoke: OK — cada paso de ${#TUTORIAL_PAGES[@]} tutorial(es) ejecutado al set pinado, sus salidas iguales a las de la página, sus sondas en verde y 0 WARN"
+summary "tutorials-smoke: ${#TUTORIAL_PAGES[@]} páginas (tutoriales y guías de migración) en $(secs $(( $(now_ms) - T_ALL ))) s"
+echo "tutorials_smoke: OK — cada paso de ${#TUTORIAL_PAGES[@]} página(s) ejecutado al set pinado, sus salidas iguales a las de la página, sus sondas en verde y 0 WARN"
