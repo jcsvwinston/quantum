@@ -64,24 +64,22 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-05, QUANTUM 1.39.0 — A10 CERRADO; A11 y A12 EN CURSO: sus `S0` hechas y troceadas, sesiones de los dos arcos en PRs abiertos e integrándose)
+## 3. Estado al cierre (2026-10-06, QUANTUM 1.40.0 — los P0 de tenants publicados; A11 casi cerrado: queda S-fin; A12 en curso)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.39.0** (2026-10-05, corte por cierre de
-  arco) — quark v1.15.2, nucleus v1.31.0 y orbit v1.18.1 con sus módulos,
-  tal como los lista `versions.yaml` (la fuente; no copies números de aquí).
-  `declared_lags` vacío. **Cierra A10** y publica **QK-39 (P0)**: desde la
-  primera release, `DeleteBy`, `UpdateMap` y `UpdateFields` ignoraban la
-  lógica de cada condición y `WhereNot(…).DeleteBy()` borraba las filas que
-  excluía (quark v1.15.2). El tren enseñó tres cosas (sección 1.39.0 de
-  `scripts/train/README.md`): un defecto grave con el tren en marcha se
-  mete en el mismo set dejando avanzar nucleus, cortando quark otra vez y
-  alineando orbit UNA vez; fusionar los suelos de nucleus regenera la rama
-  del release y se lleva las notas y el snapshot escritos a mano (se guardan
-  como parches antes); y un `go.mod` suelto en la raíz de `$TMPDIR` (lo dejó
-  un agente) tumba `check_exit0_regressions` en local porque el CLI de
-  nucleus lo toma y Go no (NU-109).
+- **Set certificado: Quantum 1.40.0** (2026-10-06, FUERA de cadencia para
+  publicar los P0 de tenants) — quark v1.16.0, nucleus v1.31.0 (sin cortar
+  en este set) y orbit v1.19.1 con sus módulos, tal como los lista
+  `versions.yaml` (la fuente; no copies números de aquí). `declared_lags`
+  vacío. Publica **QK-42 y QK-43 (P0)**: bajo `RowLevelSecurityClient`,
+  `Find(id)` leía la fila de otro tenant y la rama de actualización de
+  `Upsert` escribía en la de otro; con QK-40, QK-41 y QK-44 del mismo
+  grupo. Y A11 en quark (contrato del dialecto en `quarkdriver`, esquema que
+  pregunta al dialecto, integraciones probadas, `quark init --with`) y en
+  el panel (72 de 72). 1.39.0 cerró A10. El tren se pausó a mitad y se
+  terminó al día siguiente; sus seis trampas, en la sección 1.40.0 de
+  `scripts/train/README.md`.
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
@@ -109,7 +107,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   [`docs/planes/A12-rendimiento-reauditoria-cierre.md`](../../docs/planes/A12-rendimiento-reauditoria-cierre.md)
   (12 sesiones; **cuatro decisiones escritas como propuesta, pendientes de
   Carlos**). Decisiones de Carlos para A11: ejemplos como fixtures probados,
-  construir saml/redis-cache/stripe/sentry, catálogo de `nucleus add`
+  construir saml/redis-cache/sentry (Stripe se construyó y se
+  retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
   embebido y fijado a la release. El estado de cada sesión (hecha, PR
   abierto, fusionada) está en el registro de sesiones de cada plan; la cola
   de integración de esta noche, en la sesión de abajo.
@@ -213,33 +212,39 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-10-04/05 — **A10 CERRADO (Quantum 1.39.0), QK-39 (P0) arreglado dentro del set, y A11 y A12 arrancados en paralelo**
+### Sesión 2026-10-05/06 — **set 1.40.0 (P0 de tenants) y casi todo A11; pausa a mitad del tren a petición de Carlos**
 
-- **A10**: `S4`–`S9` como seis PRs apilados de nucleus (#581…#586),
-  fusionados en orden con cada capa reconstruida sobre el squash de la
-  anterior; banco 46/46; set 1.39.0 certificado con `umbrella-api-posture`.
-- **QK-39**: lo encontró el agente de A11 `Q1` buscando QK-33; reproducido;
-  el tren se dejó avanzar sólo hasta nucleus, quark se cortó dos veces
-  (v1.15.1 suelos, v1.15.2 arreglo) y orbit se alineó una vez.
-- **A11/A12 `S0`**: los bancos (nucleus catalogbench 6/38, orbit extension
-  1/13, quark extbench 5/22, sitio 0/12) y la medición de rendimiento de
-  A12, con 18 hallazgos nuevos en el registro (QK-33…41, NU-99…110 salvo
-  los cerrados, OR-61, OR-62, QM-20, QM-21) — quantum#253.
-- **Sesiones hechas por agentes, verdes, y su estado de fusión** al cerrar
-  la sesión: nucleus — `S0` #587, N1 #590 y N2 #589 FUSIONADAS, NU-107
-  #591 FUSIONADA; N3 #593 reconstruida sobre N2 y en CI; A12 N2 #592 (cola
-  SQL) y N4 (en marcha) pendientes. quark — `S0` #422, QK-39 #428 y A12 Q1
-  #431 FUSIONADAS; Q1 #425 rebasada (en CI); Q2 #432→#433 (retitular a
-  `feat(schema)` al fusionar), Q8 #426→Q9 #427 pendientes. orbit — `S0`
-  #531, O1 #532→O2 #534→O5 #538 y O3 #533→O4 #535 pendientes: al
-  integrarlas hay que reconstruir `ui/dist`, renumerar el `UIX-09` de O2 a
-  `UIX-10` (choca con el de O3) y, en el corte, re-pinar `orbit/ui` en la
-  raíz y en `server/`.
-- **Lo que vale para la próxima**: integrar en local antes de fusionar
-  (N1+N2+N3 chocaban en la misma nota del banco y en el mismo mensaje de
-  oidc); un PR en conflicto NO lanza CI y `gh pr checks` sale vacío sin
-  error (mirar `mergeStateStatus`); con muchos agentes a la vez los runners
-  de GitHub se saturan y el tren tarda (2 h 55 min).
+- **Publicado**: Quantum 1.40.0. **Fusionado en main sin publicar**: en
+  nucleus el catálogo con recetas (`nucleus add` cablea lo que instala),
+  el lado plugin (`plugins.Serve`, plugin de ejemplo, allowlist opcional),
+  puentes del outbox, plantilla de módulo, accounts y realtime desde el
+  runtime, redis-cache, y los módulos `errors-sentry` y `auth-saml` (banco del catálogo
+  **36/38**; Stripe se construyó y se retiró antes de publicarlo por
+  decisión de Carlos, nucleus#606); la cola SQL con `SKIP
+  LOCKED` (A12 N2). En quark el kit de conformidad, la plantilla de driver,
+  la página de contrato, la observación completa y el trabajo de CPU de A12
+  (extensión **22/22**). En
+  orbit la compresión y el presupuesto del panel (A12 O1). En el paraguas
+  «Why Quantum», tutoriales, guías de migración (W3, quantum#260), la referencia
+  generada con el catálogo y un post por set (W4, quantum#266; banco del
+  sitio **12/12**, guard 57º `umbrella-generated-pages`) y la preparación
+  de la re-auditoría (R0).
+- **En marcha al cerrar**: A12 N1 (nucleus#607: el CLI y las dependencias
+  de test fuera del módulo raíz de nucleus) y A12 Q3 (lotes con COPY,
+  backfill sin un INSERT por fila y caché opcional de sentencias en quark).
+- **Lo que queda**: A11 — sólo `S-fin` (guards de postura, el de admin
+  sube a 72; el banco del catálogo cierra en 36/38 o 37/38 según el
+  parcial que quede, con `EN-08` ausente por decisión). A12 — Q3, N1, y al
+  final M0 → R1 → M1 → R2. El próximo set publicará nucleus (minor con todo
+  A11) y tendrá que añadir a mano `errors-sentry` y `auth-saml` a
+  `nucleus_modules` de `versions.yaml`, y
+  `guides/writing-a-driver` y `reference/extension-contract` a
+  `website/sidebarsQuark.ts` cuando pine quark con Q5/Q6.
+- **Decisiones pendientes de Carlos**: las cuatro de A12 (la 1 debe nombrar
+  la máquina: el runner y el portátil dan veredictos distintos) y la
+  política de compatibilidad que propone la página de contrato de quark (un
+  punto de extensión no gana métodos en v1; una interfaz de «fontanería»
+  sí — estrecha la promesa de `upgrade.mdx`, pide ADR).
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 

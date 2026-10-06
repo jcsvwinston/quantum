@@ -685,6 +685,37 @@ release-please@17` y llamar a `parseConventionalCommits` de
 bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
 la línea y la columna.
 
+### Lo que aprendió el tren de 1.40.0 (los P0 de tenants, con quark y orbit y sin nucleus)
+
+- **Un workflow NO requerido tumba el tren.** `merge-bot-pr.sh` para ante
+  cualquier rojo, y el banco de rendimiento de quark (`engine-bench.yml`,
+  no requerido) falló dos veces el release al tocarle un modelo de CPU
+  nuevo con asignaciones idénticas. La salida fue esperar al «CI Required
+  Gate», fusionar el release con `gh pr merge N --merge`, comprobar los
+  tags y que la etiqueta pasara a `autorelease: tagged`, y relanzar la fase
+  (sin release PR abierto, la da por terminada). quark main ya afirma los
+  tiempos sólo en los modelos registrados (QK-47).
+- **La minor de quark necesita su snapshot de docs y `quark-doc-debt.sh`
+  no lo corta.** `check_docs_archive_freshness` lo exige. Se corta en la
+  rama del release con `npm run docusaurus -- docs:version X`, enlazando
+  `website/node_modules` del checkout principal: Docusaurus SÍ arranca así.
+  Orbit lo corta con su `scripts/release/cut_docs_snapshot.sh`.
+- **El guard de voz de producto rechaza ids de ADR** en las notas que se
+  publican: se explica la decisión en prosa.
+- **El tren escribe solo las notas de orbit con una plantilla de
+  «alineación sin cambios»**, falsa cuando el corte trae features (v1.19.0
+  traía A11 entero). Revisarlas en la rama del release antes de fusionar.
+- **Un módulo hermano que sube en el mismo corte que la raíz que lo
+  requiere deja a la raíz con la versión vieja** (`orbit/ui` v1.1.0 con la
+  raíz aún en v1.0.0): segundo corte que re-pina (v1.19.1), y el set pina
+  el segundo.
+- **El cierre puede correr antes de que se publique la release del
+  paraguas**: `umbrella-release-assets` sale rojo con `release-set.yml` en
+  cola. Esperar ese workflow y relanzar `--desde cierre --hasta cierre`.
+- **Un set puede no cortar un pilar**: con `--hasta quark` y `--desde orbit`
+  se salta nucleus, que se queda en su pin; `--desde quark` sin `--hasta`
+  pasaría por nucleus y abriría su PR de suelos.
+
 ### Lo que aprendió el tren de 1.39.0 (A10 cerrado, y un P0 de quark con el tren en marcha)
 
 - **Un defecto grave encontrado con el tren en marcha entra en el MISMO
