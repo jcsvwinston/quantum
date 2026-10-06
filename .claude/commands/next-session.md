@@ -294,7 +294,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   7. El release PR de nucleus ya no anuncia Stripe: los PRs #603/#604/#606
      llevan `BEGIN_COMMIT_OVERRIDE` con `chore:`. Si reaparece, revisar.
 - **Lo que queda de A12**: M0 (preparar el 2.0; necesita A11 cerrado y
-  decide cada volteo, con NU-121 en la lista) → R1 → M1 → R2.
+  decide cada volteo, con NU-121 en la lista) → R1 → M1 → R2. **Qué tiene
+  que cumplir el 2.0** (alcance, precondiciones, rediseño estético de orbit y
+  del sitio, y cuándo está terminado) está fijado en
+  [`docs/planes/quantum-2.0.md`](../../docs/planes/quantum-2.0.md). Orden de
+  Carlos: **primero se termina lo pendiente**, después el 2.0.
 - **Decisiones de Carlos (2026-10-06) — no queda ninguna pendiente**:
   `WithAuthz()` como opción (hecha, nucleus#620); QK-45 opción explícita
   (hecha, quark#463) y por defecto en el 2.0; OR-67 permiso por modelo ya

@@ -140,6 +140,9 @@ que una sesión necesita para orientarse.
 | A11 | Extensibilidad y catálogo | A5, A7 (los módulos que cataloga) | [`A11-extensibilidad-y-catalogo.md`](A11-extensibilidad-y-catalogo.md) (en curso desde 2026-10-04) |
 | A12 | Rendimiento, re-auditoría y cierre a 5 | todos | [`A12-rendimiento-reauditoria-cierre.md`](A12-rendimiento-reauditoria-cierre.md) (en curso desde 2026-10-04) |
 
+**El 2.0** tiene su propio contrato en [`quantum-2.0.md`](quantum-2.0.md): lo
+ejecuta A12 (`M0` → `M1` → `R2`) y no se empieza hasta terminar lo pendiente.
+
 **A4 y A5 pueden ir en paralelo** (tocan repos distintos), igual que A8 y A9.
 Lo demás respeta las dependencias de la tabla.
 
