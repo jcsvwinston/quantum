@@ -33,6 +33,42 @@
 5. **`R1` hecha**: la re-auditoría completa sobre el último set 1.x. Lo
    rompiente que encuentre entra en el §3 (con su aviso); lo demás, en sets
    semanales.
+6. **La DX al 5** (§2.1), en 1.x: es aditiva, así que no espera al major.
+
+### 2.1 La DX al 5 (decisión de Carlos, 2026-10-06)
+
+El §4 exige que `R2` dé 5 en todas las dimensiones salvo comunidad, así que el
+2.0 ya obliga a cerrar la DX; aquí queda explícito qué falta. Cada punto sale
+del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
+
+**Quark — docs/DX (2 el 2026-09-03)**
+- Una guía por caso de uso.
+- Un playground de consultas en el sitio.
+- Mensajes de error con receta (qué pasó y qué hacer) en el 100 % de los
+  `Err*`, contado por un guard y no a juicio.
+- Cero deriva entre documentación y código (los guards de doc ya existen).
+
+**Quark — API de consultas (58 de 60 tipadas al pin de 1.39.0)**
+- Las 60 consultas del banco expresadas tipadas, sin `RawQuery`.
+
+**Nucleus — CLI y generadores (3)**
+- Generadores que montan, prueban y documentan lo que generan, y cuyo test
+  prueba la composición real de la aplicación (NU-127).
+- `nucleus dev` con recarga.
+- Completions de la CLI.
+- `routes` y `migrate` que ven lo que monta el binario real.
+
+**Nucleus — Docs/DX (3)**
+- Como mucho cinco conceptos hasta el primer endpoint, medido sobre el
+  quickstart.
+- Tutoriales por caso de uso ejecutados en CI y referencia generada (hechos
+  en A11: W2, W3, W4); que sigan sin deriva.
+
+**Nucleus — Datos (3)**
+- Quark como capa de datos por defecto (starter y generadores).
+- Migraciones autogeneradas desde modelos con lock y detección de deriva.
+- `pkg/model` reducido a sustrato (su retirada como capa pública, en el
+  §3.3).
 
 ## 3. Lo que entra en el 2.0
 
@@ -79,6 +115,12 @@ existe en 1.x.
 | — | los errores salen en problem+json por defecto | el sobre por defecto |
 | OR-57 | la identidad del nodo del fleet atada al certificado (con mTLS) | opcional |
 | NU-121 | `nucleustest` deja de enlazar SQLite siempre | lo enlaza |
+
+**A decidir en `M0`** (los nombra el plan de A12 y faltaban aquí):
+- **`pkg/model`**: retirarlo como capa de datos pública de nucleus y dejarlo
+  como sustrato, con quark como la capa única (el listón de «Datos»).
+- **Buses de eventos**: un solo bus tipado; los que se solapan con él
+  (`pkg/signals` y los demás que A7 dejó vivos) se retiran.
 
 **Propuestos, entran salvo decisión en contra en `M0`**: NU-110 (SQLite guarda
 las fechas en un formato que sus funciones de fecha entienden) y QK-50 (Oracle
