@@ -8,14 +8,21 @@
 # ausente o quitar un caso del banco, y el resultado seguiría leyéndose como
 # una medición.
 #
-#   orbit/internal/adminbench/           59 controles con su sonda y su veredicto
+#   orbit/internal/adminbench/           72 controles con su sonda y su veredicto
 #   orbit/internal/adminbench/browser/   el instrumento que corre en un navegador
 #   orbit/docs/admin-bench.md            la página que publica los dos numeradores
 #
+# A6 cerró el banco con 59 de 59; A11 (O1…O6, orbit v1.19.x) le añadió la
+# familia `extension` —13 controles— y lo cerró con 72 de 72, y llevó la
+# mitad de navegador de 7 controles a 13. Los suelos de abajo son los de A11.
+#
 # Lo que comprueba, en el ÁRBOL PINADO:
 #
-#   1. el banco existe, tiene sus 59 controles y cada uno que no está
+#   1. el banco existe, tiene sus 72 controles y cada uno que no está
 #      `present` lleva nota que diga qué falta;
+#   1b. el suelo: 72 controles `present` registrados. Bajar un veredicto
+#      registrado para que el banco vuelva a verde exige bajar también este
+#      suelo, en el mismo cambio y a la vista;
 #   2. la cifra de la página coincide con la que la tabla del banco cuenta;
 #   3. el instrumento del navegador está en el pin (sus specs, su
 #      configuración y el arnés en Go que lo ejecuta), y el CI de orbit lo
@@ -38,6 +45,9 @@ BENCH_DOC=orbit/docs/admin-bench.md
 BROWSER_DIR=orbit/internal/adminbench/browser
 BROWSER_HARNESS=orbit/internal/adminbench/browserbench_test.go
 ORBIT_CI=orbit/.github/workflows/ci.yml
+EXPECTED_CONTROLS=72
+PRESENT_FLOOR=72
+EXPECTED_UIX=13
 
 fail=0
 report() { echo "FAIL: admin-posture — $1" >&2; fail=1; }
@@ -80,8 +90,11 @@ fi
 if [[ -n "${nonote// /}" ]]; then
   report "casos sin nota que diga qué falta: $nonote"
 fi
-if [[ "$total" -lt 59 ]]; then
-  report "el banco tiene $total controles; se registraron 59 en A6 — ¿se borró alguno?"
+if [[ "$total" -lt "$EXPECTED_CONTROLS" ]]; then
+  report "el banco tiene $total controles; se registraron $EXPECTED_CONTROLS al cerrar A11 — ¿se borró alguno?"
+fi
+if [[ "$present" -lt "$PRESENT_FLOOR" ]]; then
+  report "el banco registra $present controles present; el suelo de A11 es $PRESENT_FLOOR — si el retroceso es real, bájalo aquí en el mismo cambio y escribe por qué"
 fi
 
 # 2. La página publica la misma cifra que la tabla cuenta.
@@ -132,8 +145,8 @@ if ! grep -rq 'UIX-00' "$BROWSER_DIR"/specs 2>/dev/null; then
 fi
 
 uix=$(grep -cE '\{id: "UIX-[0-9]+"' "$BROWSER_HARNESS" 2>/dev/null || true)
-if [[ "$uix" -lt 5 ]]; then
-  report "el arnés del navegador registra $uix controles; se registraron 7 en A6"
+if [[ "$uix" -lt "$EXPECTED_UIX" ]]; then
+  report "el arnés del navegador registra $uix controles; se registraron $EXPECTED_UIX al cerrar A11 (UIX-00…UIX-12)"
 fi
 
 if [[ "$fail" -eq 0 ]]; then

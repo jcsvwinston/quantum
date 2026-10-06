@@ -123,7 +123,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   OR-55. Y el corolario: **OPS-14**, el control de A6 que debía cazar OR-53,
   medía que el endpoint devolviera 200 sobre un panel ciego. Un control cuyo
   título afirma más de lo que su sonda comprueba pasa para siempre.
-- **55 guards en el registro**: los 54 de 1.39.0 más **`umbrella-why-quantum`**, el gate W1 de A11 (2026-10-05, registrado sin esperar al set porque sus fuentes ya están en el pin): cada cifra de `website/docs/why-quantum.md` contra su fuente al pin y citada en su párrafo, ningún otro número en su prosa (tampoco en palabras), y la frase de `what-is-quantum.md` que sustituyó a «not breadth of plugins». **Trampa anunciada para el próximo tren**: al re-pinar nucleus con el catálogo de N1/N4, la tabla de `nucleus add` cablea capacidades del core que no son módulos (3 en el main de hoy) y el guard pone rojo el PR de set hasta reescribir las dos frases del catálogo con lo que publica. Los 54: los 53 de 1.38.0 más **`umbrella-api-posture`**, el gate de A10 (2026-10-05, en el PR de set de 1.39.0): la cifra de `nucleus/docs/api-bench.md` y su tabla por familias contra el catálogo, el starter con `WithOpenAPIDocument` y endpoints tipados, el test del gate y la lane que lo corre con node y `tsc`, y la línea base del documento del starter. Los 53: los 52 de 1.37.0 más
+- **59 guards en el registro**: los 57 de antes más **`umbrella-site-posture`** y **`umbrella-quark-extension-posture`**, la primera mitad de A11 `S-fin` (2026-10-06): el banco del sitio corre en la certificación (lo medido = lo registrado, suelo 12 de 12), y la cifra y las cabeceras de `quark/docs/extension-bench.md` contra `internal/extbench` con un suelo de 14 present (el del pin) que **sube a 22 en el set del 2026-10-12**; `umbrella-admin-posture` sube su suelo a 72. El del catálogo (`umbrella-catalog-posture`) espera en la rama `feat/a11-sfin-catalog-posture` a ese set (pasos en el registro de sesiones del plan de A11). Los 57: los 55 más `umbrella-audit-criteria` (A12 `R0`) y `umbrella-generated-pages` (A11 W4). Los 55: los 54 de 1.39.0 más **`umbrella-why-quantum`**, el gate W1 de A11 (2026-10-05, registrado sin esperar al set porque sus fuentes ya están en el pin): cada cifra de `website/docs/why-quantum.md` contra su fuente al pin y citada en su párrafo, ningún otro número en su prosa (tampoco en palabras), y la frase de `what-is-quantum.md` que sustituyó a «not breadth of plugins». **Trampa anunciada para el próximo tren**: al re-pinar nucleus con el catálogo de N1/N4, la tabla de `nucleus add` cablea capacidades del core que no son módulos (3 en el main de hoy) y el guard pone rojo el PR de set hasta reescribir las dos frases del catálogo con lo que publica. Los 54: los 53 de 1.38.0 más **`umbrella-api-posture`**, el gate de A10 (2026-10-05, en el PR de set de 1.39.0): la cifra de `nucleus/docs/api-bench.md` y su tabla por familias contra el catálogo, el starter con `WithOpenAPIDocument` y endpoints tipados, el test del gate y la lane que lo corre con node y `tsc`, y la línea base del documento del starter. Los 53: los 52 de 1.37.0 más
   **`umbrella-fleet-posture`**, el gate de A9 (2026-09-25, en el PR de set
   de 1.38.0 porque sólo al pin nuevo hay qué vigilar): el banco del fleet
   tiene sus 50 controles y ningún hueco sin nota, la cifra que publica
@@ -232,9 +232,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 - **En marcha al cerrar**: A12 N1 (nucleus#607: el CLI y las dependencias
   de test fuera del módulo raíz de nucleus) y A12 Q3 (lotes con COPY,
   backfill sin un INSERT por fila y caché opcional de sentencias en quark).
-- **Lo que queda**: A11 — sólo `S-fin` (guards de postura, el de admin
-  sube a 72; el banco del catálogo cierra en 36/38 o 37/38 según el
-  parcial que quede, con `EN-08` ausente por decisión). A12 — Q3, N1, y al
+- **Lo que queda**: A11 — la mitad (b) de `S-fin`, en el set del
+  2026-10-12 (la (a) —guards del sitio y de extensión de quark, suelo de
+  admin a 72— se hizo el 2026-10-06): registrar `umbrella-catalog-posture`
+  desde la rama `feat/a11-sfin-catalog-posture` (el banco del catálogo
+  cierra en 36/38 o 37/38 según el parcial que quede, con `EN-08` ausente
+  por decisión), subir a 22 el suelo de `umbrella-quark-extension-posture`
+  y A11 en `arcos_cerrados`. A12 — Q3, N1, y al
   final M0 → R1 → M1 → R2. El próximo set publicará nucleus (minor con todo
   A11) y tendrá que añadir a mano `errors-sentry` y `auth-saml` a
   `nucleus_modules` de `versions.yaml`, y
