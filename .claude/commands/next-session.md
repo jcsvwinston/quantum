@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-06, QUANTUM 1.40.0 — los P0 de tenants publicados; A11 a falta de S-fin (b) en el set del 2026-10-12; A12 en curso)
+## 3. Estado al cierre (2026-10-07, QUANTUM 1.40.0 — OR-77 fusionado en orbit, pendiente del set del 2026-10-12; A11 a falta de S-fin (b) en ese set; A12 en curso)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -212,6 +212,45 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-10-07 — **OR-77: las políticas por campo de orbit conocen un campo por su clave JSON**
+
+- **El arreglo de seguridad que la sesión anterior dejó anotado sólo en la
+  memoria de Claude, hecho y fusionado**: orbit#554 (en `main`, sin
+  publicar; sale en el corte de orbit del set del 2026-10-12). `fieldRules`
+  resolvía el campo que nombra una política, y las claves de los registros
+  que enmascara y de las cargas que guarda, por columna y nombre Go; el
+  adaptador de Nucleus emite y acepta los registros por clave JSON, así que
+  un campo cuya clave JSON era una tercera grafía no se enmascaraba en
+  lectura (registro, lista, historial, rastro) ni se rechazaba en escritura
+  (formulario, importación, hijos en línea, fixtures). Ahora
+  `fieldRules.resolve` prueba columna y nombre Go y después la clave JSON
+  (`Panel.fieldJSONKeys`), en el orden de `fieldForInput` del adaptador, y
+  una política puede nombrar el campo por las tres grafías; el 403 sigue
+  nombrando la columna. Registrado como **OR-77 (P1, orbit, A12, hecho)**
+  con su fila en el informe `orbit.md` (este PR).
+- **Medido, no supuesto**: tres tests nuevos sobre un modelo de tres grafías
+  (`field_key_scope_test.go`: `secret_note`/`Secret`/`hidden`) y `PERM-06`
+  del banco ampliado con un campo de tres grafías en `Note`
+  (`internal_note`/`Internal`/`editor_note`, sin etiqueta `admin` para no
+  mover la rejilla del navegador); banco **72 de 72**. Cada mutación parcial
+  (sólo la máscara, sólo el guarda, sólo el objeto de la política) la caza
+  exactamente el test que la vigila, y el servidor del commit padre pone
+  `PERM-06` en `partial`. ADR-007 lleva la enmienda; `features.md` dice qué
+  grafías resuelve una política y en qué orden; `admin-bench.md` la sección
+  con la tabla «verified by breaking it».
+- **Para el tren del 2026-10-12 no añade nada**: orbit se corta de todos
+  modos (OR-64/65/72/73 y OR-77 en `main` sin publicar). Publicarlo antes
+  sería un patch de orbit fuera de cadencia con la razón en `status:`; no
+  se ha pedido.
+- **Lo que una sesión puede hacer antes del lunes sin decisión nueva**:
+  **OR-70** (P3: `GET /api/models` con conteos devuelve el total de filas de
+  cada modelo a cualquiera con `list_models`, sin tenant, sin `#own` y sin
+  el `list` del modelo — los conteos salen de `st.Count` por alias, sin
+  alcance). El resto de los abiertos de A12 pide una decisión, un cambio de
+  contrato o toca la UI (OR-71, OR-74…76, QK-32/50/54/55/68/69,
+  NU-108/110/129/131), o va a M0/2.0; NU-127 (P2) es de la DX al 5,
+  precondición del 2.0. M0 sigue esperando a que el set cierre A11.
+
 ### Sesión 2026-10-05/06 — **set 1.40.0 (P0 de tenants) y casi todo A11; pausa a mitad del tren a petición de Carlos**
 
 - **Publicado**: Quantum 1.40.0. **Fusionado en main sin publicar**: en
@@ -308,9 +347,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   sale antes de 2027-01-04** (ventana de 90 días de los avisos DEP).
 - **Cerrado al terminar el día**: OR-72 (P1) y OR-73 (orbit#552, #553) y el
   ADR de compatibilidad de quark (quark#464, ADR-0029, con un test que
-  congela los 41 puntos de extensión). **Antes que nada, la próxima sesión
-  lee la memoria de Claude**: hay un arreglo de seguridad de orbit pendiente
-  que no se detalla en este repo público.
+  congela los 41 puntos de extensión). El arreglo de seguridad de orbit que esta
+  sesión dejó anotado sólo en la memoria de Claude está **hecho el
+  2026-10-07: OR-77, orbit#554** (sesión de arriba).
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
