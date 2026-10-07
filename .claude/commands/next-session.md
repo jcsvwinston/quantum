@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-07, QUANTUM 1.40.0 — OR-77 fusionado en orbit, pendiente del set del 2026-10-12; A11 a falta de S-fin (b) en ese set; A12 en curso)
+## 3. Estado al cierre (2026-10-07, QUANTUM 1.40.0 — OR-77 y OR-70 fusionados en orbit, pendientes del set del 2026-10-12; A11 a falta de S-fin (b) en ese set; A12 en curso)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -212,7 +212,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-10-07 — **OR-77: las políticas por campo de orbit conocen un campo por su clave JSON**
+### Sesión 2026-10-07 — **OR-77 y OR-70: las políticas por campo de orbit conocen un campo por su clave JSON, y el conteo de un modelo es el total de su lista**
 
 - **El arreglo de seguridad que la sesión anterior dejó anotado sólo en la
   memoria de Claude, hecho y fusionado**: orbit#554 (en `main`, sin
@@ -239,17 +239,22 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   grafías resuelve una política y en qué orden; `admin-bench.md` la sección
   con la tabla «verified by breaking it».
 - **Para el tren del 2026-10-12 no añade nada**: orbit se corta de todos
-  modos (OR-64/65/72/73 y OR-77 en `main` sin publicar). Publicarlo antes
+  modos (OR-64/65/72/73, OR-77 y OR-70 en `main` sin publicar). Publicarlo antes
   sería un patch de orbit fuera de cadencia con la razón en `status:`; no
   se ha pedido.
-- **Lo que una sesión puede hacer antes del lunes sin decisión nueva**:
-  **OR-70** (P3: `GET /api/models` con conteos devuelve el total de filas de
-  cada modelo a cualquiera con `list_models`, sin tenant, sin `#own` y sin
-  el `list` del modelo — los conteos salen de `st.Count` por alias, sin
-  alcance). El resto de los abiertos de A12 pide una decisión, un cambio de
-  contrato o toca la UI (OR-71, OR-74…76, QK-32/50/54/55/68/69,
-  NU-108/110/129/131), o va a M0/2.0; NU-127 (P2) es de la DX al 5,
-  precondición del 2.0. M0 sigue esperando a que el set cierre A11.
+- **OR-70 (P3) también hecho, en orbit#555** (fusionado el 2026-10-07):
+  el conteo de cada modelo en `GET /api/models` salía de `st.Count` sin
+  alcance para cualquiera con `list_models`; ahora es lo que la lista
+  contestaría al operador —dentro del tenant, sus filas bajo `#own`, y
+  desconocido (`-1`, `count_known: false`) para un modelo que no puede
+  listar— y `records_total` suma sólo lo que lee. `PERM-07` del banco lo
+  lee contra el total de la propia lista; banco 72 de 72; ADR-007 con su
+  enmienda; cinco mutaciones medidas en `admin-bench.md`.
+- **Ya no queda nada de A12 que una sesión cierre sola antes del lunes**:
+  el resto de los abiertos pide una decisión, un cambio de contrato o toca
+  la UI (OR-71, OR-74…76, QK-32/50/54/55/68/69, NU-108/110/129/131), o va
+  a M0/2.0; NU-127 (P2) es de la DX al 5, precondición del 2.0. M0 sigue
+  esperando a que el set cierre A11.
 
 ### Sesión 2026-10-05/06 — **set 1.40.0 (P0 de tenants) y casi todo A11; pausa a mitad del tren a petición de Carlos**
 
