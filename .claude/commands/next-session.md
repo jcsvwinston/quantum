@@ -239,9 +239,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   grafías resuelve una política y en qué orden; `admin-bench.md` la sección
   con la tabla «verified by breaking it».
 - **Para el tren del 2026-10-12 no añade nada**: orbit se corta de todos
-  modos (OR-64/65/72/73, OR-77 y OR-70 en `main` sin publicar). Publicarlo antes
-  sería un patch de orbit fuera de cadencia con la razón en `status:`; no
-  se ha pedido.
+  modos (OR-64/65/72/73, OR-77 y OR-70 en `main` sin publicar). **Decisión
+  de Carlos (2026-10-07): OR-77 se publica en el set del 2026-10-12**, no
+  como patch de orbit fuera de cadencia.
 - **OR-70 (P3) también hecho, en orbit#555** (fusionado el 2026-10-07):
   el conteo de cada modelo en `GET /api/models` salía de `st.Count` sin
   alcance para cualquiera con `list_models`; ahora es lo que la lista
