@@ -137,7 +137,7 @@ que una sesión necesita para orientarse.
 | A8 | Quark enterprise | A4 | [`A8-quark-enterprise.md`](A8-quark-enterprise.md) (cerrado en 1.35.0) |
 | A9 | Fleet unificado y una sola SPA | A6 | [`A9-fleet-unificado-una-sola-spa.md`](A9-fleet-unificado-una-sola-spa.md) (cerrado en 1.38.0) |
 | A10 | Testing y OpenAPI de primera clase | A5 para el cliente de test con sesión | [`A10-testing-y-openapi.md`](A10-testing-y-openapi.md) (cerrado en 1.39.0) |
-| A11 | Extensibilidad y catálogo | A5, A7 (los módulos que cataloga) | [`A11-extensibilidad-y-catalogo.md`](A11-extensibilidad-y-catalogo.md) (en curso desde 2026-10-04) |
+| A11 | Extensibilidad y catálogo | A5, A7 (los módulos que cataloga) | [`A11-extensibilidad-y-catalogo.md`](A11-extensibilidad-y-catalogo.md) (cerrado en 1.41.0) |
 | A12 | Rendimiento, re-auditoría y cierre a 5 | todos | [`A12-rendimiento-reauditoria-cierre.md`](A12-rendimiento-reauditoria-cierre.md) (en curso desde 2026-10-04) |
 
 **El 2.0** tiene su propio contrato en [`quantum-2.0.md`](quantum-2.0.md): lo
