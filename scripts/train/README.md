@@ -699,6 +699,47 @@ release-please@17` y llamar a `parseConventionalCommits` de
 bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
 la línea y la columna.
 
+### Lo que aprendió el tren de 1.41.0 (A11 cerrado, y una vuln de Go el mismo día)
+
+1. **Una vuln de la librería estándar publicada el día del corte**
+   (GO-2026-6617, corregida en go1.26.9) puso govulncheck —y con él el
+   `CI Required Gate`— en rojo en los tres productos, también en el PR de
+   suelos de quark. Se sube el **`toolchain`** de cada go.mod que CI lee, no
+   la directiva `go` (que fijaría un mínimo a los consumidores), más los
+   `go-version` fijos de los workflows, el digest del Dockerfile y el
+   scaffold de nucleus; orbit necesitó además `golang.org/x/net` v0.60.0,
+   porque la vuln también vive en `x/net/http2`. Un PR por repo, ANTES de
+   los suelos.
+2. **Un módulo nuevo sin tag sale con un número ajeno** (v1.9.2, el
+   `Release-As` de un commit antiguo, aunque el manifiesto diga `0.0.0`):
+   `"release-as": "0.1.0"` en su paquete de `release-please-config.json`
+   antes del corte (nucleus#622) y **quitarlo justo después** (nucleus#627).
+   El número también llega a `internal/knownproviders/modules.json`.
+3. **El driver no para para las notas de nucleus ni de orbit**: tras los
+   suelos (nucleus) o los pines (orbit) fusiona el release PR. Hacer esos
+   pasos sin fusionar el release (`--solo-suelos`, o `align-orbit-pins.sh`
+   con su PR a mano), escribir notas y snapshot en la rama del bot y
+   relanzar la fase, que verá suelos y pines al día.
+4. **Release-please puede regenerar la rama del release DESPUÉS del push del
+   esqueleto de quark** (la corrida del merge de suelos aún no había
+   terminado) y borrarlo: esperar a esa corrida antes de escribir notas.
+5. **`bump-set` borraba la fila de la CLI de nucleus** (`nucleus_modules.nucleus`)
+   en cada re-pin; arreglado en el PR de set. El `go.work` necesitó cinco
+   módulos nuevos, el sidebar de nucleus tres páginas, y `umbrella-why-quantum`
+   aceptar megas con decimales y nombrar Sentry, SAML y las capacidades del
+   core que cablea el catálogo.
+6. **`orbit-converge.sh` no sirve a mitad de tren**: alinea contra el
+   `versions.yaml` del paraguas —todavía el set anterior— y escribe notas
+   fijas. El segundo corte de orbit (otra vez: `ui`, `proto` y `datasource`
+   salieron en el mismo corte que la raíz) se hizo a mano: `go mod edit
+   -require` en root, agent, server y quarkdatasource, `tidy`, notas en el
+   mismo commit y `check_internal_pins.sh` en verde.
+7. **Los techos de `hello-world-size` son exactos**: rebasar N1 sobre un
+   main que había crecido un paquete (NU-118) lo puso rojo; se sube el techo
+   en el mismo PR y se dice por qué.
+8. **`gh pr checks --watch` muere con «error connecting to api.github.com»**
+   en un corte de red: no es un check rojo, se relanza el watch.
+
 ### Lo que aprendió el tren de 1.40.0 (los P0 de tenants, con quark y orbit y sin nucleus)
 
 - **Un workflow NO requerido tumba el tren.** `merge-bot-pr.sh` para ante
