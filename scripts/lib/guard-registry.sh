@@ -226,6 +226,18 @@ GUARDS=(
   # cabecera de cada familia— y un suelo de present: 22 de 22 al pin de
   # 1.41.0 (quark v1.17.0, con Q4…Q7 publicadas; era 14 al de 1.40.0).
   "umbrella-quark-extension-posture|.|bash scripts/check_quark_extension_posture.sh"
+  # El gate de nucleus en A11 (S-fin, segunda mitad): lo que la suite AFIRMA
+  # sobre el catálogo de `nucleus add` y sobre lo que una aplicación puede
+  # extender es lo que sus propias medidas dicen. A11 dejó un banco de 38
+  # controles (`nucleus/internal/catalogbench`: el catálogo, sus entradas y
+  # el lado plugin) y su página (`nucleus/docs/catalog-bench.md`). Este guard
+  # vigila la frontera entre lo medido y lo PUBLICADO —el titular y la tabla
+  # por familias—, que todo lo que no está present lleve nota (EN-08, los
+  # pagos fuera de la suite por decisión del propietario, es un absent con
+  # razón escrita) y un suelo de 36 present, el del pin de 1.41.0 (nucleus
+  # v1.32.0). Entra con el set que pina el banco: antes no había banco al pin
+  # (README de planes §7).
+  "umbrella-catalog-posture|.|bash scripts/check_catalog_posture.sh"
   # Toda lane del paraguas con disparador `schedule:` lleva su job
   # `notify-schedule-failure`: el cron rojo no puede degradar al email por
   # defecto de Actions (QM8-1, declarado insuficiente). Comprueba además que

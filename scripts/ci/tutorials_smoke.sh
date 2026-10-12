@@ -128,27 +128,24 @@ s=socket.socket(); s.bind(("127.0.0.1",0)); print(s.getsockname()[1]); s.close()
 EOF
 }
 
-# ¿Sigue abierto un hallazgo en el registro de la auditoría? La excepción de
-# esta lane (abajo, NU-111) vive mientras su hallazgo esté abierto y muere sola
-# cuando alguien lo marca hecho: sin lista que recordar vaciar. Hubo una
-# segunda, QK-42 (la página avisaba de que Find leía la fila de otro tenant y
-# leía con Where(...).First()); murió así en Quantum 1.40.0, con quark
+# ¿Sigue abierto un hallazgo en el registro de la auditoría? Una excepción de
+# esta lane (abajo, tolerated_warn) vive mientras su hallazgo esté abierto y
+# muere sola cuando alguien lo marca hecho: sin lista que recordar vaciar. No
+# queda ninguna. QK-42 (la página avisaba de que Find leía la fila de otro
+# tenant y leía con Where(...).First()) murió así en Quantum 1.40.0, con quark
 # v1.16.0, y en su sitio queda una sonda positiva en
-# sondas_tutorial-multi-tenant-saas.
+# sondas_tutorial-multi-tenant-saas; NU-111 en Quantum 1.41.0, con nucleus
+# v1.32.0 (nucleus#609), y en su sitio quedan la espera a /healthz con
+# `curl -f` y el 0 WARN de cada arranque, sin excepción.
 REGISTRO="$ROOT/docs/auditoria/madurez-2026-09-03/registro.csv"
 registry_open() { grep -qE "^$1,[^,]*,[^,]*,[^,]*,abierto," "$REGISTRO"; }
 
-# tolerated_warn <página> — el regex de la línea WARN que el set pinado emite
-# por un defecto REGISTRADO del producto, o nada. NU-111: en una aplicación
-# multi-tenant, la sonda de storage de /healthz lista el almacén sin tenant y
-# dispara el aviso de «degradado al espacio compartido» que existe para los
-# jobs sin ámbito de petición (y con require_tenant_storage: true, /healthz
-# responde 503). El lector no lo ve —el tutorial no llama a /healthz—, pero un
-# orquestador sí, y esta lane también.
+# tolerated_warn <página> — el texto de la línea WARN que el set pinado emite
+# por un defecto REGISTRADO y abierto del producto, o nada. Hoy, nada: cada
+# caso nuevo entra aquí con `registry_open <id>` como condición, para que
+# muera solo al marcarse hecho.
 tolerated_warn() {
-  if [[ "$(basename "$1" .md)" == tutorial-multi-tenant-saas ]] && registry_open NU-111; then
-    echo 'storage: operation with no tenant in context degraded to the SHARED'
-  fi
+  :
 }
 
 # Estado del tutorial en curso (lo leen fail y las sondas).

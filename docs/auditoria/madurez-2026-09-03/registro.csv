@@ -1,4 +1,4 @@
-# arcos_cerrados: A1 A2 A3 A4 A5 A6 A7 A8 A9 A10
+# arcos_cerrados: A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 A11
 id,sev,repo,arco,estado,evidencia,informe,donde
 QK-1,P0,quark,—,hecho,quark#338,quark.md,"`quarkdriver/known.go:88-98` (`IsRegistered`), usado en `client.go:255-259`"
 QK-2,P1,quark,—,hecho,quark#338,quark.md,"`superapp` (raíz, 42 232 786 B, Mach-O arm64), `.gitignore:5-9`"
@@ -279,7 +279,7 @@ NU-107,P2,nucleus,A11,hecho,"nucleus#591: validate.Validate recorre slices, arra
 NU-108,P3,nucleus,A12,abierto,"visto en A12 N2 (nucleus#592): el pool por defecto (2 ociosas de database/sql; 5 de la aplicación) churnea conexiones con 16 workers de la cola SQL",nucleus.md,pool de `*sql.DB` por defecto
 NU-109,P3,nucleus,A11,hecho,"nucleus#611: routes y dev siguen la regla de Go (un go.mod en la raíz de os.TempDir() no cuenta y la búsqueda no sigue subiendo; enlaces /var→/private/var y barra final), con ocho casos comparados con go env GOMOD",nucleus.md,`internal/cli/routes.go` (búsqueda de go.mod)
 NU-110,P3,nucleus,A12,abierto,"visto en A11 O5 (orbit#538): SQLite guarda time.Time en el formato de texto de Go y date() devuelve NULL",nucleus.md,`drivers/sqlite` (DSN por defecto)
-NU-111,P2,nucleus,A11,abierto,"arreglado en nucleus#609 (la sonda lista el centinela bajo el scoping de tenant; /healthz y /readyz 200 en los dos modos, el backend caído sigue dando 503 con su error); se marca hecho al pinar el nucleus que lo trae: tutorials_smoke.sh tolera el WARN mientras siga abierto",nucleus.md,`pkg/app/healthz.go:110` ; `pkg/storage/tenant.go` (`checkTenant`)
+NU-111,P2,nucleus,A11,hecho,"nucleus#609, publicado en nucleus v1.32.0 (Quantum 1.41.0): la sonda de storage de /healthz lista el centinela bajo el scoping de tenant, así que /healthz y /readyz dan 200 en los dos modos sin el WARN de «degradado al espacio compartido» y el backend caído sigue dando 503 con su error; tutorials_smoke.sh ya no tolera ese WARN",nucleus.md,`pkg/app/healthz.go:110` ; `pkg/storage/tenant.go` (`checkTenant`)
 NU-112,P2,nucleus,A11,hecho,"nucleus#598 (A11 N5): el sujeto del RBAC es el dueño de la API key, con scope:<nombre> por cada scope, y la cuenta de la sesión; anonymous se prueba al final (ADR-036)",nucleus.md,`pkg/apikeys` ; `pkg/authz`
 NU-113,P2,nucleus,A11,hecho,nucleus#610: la herencia del middleware vive en newChild (sólo de un scope); With y Group comparten la regla. Además el ejemplo de la guía r.With(router.Timeout(1s)) con timeout global corto respondía 503,nucleus.md,`pkg/router` (Mux.With)
 NU-114,P3,nucleus,A12,hecho,nucleus#616: Config.MailDeclared y una línea ERROR al arrancar que nombra WithMail(); DEP-2026-015 programa la negativa para v2.0.0,nucleus.md,`pkg/app` (WithoutDefaults sin WithMail)
