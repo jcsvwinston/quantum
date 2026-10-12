@@ -23,6 +23,7 @@ const sidebars: SidebarsConfig = {
         'guides/testing',
         'guides/cli',
         'guides/codegen',
+        'guides/writing-a-driver',
       ],
     },
     {
@@ -108,6 +109,7 @@ const sidebars: SidebarsConfig = {
         'reference/comparison',
         'reference/configuration',
         'reference/dialects',
+        'reference/extension-contract',
         'reference/type-matrix',
         'reference/benchmarks',
         'reference/architecture',

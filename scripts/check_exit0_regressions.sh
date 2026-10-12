@@ -38,7 +38,25 @@ fail=0
 say_fail() { echo "FAIL $1" >&2; fail=1; }
 
 # --- nucleus: compilar el CLI al pin una sola vez --------------------------
-if ! (cd "$NUCLEUS_DIR" && go build -o "$TMP/nucleus" ./cmd/nucleus) >"$TMP/build.log" 2>&1; then
+# Desde nucleus v1.32.0 el CLI es un módulo propio (cmd/nucleus/go.mod,
+# ADR-038 de nucleus) que requiere la raíz POR VERSIÓN: `go build ./cmd/nucleus`
+# desde la raíz ya no lo encuentra («main module does not contain package»),
+# y desde su directorio compilaría el framework publicado, no el árbol al
+# pin. Se compila con el go.work que nucleus escribe para eso
+# (scripts/ci/cli_workspace.sh, el mismo que usan su CI y su release): el
+# CLI, la raíz y los cinco drivers de ESTE árbol. Sin depender del go.work
+# del paraguas, así que vale igual en la certificación y en la copia de
+# guard-of-guards (GOWORK=off). Con un pin anterior, el build de siempre.
+cli_build() {
+  if [[ -f "$NUCLEUS_DIR/cmd/nucleus/go.mod" ]]; then
+    bash "$NUCLEUS_DIR/scripts/ci/cli_workspace.sh" "$TMP/cli.work" \
+      drivers/postgres drivers/mysql drivers/sqlite drivers/mssql drivers/oracle &&
+      (cd "$NUCLEUS_DIR" && GOWORK="$TMP/cli.work" go build -o "$TMP/nucleus" ./cmd/nucleus)
+  else
+    (cd "$NUCLEUS_DIR" && go build -o "$TMP/nucleus" ./cmd/nucleus)
+  fi
+}
+if ! cli_build >"$TMP/build.log" 2>&1; then
   echo "FAIL setup: no compila el CLI de nucleus al pin:" >&2
   tail -5 "$TMP/build.log" >&2
   exit 1

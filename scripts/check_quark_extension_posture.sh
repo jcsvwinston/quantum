@@ -39,11 +39,12 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 BENCH_DIR=quark/internal/extbench
 BENCH_DOC=quark/docs/extension-bench.md
 EXPECTED_CONTROLS=22
-# El suelo es el del pin: quark v1.16.0 (Quantum 1.40.0) mide 14 de 22
-# —Q1…Q3 y Q8…Q10 fusionadas; Q4…Q7 en el main de quark, sin publicar—. El
-# main de quark ya mide 22 de 22: el suelo sube a 22 en el re-pin del set del
-# 2026-10-12 (sesión S-fin del plan de A11, parte b).
-PRESENT_FLOOR=14
+# El suelo es el del pin: quark v1.17.0 (Quantum 1.41.0) mide 22 de 22, con
+# Q4…Q7 publicadas. Al pin de 1.40.0 (quark v1.16.0) eran 14, y el suelo sube
+# en el mismo PR que mueve el gitlink: con 14 y el banco a 22, la rotura (C)
+# de la fixture —un present que pasa a absent— ya no la caza el suelo, y
+# guard-of-guards se pone rojo (sesión S-fin del plan de A11, parte b).
+PRESENT_FLOOR=22
 
 fail=0
 report() { echo "FAIL: quark-extension-posture — $1" >&2; fail=1; }

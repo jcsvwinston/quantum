@@ -188,9 +188,10 @@ GUARDS=(
   # familia de un banco de producto, la tabla de ns/op de quark, los MB del
   # starter, los comandos del quickstart contados con el parser que la lane
   # ejecuta, los módulos que `nucleus add` instala según versions.yaml y la
-  # tabla que el CLI lee— y la cita en el mismo párrafo; ninguna otra cifra
-  # en la prosa, ni en palabras; y la frase de what-is-quantum.md que
-  # sustituyó a «not breadth of plugins» dice lo que el catálogo publica. Lo
+  # tabla que el CLI lee, y las capacidades del core que cablea, nombradas
+  # una a una— y la cita en el mismo párrafo; ninguna otra cifra en la
+  # prosa, ni en palabras; y la frase de what-is-quantum.md que sustituyó a
+  # «not breadth of plugins» dice lo que el catálogo publica. Lo
   # que la página dice de los OTROS frameworks no lleva cifras: nada en este
   # árbol los mide. Sus fuentes están en el pin de 1.39.0, así que entra sin
   # esperar al set (README de planes §7).
@@ -222,9 +223,8 @@ GUARDS=(
   # de extensión, un driver de fuera, las integraciones con chi, Echo, Gin,
   # gRPC y Nucleus) y su página (`quark/docs/extension-bench.md`). Este guard
   # vigila la frontera entre lo medido y lo PUBLICADO —el titular y la
-  # cabecera de cada familia— y un suelo de present: 14 al pin de 1.40.0
-  # (quark v1.16.0); sube a 22 en el re-pin del set del 2026-10-12, con
-  # Q4…Q7 publicadas.
+  # cabecera de cada familia— y un suelo de present: 22 de 22 al pin de
+  # 1.41.0 (quark v1.17.0, con Q4…Q7 publicadas; era 14 al de 1.40.0).
   "umbrella-quark-extension-posture|.|bash scripts/check_quark_extension_posture.sh"
   # Toda lane del paraguas con disparador `schedule:` lleva su job
   # `notify-schedule-failure`: el cron rojo no puede degradar al email por
@@ -438,6 +438,13 @@ GUARD_SCAN_EXCLUDE=(
   # este árbol con replaces versionados para que las lanes no resuelvan el
   # suelo contra el proxy. Emite un fichero, no un veredicto.
   "quark/scripts/ci/link_workspace.sh"
+  # ESCRITOR del go.work del CLI de nucleus (A12 N1, ADR-038): desde que
+  # `cmd/nucleus` es un módulo propio que requiere la raíz por versión, este
+  # script escribe un go.work que enlaza el CLI (y los drivers que se le
+  # pasen) a este árbol, con un replace versionado. Mismo papel que el
+  # link_workspace.sh de quark: emite un fichero, no un veredicto. Entra al
+  # set con nucleus v1.32.0.
+  "nucleus/scripts/ci/cli_workspace.sh"
   # GENERADOR de nucleus (produce la referencia de config de la web), no un
   # check: no tiene veredicto sobre el árbol — emite ficheros. Su salida la
   # vigilan los guards de docs de nucleus (coverage/bodycheck). Exclusión del
@@ -468,6 +475,16 @@ GUARD_SCAN_EXCLUDE=(
   # standalone del producto, la misma que el paraguas ya cubre por su lado
   # con `go install …@tag` en caché virgen — no un guard estático del set.
   "nucleus/scripts/ci/check_modules_standalone.sh"
+  # Lane hello-world-size del CI de nucleus (A12 N1, NU-106): construye con
+  # GOWORK=off dos programas fuera del árbol (pkg/app solo y con
+  # drivers/sqlite), resuelve su grafo contra el proxy con `go mod tidy` y
+  # compara módulos, módulos enlazados, paquetes y bytes del binario
+  # linux/amd64 con los techos de scripts/ci/hello-size/ceilings.tsv. Es una
+  # lane del producto sobre lo que hereda una aplicación de SU go.mod, con
+  # red y un build por programa —la familia de check_modules_standalone, no
+  # un check estático del set—, y el CI de nucleus la corre en cada PR que
+  # toca ese go.mod. Entra al set con nucleus v1.32.0.
+  "nucleus/scripts/ci/check_hello_size.sh"
   # Helper PARAMETRIZADO del CI de nucleus (MAQ-5/NU7-4): aserta vía
   # `go test -list` que cada rama de un filtro `-run` sigue seleccionando su
   # test (caza el false-green de un -run que ya no casa nada tras renombrar).
@@ -480,6 +497,14 @@ GUARD_SCAN_EXCLUDE=(
   # en cada corrida con los args reales. Entró al set con nucleus v1.6.0
   # (Arco de endurecimiento #1). Ver docs/AUDITORIA_CONTINUA.md §4.
   "nucleus/scripts/ci/assert_run_selects.sh"
+  # Arnés de las lanes de motor real del CI de nucleus (A12 N1, NU-106): los
+  # tests del framework enlazan sólo SQLite, y las lanes de matriz los corren
+  # con PostgreSQL, MySQL, SQL Server y Oracle enlazados mediante un go.work
+  # temporal y un overlay. Recibe los argumentos de `go test` de cada lane de
+  # su workflow y su veredicto es el de esos tests contra un servidor real
+  # —la familia de los run_* y de assert_run_selects—, no una afirmación
+  # sobre el árbol. Entra al set con nucleus v1.32.0.
+  "nucleus/scripts/ci/test_with_engines.sh"
   # GENERADOR de orbit (DX-26): produce website/docs/reference/module-matrix.md
   # (la matriz de compatibilidad de los 6 módulos). No tiene veredicto propio —
   # emite un fichero; su frescura la exige el paso "module matrix freshness"

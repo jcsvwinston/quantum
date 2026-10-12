@@ -20,11 +20,14 @@
 #      afirmaciones —ni en cifras ni en palabras («six», «hundreds»)—: el
 #      contrato es «toda cifra tiene fuente», y una cifra nueva entra
 #      añadiendo su afirmación aquí, no escribiéndola y ya;
-#   3. la frase de what-is-quantum.md que dice qué instala `nucleus add`
-#      (la que sustituyó a «not breadth of plugins», ST-12) da el número de
-#      módulos que el set certifica y que la tabla de `nucleus add` conoce al
-#      pin; si esa tabla gana entradas que no son módulos (capacidades del
-#      core que `add` cablea), la frase se queda corta y este guard lo dice;
+#   3. lo que el sitio dice del catálogo de `nucleus add` es lo que la tabla
+#      del CLI publica al pin: los módulos que el set certifica, por clase
+#      (drivers, exportadores, storage, LDAP, secretos, Sentry, SAML; el CLI,
+#      `cmd/nucleus`, es módulo del set y no entrada del catálogo), y las
+#      capacidades del core que `add` cablea sin módulo (`Ships: InCore`),
+#      contadas en las dos frases —la de esta página y la de
+#      what-is-quantum.md que sustituyó a «not breadth of plugins», ST-12— y
+#      nombradas una a una en la de esta página;
 #   4. sin superlativos de marketing en la página (la regla anti-hype de los
 #      tres repos, docs/ESTILO_DOCS.md §5).
 #
@@ -43,7 +46,11 @@
 #   website/docs/quickstart.md                     sus comandos, contados con el
 #                                                  parser que ejecuta la lane
 #   versions.yaml (nucleus_modules) + el árbol     los módulos que `nucleus add`
-#   + nucleus/internal/knownproviders/*.go         instala, y la tabla que lee
+#   + nucleus/internal/knownproviders/*.go         instala, las capacidades del
+#                                                  core que cablea, y la tabla
+#                                                  que lee (la página cita su
+#                                                  copia generada,
+#                                                  website/docs/reference/catalog.md)
 #
 # Lo que NO comprueba: lo que la página dice de los OTROS frameworks. Nada en
 # este árbol los mide, así que la página no les pone cifras (el punto 2 lo
@@ -88,6 +95,7 @@ L_ENGINE="/quark/reference/benchmarks/"
 L_INSTALL="/nucleus/getting-started/installation/"
 L_QUICKSTART="quickstart.md"
 L_SET="$GH/quantum/blob/main/versions.yaml"
+L_CATALOG="reference/catalog.md"
 L_WHY="why-quantum.md"
 
 fail=0
@@ -136,12 +144,18 @@ engine_cell() {
       if (k == id) { print $c; exit }
     }' "$ENGINE_BENCH" | perl -CSD -ne 'chomp; s/[\s`]+//g; s/\x{b7}/;/g; print "$_\n"'
 }
-# «presentes of controles» del mismo bloque.
+# «presentes of controles» del mismo bloque. Un control es una fila con
+# VEREDICTO, contado una vez: desde A12 Q3 el bloque lleva una segunda tabla,
+# la de la cifra de MY-01 por modelo de CPU, cuyas filas también empiezan por
+# el id del control y no son controles (con ellas, 9 controles se contaban 14).
 engine_present() {
   awk -F'|' '
     /engine-bench:begin/ { on = 1; next }
     /engine-bench:end/   { on = 0 }
-    on && $2 ~ /^ *`[A-Z]+-[0-9]+` *$/ { n++; if ($0 ~ /\*\*present\*\*/) p++ }
+    on && $2 ~ /^ *`[A-Z]+-[0-9]+` *$/ && /\*\*(present|partial|absent)\*\*/ {
+      id = $2; gsub(/[ `]/, "", id)
+      if (!(id in seen)) { seen[id] = 1; n++; if ($0 ~ /\*\*present\*\*/) p++ }
+    }
     END { if (n) print (p + 0) " of " n }' "$ENGINE_BENCH"
 }
 # El objetivo propuesto: «… stays at or under **1.15** …».
@@ -150,7 +164,7 @@ engine_target() {
 }
 # «módulos;MB;MB stripped» del párrafo del starter con el driver de SQLite.
 install_figures() {
-  perl -0777 -ne 's/\s+/ /g; if (/resolves (\d+) modules and links to a (\d+) MB binary \((\d+) MB stripped\)/) { print "$1;$2;$3\n" }' "$INSTALL"
+  perl -0777 -ne 's/\s+/ /g; if (/resolves (\d+) modules and links to a ([\d.]+) MB binary \(([\d.]+) MB stripped\)/) { print "$1;$2;$3\n" }' "$INSTALL"
 }
 
 E_API=$(bench_headline "$API_BENCH")
@@ -178,18 +192,29 @@ E_QUICKSTART=$(qs_commands "$QUICKSTART" | grep -c .)
 # Los módulos hermanos de nucleus que el set certifica, clasificados por su
 # directorio en el árbol pinado; cada uno tiene que estar en la tabla que lee
 # `nucleus add`, y la tabla no puede tener módulos que el set no certifica.
-n_mod=0; n_drv=0; n_exp=0; n_sto=0; n_ldap=0; n_sec=0
+# El reportero de errores y el proveedor de inicio de sesión federado van por
+# su NOMBRE, no por su clase: la página nombra a Sentry y a SAML, así que otro
+# `providers/errors-*` o `providers/auth-*` cae en «una clase que la página no
+# nombra» en vez de contarse en silencio bajo un nombre que no es el suyo.
+n_mod=0; n_drv=0; n_exp=0; n_sto=0; n_ldap=0; n_sec=0; n_err=0; n_fed=0
 set_dirs=""
 for key in $(mm_keys nucleus_modules); do
   dir=$(mm_path_for_key nucleus "$key") || { report "[catalog] la clave $key de nucleus_modules es ambigua en el árbol"; continue; }
   if [[ -z "$dir" ]]; then report "[catalog] versions.yaml certifica nucleus_modules.$key y el árbol pinado no tiene su go.mod"; continue; fi
+  # El CLI es un módulo del set desde nucleus v1.32.0 (cmd/nucleus, en
+  # lockstep con la raíz) y no una entrada del catálogo: es el programa que
+  # ejecuta `nucleus add`, no algo que `add` instale. Sólo esa ruta: otro
+  # módulo bajo cmd/ cae en «una clase que la página no nombra».
+  [[ "$dir" == "cmd/nucleus" ]] && continue
   n_mod=$((n_mod + 1)); set_dirs+="$dir"$'\n'
   case "$dir" in
-    drivers/*)           n_drv=$((n_drv + 1)) ;;
-    exporters/*)         n_exp=$((n_exp + 1)) ;;
-    providers/storage-*) n_sto=$((n_sto + 1)) ;;
-    providers/ldap)      n_ldap=$((n_ldap + 1)) ;;
-    providers/secrets-*) n_sec=$((n_sec + 1)) ;;
+    drivers/*)               n_drv=$((n_drv + 1)) ;;
+    exporters/*)             n_exp=$((n_exp + 1)) ;;
+    providers/storage-*)     n_sto=$((n_sto + 1)) ;;
+    providers/ldap)          n_ldap=$((n_ldap + 1)) ;;
+    providers/secrets-*)     n_sec=$((n_sec + 1)) ;;
+    providers/errors-sentry) n_err=$((n_err + 1)) ;;
+    providers/auth-saml)     n_fed=$((n_fed + 1)) ;;
     *) report "[catalog] nucleus_modules.$key vive en $dir, una clase de módulo que la página no nombra: añádela a la frase y aquí" ;;
   esac
   # shellcheck disable=SC2086
@@ -200,16 +225,21 @@ table_dirs=$(grep -ohE '/(drivers|exporters|providers)/[a-z0-9-]+"' $add_files |
 for d in $table_dirs; do
   grep -qxF "$d" <<<"$set_dirs" || report "[catalog] la tabla de \`nucleus add\` al pin instala $d y el set no lo certifica (versions.yaml nucleus_modules)"
 done
-# Entradas que `add` cablea sin ser un módulo: el catálogo de A11 las añade
-# (capacidades del core). Mientras la frase hable sólo de módulos, cada una
-# la deja corta.
+# Entradas que `add` cablea sin ser un módulo (capacidades del core, desde el
+# catálogo de A11): las dos frases dan su número, y la de la página las nombra
+# una a una por el nombre con que `nucleus add` las conoce —«(`oidc`)»—, así
+# que una capacidad nueva, retirada o renombrada al pin las deja cortas aunque
+# la cuenta no cambie. Cada entrada se lee con su nombre en la misma línea que
+# su `Ships: InCore`; una que no se deje leer así sale como «sin nombre».
 # shellcheck disable=SC2086
 n_core=$(cat $add_files | grep -cE 'Ships:[[:space:]]*InCore' || true)
-if [[ "${n_core:-0}" -gt 0 ]]; then
-  report "[catalog] la tabla de \`nucleus add\` al pin cablea además $n_core capacidades del core que no son módulos: las frases de $PAGE y $INTRO cuentan sólo los $n_mod módulos y se quedan cortas — reescríbelas con lo que el catálogo publica"
+# shellcheck disable=SC2086
+core_names=$(cat $add_files | perl -ne 'print "$1\n" if /Name:\s*"([^"]+)".*Ships:\s*InCore\b/' | sort)
+if [[ "$(grep -c . <<<"$core_names")" -ne "${n_core:-0}" ]]; then
+  report "[catalog-core] la tabla de \`nucleus add\` al pin tiene $n_core entradas \`Ships: InCore\` y sólo $(grep -c . <<<"$core_names") con su \`Name:\` en la misma línea: no sé nombrarlas todas"
 fi
-if [[ $n_ldap -ne 1 || $n_sec -ne 1 ]]; then
-  report "[catalog] la página nombra UN backend LDAP y UN resolvedor de secretos; el set certifica $n_ldap y $n_sec"
+if [[ $n_ldap -ne 1 || $n_sec -ne 1 || $n_err -ne 1 || $n_fed -ne 1 ]]; then
+  report "[catalog] la página nombra UN backend LDAP, UN resolvedor de secretos, UN reportero de errores (Sentry) y UN proveedor SAML; el set certifica $n_ldap, $n_sec, $n_err y $n_fed"
 fi
 
 # ---- las afirmaciones: id | página | patrón (perl, una captura por cifra) | esperado | cita
@@ -223,12 +253,14 @@ CLAIMS="$WORK/claims.tsv"; WHY_PROSE="$WORK/why.txt"; INTRO_PROSE="$WORK/intro.t
 
 claim() { printf '%s\t%s\t%s\t%s\t%s\n' "$@" >>"$CLAIMS"; }
 claim quickstart why 'in \*\*(\d+)\*\* commands' "$E_QUICKSTART" "$L_QUICKSTART"
-claim install why 'resolves \*\*(\d+)\*\* modules and links to a \*\*(\d+) MB\*\* binary, \*\*(\d+) MB\*\* stripped' "$E_INSTALL" "$L_INSTALL"
+claim install why 'resolves \*\*(\d+)\*\* modules and links to a \*\*([\d.]+) MB\*\* binary, \*\*([\d.]+) MB\*\* stripped' "$E_INSTALL" "$L_INSTALL"
 claim catalog-total why '`nucleus add` installs the \*\*(\d+)\*\* optional modules' "$n_mod" "$L_SET"
 claim catalog-drivers why '\*\*(\d+)\*\* database drivers' "$n_drv" "$L_SET"
 claim catalog-exporters why '\*\*(\d+)\*\* telemetry exporters' "$n_exp" "$L_SET"
 claim catalog-storage why '\*\*(\d+)\*\* object-storage providers' "$n_sto" "$L_SET"
 claim catalog-intro intro '`nucleus add` installs the (\d+) optional modules' "$n_mod" "$L_WHY"
+claim catalog-core why 'It also wires \*\*(\d+)\*\* capabilities that are part of the framework itself' "$n_core" "$L_CATALOG"
+claim catalog-intro-core intro 'and wires (\d+) capabilities that are part of the framework itself' "$n_core" "$L_WHY"
 claim admin-bench why 'Its bench: \*\*(\d+ of \d+)\*\* controls present' "$E_ADMIN" "$L_ADMIN"
 claim query-bench why '\*\*(\d+ of \d+)\*\* are expressed with the typed API, and \*\*(\d+)\*\* run' "$E_QUERY" "$L_QUERY"
 claim enterprise-bench why 'enterprise bench has \*\*(\d+ of \d+)\*\* controls present, \*\*(\d+)\*\* partial and \*\*(\d+)\*\* absent' "$E_ENTERPRISE" "$L_ENTERPRISE"
@@ -261,6 +293,16 @@ prose() {
 }
 prose "$PAGE" >"$WHY_PROSE"
 prose "$INTRO" >"$INTRO_PROSE"
+
+# Las capacidades del core que la página nombra, «(`nombre`)» en el párrafo de
+# su cifra, son exactamente las que la tabla de `nucleus add` cablea al pin.
+core_par=$(grep -F 'capabilities that are part of the framework itself' "$WHY_PROSE" | head -1)
+if [[ -n "$core_par" ]]; then
+  named=$(perl -ne 'print "$1\n" while /\(`([a-z0-9-]+)`\)/g' <<<"$core_par" | sort)
+  if [[ "$named" != "$core_names" ]]; then
+    report "[catalog-core-names] $PAGE nombra en el core «$(tr '\n' ' ' <<<"$named" | sed 's/ $//')» y la tabla de \`nucleus add\` al pin cablea en el core «$(tr '\n' ' ' <<<"$core_names" | sed 's/ $//')»: nómbralas todas, y sólo ésas, como «(\`nombre\`)»"
+  fi
+fi
 
 out=$(CLAIMS="$CLAIMS" WHY_TXT="$WHY_PROSE" INTRO_TXT="$INTRO_PROSE" WHY_PAGE="$PAGE" INTRO_PAGE="$INTRO" perl -CSD -e '
   use strict; use warnings; use utf8;
@@ -329,4 +371,4 @@ if [[ $fail -ne 0 ]]; then
   exit 1
 fi
 n_claims=$(grep -c . "$CLAIMS")
-echo "OK: why-quantum — $n_claims afirmaciones con cifra, cada una igual a su fuente al pin y citada en su párrafo; ningún número sin fuente en $PAGE; \`nucleus add\` instala $n_mod módulos ($n_drv drivers, $n_exp exportadores, $n_sto de storage, LDAP y secretos) y $INTRO lo dice"
+echo "OK: why-quantum — $n_claims afirmaciones con cifra, cada una igual a su fuente al pin y citada en su párrafo; ningún número sin fuente en $PAGE; \`nucleus add\` instala $n_mod módulos ($n_drv drivers, $n_exp exportadores, $n_sto de storage, LDAP, secretos, Sentry y SAML) y cablea $n_core capacidades del core ($(tr '\n' ' ' <<<"$core_names" | sed 's/ $//')), y $INTRO lo dice"

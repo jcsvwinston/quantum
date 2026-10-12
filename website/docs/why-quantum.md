@@ -68,19 +68,24 @@ together — the domain on Quark, the Orbit panel mounted, both bridges between
 them in place — in **5** commands.
 
 The box has a cost. A freshly scaffolded Nucleus application with the SQLite
-driver resolves **138** modules and links to a **60 MB** binary, **45 MB**
+driver resolves **95** modules and links to a **42.7 MB** binary, **29.2 MB**
 stripped ([installation](/nucleus/getting-started/installation/)). A Gin or
 Echo binary that carries only a router is smaller, and has fewer
 dependencies to keep up to date.
 
-Beyond Nucleus, Quark and Orbit, `nucleus add` installs the **12** optional
+Beyond Nucleus, Quark and Orbit, `nucleus add` installs the **14** optional
 modules the project publishes itself — **5** database drivers, **2**
-telemetry exporters, **3** object-storage providers, an LDAP backend and an
-AWS Secrets Manager resolver — fetching each one and writing the import that
-registers it
+telemetry exporters, **3** object-storage providers, an LDAP backend, an AWS
+Secrets Manager resolver, a Sentry error reporter and a SAML sign-in
+provider — fetching each one and writing the import that registers it
 ([the certified set](https://github.com/jcsvwinston/quantum/blob/main/versions.yaml)).
-There is no registry of third-party plugins: what the suite offers is what
-the project publishes and certifies.
+It also wires **6** capabilities that are part of the framework itself, with
+nothing to fetch: OIDC sign-in (`oidc`), a Redis cache backend
+(`redis-cache`), API-key authentication (`apikeys`), the SQL job queue
+(`sql-queue`), account flows (`accounts`) and real-time channels
+(`websockets`) ([the `nucleus add` catalog](reference/catalog.md)). There is
+no registry of third-party plugins: what the suite offers is what the
+project publishes and certifies.
 
 ## Admin panel
 
@@ -127,10 +132,10 @@ Its enterprise bench has **48 of 69** controls present, **17** partial and
 
 Quark's speed is measured against hand-written SQL on real PostgreSQL and
 MySQL servers, not against other ORMs. On its engine bench a single-row insert
-takes **1.26** times as long as through `database/sql` and **1.31** times as
+takes **1.26** times as long as through `database/sql` and **1.29** times as
 long as through pgx's own pool, and a read by primary key **1.24** and
-**1.30** times. The project proposes a target of at most **1.15** times each
-baseline, and has not adopted it yet; **0 of 6** of its controls meet it, and
+**1.29** times. The project proposes a target of at most **1.15** times each
+baseline, and has not adopted it yet; **3 of 9** of its controls meet it, and
 the benchmarks page says what each distance is made of
 ([benchmarks](/quark/reference/benchmarks/)). The comparison with GORM, ent
 and sqlc that the same page keeps is dated — measured once, on SQLite,
@@ -203,7 +208,9 @@ Security; Gin and Echo applications add middleware.
 
 **Where the others are ahead.** The rows that are not present are passkeys
 (WebAuthn), SAML sign-in, and an inactivity timeout that is on by default
-(the setting exists and ships off).
+(the setting exists and ships off). The bench counts what ships inside the
+framework: SAML sign-in is an optional module, `providers/auth-saml`, which
+`nucleus add saml` installs, so its row stays absent.
 Spring Security covers far more protocols, and Django, Rails and Laravel have
 mature packages for each of them.
 
@@ -276,8 +283,8 @@ on this page are taken from them.
   framework.** Choose Django, Rails, Laravel or Spring Boot.
 - **You want a router and full control over every other piece.** Choose Gin
   or Echo. Quark still works on its own in such an application.
-- **You need passkeys or SAML sign-in today.** Spring Security has them, and
-  Django, Rails and Laravel have packages for them.
+- **You need passkeys today.** Spring Security has them, and Django, Rails
+  and Laravel have packages for them.
 - **You need a document database.** Quark and Nucleus are relational only.
 
 Still here? [The quickstart](quickstart.md) builds the whole suite in a few

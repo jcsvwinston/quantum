@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fixture de umbrella-why-quantum. Cuatro roturas, todas de la misma clase: la
+# Fixture de umbrella-why-quantum. Cinco roturas, todas de la misma clase: la
 # página «Why Quantum» afirma una cifra que su fuente al pin ya no dice, o una
 # que no tiene fuente.
 #
@@ -13,12 +13,18 @@
 #     que el guard conoce.
 #
 # (C) la frase de what-is-quantum.md que sustituyó a «not breadth of plugins»
-#     dice un número de módulos que no es el del set (12 → 11).
+#     dice un número de módulos que no es el del set (→ 11).
 #
-# (D) el catálogo de `nucleus add` gana, en el pin, una entrada que no es un
-#     módulo: lo que pasará cuando el set re-pine el catálogo de A11, que
-#     también cablea capacidades del core. Las dos frases del sitio cuentan
-#     sólo módulos y se quedan cortas; el guard lo tiene que decir.
+# (D) el catálogo de `nucleus add` gana, en el pin, una capacidad del core
+#     (una entrada que `add` cablea sin módulo). Las dos frases del sitio
+#     dan el número de las de antes, y la de la página las nombra una a una:
+#     el guard tiene que decir las tres cosas, la cuenta en cada página y el
+#     nombre que falta.
+#
+# (E) el set certifica un segundo reportero de errores, otro
+#     `providers/errors-*`. La página nombra a Sentry: contarlo bajo su nombre
+#     diría algo falso, así que tiene que caer como una clase que la página no
+#     nombra.
 #
 # El árbol parte de las fuentes REALES al pin y de las páginas tal cual, en
 # las que el guard pasa; el EXIT!=0 es atribuible a las cuatro roturas.
@@ -67,16 +73,29 @@ printf '\nThe suite has 7 maintainers.\n' >>"$TREE/website/docs/why-quantum.md"
 perl -pi -e 's/(`nucleus add` installs the )\d+/${1}11/' "$TREE/website/docs/what-is-quantum.md"
 fx_assert_doctored "$TREE/website/docs/what-is-quantum.md" '`nucleus add` installs the 11'
 
-# (D) el catálogo al pin gana una capacidad del core.
+# (D) el catálogo al pin gana una capacidad del core. La cuenta de las que
+# había se lee antes, de la tabla sin doctorar.
+n_core=$(cat "$TREE"/nucleus/internal/knownproviders/*.go | grep -cE 'Ships:[[:space:]]*InCore' || true)
+[[ "${n_core:-0}" -gt 0 ]] || { echo "fixture: la tabla de nucleus add al pin no tiene entradas Ships: InCore (¿cambió el formato?)" >&2; exit 1; }
 cat >>"$TREE/nucleus/internal/knownproviders/knownproviders.go" <<'GO'
 
 // fixture umbrella-why-quantum: una entrada que `nucleus add` cablea sin ser
 // un módulo, como las del catálogo de A11.
-var fixtureCoreEntry = struct{ Ships string }{Ships: InCore}
+var fixtureCoreEntry = Entry{Name: "fixture-core", Ships: InCore}
 GO
+
+# (E) un segundo reportero de errores en el set y en el árbol.
+mkdir -p "$TREE/nucleus/providers/errors-rollbar"
+printf 'module github.com/jcsvwinston/nucleus/providers/errors-rollbar\n\ngo 1.26\n' \
+  >"$TREE/nucleus/providers/errors-rollbar/go.mod"
+perl -pi -e 's/^(nucleus_modules:\n)/$1  errors-rollbar: "v0.1.0"\n/' "$TREE/versions.yaml"
+fx_assert_doctored "$TREE/versions.yaml" '^  errors-rollbar: "v0\.1\.0"'
 
 echo "workdir=$TREE"
 echo "expect=\[api-bench\] .*45 of 46"
 echo "expect=cifra sin fuente .*7"
 echo "expect=\[catalog-intro\] website/docs/what-is-quantum.md dice .*11"
-echo "expect=capacidades del core"
+echo "expect=\[catalog-core\] website/docs/why-quantum.md dice «$n_core» y su fuente dice «$((n_core + 1))»"
+echo "expect=\[catalog-intro-core\] website/docs/what-is-quantum.md dice «$n_core» y su fuente dice «$((n_core + 1))»"
+echo "expect=\[catalog-core-names\] .*fixture-core"
+echo "expect=nucleus_modules\.errors-rollbar vive en providers/errors-rollbar, una clase de módulo que la página no nombra"
