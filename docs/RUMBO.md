@@ -11,36 +11,34 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-10-06)
+## Estado real (2026-10-12)
 
-- **Set certificado: Quantum 1.40.0** (2026-10-06) — quark v1.16.0 (con el
-  CLI en v1.2.0 y los cinco drivers en v0.2.5) · nucleus v1.31.0 (sin
-  cambio: doce módulos hermanos, drivers y exportadores v0.1.8,
-  providers/ldap v0.2.12, los cuatro de nube v0.1.8) · orbit v1.19.1 (proto
-  v0.8.0, datasource v1.0.0, ui v1.1.0, agent v0.15.1, server v0.20.2,
-  quarkbridge v1.9.4, quarkdatasource v1.12.2). 1.40.0 se cortó fuera de
-  cadencia para publicar los arreglos de tenants de quark bajo
-  `RowLevelSecurityClient` —**QK-42 (P0)**: `Find(id)` leía la fila de otro
-  tenant; **QK-43 (P0)**: la rama de actualización de `Upsert` escribía en
-  la de otro tenant; y QK-40, QK-41, QK-44— y la mayor parte de **A11**: en
-  quark el contrato del dialecto en `quarkdriver`, el esquema que pregunta al
-  dialecto, integraciones probadas con chi, Echo, Gin, gRPC y Nucleus y
-  `quark init --with`; en el panel acciones con formulario y sobre un
-  registro, widgets y varios dashboards, tema por configuración y el código
-  de cliente de la aplicación bajo la CSP (banco del panel **72 de 72**).
-  1.39.0 cerró **A10** (Testing y OpenAPI, banco del API 46 de 46) y 1.38.0
-  **A9** (Fleet unificado, 50 de 50). El detalle de cada arco cerrado, en su
-  plan de [`planes/`](planes/README.md).
-  **A11** (Extensibilidad y catálogo) y **A12** (Rendimiento, re-auditoría
-  y cierre a 5) siguen EN CURSO, troceados en
-  [`planes/A11-extensibilidad-y-catalogo.md`](planes/A11-extensibilidad-y-catalogo.md)
-  y [`planes/A12-rendimiento-reauditoria-cierre.md`](planes/A12-rendimiento-reauditoria-cierre.md).
-  En `main` de los productos y aún sin publicar: el catálogo de `nucleus add`
-  con sus recetas, el lado plugin y los módulos Sentry, SAML y redis-cache
-  (banco del catálogo 36 de 38), la cola SQL con `SKIP LOCKED`, el kit de
-  conformidad de dialectos y la página de contrato de quark, y la
-  compresión del panel. A12 tiene cuatro decisiones escritas como
-  propuesta, pendientes de Carlos.
+- **Set certificado: Quantum 1.41.0** (2026-10-12, en cadencia) —
+  quark v1.17.0 (CLI v1.2.1, los cinco drivers v0.3.0) · nucleus v1.32.0 (la CLI
+  en su propio módulo, cmd/nucleus v1.32.0 en lockstep; nacen
+  providers/auth-saml y providers/errors-sentry en v0.1.0; los doce hermanos
+  de antes en v0.1.9 y providers/ldap v0.2.13) · orbit v1.19.3 (proto
+  v0.8.1, datasource v1.0.1, ui v1.1.1, agent v0.15.3, server v0.20.4,
+  quarkbridge v1.9.5, quarkdatasource v1.12.4). Publica **A11 entero**
+  (extensibilidad y catálogo: `nucleus add` embebido y fijado al set con
+  recetas, el lado plugin, SAML, Sentry y redis-cache, el kit de conformidad
+  y la plantilla de driver de quark, el contrato de extensión estrechado, y
+  el panel extensible) y lo que va de **A12**: la cola SQL con `SKIP
+  LOCKED`, la caché de sentencias y los lotes en un viaje de quark, la CLI
+  de nucleus fuera del módulo raíz, el panel comprimido. Y la tanda de
+  arreglos del 2026-10-06/07, con varios de seguridad del panel (el alcance
+  del operador en exportación, importación, historial, rastro, hijos del
+  formulario y filtros) y de nucleus (`WithAuthz()` y `WithRateLimit()` para
+  aplicaciones core-only, que ahora avisan al arrancar de lo que ignoran).
+  Los tres productos se compilan con Go 1.26.9 (GO-2026-6617).
+  1.40.0 publicó los P0 de tenants de quark; 1.39.0 cerró **A10**
+  (Testing y OpenAPI, 46 de 46) y 1.38.0 **A9** (Fleet unificado, 50 de 50).
+  El detalle de cada arco cerrado, en su plan de [`planes/`](planes/README.md).
+  **A12** (Rendimiento, re-auditoría y cierre a 5) sigue EN CURSO en
+  [`planes/A12-rendimiento-reauditoria-cierre.md`](planes/A12-rendimiento-reauditoria-cierre.md):
+  le quedan `M0` → `R1` → `M1` → `R2`, y lo que tiene que cumplir el 2.0 está
+  en [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
+  2027-01-04).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
   TIPADO con el outbox como transporte opcional, CANALES sobre WebSocket y

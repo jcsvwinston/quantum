@@ -1,7 +1,7 @@
 ---
 title: "Quark API surface"
 sidebar_label: "Quark"
-description: "The exported Go API of Quark v1.16.0 that its CI keeps frozen, generated from the file it compares the code with, at the version Quantum 1.40.0 certifies."
+description: "The exported Go API of Quark v1.17.0 that its CI keeps frozen, generated from the file it compares the code with, at the version Quantum 1.41.0 certifies."
 custom_edit_url: null
 ---
 
@@ -9,19 +9,20 @@ custom_edit_url: null
 
 # Quark API surface
 
-The public Go API of **Quark v1.16.0**, the version Quantum 1.40.0 certifies: **895** exported symbols in **11** packages. Quark keeps this list in [`acceptance/apisurface.json`](https://github.com/jcsvwinston/quark/blob/v1.16.0/acceptance/apisurface.json). Quark regenerates this file from the code in CI and fails a change whose committed copy differs, so adding or removing an exported symbol means changing the file in the same change. Removing an exported symbol is a breaking change, and the suite ships breaking changes only in a major version. This page is generated from that file at the pinned version, so it lists exactly what the check protects.
+The public Go API of **Quark v1.17.0**, the version Quantum 1.41.0 certifies: **928** exported symbols in **12** packages. Quark keeps this list in [`acceptance/apisurface.json`](https://github.com/jcsvwinston/quark/blob/v1.17.0/acceptance/apisurface.json). Quark regenerates this file from the code in CI and fails a change whose committed copy differs, so adding or removing an exported symbol means changing the file in the same change. Removing an exported symbol is a breaking change, and the suite ships breaking changes only in a major version. This page is generated from that file at the pinned version, so it lists exactly what the check protects.
 
 Each package links to its documentation on pkg.go.dev at this version, where every symbol has its signature and its comment.
 
 | Package | Types | Functions | Methods | Constants | Variables |
 |---|---:|---:|---:|---:|---:|
-| [`quark` (module root)](#quark) | 115 | 129 | 393 | 17 | 23 |
+| [`quark` (module root)](#quark) | 118 | 131 | 398 | 23 | 23 |
 | [`cache/memory`](#cache-memory) | 1 | 1 | 6 |  |  |
 | [`cache/redis`](#cache-redis) | 2 | 1 | 6 |  |  |
 | [`migrate`](#migrate) | 3 | 9 | 5 |  |  |
-| [`otel`](#otel) | 3 | 3 | 3 | 2 |  |
-| [`quarkdriver`](#quarkdriver) | 36 | 15 | 56 | 23 | 4 |
-| [`quarkdriver/drivertest`](#quarkdriver-drivertest) | 1 | 1 |  |  |  |
+| [`otel`](#otel) | 3 | 3 | 3 | 3 |  |
+| [`quarkdriver`](#quarkdriver) | 40 | 15 | 59 | 28 | 4 |
+| [`quarkdriver/drivertest`](#quarkdriver-drivertest) | 3 | 2 |  |  |  |
+| [`quarkdriver/drivertest/suite`](#quarkdriver-drivertest-suite) |  | 1 |  |  |  |
 | [`quarkmigrate`](#quarkmigrate) | 1 | 3 |  | 6 |  |
 | [`quarktenant`](#quarktenant) | 3 | 6 |  | 5 | 4 |
 | [`quarktest`](#quarktest) |  | 3 |  |  |  |
@@ -29,278 +30,1066 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `quark` (module root) {#quark}
 
-`github.com/jcsvwinston/quark` · 677 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.16.0)
+`github.com/jcsvwinston/quark` · 693 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.17.0)
 
 **Types**
 
-- `AfterCreateHook` — methods `AfterCreate`
-- `AfterDeleteHook` — methods `AfterDelete`
-- `AfterFindHook` — methods `AfterFind`
-- `AfterUpdateHook` — methods `AfterUpdate`
-- `Array` — methods `Len`, `Scan`, `Slice`, `Value`
-- `AuditConfig`
-- `BackfillSpec`
-- `BaseMiddleware` — methods `WrapExec`, `WrapQuery`, `WrapQueryRow`
-- `BaseQuery`
-- `BeforeCreateHook` — methods `BeforeCreate`
-- `BeforeDeleteHook` — methods `BeforeDelete`
-- `BeforeFindHook` — methods `BeforeFind`
-- `BeforeUpdateHook` — methods `BeforeUpdate`
-- `BindMode`
-- `CacheConfig`
-- `CacheLocker` — methods `AcquireLock`
-- `CacheStore` — methods `Delete`, `Get`, `InvalidateTags`, `Set`
-- `CaseBuilder` — methods `Else`, `ToSQL`, `When`
+- `AfterCreateHook` `interface`
+  - `AfterCreate` `func(context.Context) error`
+- `AfterDeleteHook` `interface`
+  - `AfterDelete` `func(context.Context) error`
+- `AfterFindHook` `interface`
+  - `AfterFind` `func(context.Context) error`
+- `AfterUpdateHook` `interface`
+  - `AfterUpdate` `func(context.Context) error`
+- `Array` `[T any] struct{V []T}`
+  - `Len` `func() int`
+  - `Scan` `func(any) error`
+  - `Slice` `func() []T`
+  - `Value` `func() (driver.Value, error)`
+- `AuditConfig` `struct{UserFromContext func(context.Context) string; TenantFromContext func(context.Context) string; IncludeTables []string; ExcludeTables []string}`
+- `BackfillSpec` `struct{Name string; Table string; PKColumn string; BatchSize int; Process func(ctx context.Context, batchPKs []int64) error}`
+- `BaseMiddleware` `struct{}`
+  - `WrapExec` `func(ExecFunc) ExecFunc`
+  - `WrapQuery` `func(QueryFunc) QueryFunc`
+  - `WrapQueryRow` `func(QueryRowFunc) QueryRowFunc`
+- `BaseQuery` `struct{}`
+- `BeforeCreateHook` `interface`
+  - `BeforeCreate` `func(context.Context) error`
+- `BeforeDeleteHook` `interface`
+  - `BeforeDelete` `func(context.Context) error`
+- `BeforeFindHook` `interface`
+  - `BeforeFind` `func(context.Context) error`
+- `BeforeUpdateHook` `interface`
+  - `BeforeUpdate` `func(context.Context) error`
+- `BindMode` `int`
+- `CacheConfig` `struct{TTL time.Duration; Tags []string; Enabled bool}`
+- `CacheLocker` `interface`
+  - `AcquireLock` `func(context.Context, string, time.Duration) (bool, func() error, error)`
+- `CacheStore` `interface`
+  - `Delete` `func(context.Context, string) error`
+  - `Get` `func(context.Context, string) ([]byte, error)`
+  - `InvalidateTags` `func(context.Context, ...string) error`
+  - `Set` `func(context.Context, string, []byte, time.Duration, ...string) error`
+- `CaseBuilder` `struct{}`
+  - `Else` `func(Expr) *CaseBuilder`
+  - `ToSQL` `func(Dialect, *SQLGuard) (string, []any, error)`
+  - `When` `func(Expr, Expr) *CaseBuilder`
 - `Check` = `quarkdriver.Check` (alias)
-- `Client` — methods `AcquireMigrationLock`, `AddForeignKey`, `ApplyPlan`, `Backfill`, `BeginTx`, `BlockedPanicCleanups`, `Close`, `CreateIndex`, `DeferredCommitFailures`, `Dialect`, `DisableAuditLog`, `EnableAuditLog`, `Exec`, `GetClient`, `IntrospectSchema`, `Logger`, `Migrate`, `MigrateRegistered`, `PlanMigration`, `PlanMigrationRegistered`, `Raw`, `RawQuery`, `RegisterModel`, `RegisteredModels`, `Sync`, `Tx`, `UseEventBus`, `Validate`, `WithOptions`
-- `ClientProvider` — methods `GetClient`
+- `Client` `struct{}`
+  - `AcquireMigrationLock` `func(context.Context, string, time.Duration) (MigrationLock, error)`
+  - `AddForeignKey` `func(context.Context, string, string, []string, string, []string, string, string) error`
+  - `ApplyPlan` `func(context.Context, Plan) error`
+  - `Backfill` `func(context.Context, BackfillSpec) error`
+  - `BeginTx` `func(context.Context, *sql.TxOptions) (*Tx, error)`
+  - `BlockedPanicCleanups` `func() uint64`
+  - `Close` `func() error`
+  - `CreateIndex` `func(context.Context, string, string, []string, bool) error`
+  - `DeferredCommitFailures` `func() uint64`
+  - `Dialect` `func() Dialect`
+  - `DisableAuditLog` `func()`
+  - `EnableAuditLog` `func(context.Context, AuditConfig) error`
+  - `Exec` `func(context.Context, string, ...any) error`
+  - `GetClient` `func(context.Context) (*Client, error)`
+  - `IntrospectSchema` `func(context.Context) (Schema, error)`
+  - `Logger` `func() *slog.Logger`
+  - `Migrate` `func(context.Context, ...any) error`
+  - `MigrateRegistered` `func(context.Context) error`
+  - `PlanMigration` `func(context.Context, ...any) (Plan, error)`
+  - `PlanMigrationRegistered` `func(context.Context) (Plan, error)`
+  - `Raw` `func() *sql.DB`
+  - `RawQuery` `func(context.Context, string, ...any) (*sql.Rows, error)`
+  - `RegisterModel` `func(...any) error`
+  - `RegisteredModels` `func() []any`
+  - `Sync` `func(context.Context, SyncOptions, ...any) error`
+  - `Tx` `func(context.Context, func(tx *Tx) error) error`
+  - `UseEventBus` `func(EventBus)`
+  - `Validate` `func(context.Context, any) error`
+  - `WithOptions` `func(...any) (*Client, error)`
+- `ClientProvider` `interface`
+  - `GetClient` `func(context.Context) (*Client, error)`
 - `Column` = `quarkdriver.Column` (alias)
 - `ColumnTypeMapper` = `quarkdriver.ColumnTypeMapper` (alias)
-- `Cursor` — methods `Close`, `Err`, `Next`, `Scan`
+- `Cursor` `[T any] struct{}`
+  - `Close` `func() error`
+  - `Err` `func() error`
+  - `Next` `func() bool`
+  - `Scan` `func(*T) error`
 - `DBConn` = `quarkdriver.DBConn` (alias)
 - `DBConnector` = `quarkdriver.DBConnector` (alias)
 - `Dialect` = `quarkdriver.Dialect` (alias)
-- `Event` — methods `Kind`, `Payload`, `Table`
-- `EventBus` — methods `Publish`
+- `Event` `interface`
+  - `Kind` `func() string`
+  - `Payload` `func() any`
+  - `Table` `func() string`
+- `EventBus` `interface`
+  - `Publish` `func(context.Context, Event) error`
 - `EventListener` = `quarkdriver.Listener` (alias)
 - `EventPayload` = `quarkdriver.EventPayload` (alias)
-- `ExecFunc`
+- `ExecFunc` `func(context.Context, Executor, string, []any) (sql.Result, error)`
 - `Executor` = `quarkdriver.Executor` (alias)
-- `Expr` — methods `ToSQL`
+- `Expr` `interface`
+  - `ToSQL` `func(Dialect, *SQLGuard) (string, []any, error)`
 - `FieldMeta` = `schema.FieldMeta` (alias)
 - `ForeignKey` = `quarkdriver.ForeignKey` (alias)
-- `FrameBound`
-- `GeneratedMeta`
+- `FrameBound` `string`
+- `GeneratedMeta` `struct{ContractVersion int; ModelHash string}`
 - `Index` = `quarkdriver.Index` (alias)
-- `JSON` — methods `Scan`, `Value`
-- `JoinBuilder` — methods `On`, `OnExpr`, `OnRaw`
-- `KeysetPage`
-- `Limits`
-- `ListenerFactory` — methods `CreateListener`
+- `JSON` `[T any] struct{V T}`
+  - `Scan` `func(any) error`
+  - `Value` `func() (driver.Value, error)`
+- `JoinBuilder` `[T any] struct{}`
+  - `On` `func(string, string, string) *Query[T]`
+  - `OnExpr` `func(Expr) *Query[T]`
+  - `OnRaw` `func(string) *Query[T]`
+- `KeysetPage` `[T any] struct{Items []T; Next string; HasMore bool}`
+- `Limits` `struct{MaxQueryLength int; MaxResults int; MaxJoins int; MaxWhereConditions int; QueryTimeout time.Duration; AllowRawQueries bool; SafeMigrations bool}`
+- `ListenerFactory` `struct{}`
+  - `CreateListener` `func() (EventListener, error)`
 - `LockMode` = `quarkdriver.LockMode` (alias)
 - `LockOptions` = `quarkdriver.LockOptions` (alias)
-- `LoggerEventBus` — methods `Publish`
-- `MSSQLDialect` — methods `AcquireMigrationLock`, `AlterColumn`, `AlterTableAddColumn`, `AlterTableAlterColumn`, `AlterTableDropColumn`, `AutoIncrementColumn`, `BoolLiteral`, `BuildProcedureCall`, `BuildRoutineQuery`, `ColumnType`, `CreateIndexIfNotExists`, `CreateTableIfNotExists`, `CurrentTimestamp`, `DropCheck`, `DropForeignKey`, `DropIndex`, `IntrospectSchema`, `IsAlreadyExists`, `JSONExtract`, `LastInsertIDQuery`, `LimitOffset`, `LockSuffix`, `Placeholder`, `Placeholders`, `Quote`, `ReleaseSavepointStmt`, `RenameColumn`, `RenameTable`, `Returning`, `RollbackToSavepointStmt`, `SavepointStmt`, `SupportsLastInsertID`, `SupportsReturning`, `SupportsTransactionalDDL`, `UpsertSQL`
-- `MariaDBDialect` — methods `AcquireMigrationLock`, `AlterTableAlterColumn`, `AutoIncrementColumn`, `BoolLiteral`, `ColumnType`, `CreateSequence`, `CreateSystemVersionedTable`, `HistoryBetween`, `HistoryQuery`, `IntrospectSchema`, `JSONExtract`, `JSONTable`, `LastInsertIDQuery`, `LimitOffset`, `LockSuffix`, `NextVal`, `RenameColumn`, `Returning`, `SupportsLastInsertID`, `SupportsReturning`, `SupportsTransactionalDDL`, `UpsertSQL`
-- `Middleware` — methods `WrapExec`, `WrapQuery`, `WrapQueryRow`
+- `LoggerEventBus` `struct{}`
+  - `Publish` `func(context.Context, Event) error`
+- `MSSQLDialect` `struct{}`
+  - `AcquireMigrationLock` `func(context.Context, DBConnector, string, time.Duration) (MigrationLock, error)`
+  - `AlterColumn` `func(context.Context, quarkdriver.Executor, quarkdriver.ColumnChange) ([]string, error)`
+  - `AlterTableAddColumn` `func(string, string, string) string`
+  - `AlterTableAlterColumn` `func(string, string, string) string`
+  - `AlterTableDropColumn` `func(string, string) string`
+  - `AutoIncrementColumn` `func() (string, string)`
+  - `BoolLiteral` `func(bool) string`
+  - `BuildProcedureCall` `func(string, int) string`
+  - `BuildRoutineQuery` `func(string, int) string`
+  - `ColumnType` `func(quarkdriver.ColumnSpec) string`
+  - `CreateIndexIfNotExists` `func(string, string, []string, bool) string`
+  - `CreateTableIfNotExists` `func(string, string) string`
+  - `CurrentTimestamp` `func() string`
+  - `DropCheck` `func(string, string) string`
+  - `DropForeignKey` `func(string, string) string`
+  - `DropIndex` `func(string, string) string`
+  - `IntrospectSchema` `func(context.Context, Executor) (Schema, error)`
+  - `IsAlreadyExists` `func(quarkdriver.SchemaObject, error) bool`
+  - `JSONExtract` `func(string, string) (string, []any, error)`
+  - `LastInsertIDQuery` `func(string, string) string`
+  - `LimitOffset` `func(int, int) string`
+  - `LockSuffix` `func(LockOptions) (string, string, error)`
+  - `Placeholder` `func(int) string`
+  - `Placeholders` `func(int) []string`
+  - `Quote` `func(string) string`
+  - `ReferentialAction` `func(quarkdriver.ReferentialEvent, string) quarkdriver.ActionSupport`
+  - `ReleaseSavepointStmt` `func(string) string`
+  - `RenameColumn` `func(string, string, string) string`
+  - `RenameTable` `func(string, string) string`
+  - `Returning` `func(...string) string`
+  - `RollbackToSavepointStmt` `func(string) string`
+  - `SavepointStmt` `func(string) string`
+  - `SupportsLastInsertID` `func() bool`
+  - `SupportsReturning` `func() bool`
+  - `SupportsTransactionalDDL` `func() bool`
+  - `UpsertSQL` `func([]string, []string, int) string`
+- `MariaDBDialect` `struct{MySQLDialect}`
+  - `AcquireMigrationLock` `func(context.Context, DBConnector, string, time.Duration) (MigrationLock, error)`
+  - `AlterTableAlterColumn` `func(string, string, string) string`
+  - `AutoIncrementColumn` `func() (string, string)`
+  - `BoolLiteral` `func(bool) string`
+  - `ColumnType` `func(quarkdriver.ColumnSpec) string`
+  - `CreateSequence` `func(string, int64, int64) string`
+  - `CreateSystemVersionedTable` `func(string, string) string`
+  - `DropCheck` `func(string, string) string`
+  - `HistoryBetween` `func(string, string, string) string`
+  - `HistoryQuery` `func(string) string`
+  - `IntrospectSchema` `func(context.Context, Executor) (Schema, error)`
+  - `JSONExtract` `func(string, string) (string, []any, error)`
+  - `JSONTable` `func(string, string, ...string) string`
+  - `LastInsertIDQuery` `func(string, string) string`
+  - `LimitOffset` `func(int, int) string`
+  - `LockSuffix` `func(LockOptions) (string, string, error)`
+  - `NextVal` `func(string) string`
+  - `RenameColumn` `func(string, string, string) string`
+  - `Returning` `func(...string) string`
+  - `SupportsLastInsertID` `func() bool`
+  - `SupportsReturning` `func() bool`
+  - `SupportsTransactionalDDL` `func() bool`
+  - `UpsertSQL` `func([]string, []string, int) string`
+- `Middleware` `interface`
+  - `WrapExec` `func(ExecFunc) ExecFunc`
+  - `WrapQuery` `func(QueryFunc) QueryFunc`
+  - `WrapQueryRow` `func(QueryRowFunc) QueryRowFunc`
 - `MigrationLock` = `quarkdriver.MigrationLock` (alias)
 - `MigrationLocker` = `quarkdriver.MigrationLocker` (alias)
-- `ModelField`
+- `ModelField` `struct{Name string; Column string; GoType string; IsPK bool}`
 - `ModelMeta` = `schema.ModelMeta` (alias)
-- `MySQLDialect` — methods `AcquireMigrationLock`, `AlterColumn`, `AlterTableAddColumn`, `AlterTableAlterColumn`, `AlterTableDropColumn`, `AutoIncrementColumn`, `BoolLiteral`, `BuildProcedureCall`, `BuildRoutineQuery`, `ColumnType`, `CreateIndexIfNotExists`, `CreateTableIfNotExists`, `CurrentTimestamp`, `DropCheck`, `DropForeignKey`, `DropIndex`, `IntrospectSchema`, `IsAlreadyExists`, `JSONExtract`, `LastInsertIDQuery`, `LimitOffset`, `LockSuffix`, `Placeholder`, `Placeholders`, `Quote`, `RenameColumn`, `RenameTable`, `Returning`, `SupportsLastInsertID`, `SupportsReturning`, `SupportsTransactionalDDL`, `UpsertSQL`
+- `MySQLDialect` `struct{}`
+  - `AcquireMigrationLock` `func(context.Context, DBConnector, string, time.Duration) (MigrationLock, error)`
+  - `AlterColumn` `func(context.Context, quarkdriver.Executor, quarkdriver.ColumnChange) ([]string, error)`
+  - `AlterTableAddColumn` `func(string, string, string) string`
+  - `AlterTableAlterColumn` `func(string, string, string) string`
+  - `AlterTableDropColumn` `func(string, string) string`
+  - `AutoIncrementColumn` `func() (string, string)`
+  - `BoolLiteral` `func(bool) string`
+  - `BuildProcedureCall` `func(string, int) string`
+  - `BuildRoutineQuery` `func(string, int) string`
+  - `ColumnType` `func(quarkdriver.ColumnSpec) string`
+  - `CreateIndexIfNotExists` `func(string, string, []string, bool) string`
+  - `CreateTableIfNotExists` `func(string, string) string`
+  - `CurrentTimestamp` `func() string`
+  - `DropCheck` `func(string, string) string`
+  - `DropForeignKey` `func(string, string) string`
+  - `DropIndex` `func(string, string) string`
+  - `IntrospectSchema` `func(context.Context, Executor) (Schema, error)`
+  - `IsAlreadyExists` `func(quarkdriver.SchemaObject, error) bool`
+  - `JSONExtract` `func(string, string) (string, []any, error)`
+  - `LastInsertIDQuery` `func(string, string) string`
+  - `LimitOffset` `func(int, int) string`
+  - `LockSuffix` `func(LockOptions) (string, string, error)`
+  - `Placeholder` `func(int) string`
+  - `Placeholders` `func(int) []string`
+  - `Quote` `func(string) string`
+  - `RenameColumn` `func(string, string, string) string`
+  - `RenameTable` `func(string, string) string`
+  - `Returning` `func(...string) string`
+  - `SupportsLastInsertID` `func() bool`
+  - `SupportsReturning` `func() bool`
+  - `SupportsTransactionalDDL` `func() bool`
+  - `UpsertSQL` `func([]string, []string, int) string`
 - `Nullable` = `sql.Null` (alias)
-- `OTelEventBus` — methods `Publish`
-- `OpAddCheck` — methods `String`
-- `OpAddColumn` — methods `String`
-- `OpAddForeignKey` — methods `String`
-- `OpAlterColumn` — methods `String`
-- `OpCreateIndex` — methods `String`
-- `OpCreateTable` — methods `String`
-- `OpDropCheck` — methods `String`
-- `OpDropColumn` — methods `String`
-- `OpDropForeignKey` — methods `String`
-- `OpDropIndex` — methods `String`
-- `OpDropTable` — methods `String`
-- `Operation` — methods `String`
-- `Option`
-- `OracleDialect` — methods `AcquireMigrationLock`, `AlterColumn`, `AlterTableAddColumn`, `AlterTableAlterColumn`, `AlterTableDropColumn`, `AutoIncrementColumn`, `BoolLiteral`, `BuildProcedureCall`, `BuildRoutineQuery`, `ColumnType`, `CreateIndexIfNotExists`, `CreateTableIfNotExists`, `CurrentTimestamp`, `IntrospectSchema`, `IsAlreadyExists`, `JSONExtract`, `LastInsertIDQuery`, `LimitOffset`, `LockSuffix`, `MapColumnType`, `Placeholder`, `Placeholders`, `Quote`, `ReleaseSavepointStmt`, `RenameColumn`, `RenameTable`, `Returning`, `RollbackToSavepointStmt`, `SavepointStmt`, `SupportsLastInsertID`, `SupportsReturning`, `SupportsTransactionalDDL`, `UpsertSQL`
-- `Page`
-- `Plan` — methods `Down`, `Hash`, `IsEmpty`, `String`
-- `PoolOption`
-- `PostgresDialect` — methods `AcquireMigrationLock`, `AlterColumn`, `AlterTableAddColumn`, `AlterTableAlterColumn`, `AlterTableDropColumn`, `AutoIncrementColumn`, `BoolLiteral`, `BuildProcedureCall`, `BuildRoutineQuery`, `ColumnType`, `CurrentTimestamp`, `IntrospectSchema`, `JSONExtract`, `LastInsertIDQuery`, `LimitOffset`, `LockSuffix`, `Placeholder`, `Placeholders`, `Quote`, `RenameColumn`, `RenameTable`, `Returning`, `SupportsLastInsertID`, `SupportsReturning`, `SupportsTransactionalDDL`, `UpsertSQL`
-- `Predicate`
-- `Query` — methods `AllowUnbounded`, `Apply`, `AsSubquery`, `Avg`, `Cache`, `Count`, `Create`, `CreateBatch`, `CrossJoin`, `Cursor`, `Delete`, `DeleteBatch`, `DeleteBy`, `Distinct`, `Except`, `ExceptAll`, `Find`, `First`, `ForShare`, `ForUpdate`, `FromCTE`, `FromTable`, `FullJoin`, `GroupBy`, `HardDelete`, `Having`, `HavingAggregate`, `HavingExpr`, `Intersect`, `IntersectAll`, `Iter`, `Join`, `LeftJoin`, `Limit`, `List`, `Max`, `Min`, `MustAsSubquery`, `NoWait`, `Offset`, `OnlyTrashed`, `Or`, `OrderBy`, `Paginate`, `PaginateAfter`, `Preload`, `PreloadWhere`, `Restore`, `RightJoin`, `Select`, `SelectExpr`, `SkipLocked`, `Sum`, `Track`, `Union`, `UnionAll`, `Unscoped`, `Update`, `UpdateBatch`, `UpdateFields`, `UpdateMap`, `Upsert`, `UpsertBatch`, `Where`, `WhereBetween`, `WhereContains`, `WhereEndsWith`, `WhereExpr`, `WhereIn`, `WhereJSON`, `WhereLike`, `WhereNot`, `WhereNotLike`, `WhereP`, `WhereStartsWith`, `WhereSubquery`, `With`, `WithRecursive`, `WithTrashed`, `WithoutAssociations`
-- `QueryEvent`
-- `QueryFunc`
-- `QueryObserver` — methods `ObserveQuery`
-- `QueryRowFunc`
-- `Range` — methods `PGLiteral`, `Scan`, `Value`
+- `OTelEventBus` `struct{}`
+  - `Publish` `func(context.Context, Event) error`
+- `OpAddCheck` `struct{Table string; Check Check}`
+  - `String` `func() string`
+- `OpAddColumn` `struct{Table string; Column Column}`
+  - `String` `func() string`
+- `OpAddForeignKey` `struct{Table string; ForeignKey ForeignKey}`
+  - `String` `func() string`
+- `OpAlterColumn` `struct{Table string; Old Column; New Column}`
+  - `String` `func() string`
+- `OpCreateIndex` `struct{Table string; Index Index}`
+  - `String` `func() string`
+- `OpCreateTable` `struct{Table Table}`
+  - `String` `func() string`
+- `OpDropCheck` `struct{Table string; Check string}`
+  - `String` `func() string`
+- `OpDropColumn` `struct{Table string; Column string}`
+  - `String` `func() string`
+- `OpDropForeignKey` `struct{Table string; ForeignKey string}`
+  - `String` `func() string`
+- `OpDropIndex` `struct{Table string; Index string}`
+  - `String` `func() string`
+- `OpDropTable` `struct{Table string}`
+  - `String` `func() string`
+- `Operation` `interface (sealed)`
+  - `String` `func() string`
+- `Option` `func(*Client)`
+- `OracleDialect` `struct{}`
+  - `AcquireMigrationLock` `func(context.Context, DBConnector, string, time.Duration) (MigrationLock, error)`
+  - `AlterColumn` `func(context.Context, quarkdriver.Executor, quarkdriver.ColumnChange) ([]string, error)`
+  - `AlterTableAddColumn` `func(string, string, string) string`
+  - `AlterTableAlterColumn` `func(string, string, string) string`
+  - `AlterTableDropColumn` `func(string, string) string`
+  - `AutoIncrementColumn` `func() (string, string)`
+  - `BoolLiteral` `func(bool) string`
+  - `BuildProcedureCall` `func(string, int) string`
+  - `BuildRoutineQuery` `func(string, int) string`
+  - `ColumnType` `func(quarkdriver.ColumnSpec) string`
+  - `CreateIndexIfNotExists` `func(string, string, []string, bool) string`
+  - `CreateTableIfNotExists` `func(string, string) string`
+  - `CurrentTimestamp` `func() string`
+  - `IntrospectSchema` `func(context.Context, Executor) (Schema, error)`
+  - `IsAlreadyExists` `func(quarkdriver.SchemaObject, error) bool`
+  - `JSONExtract` `func(string, string) (string, []any, error)`
+  - `LastInsertIDQuery` `func(string, string) string`
+  - `LimitOffset` `func(int, int) string`
+  - `LockSuffix` `func(LockOptions) (string, string, error)`
+  - `MapColumnType` `func(string) string`
+  - `Placeholder` `func(int) string`
+  - `Placeholders` `func(int) []string`
+  - `Quote` `func(string) string`
+  - `ReferentialAction` `func(quarkdriver.ReferentialEvent, string) quarkdriver.ActionSupport`
+  - `ReleaseSavepointStmt` `func(string) string`
+  - `RenameColumn` `func(string, string, string) string`
+  - `RenameTable` `func(string, string) string`
+  - `Returning` `func(...string) string`
+  - `RollbackToSavepointStmt` `func(string) string`
+  - `SavepointStmt` `func(string) string`
+  - `SupportsLastInsertID` `func() bool`
+  - `SupportsReturning` `func() bool`
+  - `SupportsTransactionalDDL` `func() bool`
+  - `UpsertSQL` `func([]string, []string, int) string`
+- `Page` `[T any] struct{Items []T; Total int64; Page int; PageSize int; TotalPages int64}`
+- `Plan` `struct{Ops []Operation}`
+  - `Down` `func() (Plan, error)`
+  - `Hash` `func() string`
+  - `IsEmpty` `func() bool`
+  - `String` `func() string`
+- `PoolOption` `interface (sealed)`
+- `PostgresDialect` `struct{}`
+  - `AcquireMigrationLock` `func(context.Context, DBConnector, string, time.Duration) (MigrationLock, error)`
+  - `AlterColumn` `func(context.Context, quarkdriver.Executor, quarkdriver.ColumnChange) ([]string, error)`
+  - `AlterTableAddColumn` `func(string, string, string) string`
+  - `AlterTableAlterColumn` `func(string, string, string) string`
+  - `AlterTableDropColumn` `func(string, string) string`
+  - `AutoIncrementColumn` `func() (string, string)`
+  - `BoolLiteral` `func(bool) string`
+  - `BuildProcedureCall` `func(string, int) string`
+  - `BuildRoutineQuery` `func(string, int) string`
+  - `ColumnType` `func(quarkdriver.ColumnSpec) string`
+  - `CurrentTimestamp` `func() string`
+  - `IntrospectSchema` `func(context.Context, Executor) (Schema, error)`
+  - `JSONExtract` `func(string, string) (string, []any, error)`
+  - `LastInsertIDQuery` `func(string, string) string`
+  - `LimitOffset` `func(int, int) string`
+  - `LockSuffix` `func(LockOptions) (string, string, error)`
+  - `Placeholder` `func(int) string`
+  - `Placeholders` `func(int) []string`
+  - `Quote` `func(string) string`
+  - `RenameColumn` `func(string, string, string) string`
+  - `RenameTable` `func(string, string) string`
+  - `Returning` `func(...string) string`
+  - `SupportsLastInsertID` `func() bool`
+  - `SupportsReturning` `func() bool`
+  - `SupportsTransactionalDDL` `func() bool`
+  - `UpsertSQL` `func([]string, []string, int) string`
+- `Predicate` `struct{}`
+- `Query` `[T any] struct{BaseQuery}`
+  - `AllowUnbounded` `func() *Query[T]`
+  - `Apply` `func(...Scope[T]) *Query[T]`
+  - `AsSubquery` `func() (*Subquery, error)`
+  - `Avg` `func(string) (float64, error)`
+  - `Cache` `func(time.Duration, ...string) *Query[T]`
+  - `CheckVersions` `func() *Query[T]`
+  - `Count` `func() (int64, error)`
+  - `Create` `func(*T) error`
+  - `CreateBatch` `func([]*T) error`
+  - `CrossJoin` `func(string) *Query[T]`
+  - `Cursor` `func() (*Cursor[T], error)`
+  - `Delete` `func(*T) (int64, error)`
+  - `DeleteBatch` `func([]any) (int64, error)`
+  - `DeleteBy` `func() (int64, error)`
+  - `Distinct` `func() *Query[T]`
+  - `Except` `func(*Query[T]) *Query[T]`
+  - `ExceptAll` `func(*Query[T]) *Query[T]`
+  - `Find` `func(any) (T, error)`
+  - `First` `func() (T, error)`
+  - `ForShare` `func() *Query[T]`
+  - `ForUpdate` `func() *Query[T]`
+  - `FromCTE` `func(string) *Query[T]`
+  - `FromTable` `func(string) *Query[T]`
+  - `FullJoin` `func(string) *JoinBuilder[T]`
+  - `GroupBy` `func(...string) *Query[T]`
+  - `HardDelete` `func(*T) (int64, error)`
+  - `Having` `func(string, string, any) *Query[T]`
+  - `HavingAggregate` `func(string, string, string, any) *Query[T]`
+  - `HavingExpr` `func(Expr) *Query[T]`
+  - `Intersect` `func(*Query[T]) *Query[T]`
+  - `IntersectAll` `func(*Query[T]) *Query[T]`
+  - `Iter` `func(func(T) error) error`
+  - `Join` `func(string) *JoinBuilder[T]`
+  - `LeftJoin` `func(string) *JoinBuilder[T]`
+  - `Limit` `func(int) *Query[T]`
+  - `List` `func() ([]T, error)`
+  - `Max` `func(string) (float64, error)`
+  - `Min` `func(string) (float64, error)`
+  - `MustAsSubquery` `func() *Subquery`
+  - `NoWait` `func() *Query[T]`
+  - `Offset` `func(int) *Query[T]`
+  - `OnlyTrashed` `func() *Query[T]`
+  - `Or` `func(func(*Query[T]) *Query[T]) *Query[T]`
+  - `OrderBy` `func(string, string) *Query[T]`
+  - `Paginate` `func(int, int) (*Page[T], error)`
+  - `PaginateAfter` `func(int, string) (*KeysetPage[T], error)`
+  - `Preload` `func(...string) *Query[T]`
+  - `PreloadWhere` `func(string, string, string, any) *Query[T]`
+  - `Restore` `func(*T) (int64, error)`
+  - `RightJoin` `func(string) *JoinBuilder[T]`
+  - `Select` `func(...string) *Query[T]`
+  - `SelectExpr` `func(string, Expr) *Query[T]`
+  - `SkipLocked` `func() *Query[T]`
+  - `Sum` `func(string) (float64, error)`
+  - `Track` `func() *TrackedQuery[T]`
+  - `Union` `func(*Query[T]) *Query[T]`
+  - `UnionAll` `func(*Query[T]) *Query[T]`
+  - `Unscoped` `func() *Query[T]`
+  - `Update` `func(*T) (int64, error)`
+  - `UpdateBatch` `func([]*T) error`
+  - `UpdateFields` `func(*T, ...string) (int64, error)`
+  - `UpdateMap` `func(map[string]any) (int64, error)`
+  - `Upsert` `func(*T, []string, []string) error`
+  - `UpsertBatch` `func([]*T, []string, []string) error`
+  - `Where` `func(string, string, any) *Query[T]`
+  - `WhereBetween` `func(string, any, any) *Query[T]`
+  - `WhereContains` `func(string, string) *Query[T]`
+  - `WhereEndsWith` `func(string, string) *Query[T]`
+  - `WhereExpr` `func(Expr) *Query[T]`
+  - `WhereIn` `func(string, []any) *Query[T]`
+  - `WhereJSON` `func(string, string, string, any) *Query[T]`
+  - `WhereLike` `func(string, string) *Query[T]`
+  - `WhereNot` `func(string, string, any) *Query[T]`
+  - `WhereNotLike` `func(string, string) *Query[T]`
+  - `WhereP` `func(...Predicate) *Query[T]`
+  - `WhereStartsWith` `func(string, string) *Query[T]`
+  - `WhereSubquery` `func(string, string, string) *Query[T]`
+  - `With` `func(string, *Subquery) *Query[T]`
+  - `WithRecursive` `func(string, *Subquery) *Query[T]`
+  - `WithTrashed` `func() *Query[T]`
+  - `WithoutAssociations` `func() *Query[T]`
+- `QueryEvent` `struct{SQL string; Args []any; Duration time.Duration; Rows int64; Error error; Table string; Operation string; Kind StatementKind}`
+- `QueryFunc` `func(context.Context, Executor, string, []any) (*sql.Rows, error)`
+- `QueryObserver` `interface`
+  - `ObserveQuery` `func(QueryEvent)`
+- `QueryRowFunc` `func(context.Context, Executor, string, []any) *sql.Row`
+- `Range` `[T any] struct{Lower T; Upper T; Bounds string; Empty bool}`
+  - `PGLiteral` `func() (string, error)`
+  - `Scan` `func(any) error`
+  - `Value` `func() (driver.Value, error)`
 - `RelationMeta` = `schema.RelationMeta` (alias)
-- `ReplicaStrategy`
+- `ReplicaStrategy` `int`
 - `Result` = `quarkdriver.Result` (alias)
-- `Routine` — methods `First`, `List`, `Scalar`
+- `Routine` `[T any] struct{}`
+  - `First` `func() (T, error)`
+  - `List` `func() ([]T, error)`
+  - `Scalar` `func() (T, error)`
 - `Row` = `quarkdriver.Row` (alias)
 - `SQLGuard` = `guard.SQLGuard` (alias)
-- `SQLiteDialect` — methods `AlterTableAddColumn`, `AlterTableAlterColumn`, `AlterTableDropColumn`, `AutoIncrementColumn`, `BoolLiteral`, `BuildProcedureCall`, `BuildRoutineQuery`, `ColumnType`, `CurrentTimestamp`, `IntrospectSchema`, `JSONExtract`, `LastInsertIDQuery`, `LimitOffset`, `LockSuffix`, `Placeholder`, `Placeholders`, `Quote`, `RebuildsTables`, `RenameColumn`, `RenameTable`, `Returning`, `SupportsLastInsertID`, `SupportsReturning`, `SupportsTransactionalDDL`, `UpsertSQL`
+- `SQLiteDialect` `struct{}`
+  - `AlterTableAddColumn` `func(string, string, string) string`
+  - `AlterTableAlterColumn` `func(string, string, string) string`
+  - `AlterTableDropColumn` `func(string, string) string`
+  - `AutoIncrementColumn` `func() (string, string)`
+  - `BoolLiteral` `func(bool) string`
+  - `BuildProcedureCall` `func(string, int) string`
+  - `BuildRoutineQuery` `func(string, int) string`
+  - `ColumnType` `func(quarkdriver.ColumnSpec) string`
+  - `CurrentTimestamp` `func() string`
+  - `IntrospectSchema` `func(context.Context, Executor) (Schema, error)`
+  - `JSONExtract` `func(string, string) (string, []any, error)`
+  - `LastInsertIDQuery` `func(string, string) string`
+  - `LimitOffset` `func(int, int) string`
+  - `LockSuffix` `func(LockOptions) (string, string, error)`
+  - `Placeholder` `func(int) string`
+  - `Placeholders` `func(int) []string`
+  - `Quote` `func(string) string`
+  - `RebuildsTables` `func() bool`
+  - `RenameColumn` `func(string, string, string) string`
+  - `RenameTable` `func(string, string) string`
+  - `Returning` `func(...string) string`
+  - `SupportsLastInsertID` `func() bool`
+  - `SupportsReturning` `func() bool`
+  - `SupportsTransactionalDDL` `func() bool`
+  - `UpsertSQL` `func([]string, []string, int) string`
 - `SavepointDialect` = `quarkdriver.SavepointDialect` (alias)
-- `ScatterMerge`
+- `ScatterMerge` `[T any] struct{Less func(a T, b T) bool; Limit int}`
 - `Schema` = `quarkdriver.Schema` (alias)
 - `SchemaIntrospector` = `quarkdriver.SchemaIntrospector` (alias)
-- `Scope`
-- `ShardFunc`
-- `ShardKeyer` — methods `ShardKey`
-- `ShardResolver`
-- `ShardRouter` — methods `GetClient`, `ShardNames`
-- `StrictReadsMode`
-- `Subquery` — methods `SQL`
-- `SyncOptions`
+- `Scope` `[T any] func(*Query[T]) *Query[T]`
+- `ShardFunc` `func(string) string`
+- `ShardKeyer` `interface`
+  - `ShardKey` `func() string`
+- `ShardResolver` `func(context.Context) string`
+- `ShardRouter` `struct{}`
+  - `GetClient` `func(context.Context) (*Client, error)`
+  - `ShardNames` `func() []string`
+- `StatementKind` `string`
+- `StrictReadsMode` `int`
+- `Subquery` `struct{}`
+  - `SQL` `func() (string, []any)`
+- `SyncOptions` `struct{DryRun bool; NoTransaction bool}`
 - `Table` = `quarkdriver.Table` (alias)
-- `TenantConfig`
-- `TenantRouter` — methods `ActiveTenants`, `GetClient`, `ResolveTenant`, `Tx`
-- `TenantStrategy`
-- `Tracked` — methods `Changed`, `Save`
-- `TrackedQuery` — methods `Find`, `First`, `List`
-- `Tx` — methods `Commit`, `OnCommit`, `OnRollback`, `ReleaseSavepoint`, `Rollback`, `RollbackTo`, `Savepoint`, `Tx`
+- `TableNamer` = `schema.TableNamer` (alias)
+- `TenantConfig` `struct{Strategy TenantStrategy; MaxCachedPools int; BaseClient *Client; TenantColumn string; SkipPolicyVerification bool; NativeRLSVar string}`
+- `TenantRouter` `struct{}`
+  - `ActiveTenants` `func() []string`
+  - `GetClient` `func(context.Context) (*Client, error)`
+  - `ResolveTenant` `func(context.Context) (string, error)`
+  - `Tx` `func(context.Context, func(tx *Tx) error) error`
+- `TenantStrategy` `int`
+- `Tracked` `[T any] struct{Entity *T}`
+  - `Changed` `func() []string`
+  - `Save` `func(context.Context) (int64, error)`
+- `TrackedQuery` `[T any] struct{}`
+  - `Find` `func(any) (*Tracked[T], error)`
+  - `First` `func() (*Tracked[T], error)`
+  - `List` `func() ([]*Tracked[T], error)`
+- `Tx` `struct{}`
+  - `Commit` `func() error`
+  - `OnCommit` `func(func(context.Context) error)`
+  - `OnRollback` `func(func(context.Context) error)`
+  - `ReleaseSavepoint` `func(string) error`
+  - `Rollback` `func() error`
+  - `RollbackTo` `func(string) error`
+  - `Savepoint` `func(string) error`
+  - `Tx` `func(context.Context, func(tx *Tx) error) error`
 - `TypeMapper` = `migrate.TypeMapper` (alias)
 - `TypeOptions` = `migrate.TypeOptions` (alias)
-- `TypedBinder`
-- `TypedColumn` — methods `Between`, `Eq`, `Gt`, `Gte`, `In`, `IsNotNull`, `IsNull`, `Lt`, `Lte`, `Name`, `Neq`, `NotIn`
-- `TypedScanner`
-- `TypedStringColumn` — methods `Contains`, `EndsWith`, `Like`, `LikeEscaped`, `NotLike`, `NotLikeEscaped`, `StartsWith`
-- `Window` — methods `OrderBy`, `PartitionBy`, `Range`, `Rows`
+- `TypedBinder` `func(any, BindMode) ([]string, []any, error)`
+- `TypedColumn` `[T any] struct{}`
+  - `Between` `func(T, T) Predicate`
+  - `Eq` `func(T) Predicate`
+  - `Gt` `func(T) Predicate`
+  - `Gte` `func(T) Predicate`
+  - `In` `func(...T) Predicate`
+  - `IsNotNull` `func() Predicate`
+  - `IsNull` `func() Predicate`
+  - `Lt` `func(T) Predicate`
+  - `Lte` `func(T) Predicate`
+  - `Name` `func() string`
+  - `Neq` `func(T) Predicate`
+  - `NotIn` `func(...T) Predicate`
+- `TypedScanner` `func(*sql.Rows, any) error`
+- `TypedStringColumn` `struct{TypedColumn[string]}`
+  - `Contains` `func(string) Predicate`
+  - `EndsWith` `func(string) Predicate`
+  - `Like` `func(string) Predicate`
+  - `LikeEscaped` `func(string) Predicate`
+  - `NotLike` `func(string) Predicate`
+  - `NotLikeEscaped` `func(string) Predicate`
+  - `StartsWith` `func(string) Predicate`
+- `Validator` `interface`
+  - `Validate` `func(context.Context) error`
+- `Window` `struct{}`
+  - `OrderBy` `func(Expr, bool) *Window`
+  - `PartitionBy` `func(...Expr) *Window`
+  - `Range` `func(FrameBound, FrameBound) *Window`
+  - `Rows` `func(FrameBound, FrameBound) *Window`
 
-**Functions** — `Add`, `And`, `Call`, `CanonicalType`, `Case`, `CheckGeneratedDrift`, `Cmp`, `Col`, `Contains`, `CountDistinct`, `CumeDist`, `CurrentRow`, `DefaultLimits`, `DefaultShardResolver`, `DefaultTenantConfig`, `DeleteBatchOf`, `DenseRank`, `DetectDialect`, `DetectDialectByName`, `Diff`, `Divide`, `EndsWith`, `Eq`, `EscapeLike`, `Exists`, `FirstValue`, `Following`, `For`, `ForTx`, `Func`, `GeneratedBinderRegistered`, `GetModelMeta`, `GetModelMetaByType`, `Gt`, `Gte`, `HashModelFields`, `HashShardFunc`, `In`, `InSub`, `IsDeadlock`, `IsUniqueViolation`, `JSONExtract`, `Lag`, `LastValue`, `Lead`, `Like`, `Lit`, `Lt`, `Lte`, `MSSQL`, `MariaDB`, `ModelHash`, `Multiply`, `MySQL`, `NTile`, `Ne`, `New`, `NewListenerFactory`, `NewLoggerEventBus`, `NewOTelEventBus`, `NewRoutine`, `NewSQLGuard`, `NewShardRouter`, `NewTenantRouter`, `NewTypedColumn`, `NewTypedStringColumn`, `NewWindow`, `NewWithDB`, `Not`, `NotExists`, `NotIn`, `NotInSub`, `NotLike`, `Notify`, `NthValue`, `NullOf`, `Or`, `Oracle`, `Over`, `PercentRank`, `PostgreSQL`, `Preceding`, `Rank`, `RegisterDialect`, `RegisterGeneratedMeta`, `RegisterTypeMapper`, `RegisterTypedBinder`, `RegisterTypedScanner`, `RowNumber`, `SQLite`, `ScanTarget`, `ScatterCount`, `ScatterGather`, `ShardKeyFromContext`, `SomeOf`, `StartsWith`, `Sticky`, `StubBinder`, `StubScanner`, `Sub`, `Subtract`, `TrackReads`, `TxFromContext`, `UnboundedFollowing`, `UnboundedPreceding`, `WhereInOf`, `WithCacheCrossInstance`, `WithCacheJitter`, `WithCacheStore`, `WithCacheXFetchBeta`, `WithConnMaxIdleTime`, `WithConnMaxLifetime`, `WithDeadlockRetry`, `WithDefaultTZ`, `WithDialect`, `WithLimits`, `WithLogger`, `WithMaxIdleConns`, `WithMaxOpenConns`, `WithMiddleware`, `WithQueryObserver`, `WithReplicaDownCooldown`, `WithReplicaStrategy`, `WithReplicas`, `WithShardKey`, `WithShardKeyOf`, `WithSlowQueryThreshold`, `WithStrictColumns`, `WithStrictReads`
+**Functions**
 
-**Constants** — `BindInsert`, `BindUpdate`, `DatabasePerTenant`, `GenContractVersion`, `LockForShare`, `LockForUpdate`, `LockNone`, `ReplicaLeastConn`, `ReplicaRandom`, `ReplicaRoundRobin`, `RowLevelSecurity`, `RowLevelSecurityClient`, `RowLevelSecurityNative`, `SchemaPerTenant`, `StrictReadsOff`, `StrictReadsReject`, `StrictReadsWarn`
+- `Add` `func(Expr, Expr) Expr`
+- `And` `func(...Expr) Expr`
+- `Call` `func(context.Context, ClientProvider, string, ...any) error`
+- `CanonicalType` `func(string) string`
+- `Case` `func() *CaseBuilder`
+- `CheckGeneratedDrift` `func(reflect.Type) (bool, bool)`
+- `Cmp` `func(Expr, string, Expr) Expr`
+- `Col` `func(string) Expr`
+- `Contains` `func(Expr, string) Expr`
+- `CountDistinct` `func(Expr) Expr`
+- `CumeDist` `func() Expr`
+- `CurrentRow` `func() FrameBound`
+- `DefaultLimits` `func() Limits`
+- `DefaultShardResolver` `func(context.Context) string`
+- `DefaultTenantConfig` `func() TenantConfig`
+- `DeleteBatchOf` `func[T any, V any](*Query[T], []V) (int64, error)`
+- `DenseRank` `func() Expr`
+- `DetectDialect` `func(string) (Dialect, error)`
+- `DetectDialectByName` `func(string) (Dialect, error)`
+- `Diff` `func(Schema, Schema) []Operation`
+- `Divide` `func(Expr, Expr) Expr`
+- `EndsWith` `func(Expr, string) Expr`
+- `Eq` `func(Expr, Expr) Expr`
+- `EscapeLike` `func(string) string`
+- `Exists` `func(*Subquery) Expr`
+- `FirstValue` `func(Expr) Expr`
+- `Following` `func(int) FrameBound`
+- `For` `func[T any](context.Context, ClientProvider) *Query[T]`
+- `ForTx` `func[T any](context.Context, *Tx) *Query[T]`
+- `Func` `func(string, ...Expr) Expr`
+- `GeneratedBinderRegistered` `func(reflect.Type) bool`
+- `GetModelMeta` `func[T any]() *ModelMeta`
+- `GetModelMetaByType` `func(reflect.Type) *ModelMeta`
+- `Gt` `func(Expr, Expr) Expr`
+- `Gte` `func(Expr, Expr) Expr`
+- `HashModelFields` `func([]ModelField) string`
+- `HashShardFunc` `func([]string) ShardFunc`
+- `In` `func(Expr, ...Expr) Expr`
+- `InSub` `func(Expr, *Subquery) Expr`
+- `IsDeadlock` `func(error) bool`
+- `IsUniqueViolation` `func(error) bool`
+- `JSONExtract` `func(string, string) Expr`
+- `Lag` `func(Expr, int) Expr`
+- `LastValue` `func(Expr) Expr`
+- `Lead` `func(Expr, int) Expr`
+- `Like` `func(Expr, string) Expr`
+- `Lit` `func(any) Expr`
+- `Lt` `func(Expr, Expr) Expr`
+- `Lte` `func(Expr, Expr) Expr`
+- `MSSQL` `func() Dialect`
+- `MariaDB` `func() Dialect`
+- `ModelHash` `func(reflect.Type) string`
+- `Multiply` `func(Expr, Expr) Expr`
+- `MySQL` `func() Dialect`
+- `NTile` `func(int) Expr`
+- `Ne` `func(Expr, Expr) Expr`
+- `New` `func(string, string, ...any) (*Client, error)`
+- `NewListenerFactory` `func(*Client) *ListenerFactory`
+- `NewLoggerEventBus` `func(*slog.Logger) *LoggerEventBus`
+- `NewOTelEventBus` `func(*slog.Logger) *OTelEventBus`
+- `NewRoutine` `func[T any](context.Context, ClientProvider, string, ...any) *Routine[T]`
+- `NewSQLGuard` `func() *SQLGuard`
+- `NewShardRouter` `func(map[string]*Client, ShardResolver, ShardFunc) (*ShardRouter, error)`
+- `NewTenantRouter` `func(TenantConfig, func(ctx context.Context) string, func(tenantID string) (*Client, error)) *TenantRouter`
+- `NewTypedColumn` `func[T any](string) TypedColumn[T]`
+- `NewTypedStringColumn` `func(string) TypedStringColumn`
+- `NewWindow` `func() *Window`
+- `NewWithDB` `func(string, *sql.DB, ...any) (*Client, error)`
+- `Not` `func(Expr) Expr`
+- `NotExists` `func(*Subquery) Expr`
+- `NotIn` `func(Expr, ...Expr) Expr`
+- `NotInSub` `func(Expr, *Subquery) Expr`
+- `NotLike` `func(Expr, string) Expr`
+- `Notify` `func(context.Context, ClientProvider, string, string) error`
+- `NthValue` `func(Expr, int) Expr`
+- `NullOf` `func[T any]() Nullable[T]`
+- `Or` `func(...Expr) Expr`
+- `Oracle` `func() Dialect`
+- `Over` `func(Expr, *Window) Expr`
+- `PercentRank` `func() Expr`
+- `PostgreSQL` `func() Dialect`
+- `Preceding` `func(int) FrameBound`
+- `Rank` `func() Expr`
+- `RegisterDialect` `func(string, Dialect)`
+- `RegisterGeneratedMeta` `func(reflect.Type, GeneratedMeta)`
+- `RegisterTypeMapper` `func(reflect.Type, TypeMapper)`
+- `RegisterTypedBinder` `func(reflect.Type, TypedBinder)`
+- `RegisterTypedScanner` `func(reflect.Type, TypedScanner)`
+- `RowNumber` `func() Expr`
+- `SQLite` `func() Dialect`
+- `ScanTarget` `func(any) any`
+- `ScatterCount` `func[T any](context.Context, *ShardRouter, func(*Query[T]) *Query[T]) (int64, error)`
+- `ScatterGather` `func[T any](context.Context, *ShardRouter, func(*Query[T]) *Query[T], ScatterMerge[T]) ([]T, error)`
+- `ShardKeyFromContext` `func(context.Context) string`
+- `SomeOf` `func[T any](T) Nullable[T]`
+- `StartsWith` `func(Expr, string) Expr`
+- `StatementKindFromContext` `func(context.Context) StatementKind`
+- `Sticky` `func(context.Context) context.Context`
+- `StubBinder` `func(any, BindMode) ([]string, []any, error)`
+- `StubScanner` `func(*sql.Rows, any) error`
+- `Sub` `func(*Subquery) Expr`
+- `Subtract` `func(Expr, Expr) Expr`
+- `TrackReads` `func(context.Context) context.Context`
+- `TxFromContext` `func(context.Context) *Tx`
+- `UnboundedFollowing` `func() FrameBound`
+- `UnboundedPreceding` `func() FrameBound`
+- `WhereInOf` `func[T any, V any](*Query[T], string, []V) *Query[T]`
+- `WithCacheCrossInstance` `func() Option`
+- `WithCacheJitter` `func(float64) Option`
+- `WithCacheStore` `func(CacheStore) Option`
+- `WithCacheXFetchBeta` `func(float64) Option`
+- `WithConnMaxIdleTime` `func(time.Duration) PoolOption`
+- `WithConnMaxLifetime` `func(time.Duration) PoolOption`
+- `WithDeadlockRetry` `func(int) Option`
+- `WithDefaultTZ` `func(*time.Location) Option`
+- `WithDialect` `func(Dialect) Option`
+- `WithLimits` `func(Limits) Option`
+- `WithLogger` `func(*slog.Logger) Option`
+- `WithMaxIdleConns` `func(int) PoolOption`
+- `WithMaxOpenConns` `func(int) PoolOption`
+- `WithMiddleware` `func(Middleware) Option`
+- `WithQueryObserver` `func(QueryObserver) Option`
+- `WithReplicaDownCooldown` `func(time.Duration) Option`
+- `WithReplicaStrategy` `func(ReplicaStrategy) Option`
+- `WithReplicas` `func(...string) Option`
+- `WithShardKey` `func(context.Context, string) context.Context`
+- `WithShardKeyOf` `func(context.Context, ShardKeyer) context.Context`
+- `WithSlowQueryThreshold` `func(time.Duration) Option`
+- `WithStatementCache` `func(int) Option`
+- `WithStrictColumns` `func() Option`
+- `WithStrictReads` `func(StrictReadsMode) Option`
 
-**Variables** — `ErrConnection`, `ErrConstraintViolation`, `ErrDialectNotSupported`, `ErrEventEmitFailed`, `ErrGeneratedStub`, `ErrInvalidIdentifier`, `ErrInvalidJSONPath`, `ErrInvalidJoin`, `ErrInvalidModel`, `ErrInvalidQuery`, `ErrInvalidTag`, `ErrInvalidTimezone`, `ErrIrreversibleOperation`, `ErrListenerClosed`, `ErrLockTimeout`, `ErrNoSubscription`, `ErrNotFound`, `ErrRLSNotEnforced`, `ErrStaleEntity`, `ErrTenantMismatch`, `ErrTimeout`, `ErrUnsupportedFeature`, `HasPlaceholders`
+**Constants**
+
+- `BindInsert` `BindMode`
+- `BindUpdate` `BindMode`
+- `DatabasePerTenant` `TenantStrategy`
+- `GenContractVersion` `untyped int`
+- `LockForShare` `quarkdriver.LockMode`
+- `LockForUpdate` `quarkdriver.LockMode`
+- `LockNone` `quarkdriver.LockMode`
+- `ReplicaLeastConn` `ReplicaStrategy`
+- `ReplicaRandom` `ReplicaStrategy`
+- `ReplicaRoundRobin` `ReplicaStrategy`
+- `RowLevelSecurity` `TenantStrategy`
+- `RowLevelSecurityClient` `TenantStrategy`
+- `RowLevelSecurityNative` `TenantStrategy`
+- `SchemaPerTenant` `TenantStrategy`
+- `StatementDDL` `StatementKind`
+- `StatementExec` `StatementKind`
+- `StatementIntrospection` `StatementKind`
+- `StatementQuery` `StatementKind`
+- `StatementRaw` `StatementKind`
+- `StatementSavepoint` `StatementKind`
+- `StrictReadsOff` `StrictReadsMode`
+- `StrictReadsReject` `StrictReadsMode`
+- `StrictReadsWarn` `StrictReadsMode`
+
+**Variables**
+
+- `ErrConnection` `error`
+- `ErrConstraintViolation` `error`
+- `ErrDialectNotSupported` `error`
+- `ErrEventEmitFailed` `error`
+- `ErrGeneratedStub` `error`
+- `ErrInvalidIdentifier` `error`
+- `ErrInvalidJSONPath` `error`
+- `ErrInvalidJoin` `error`
+- `ErrInvalidModel` `error`
+- `ErrInvalidQuery` `error`
+- `ErrInvalidTag` `error`
+- `ErrInvalidTimezone` `error`
+- `ErrIrreversibleOperation` `error`
+- `ErrListenerClosed` `error`
+- `ErrLockTimeout` `error`
+- `ErrNoSubscription` `error`
+- `ErrNotFound` `error`
+- `ErrRLSNotEnforced` `error`
+- `ErrStaleEntity` `error`
+- `ErrTenantMismatch` `error`
+- `ErrTimeout` `error`
+- `ErrUnsupportedFeature` `error`
+- `HasPlaceholders` `func(query string) bool`
 
 ## `cache/memory` {#cache-memory}
 
-`github.com/jcsvwinston/quark/cache/memory` · 8 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.16.0/cache/memory)
+`github.com/jcsvwinston/quark/cache/memory` · 8 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.17.0/cache/memory)
 
 **Types**
 
-- `Store` — methods `AcquireLock`, `Close`, `Delete`, `Get`, `InvalidateTags`, `Set`
+- `Store` `struct{}`
+  - `AcquireLock` `func(context.Context, string, time.Duration) (bool, func() error, error)`
+  - `Close` `func()`
+  - `Delete` `func(context.Context, string) error`
+  - `Get` `func(context.Context, string) ([]byte, error)`
+  - `InvalidateTags` `func(context.Context, ...string) error`
+  - `Set` `func(context.Context, string, []byte, time.Duration, ...string) error`
 
-**Functions** — `New`
+**Functions**
+
+- `New` `func() *Store`
 
 ## `cache/redis` {#cache-redis}
 
-`github.com/jcsvwinston/quark/cache/redis` · 9 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.16.0/cache/redis)
+`github.com/jcsvwinston/quark/cache/redis` · 9 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.17.0/cache/redis)
 
 **Types**
 
-- `Options`
-- `Store` — methods `AcquireLock`, `Delete`, `Get`, `InvalidateTags`, `Ping`, `Set`
+- `Options` `struct{Addr string; Password string; DB int}`
+- `Store` `struct{}`
+  - `AcquireLock` `func(context.Context, string, time.Duration) (bool, func() error, error)`
+  - `Delete` `func(context.Context, string) error`
+  - `Get` `func(context.Context, string) ([]byte, error)`
+  - `InvalidateTags` `func(context.Context, ...string) error`
+  - `Ping` `func(context.Context) error`
+  - `Set` `func(context.Context, string, []byte, time.Duration, ...string) error`
 
-**Functions** — `New`
+**Functions**
+
+- `New` `func(Options) *Store`
 
 ## `migrate` {#migrate}
 
-`github.com/jcsvwinston/quark/migrate` · 17 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.16.0/migrate)
+`github.com/jcsvwinston/quark/migrate` · 17 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.17.0/migrate)
 
 **Types**
 
-- `Migration`
-- `Migrator` — methods `Down`, `GetApplied`, `Init`, `Up`, `UpDryRun`
-- `MigratorOption`
+- `Migration` `struct{ID string; Name string; Message string; Up func(ctx context.Context, client *quark.Client) error; Down func(ctx context.Context, client *quark.Client) error; UpTx func(ctx context.Context, tx *sql.Tx) error; DownTx func(ctx context.Context, tx *sql.Tx) error}`
+- `Migrator` `struct{}`
+  - `Down` `func(context.Context, int) error`
+  - `GetApplied` `func(context.Context) (map[string]bool, error)`
+  - `Init` `func(context.Context) error`
+  - `Up` `func(context.Context, int) error`
+  - `UpDryRun` `func(context.Context, int) error`
+- `MigratorOption` `func(*Migrator)`
 
-**Functions** — `NewMigrator`, `Register`, `RegisteredCount`, `RegisteredIDs`, `Reset`, `WithLockName`, `WithLockTimeout`, `WithLogger`, `WithoutLock`
+**Functions**
+
+- `NewMigrator` `func(*quark.Client, ...MigratorOption) *Migrator`
+- `Register` `func(*Migration)`
+- `RegisteredCount` `func() int`
+- `RegisteredIDs` `func() []string`
+- `Reset` `func()`
+- `WithLockName` `func(string) MigratorOption`
+- `WithLockTimeout` `func(time.Duration) MigratorOption`
+- `WithLogger` `func(*slog.Logger) MigratorOption`
+- `WithoutLock` `func() MigratorOption`
 
 ## `otel` {#otel}
 
-`github.com/jcsvwinston/quark/otel` · 11 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.16.0/otel)
+`github.com/jcsvwinston/quark/otel` · 12 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.17.0/otel)
 
 **Types**
 
-- `Middleware` — methods `WrapExec`, `WrapQuery`, `WrapQueryRow`
-- `Option`
-- `RedactionMode`
+- `Middleware` `struct{quark.BaseMiddleware}`
+  - `WrapExec` `func(quark.ExecFunc) quark.ExecFunc`
+  - `WrapQuery` `func(quark.QueryFunc) quark.QueryFunc`
+  - `WrapQueryRow` `func(quark.QueryRowFunc) quark.QueryRowFunc`
+- `Option` `func(*Middleware)`
+- `RedactionMode` `int`
 
-**Functions** — `New`, `WithDBSystem`, `WithSpanRedaction`
+**Functions**
 
-**Constants** — `IncludeArgs`, `RedactArgs`
+- `New` `func(...Option) *Middleware`
+- `WithDBSystem` `func(string) Option`
+- `WithSpanRedaction` `func(RedactionMode) Option`
+
+**Constants**
+
+- `IncludeArgs` `RedactionMode`
+- `RedactArgs` `RedactionMode`
+- `StatementKindKey` `untyped string`
 
 ## `quarkdriver` {#quarkdriver}
 
-`github.com/jcsvwinston/quark/quarkdriver` · 134 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.16.0/quarkdriver)
+`github.com/jcsvwinston/quark/quarkdriver` · 146 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.17.0/quarkdriver)
 
 **Types**
 
-- `AutoIncrementer` — methods `AutoIncrementColumn`
-- `Check`
-- `Classifier`
-- `Column`
-- `ColumnAlterer` — methods `AlterColumn`
-- `ColumnChange`
-- `ColumnKind` — methods `String`
-- `ColumnSpec`
-- `ColumnTypeMapper` — methods `MapColumnType`
-- `ColumnTyper` — methods `BoolLiteral`, `ColumnType`
-- `DBConn` — methods `Close`, `ExecContext`, `QueryRowContext`
-- `DBConnector` — methods `Conn`
-- `Dialect` — methods `AlterTableAddColumn`, `AlterTableAlterColumn`, `AlterTableDropColumn`, `BuildProcedureCall`, `BuildRoutineQuery`, `CurrentTimestamp`, `JSONExtract`, `LastInsertIDQuery`, `LimitOffset`, `LockSuffix`, `Name`, `Placeholder`, `Placeholders`, `Quote`, `RenameColumn`, `RenameTable`, `Returning`, `SupportsLastInsertID`, `SupportsReturning`, `SupportsTransactionalDDL`, `UpsertSQL`
-- `EventPayload`
-- `Executor` — methods `ExecContext`, `QueryContext`, `QueryRowContext`
-- `ForeignKey`
-- `IdempotentDDL` — methods `CreateIndexIfNotExists`, `CreateTableIfNotExists`, `IsAlreadyExists`
-- `IdentifierValidator` — methods `ValidateIdentifier`
-- `Index`
-- `Known`
-- `Listener` — methods `Close`, `Listen`, `Receive`, `Unlisten`
-- `ListenerFactory`
-- `LockMode`
-- `LockOptions` — methods `IsZero`
-- `MigrationLock` — methods `Release`
-- `MigrationLocker` — methods `AcquireMigrationLock`
-- `NewListenerFunc`
-- `ObjectDropper` — methods `DropCheck`, `DropForeignKey`, `DropIndex`
-- `Result` — methods `LastInsertId`, `RowsAffected`
-- `Row` — methods `Scan`
-- `SavepointDialect` — methods `ReleaseSavepointStmt`, `RollbackToSavepointStmt`, `SavepointStmt`
-- `Schema`
-- `SchemaIntrospector` — methods `IntrospectSchema`
-- `SchemaObject`
-- `Table`
-- `TableRebuilder` — methods `RebuildsTables`
+- `ActionSupport` `int`
+- `AutoIncrementer` `interface`
+  - `AutoIncrementColumn` `func() (string, string)`
+- `Check` `struct{Name string; Expression string}`
+- `Classifier` `struct{UniqueViolation func(error) bool; Deadlock func(error) bool; TransientConn func(error) bool}`
+- `Column` `struct{Name string; Type string; Nullable bool; Default *string; PrimaryKey bool}`
+- `ColumnAlterer` `interface`
+  - `AlterColumn` `func(context.Context, Executor, ColumnChange) ([]string, error)`
+- `ColumnChange` `struct{Table string; Column string; Type string; Nullable bool; Default *string; PrimaryKey bool; TypeChanged bool; NullableChanged bool; DefaultChanged bool; PrimaryKeyChanged bool; HadDefault bool}`
+- `ColumnKind` `int`
+  - `String` `func() string`
+- `ColumnSpec` `struct{Kind ColumnKind; Elem ColumnKind; Size int; Precision int; Scale int}`
+- `ColumnTypeMapper` `interface`
+  - `MapColumnType` `func(string) string`
+- `ColumnTyper` `interface`
+  - `BoolLiteral` `func(bool) string`
+  - `ColumnType` `func(ColumnSpec) string`
+- `DBConn` `interface`
+  - `Close` `func() error`
+  - `ExecContext` `func(context.Context, string, ...any) (Result, error)`
+  - `QueryRowContext` `func(context.Context, string, ...any) Row`
+- `DBConnector` `interface`
+  - `Conn` `func(context.Context) (DBConn, error)`
+- `Dialect` `interface`
+  - `AlterTableAddColumn` `func(string, string, string) string`
+  - `AlterTableAlterColumn` `func(string, string, string) string`
+  - `AlterTableDropColumn` `func(string, string) string`
+  - `BuildProcedureCall` `func(string, int) string`
+  - `BuildRoutineQuery` `func(string, int) string`
+  - `CurrentTimestamp` `func() string`
+  - `JSONExtract` `func(string, string) (string, []any, error)`
+  - `LastInsertIDQuery` `func(string, string) string`
+  - `LimitOffset` `func(int, int) string`
+  - `LockSuffix` `func(LockOptions) (string, string, error)`
+  - `Name` `func() string`
+  - `Placeholder` `func(int) string`
+  - `Placeholders` `func(int) []string`
+  - `Quote` `func(string) string`
+  - `RenameColumn` `func(string, string, string) string`
+  - `RenameTable` `func(string, string) string`
+  - `Returning` `func(...string) string`
+  - `SupportsLastInsertID` `func() bool`
+  - `SupportsReturning` `func() bool`
+  - `SupportsTransactionalDDL` `func() bool`
+  - `UpsertSQL` `func([]string, []string, int) string`
+- `EventPayload` `struct{Channel string; Payload string}`
+- `Executor` `interface`
+  - `ExecContext` `func(context.Context, string, ...any) (sql.Result, error)`
+  - `QueryContext` `func(context.Context, string, ...any) (*sql.Rows, error)`
+  - `QueryRowContext` `func(context.Context, string, ...any) *sql.Row`
+- `ForeignKey` `struct{Name string; Columns []string; RefTable string; RefColumns []string; OnDelete string; OnUpdate string}`
+- `IdempotentDDL` `interface`
+  - `CreateIndexIfNotExists` `func(string, string, []string, bool) string`
+  - `CreateTableIfNotExists` `func(string, string) string`
+  - `IsAlreadyExists` `func(SchemaObject, error) bool`
+- `IdentifierValidator` `interface`
+  - `ValidateIdentifier` `func(string) error`
+- `Index` `struct{Name string; Columns []string; Unique bool}`
+- `Known` `struct{Name string; Module string}`
+- `Listener` `interface`
+  - `Close` `func() error`
+  - `Listen` `func(context.Context, string) error`
+  - `Receive` `func(context.Context) (EventPayload, error)`
+  - `Unlisten` `func(context.Context, string) error`
+- `ListenerFactory` `func(*sql.DB, IdentifierValidator) (Listener, error)`
+- `LockMode` `int`
+- `LockOptions` `struct{Mode LockMode; SkipLocked bool; NoWait bool}`
+  - `IsZero` `func() bool`
+- `MigrationLock` `interface`
+  - `Release` `func(context.Context) error`
+- `MigrationLocker` `interface`
+  - `AcquireMigrationLock` `func(context.Context, DBConnector, string, time.Duration) (MigrationLock, error)`
+- `NewListenerFunc` `func(*sql.DB, *internal/guard.SQLGuard) (Listener, error)`
+- `ObjectDropper` `interface`
+  - `DropCheck` `func(string, string) string`
+  - `DropForeignKey` `func(string, string) string`
+  - `DropIndex` `func(string, string) string`
+- `ReferentialActioner` `interface`
+  - `ReferentialAction` `func(ReferentialEvent, string) ActionSupport`
+- `ReferentialEvent` `int`
+  - `String` `func() string`
+- `Result` `interface`
+  - `LastInsertId` `func() (int64, error)`
+  - `RowsAffected` `func() (int64, error)`
+- `Row` `interface`
+  - `Scan` `func(...any) error`
+- `SQLStater` `interface`
+  - `SQLState` `func() string`
+- `SavepointDialect` `interface`
+  - `ReleaseSavepointStmt` `func(string) string`
+  - `RollbackToSavepointStmt` `func(string) string`
+  - `SavepointStmt` `func(string) string`
+- `Schema` `struct{Tables []Table}`
+- `SchemaIntrospector` `interface`
+  - `IntrospectSchema` `func(context.Context, Executor) (Schema, error)`
+- `SchemaObject` `int`
+- `Table` `struct{Name string; Columns []Column; Indexes []Index; ForeignKeys []ForeignKey; Checks []Check}`
+- `TableRebuilder` `interface`
+  - `RebuildsTables` `func() bool`
 
-**Functions** — `Classifiers`, `HasEngine`, `IsRegistered`, `LookupDialect`, `LookupListener`, `LookupListenerFactory`, `MissingDriverHint`, `MustRegister`, `MustRegisterListener`, `MustRegisterListenerFactory`, `Register`, `RegisterDialect`, `RegisterListener`, `RegisterListenerFactory`, `RegisteredEngines`
+**Functions**
 
-**Constants** — `KindArray`, `KindBool`, `KindBytes`, `KindDecimal`, `KindFloat32`, `KindFloat64`, `KindIP`, `KindInt16`, `KindInt32`, `KindInt64`, `KindJSON`, `KindOther`, `KindRange`, `KindString`, `KindText`, `KindTime`, `KindUUID`, `LockForShare`, `LockForUpdate`, `LockNone`, `ObjectConstraint`, `ObjectIndex`, `ObjectTable`
+- `Classifiers` `func() []Classifier`
+- `HasEngine` `func(string) bool`
+- `IsRegistered` `func(string) bool`
+- `LookupDialect` `func(string) (Dialect, bool)`
+- `LookupListener` `func(string) (NewListenerFunc, bool)`
+- `LookupListenerFactory` `func(string) (ListenerFactory, bool)`
+- `MissingDriverHint` `func(string) string`
+- `MustRegister` `func(string, Classifier)`
+- `MustRegisterListener` `func(string, NewListenerFunc)`
+- `MustRegisterListenerFactory` `func(string, ListenerFactory)`
+- `Register` `func(string, Classifier) error`
+- `RegisterDialect` `func(string, Dialect)`
+- `RegisterListener` `func(string, NewListenerFunc) error`
+- `RegisterListenerFactory` `func(string, ListenerFactory) error`
+- `RegisteredEngines` `func() []string`
 
-**Variables** — `ErrListenerClosed`, `ErrLockTimeout`, `ErrNoSubscription`, `ErrUnsupportedFeature`
+**Constants**
+
+- `ActionImplied` `ActionSupport`
+- `ActionUnsupported` `ActionSupport`
+- `ActionWritten` `ActionSupport`
+- `KindArray` `ColumnKind`
+- `KindBool` `ColumnKind`
+- `KindBytes` `ColumnKind`
+- `KindDecimal` `ColumnKind`
+- `KindFloat32` `ColumnKind`
+- `KindFloat64` `ColumnKind`
+- `KindIP` `ColumnKind`
+- `KindInt16` `ColumnKind`
+- `KindInt32` `ColumnKind`
+- `KindInt64` `ColumnKind`
+- `KindJSON` `ColumnKind`
+- `KindOther` `ColumnKind`
+- `KindRange` `ColumnKind`
+- `KindString` `ColumnKind`
+- `KindText` `ColumnKind`
+- `KindTime` `ColumnKind`
+- `KindUUID` `ColumnKind`
+- `LockForShare` `LockMode`
+- `LockForUpdate` `LockMode`
+- `LockNone` `LockMode`
+- `ObjectConstraint` `SchemaObject`
+- `ObjectIndex` `SchemaObject`
+- `ObjectTable` `SchemaObject`
+- `OnDelete` `ReferentialEvent`
+- `OnUpdate` `ReferentialEvent`
+
+**Variables**
+
+- `ErrListenerClosed` `error`
+- `ErrLockTimeout` `error`
+- `ErrNoSubscription` `error`
+- `ErrUnsupportedFeature` `error`
 
 ## `quarkdriver/drivertest` {#quarkdriver-drivertest}
 
-`github.com/jcsvwinston/quark/quarkdriver/drivertest` · 2 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.16.0/quarkdriver/drivertest)
+`github.com/jcsvwinston/quark/quarkdriver/drivertest` · 5 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.17.0/quarkdriver/drivertest)
 
 **Types**
 
-- `Case`
+- `Case` `struct{Engine string; Classifier quarkdriver.Classifier; Unique error; Deadlock error; Neither []error}`
+- `DialectCase` `struct{Dialect quarkdriver.Dialect; DB *sql.DB; DriverName string; Routines *Routines}`
+- `Routines` `struct{Function string; Procedure string}`
 
-**Functions** — `Verify`
+**Functions**
+
+- `Verify` `func(*testing.T, Case)`
+- `VerifyDialect` `func(*testing.T, DialectCase)`
+
+## `quarkdriver/drivertest/suite` {#quarkdriver-drivertest-suite}
+
+`github.com/jcsvwinston/quark/quarkdriver/drivertest/suite` · 1 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.17.0/quarkdriver/drivertest/suite)
+
+**Functions**
+
+- `Run` `func(*testing.T, *quark.Client)`
 
 ## `quarkmigrate` {#quarkmigrate}
 
-`github.com/jcsvwinston/quark/quarkmigrate` · 10 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.16.0/quarkmigrate)
+`github.com/jcsvwinston/quark/quarkmigrate` · 10 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.17.0/quarkmigrate)
 
 **Types**
 
-- `Action`
+- `Action` `string`
 
-**Functions** — `ParseAction`, `Run`, `RunWithOutput`
+**Functions**
 
-**Constants** — `ActionApply`, `ActionPlan`, `ActionVerify`, `ExitDriftDetected`, `ExitError`, `ExitSuccess`
+- `ParseAction` `func(string) (Action, error)`
+- `Run` `func(context.Context, Action, *quark.Client, ...any) int`
+- `RunWithOutput` `func(context.Context, Action, *quark.Client, io.Writer, io.Writer, ...any) int`
+
+**Constants**
+
+- `ActionApply` `Action`
+- `ActionPlan` `Action`
+- `ActionVerify` `Action`
+- `ExitDriftDetected` `untyped int`
+- `ExitError` `untyped int`
+- `ExitSuccess` `untyped int`
 
 ## `quarktenant` {#quarktenant}
 
-`github.com/jcsvwinston/quark/quarktenant` · 18 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.16.0/quarktenant)
+`github.com/jcsvwinston/quark/quarktenant` · 18 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.17.0/quarktenant)
 
 **Types**
 
-- `Action`
-- `InstallOptions`
-- `VerifyFinding`
+- `Action` `string`
+- `InstallOptions` `struct{TenantColumn string; NativeRLSVar string; ForceRLS bool; DryRun bool; LockTimeout time.Duration; LockName string; TenantColumnSQLCast string}`
+- `VerifyFinding` `struct{Table string; TableExists bool; RowSecurityEnabled bool; ForceRowSecurity bool; PolicyPresent bool; PolicyName string; PolicyCommand string; PredicateGap string}`
 
-**Functions** — `DefaultInstallOptions`, `InstallRLSPolicies`, `ParseAction`, `Run`, `RunWithIO`, `VerifyRLSPolicies`
+**Functions**
 
-**Constants** — `ActionInstallRLSPolicies`, `ActionVerifyRLSPolicies`, `ExitError`, `ExitNotEnforced`, `ExitSuccess`
+- `DefaultInstallOptions` `func() InstallOptions`
+- `InstallRLSPolicies` `func(context.Context, *quark.Client, InstallOptions) ([]string, error)`
+- `ParseAction` `func(string) (Action, error)`
+- `Run` `func(context.Context, []string, *quark.Client) int`
+- `RunWithIO` `func(context.Context, []string, *quark.Client, io.Writer, io.Writer) int`
+- `VerifyRLSPolicies` `func(context.Context, *quark.Client, InstallOptions) ([]VerifyFinding, error)`
 
-**Variables** — `ErrInvalidCast`, `ErrNoRegisteredModels`, `ErrNoTenantColumn`, `ErrRLSNotEnforced`
+**Constants**
+
+- `ActionInstallRLSPolicies` `Action`
+- `ActionVerifyRLSPolicies` `Action`
+- `ExitError` `untyped int`
+- `ExitNotEnforced` `untyped int`
+- `ExitSuccess` `untyped int`
+
+**Variables**
+
+- `ErrInvalidCast` `error`
+- `ErrNoRegisteredModels` `error`
+- `ErrNoTenantColumn` `error`
+- `ErrRLSNotEnforced` `error`
 
 ## `quarktest` {#quarktest}
 
-`github.com/jcsvwinston/quark/quarktest` · 3 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.16.0/quarktest)
+`github.com/jcsvwinston/quark/quarktest` · 3 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.17.0/quarktest)
 
-**Functions** — `Migrate`, `SQLite`, `Tx`
+**Functions**
+
+- `Migrate` `func(testing.TB, *quark.Client, ...any)`
+- `SQLite` `func(testing.TB, ...any) *quark.Client`
+- `Tx` `func(testing.TB, *quark.Client, func(tx *quark.Tx))`
 
 ## `seed` {#seed}
 
-`github.com/jcsvwinston/quark/seed` · 6 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.16.0/seed)
+`github.com/jcsvwinston/quark/seed` · 6 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/quark@v1.17.0/seed)
 
 **Types**
 
-- `Func`
+- `Func` `func(context.Context, *quark.Client) error`
 
-**Functions** — `Count`, `Get`, `Names`, `Register`, `Reset`
+**Functions**
+
+- `Count` `func() int`
+- `Get` `func(string) (Func, bool)`
+- `Names` `func() []string`
+- `Register` `func(string, Func)`
+- `Reset` `func()`

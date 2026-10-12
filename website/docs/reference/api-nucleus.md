@@ -1,7 +1,7 @@
 ---
 title: "Nucleus API surface"
 sidebar_label: "Nucleus"
-description: "The exported Go API of Nucleus v1.31.0 that its CI keeps frozen, generated from the file it compares the code with, at the version Quantum 1.40.0 certifies."
+description: "The exported Go API of Nucleus v1.32.0 that its CI keeps frozen, generated from the file it compares the code with, at the version Quantum 1.41.0 certifies."
 custom_edit_url: null
 ---
 
@@ -9,19 +9,19 @@ custom_edit_url: null
 
 # Nucleus API surface
 
-The public Go API of **Nucleus v1.31.0**, the version Quantum 1.40.0 certifies: **2,380** exported symbols in **31** packages. Nucleus keeps this list in [`contracts/baseline/api_exported_symbols.txt`](https://github.com/jcsvwinston/nucleus/blob/v1.31.0/contracts/baseline/api_exported_symbols.txt). Nucleus's CI compares this file with the code on every change and fails when they differ, so adding or removing an exported symbol means changing the file in the same change. Removing an exported symbol is a breaking change, and the suite ships breaking changes only in a major version. This page is generated from that file at the pinned version, so it lists exactly what the check protects.
+The public Go API of **Nucleus v1.32.0**, the version Quantum 1.41.0 certifies: **2,493** exported symbols in **31** packages. Nucleus keeps this list in [`contracts/baseline/api_exported_symbols.txt`](https://github.com/jcsvwinston/nucleus/blob/v1.32.0/contracts/baseline/api_exported_symbols.txt). Nucleus's CI compares this file with the code on every change and fails when they differ, so adding or removing an exported symbol means changing the file in the same change. Removing an exported symbol is a breaking change, and the suite ships breaking changes only in a major version. This page is generated from that file at the pinned version, so it lists exactly what the check protects.
 
 Each package links to its documentation on pkg.go.dev at this version, where every symbol has its signature and its comment.
 
 | Package | Types | Functions | Methods | Fields | Constants | Variables |
 |---|---:|---:|---:|---:|---:|---:|
-| [`pkg/accounts`](#pkg-accounts) | 13 | 9 | 60 | 35 | 23 | 13 |
-| [`pkg/app`](#pkg-app) | 25 | 25 | 28 | 195 |  | 9 |
-| [`pkg/auth`](#pkg-auth) | 30 | 30 | 104 | 43 | 11 | 6 |
-| [`pkg/auth/apikeys`](#pkg-auth-apikeys) | 5 | 7 | 12 | 12 | 5 | 2 |
+| [`pkg/accounts`](#pkg-accounts) | 14 | 10 | 60 | 41 | 24 | 13 |
+| [`pkg/app`](#pkg-app) | 28 | 32 | 29 | 210 | 1 | 9 |
+| [`pkg/auth`](#pkg-auth) | 30 | 31 | 107 | 43 | 12 | 6 |
+| [`pkg/auth/apikeys`](#pkg-auth-apikeys) | 5 | 8 | 12 | 12 | 6 | 2 |
 | [`pkg/auth/backend`](#pkg-auth-backend) | 4 | 4 | 5 | 8 |  | 3 |
 | [`pkg/auth/backend/backendtest`](#pkg-auth-backend-backendtest) | 1 | 1 |  | 5 |  |  |
-| [`pkg/auth/federated`](#pkg-auth-federated) | 6 | 4 | 3 | 8 |  | 2 |
+| [`pkg/auth/federated`](#pkg-auth-federated) | 8 | 4 | 5 | 8 |  | 2 |
 | [`pkg/auth/federated/oidc`](#pkg-auth-federated-oidc) | 2 | 1 | 3 | 8 | 1 |  |
 | [`pkg/auth/sessionstore`](#pkg-auth-sessionstore) | 3 | 4 | 3 | 6 |  |  |
 | [`pkg/authz`](#pkg-authz) | 8 | 11 | 25 | 12 | 1 |  |
@@ -31,16 +31,16 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 | [`pkg/db/driver/drivertest`](#pkg-db-driver-drivertest) | 1 | 1 |  | 4 |  |  |
 | [`pkg/errors`](#pkg-errors) | 11 | 11 | 12 | 23 | 1 |  |
 | [`pkg/health`](#pkg-health) | 3 | 7 | 3 | 4 |  |  |
-| [`pkg/mail`](#pkg-mail) | 10 | 9 | 12 | 24 | 1 |  |
+| [`pkg/mail`](#pkg-mail) | 10 | 10 | 12 | 25 | 3 |  |
 | [`pkg/model`](#pkg-model) | 20 | 13 | 19 | 100 | 13 | 3 |
-| [`pkg/nucleus`](#pkg-nucleus) | 39 | 27 | 108 | 83 | 12 | 15 |
+| [`pkg/nucleus`](#pkg-nucleus) | 42 | 36 | 116 | 84 | 17 | 15 |
 | [`pkg/observability`](#pkg-observability) | 13 | 6 | 36 | 37 | 10 |  |
 | [`pkg/observability/hooks`](#pkg-observability-hooks) | 5 | 3 | 3 | 16 |  |  |
 | [`pkg/observe`](#pkg-observe) | 2 | 15 |  | 7 | 1 |  |
 | [`pkg/observe/exporter`](#pkg-observe-exporter) | 3 | 4 |  | 7 |  |  |
-| [`pkg/plugins`](#pkg-plugins) | 15 | 10 | 8 | 50 | 14 |  |
+| [`pkg/plugins`](#pkg-plugins) | 20 | 14 | 15 | 68 | 14 |  |
 | [`pkg/router`](#pkg-router) | 17 | 58 | 58 | 51 |  | 8 |
-| [`pkg/router/interceptor`](#pkg-router-interceptor) | 3 | 5 | 1 | 2 |  |  |
+| [`pkg/router/interceptor`](#pkg-router-interceptor) | 4 | 5 | 2 | 2 |  |  |
 | [`pkg/signals`](#pkg-signals) | 7 | 6 | 11 | 6 | 8 | 6 |
 | [`pkg/storage`](#pkg-storage) | 26 | 14 | 35 | 2 | 6 | 1 |
 | [`pkg/storage/provider`](#pkg-storage-provider) | 19 | 9 | 14 | 61 | 6 |  |
@@ -49,7 +49,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/accounts` {#pkg-accounts}
 
-`github.com/jcsvwinston/nucleus/pkg/accounts` · 153 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/accounts)
+`github.com/jcsvwinston/nucleus/pkg/accounts` · 162 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/accounts)
 
 **Types**
 
@@ -60,6 +60,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `Flavor`
 - `MFAStore` interface — methods `ConsumeRecoveryCode`, `CountRecoveryCodes`, `DeleteFactor`, `GetFactor`, `PutFactor`, `ReplaceRecoveryCodes`, `UpdateFactorStep`
 - `Mailer` interface — methods `Send`
+- `RuntimeConfig` — fields `AllowUnverifiedLogin`, `BaseURL`, `From`, `Issuer`, `MFAKeyEnv`, `MinPasswordLength`
 - `SQLStore` — methods `ByEmail`, `ByID`, `ClearFailures`, `ConsumeRecoveryCode`, `ConsumeToken`, `CountRecoveryCodes`, `Create`, `CreateToken`, `DeleteFactor`, `DeleteTokens`, `FailureCount`, `GetFactor`, `PurgeExpired`, `PutFactor`, `RecordFailure`, `ReplaceRecoveryCodes`, `Update`, `UpdateFactorStep`
 - `SQLStoreConfig` — fields `Flavor`, `TablePrefix`
 - `Service` — methods `BeginTOTPEnrolment`, `ChangePassword`, `CompleteSecondFactor`, `ConfirmTOTPEnrolment`, `ConsumeMagicLink`, `DisableTOTP`, `HasConfirmedFactor`, `Login`, `LoginFrom`, `Logout`, `MarkAuthenticated`, `RegenerateRecoveryCodes`, `Register`, `RemainingRecoveryCodes`, `RequestMagicLink`, `RequestPasswordReset`, `RequireFreshAuth`, `ResetPassword`, `RevokeSessions`, `StartPendingSession`, `StartSession`, `UseSessions`, `VerifyEmail`, `VerifySecondFactor`
@@ -67,24 +68,25 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `Token` — fields `AccountID`, `CreatedAt`, `ExpiresAt`, `Hash`, `Purpose`, `UsedAt`
 - `TokenPurpose`
 
-**Functions** — `ClientIP`, `DefaultConfig`, `Module`, `New`, `NewSQLStore`, `NewTOTPSecret`, `TOTPURI`, `TestingTOTPCode`, `VerifyTOTP`
+**Functions** — `ClientIP`, `DefaultConfig`, `FromRuntime`, `Module`, `New`, `NewSQLStore`, `NewTOTPSecret`, `TOTPURI`, `TestingTOTPCode`, `VerifyTOTP`
 
-**Constants** — `FactorTOTP`, `FlavorMySQL`, `FlavorPostgres`, `FlavorSQLite`, `PurposeMagicLink`, `PurposeResetPassword`, `PurposeVerifyEmail`, `ReauthWindow`, `RecoveryCodeCount`, `RouteLogin`, `RouteLogout`, `RouteMFAVerify`, `RouteMagicLink`, `RoutePasswordChange`, `RoutePasswordReset`, `RouteRecoveryCodes`, `RouteRegister`, `RouteTOTP`, `RouteVerifyEmail`, `SessionKeyAccountID`, `SessionKeyAuthenticatedAt`, `SessionKeyEmail`, `SessionKeyPendingAccountID`
+**Constants** — `FactorTOTP`, `FlavorMySQL`, `FlavorPostgres`, `FlavorSQLite`, `PurposeMagicLink`, `PurposeResetPassword`, `PurposeVerifyEmail`, `ReauthWindow`, `RecoveryCodeCount`, `RouteLogin`, `RouteLogout`, `RouteMFAVerify`, `RouteMagicLink`, `RoutePasswordChange`, `RoutePasswordReset`, `RouteRecoveryCodes`, `RouteRegister`, `RouteTOTP`, `RouteVerifyEmail`, `RuntimeModuleName`, `SessionKeyAccountID`, `SessionKeyAuthenticatedAt`, `SessionKeyEmail`, `SessionKeyPendingAccountID`
 
 **Variables** — `ErrAccountDisabled`, `ErrAccountLocked`, `ErrEmailNotVerified`, `ErrEmailTaken`, `ErrInvalidCode`, `ErrInvalidCredentials`, `ErrInvalidToken`, `ErrMFANotEnrolled`, `ErrMFARequired`, `ErrMFAUnavailable`, `ErrNotFound`, `ErrReauthenticationRequired`, `ErrWeakPassword`
 
 ## `pkg/app` {#pkg-app}
 
-`github.com/jcsvwinston/nucleus/pkg/app` · 282 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/app)
+`github.com/jcsvwinston/nucleus/pkg/app` · 309 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/app)
 
 **Types**
 
-- `App` — fields `AuthChain`, `AuthFederated`, `Authorizer`, `Config`, `DB`, `DBs`, `I18n`, `JWT`, `Logger`, `Mailer`, `Models`, `Observability`, `Outbox`, `Router`, `Session`, `SessionRecorder`, `Storage`, `Templates`; methods `AutoMigrate`, `Database`, `DatabaseForRequest`, `DefaultDB`, `DefaultDatabaseAlias`, `MountOpenAPIHandler`, `OnShutdown`, `OpenAuthz`, `ProblemDetails`, `RegisterHealthProbe`, `RegisterModel`, `Run`, `Shutdown`, `StartOutbox`
+- `App` — fields `AuthChain`, `AuthFederated`, `Authorizer`, `Cache`, `Config`, `DB`, `DBs`, `I18n`, `JWT`, `Logger`, `Mailer`, `Models`, `Observability`, `Outbox`, `Realtime`, `Router`, `Session`, `SessionRecorder`, `Storage`, `Templates`; methods `AutoMigrate`, `Database`, `DatabaseForRequest`, `DefaultDB`, `DefaultDatabaseAlias`, `MountOpenAPIHandler`, `OnShutdown`, `OpenAuthz`, `ProblemDetails`, `RegisterHealthProbe`, `RegisterModel`, `Run`, `Shutdown`, `StartOutbox`
 - `AzureStorageSpec` — fields `AccountKey`, `AccountName`, `Container`, `PublicContainer`
 - `BridgeConfig` — fields `Config`, `Name`, `Type`
+- `CacheConfig` — fields `Prefix`, `Provider`, `RedisURL`, `Table`
 - `CircuitBreakerSpec` — fields `Cooldown`, `Enabled`, `FailureThreshold`, `HalfOpenMaxConcurrent`
 - `CleanupStorageSpec` — fields `Enabled`, `Interval`, `MaxAge`, `Prefix`
-- `Config` — fields `AuthBackendConfig`, `AuthBackends`, `AuthFederated`, `CORSAllowCredentials`, `CORSOrigins`, `CSRFEnabled`, `CSRFExemptPaths`, `CSRFInsecureCookie`, `DatabaseDefault`, `Databases`, `Debug`, `DefaultLocale`, `Env`, `HTTPInterceptors`, `Host`, `IdleTimeout`, `InterceptorConfig`, `JWTAudience`, `JWTCurrentKID`, `JWTExpiry`, `JWTIssuer`, `JWTKeys`, `JWTRevocation`, `JWTSecret`, `JobsConcurrency`, `JobsProvider`, `JobsQueues`, `JobsRedisURL`, `JobsRetention`, `JobsSchedulerLock`, `JobsTable`, `LocalesPath`, `LogFormat`, `LogLevel`, `LogRedactExtraKeys`, `MailCircuitBreaker`, `MailDriver`, `MailFrom`, `MetricsPath`, `MetricsPublic`, `MultiSite`, `MultiTenant`, `OTLPEndpoint`, `Outbox`, `Port`, `Profile`, `ProfilingEnabled`, `PublicBaseURL`, `RBACPolicyFile`, `RateLimitBurst`, `RateLimitByRole`, `RateLimitByRoute`, `RateLimitRequests`, `RateLimitWindow`, `ReadTimeout`, `RedisURL`, `RequestTimeout`, `SMTPHost`, `SMTPPass`, `SMTPPort`, `SMTPUser`, `SQLDriverInstrumentation`, `SessionCookieDomain`, `SessionCookieName`, `SessionCookiePath`, `SessionCookieSameSite`, `SessionCookieSecure`, `SessionIdleTimeout`, `SessionLifetime`, `SessionMemcachedServers`, `SessionRedisPrefix`, `SessionRedisURL`, `SessionStore`, `SessionTable`, `StateDir`, `StaticPrefix`, `StaticRoot`, `Storage`, `StorageProviderConfig`, `TLSCertFile`, `TLSKeyFile`, `TemplatesDir`, `TimeoutExemptPaths`, `TrustedProxies`, `WebhooksPrefix`, `WriteTimeout`; methods `Addr`, `DatabaseAliases`, `DatabaseByAlias`, `DeclaredProviders`, `DefaultDatabase`, `DefaultDatabaseAlias`, `IsDev`, `IsProd`, `ToStorageConfig`
+- `Config` — fields `AuthBackendConfig`, `AuthBackends`, `AuthFederated`, `CORSAllowCredentials`, `CORSOrigins`, `CSRFEnabled`, `CSRFExemptPaths`, `CSRFInsecureCookie`, `Cache`, `DatabaseDefault`, `Databases`, `Debug`, `DefaultLocale`, `Env`, `HTTPInterceptors`, `Host`, `IdleTimeout`, `InterceptorConfig`, `JWTAudience`, `JWTCurrentKID`, `JWTExpiry`, `JWTIssuer`, `JWTKeys`, `JWTRevocation`, `JWTSecret`, `JobsConcurrency`, `JobsProvider`, `JobsQueues`, `JobsRedisURL`, `JobsRetention`, `JobsSchedulerLock`, `JobsTable`, `LocalesPath`, `LogFormat`, `LogLevel`, `LogRedactExtraKeys`, `MailCircuitBreaker`, `MailDeclared`, `MailDriver`, `MailFrom`, `MetricsPath`, `MetricsPublic`, `MultiSite`, `MultiTenant`, `OTLPEndpoint`, `Outbox`, `Plugins`, `Port`, `Profile`, `ProfilingEnabled`, `PublicBaseURL`, `RBACPolicyFile`, `RateLimitBurst`, `RateLimitByRole`, `RateLimitByRoute`, `RateLimitRequests`, `RateLimitWindow`, `ReadTimeout`, `RedisURL`, `RequestTimeout`, `SMTPHost`, `SMTPPass`, `SMTPPort`, `SMTPUser`, `SQLDriverInstrumentation`, `SessionCookieDomain`, `SessionCookieName`, `SessionCookiePath`, `SessionCookieSameSite`, `SessionCookieSecure`, `SessionIdleTimeout`, `SessionLifetime`, `SessionMemcachedServers`, `SessionRedisPrefix`, `SessionRedisURL`, `SessionStore`, `SessionTable`, `StateDir`, `StaticPrefix`, `StaticRoot`, `Storage`, `StorageDeclared`, `StorageProviderConfig`, `TLSCertFile`, `TLSKeyFile`, `TemplatesDir`, `TimeoutExemptPaths`, `TrustedProxies`, `WebhooksPrefix`, `WriteTimeout`; methods `Addr`, `DatabaseAliases`, `DatabaseByAlias`, `DeclaredProviders`, `DefaultDatabase`, `DefaultDatabaseAlias`, `IsDev`, `IsProd`, `ToStorageConfig`
 - `DatabaseConfig` — fields `Driver`, `MaxIdle`, `MaxLifetime`, `MaxOpen`, `URL`
 - `Extension` interface — methods `Attach`, `Name`, `Shutdown`
 - `GCSStorageSpec` — fields `Bucket`, `CredentialsSource`, `PublicBucket`
@@ -98,6 +100,8 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `OpError` — fields `Err`, `Op`; methods `Error`, `Unwrap`
 - `Option`
 - `OutboxConfig` — fields `Bridges`, `Enabled`, `LeaseDuration`, `LeaseOwner`, `MaxRetries`, `MissingRoutePolicy`, `RetryBackoff`, `TableName`
+- `PluginAllowance` — fields `Capabilities`, `Provider`
+- `PluginsConfig` — fields `AllowExternal`, `Allowed`, `Commands`; methods `Policy`
 - `ReadinessResponse` — fields `CheckedAt`, `Checks`, `Reason`, `Status`
 - `RequestScope` — fields `DatabaseAlias`, `Host`, `Site`, `Tenant`
 - `S3StorageSpec` — fields `AccessKeyID`, `Bucket`, `CreateBucketIfMissing`, `Endpoint`, `PublicBucket`, `Region`, `SecretAccessKey`, `SessionToken`, `UsePathStyle`
@@ -105,13 +109,15 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `StorageConfig` — fields `Azure`, `CircuitBreaker`, `Cleanup`, `DefaultVisibility`, `GCS`, `Local`, `Provider`, `PublicPaths`, `PublicURLBase`, `S3`
 - `TenantConfig` — fields `Database`, `Site`
 
-**Functions** — `ApplyProfile`, `BeginDraining`, `Bootstrap`, `ContractConfigKeyPatterns`, `DatabaseAliasFromContext`, `DefaultConfig`, `Draining`, `LoadConfig`, `New`, `NormalizeRuntimeConfig`, `QuickStart`, `RequestScopeFromContext`, `SiteFromContext`, `TenantFromContext`, `ValidateReferential`, `ValidateSemantics`, `WithExtensions`, `WithOpenAuthz`, `WithProblemDetails`, `WithTemplateFuncs`, `WithTemplates`, `WithTemplatesFS`, `WithUserProvider`, `WithUserProviderNamed`, `WithoutDefaults`
+**Functions** — `ApplyProfile`, `BeginDraining`, `Bootstrap`, `ContractConfigKeyPatterns`, `DatabaseAliasFromContext`, `DefaultConfig`, `Draining`, `LoadConfig`, `New`, `NormalizeRuntimeConfig`, `QuickStart`, `RealtimeChannelPath`, `RequestScopeFromContext`, `SiteFromContext`, `TenantFromContext`, `ValidateReferential`, `ValidateSemantics`, `WithAPIKeys`, `WithAuthz`, `WithExtensions`, `WithMail`, `WithOpenAuthz`, `WithProblemDetails`, `WithRateLimit`, `WithRealtime`, `WithStorage`, `WithTemplateFuncs`, `WithTemplates`, `WithTemplatesFS`, `WithUserProvider`, `WithUserProviderNamed`, `WithoutDefaults`
+
+**Constants** — `RealtimeRoute`
 
 **Variables** — `ErrDatabaseAliasNotFound`, `ErrInvalidConfigReference`, `ErrInvalidConfigValue`, `ErrModelsRegistryNotInitialized`, `ErrNilApp`, `ErrNilConfig`, `ErrNotInitialized`, `ErrServerAlreadyRunning`, `ErrTenantIsolationViolation`
 
 ## `pkg/auth` {#pkg-auth}
 
-`github.com/jcsvwinston/nucleus/pkg/auth` · 224 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/auth)
+`github.com/jcsvwinston/nucleus/pkg/auth` · 229 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/auth)
 
 **Types**
 
@@ -123,7 +129,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `Claims` — fields `Role`, `Roles`, `UserID`, `Username`; methods `AllRoles`, `HasRole`
 - `FederatedConfig` — fields `CallbackBase`, `Instances`, `PendingTTL`, `ProviderConfig`
 - `FederatedInstance` — fields `DisplayName`, `Name`, `Provider`
-- `FederatedSet` — methods `Begin`, `CallbackURL`, `Complete`, `Instances`, `Names`, `PendingCount`
+- `FederatedSet` — methods `Begin`, `CallbackIsCrossSiteFormPost`, `CallbackURL`, `Complete`, `Instances`, `Names`, `PendingCount`, `PublishesServiceMetadata`, `ServiceMetadata`
 - `JWK` — fields `Alg`, `Crv`, `E`, `Kid`, `Kty`, `N`, `Use`, `X`, `Y`
 - `JWKSet` — fields `Keys`
 - `JWTManager` — methods `Audience`, `CurrentKID`, `Generate`, `GenerateWithRoles`, `JWKS`, `JWKSHandler`, `Middleware`, `OptionalJWTMiddleware`, `RemoveKey`, `Revoke`, `RotateKey`, `SetAudience`, `SetRevocationStore`, `Validate`, `ValidateContext`
@@ -146,15 +152,15 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `User`
 - `UserProvider` interface — methods `FindByEmail`, `FindByID`, `FindByUsername`, `ValidateCredentials`
 
-**Functions** — `BuildSessionStore`, `CheckPassword`, `ClaimsFromContext`, `ClientIPFromRequest`, `ContextWithClaims`, `DetectSessionRuntimeIdentity`, `FederatedCallbackPath`, `FederatedStartPath`, `HashPassword`, `NewChain`, `NewChainFrom`, `NewFederatedSet`, `NewJWTManager`, `NewJWTManagerFromKeys`, `NewJWTManagerFromSecret`, `NewMemcachedSessionStore`, `NewMemcachedSessionStoreFromServers`, `NewMemoryRevocationStore`, `NewRedisSessionStore`, `NewRedisSessionStoreFromURL`, `NewSQLSessionStore`, `NewSessionCache`, `NewSessionManager`, `NewSessionStoreRevocations`, `NewUserProviderBackend`, `RegisterBackend`, `RegisterSessionStore`, `RegisteredBackends`, `RegisteredSessionStores`, `RuntimeMetadataMiddleware`
+**Functions** — `BuildSessionStore`, `CheckPassword`, `ClaimsFromContext`, `ClientIPFromRequest`, `ContextWithClaims`, `DetectSessionRuntimeIdentity`, `FederatedCallbackPath`, `FederatedMetadataPath`, `FederatedStartPath`, `HashPassword`, `NewChain`, `NewChainFrom`, `NewFederatedSet`, `NewJWTManager`, `NewJWTManagerFromKeys`, `NewJWTManagerFromSecret`, `NewMemcachedSessionStore`, `NewMemcachedSessionStoreFromServers`, `NewMemoryRevocationStore`, `NewRedisSessionStore`, `NewRedisSessionStoreFromURL`, `NewSQLSessionStore`, `NewSessionCache`, `NewSessionManager`, `NewSessionStoreRevocations`, `NewUserProviderBackend`, `RegisterBackend`, `RegisterSessionStore`, `RegisteredBackends`, `RegisteredSessionStores`, `RuntimeMetadataMiddleware`
 
-**Constants** — `DefaultFederatedPendingTTL`, `ES256`, `HS256`, `RS256`, `SessionMetaFirstSeenAtKey`, `SessionMetaHostKey`, `SessionMetaInstanceKey`, `SessionMetaLastSeenAtKey`, `SessionMetaPodKey`, `SessionMetaRemoteIPKey`, `SessionMetaUserAgentKey`
+**Constants** — `DefaultFederatedPendingTTL`, `ES256`, `HS256`, `RS256`, `SessionKeySubject`, `SessionMetaFirstSeenAtKey`, `SessionMetaHostKey`, `SessionMetaInstanceKey`, `SessionMetaLastSeenAtKey`, `SessionMetaPodKey`, `SessionMetaRemoteIPKey`, `SessionMetaUserAgentKey`
 
 **Variables** — `ErrBackendUnavailable`, `ErrInvalidCredentials`, `ErrNilSessionManager`, `ErrSessionStoreNotIterable`, `ErrTokenRevoked`, `ErrUserNotFound`
 
 ## `pkg/auth/apikeys` {#pkg-auth-apikeys}
 
-`github.com/jcsvwinston/nucleus/pkg/auth/apikeys` · 43 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/auth/apikeys)
+`github.com/jcsvwinston/nucleus/pkg/auth/apikeys` · 45 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/auth/apikeys)
 
 **Types**
 
@@ -164,15 +170,15 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `SQLStoreConfig` — fields `Flavor`, `Table`
 - `Store` interface — methods `ByID`, `Create`, `List`, `Revoke`, `TouchLastUsed`
 
-**Functions** — `Authenticate`, `FromContext`, `Issue`, `Middleware`, `NewSQLStore`, `Require`, `Rotate`
+**Functions** — `Authenticate`, `FromContext`, `Issue`, `Middleware`, `NewSQLStore`, `Require`, `Rotate`, `ScopeSubject`
 
-**Constants** — `FlavorMySQL`, `FlavorPostgres`, `FlavorSQLite`, `HeaderName`, `Prefix`
+**Constants** — `FlavorMySQL`, `FlavorPostgres`, `FlavorSQLite`, `HeaderName`, `Prefix`, `ScopeSubjectPrefix`
 
 **Variables** — `ErrInvalidKey`, `ErrNotFound`
 
 ## `pkg/auth/backend` {#pkg-auth-backend}
 
-`github.com/jcsvwinston/nucleus/pkg/auth/backend` · 24 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/auth/backend)
+`github.com/jcsvwinston/nucleus/pkg/auth/backend` · 24 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/auth/backend)
 
 **Types**
 
@@ -187,7 +193,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/auth/backend/backendtest` {#pkg-auth-backend-backendtest}
 
-`github.com/jcsvwinston/nucleus/pkg/auth/backend/backendtest` · 7 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/auth/backend/backendtest)
+`github.com/jcsvwinston/nucleus/pkg/auth/backend/backendtest` · 7 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/auth/backend/backendtest)
 
 **Types**
 
@@ -197,15 +203,17 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/auth/federated` {#pkg-auth-federated}
 
-`github.com/jcsvwinston/nucleus/pkg/auth/federated` · 23 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/auth/federated)
+`github.com/jcsvwinston/nucleus/pkg/auth/federated` · 27 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/auth/federated)
 
 **Types**
 
 - `BeginRequest` — fields `CallbackURL`, `Nonce`
 - `CompleteRequest` — fields `Form`, `Nonce`, `Query`, `State`
+- `CrossSiteFormPostCallback` interface — methods `CallbackIsCrossSiteFormPost`
 - `Factory`
 - `Provider` interface — methods `Begin`, `Complete`, `Name`
 - `Redirect` — fields `State`, `URL`
+- `ServiceMetadataPublisher` interface — methods `ServiceMetadata`
 - `User`
 
 **Functions** — `Lookup`, `Register`, `Registered`, `Unregister`
@@ -214,7 +222,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/auth/federated/oidc` {#pkg-auth-federated-oidc}
 
-`github.com/jcsvwinston/nucleus/pkg/auth/federated/oidc` · 15 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/auth/federated/oidc)
+`github.com/jcsvwinston/nucleus/pkg/auth/federated/oidc` · 15 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/auth/federated/oidc)
 
 **Types**
 
@@ -227,7 +235,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/auth/sessionstore` {#pkg-auth-sessionstore}
 
-`github.com/jcsvwinston/nucleus/pkg/auth/sessionstore` · 16 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/auth/sessionstore)
+`github.com/jcsvwinston/nucleus/pkg/auth/sessionstore` · 16 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/auth/sessionstore)
 
 **Types**
 
@@ -239,7 +247,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/authz` {#pkg-authz}
 
-`github.com/jcsvwinston/nucleus/pkg/authz` · 57 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/authz)
+`github.com/jcsvwinston/nucleus/pkg/authz` · 57 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/authz)
 
 **Types**
 
@@ -258,7 +266,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/circuit` {#pkg-circuit}
 
-`github.com/jcsvwinston/nucleus/pkg/circuit` · 17 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/circuit)
+`github.com/jcsvwinston/nucleus/pkg/circuit` · 17 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/circuit)
 
 **Types**
 
@@ -274,7 +282,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/db` {#pkg-db}
 
-`github.com/jcsvwinston/nucleus/pkg/db` · 87 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/db)
+`github.com/jcsvwinston/nucleus/pkg/db` · 87 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/db)
 
 **Types**
 
@@ -300,7 +308,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/db/driver` {#pkg-db-driver}
 
-`github.com/jcsvwinston/nucleus/pkg/db/driver` · 6 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/db/driver)
+`github.com/jcsvwinston/nucleus/pkg/db/driver` · 6 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/db/driver)
 
 **Types**
 
@@ -310,7 +318,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/db/driver/drivertest` {#pkg-db-driver-drivertest}
 
-`github.com/jcsvwinston/nucleus/pkg/db/driver/drivertest` · 6 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/db/driver/drivertest)
+`github.com/jcsvwinston/nucleus/pkg/db/driver/drivertest` · 6 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/db/driver/drivertest)
 
 **Types**
 
@@ -320,7 +328,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/errors` {#pkg-errors}
 
-`github.com/jcsvwinston/nucleus/pkg/errors` · 58 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/errors)
+`github.com/jcsvwinston/nucleus/pkg/errors` · 58 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/errors)
 
 **Types**
 
@@ -342,7 +350,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/health` {#pkg-health}
 
-`github.com/jcsvwinston/nucleus/pkg/health` · 17 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/health)
+`github.com/jcsvwinston/nucleus/pkg/health` · 17 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/health)
 
 **Types**
 
@@ -354,13 +362,13 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/mail` {#pkg-mail}
 
-`github.com/jcsvwinston/nucleus/pkg/mail` · 56 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/mail)
+`github.com/jcsvwinston/nucleus/pkg/mail` · 60 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/mail)
 
 **Types**
 
 - `Attachment` — fields `Content`, `ContentID`, `ContentType`, `Filename`, `Inline`
 - `CircuitBreakerConfig` — fields `Cooldown`, `Enabled`, `FailureThreshold`, `HalfOpenMaxConcurrent`
-- `Config` — fields `CircuitBreaker`, `Driver`, `Logger`, `SMTPHost`, `SMTPPass`, `SMTPPort`, `SMTPUser`, `Timeout`
+- `Config` — fields `CircuitBreaker`, `Driver`, `Logger`, `Plugins`, `SMTPHost`, `SMTPPass`, `SMTPPort`, `SMTPUser`, `Timeout`
 - `HealthChecker` interface — methods `Healthy`
 - `MemorySender` — methods `Health`, `Reset`, `Send`, `Sent`
 - `Message` — fields `Attachments`, `Body`, `From`, `HTML`, `Headers`, `Subject`, `To`
@@ -369,13 +377,13 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `Sender` interface — methods `Send`
 - `Templates` — methods `Names`, `Render`
 
-**Functions** — `Enqueue`, `EnqueueTx`, `NewMemorySender`, `NewOutboxBridge`, `NewSender`, `ParseFS`, `RegisterProvider`, `RegisteredProviders`, `SetPluginHost`
+**Functions** — `Discards`, `Enqueue`, `EnqueueTx`, `NewMemorySender`, `NewOutboxBridge`, `NewSender`, `ParseFS`, `RegisterProvider`, `RegisteredProviders`, `SetPluginHost`
 
-**Constants** — `OutboxTopic`
+**Constants** — `LogDriver`, `NoopDriver`, `OutboxTopic`
 
 ## `pkg/model` {#pkg-model}
 
-`github.com/jcsvwinston/nucleus/pkg/model` · 168 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/model)
+`github.com/jcsvwinston/nucleus/pkg/model` · 168 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/model)
 
 **Types**
 
@@ -408,14 +416,15 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/nucleus` {#pkg-nucleus}
 
-`github.com/jcsvwinston/nucleus/pkg/nucleus` · 284 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/nucleus)
+`github.com/jcsvwinston/nucleus/pkg/nucleus` · 310 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/nucleus)
 
 **Types**
 
 - `APIDocumentSpec` — fields `Base`, `Pattern`, `ValidateRequests`
 - `APIVersion`
 - `App` — fields `APIDocument`, `Lifecycle`, `Middleware`, `Modules`, `OpenAPI`, `Options`, `Services`
-- `AppBuilder` — methods `Build`, `Err`, `FromConfigFile`, `Mount`, `Serve`, `Start`, `Use`, `WithConfigStrict`, `WithDatabases`, `WithExtensions`, `WithOpenAPIDocument`, `WithOpenAPIHandler`, `WithOpenAPIValidation`, `WithOpenAuthz`, `WithProblemDetails`, `WithTemplateFuncs`, `WithTemplates`, `WithTemplatesFS`, `WithUnknownFields`, `WithUserProvider`, `WithUserProviderNamed`, `WithoutDefaults`
+- `AppBuilder` — methods `Build`, `Err`, `FromConfigFile`, `Mount`, `Serve`, `Start`, `Use`, `WithAPIKeys`, `WithAuthz`, `WithConfigStrict`, `WithDatabases`, `WithExtensions`, `WithMail`, `WithOpenAPIDocument`, `WithOpenAPIHandler`, `WithOpenAPIValidation`, `WithOpenAuthz`, `WithProblemDetails`, `WithRateLimit`, `WithRealtime`, `WithStorage`, `WithTemplateFuncs`, `WithTemplates`, `WithTemplatesFS`, `WithUnknownFields`, `WithUserProvider`, `WithUserProviderNamed`, `WithoutDefaults`
+- `CacheSource` interface — methods `Cache`
 - `ConfigSource` — fields `Kind`, `Line`, `Path`
 - `Context` — methods `BindForm`, `BindHeaders`, `BindJSON`, `BindPath`, `BindQuery`, `BindRequest`, `BindXML`, `Can`, `CanObject`, `Claims`, `Get`, `HTML`, `HasRole`, `JSON`, `Negotiate`, `NoContent`, `Param`, `Query`, `RawHTML`, `Redirect`, `Render`, `RequestID`, `SessionGetString`, `SessionPutString`, `Set`, `Status`, `String`, `UserID`, `XML`
 - `Creator` interface — methods `Create`
@@ -425,6 +434,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `EndpointOption`
 - `EventBus` interface — methods `EmitSQL`, `SubscribeHTTP`, `SubscribeSQL`
 - `Extension`
+- `FederatedSignInConfig` — fields `Redirect`
 - `HTTPEvent` — fields `Duration`, `EmittedAt`, `Method`, `NodeID`, `Path`, `PayloadPreview`, `RemoteIP`, `RequestID`, `Status`, `TraceID`, `UserAgent`, `UserID`
 - `Handler`
 - `Indexer` interface — methods `Index`
@@ -441,6 +451,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `Option`
 - `Patcher` interface — methods `Patch`
 - `PolicyRule` — fields `Action`, `Effect`, `Object`, `Subject`
+- `RealtimeSource` interface — methods `Realtime`
 - `ResourceMethod`
 - `Router` interface — methods `Delete`, `Get`, `Group`, `Mount`, `Patch`, `Post`, `Put`, `Resource`, `With`
 - `Runtime` interface — methods `ApplyModuleMigrations`, `AuthChain`, `Authorizer`, `AutoMigrate`, `DB`, `DBForRequest`, `DatabaseHandle`, `DatabaseHandles`, `Databases`, `JWT`, `Logger`, `Mailer`, `Models`, `Observability`, `Outbox`, `Session`, `Storage`, `Tasks`
@@ -452,15 +463,15 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `WebhookRegistry` interface — methods `Register`
 - `WebhookSpec` — fields `Handler`, `MaxBytes`, `Methods`, `Secret`, `TimestampTolerance`
 
-**Functions** — `CheckModule`, `Description`, `Handle`, `LoadEffective`, `Methods`, `New`, `NewKey`, `Provide`, `Resolve`, `Run`, `RunContext`, `SetValue`, `SignWebhookBody`, `SignWebhookBodyWithTimestamp`, `Status`, `Summary`, `TaskInspectorFrom`, `Timeout`, `Value`, `Versioned`, `WithExtensions`, `WithOpenAuthz`, `WithProblemDetails`, `WithTemplateFuncs`, `WithTemplates`, `WithTemplatesFS`, `WithoutDefaults`
+**Functions** — `CacheFrom`, `CheckModule`, `Description`, `FederatedSignIn`, `Handle`, `LoadEffective`, `Methods`, `New`, `NewKey`, `Provide`, `RealtimeFrom`, `Resolve`, `Run`, `RunContext`, `SetValue`, `SignWebhookBody`, `SignWebhookBodyWithTimestamp`, `Status`, `Summary`, `TaskInspectorFrom`, `Timeout`, `Value`, `Versioned`, `WithAPIKeys`, `WithAuthz`, `WithExtensions`, `WithMail`, `WithOpenAuthz`, `WithProblemDetails`, `WithRateLimit`, `WithRealtime`, `WithStorage`, `WithTemplateFuncs`, `WithTemplates`, `WithTemplatesFS`, `WithoutDefaults`
 
-**Constants** — `Create`, `Destroy`, `EnvProduction`, `Index`, `MaxConfigFileBytes`, `Patch`, `Show`, `UnknownFieldsStrict`, `UnknownFieldsWarn`, `Update`, `WebhookSignatureHeader`, `WebhookTimestampHeader`
+**Constants** — `Create`, `Destroy`, `EnvProduction`, `FederatedSignInModuleName`, `Index`, `MaxConfigFileBytes`, `Patch`, `SessionKeyFederatedEmail`, `SessionKeyFederatedInstance`, `SessionKeyFederatedUserID`, `SessionKeyFederatedUsername`, `Show`, `UnknownFieldsStrict`, `UnknownFieldsWarn`, `Update`, `WebhookSignatureHeader`, `WebhookTimestampHeader`
 
 **Variables** — `ErrAlreadyProvided`, `ErrConfigFileTooLarge`, `ErrInvalidConfigReference`, `ErrInvalidConfigValue`, `ErrInvalidJobSpec`, `ErrInvalidModuleConfig`, `ErrInvalidModulePolicy`, `ErrInvalidUnknownFieldsMode`, `ErrInvalidWebhookSpec`, `ErrMixedConfigFormats`, `ErrModuleDependency`, `ErrNotProvided`, `ErrSecurityKeyNotNullable`, `ErrUnknownConfigKeys`, `ErrUnsupportedConfigFormat`
 
 ## `pkg/observability` {#pkg-observability}
 
-`github.com/jcsvwinston/nucleus/pkg/observability` · 102 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/observability)
+`github.com/jcsvwinston/nucleus/pkg/observability` · 102 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/observability)
 
 **Types**
 
@@ -484,7 +495,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/observability/hooks` {#pkg-observability-hooks}
 
-`github.com/jcsvwinston/nucleus/pkg/observability/hooks` · 27 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/observability/hooks)
+`github.com/jcsvwinston/nucleus/pkg/observability/hooks` · 27 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/observability/hooks)
 
 **Types**
 
@@ -498,7 +509,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/observe` {#pkg-observe}
 
-`github.com/jcsvwinston/nucleus/pkg/observe` · 25 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/observe)
+`github.com/jcsvwinston/nucleus/pkg/observe` · 25 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/observe)
 
 **Types**
 
@@ -511,7 +522,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/observe/exporter` {#pkg-observe-exporter}
 
-`github.com/jcsvwinston/nucleus/pkg/observe/exporter` · 14 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/observe/exporter)
+`github.com/jcsvwinston/nucleus/pkg/observe/exporter` · 14 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/observe/exporter)
 
 **Types**
 
@@ -523,18 +534,23 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/plugins` {#pkg-plugins}
 
-`github.com/jcsvwinston/nucleus/pkg/plugins` · 97 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/plugins)
+`github.com/jcsvwinston/nucleus/pkg/plugins` · 131 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/plugins)
 
 **Types**
 
-- `Descriptor` — fields `BinaryPath`, `Capabilities`, `ProbeError`, `Provider`, `Source`
+- `Allowance` — fields `Capabilities`, `Provider`
+- `Descriptor` — fields `BinaryPath`, `Capabilities`, `ProbeError`, `Provider`, `Refused`, `Source`
 - `ExecutionError` — fields `Cause`, `Code`, `ExitCode`, `Message`, `Retriable`, `Stderr`; methods `Error`, `Unwrap`
+- `Failure` — fields `Code`, `ExitCode`, `Message`, `Retriable`; methods `Error`
 - `Host` interface — methods `CollectInventory`, `ExecuteRequest`, `ProbeCapabilities`
 - `LocalHost` — methods `CollectInventory`, `ExecuteRequest`, `ProbeCapabilities`
 - `MailSendOutput` — fields `Accepted`, `ProviderRequestID`
 - `MailSendPayload` — fields `Body`, `From`, `Headers`, `Subject`, `To`
+- `Plugin` — fields `Custom`, `MailSend`, `QueuePublish`, `WebhookDeliver`
+- `Policy` — fields `Allowed`, `Commands`, `DenyExternal`; methods `AllowCommand`, `AllowPlugin`, `ListsCommands`, `ListsPlugins`, `String`
 - `QueuePublishOutput` — fields `Accepted`, `MessageID`
 - `QueuePublishPayload` — fields `Body`, `Headers`, `Key`, `Topic`
+- `RefusedError` — fields `Capability`, `Key`, `Kind`, `Name`; methods `Error`
 - `RequestEnvelope` — fields `Capability`, `Metadata`, `Payload`, `Provider`, `RequestID`, `TimeoutMS`, `Timestamp`, `Version`
 - `ResponseEnvelope` — fields `Error`, `Metrics`, `OK`, `Output`, `ProviderRequestID`, `RequestID`, `Retriable`, `Version`
 - `ResponseError` — fields `Code`, `Message`
@@ -543,13 +559,13 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `WebhookDeliverOutput` — fields `Accepted`, `StatusCode`
 - `WebhookDeliverPayload` — fields `Body`, `Headers`, `Method`, `TimeoutMS`, `URL`
 
-**Functions** — `BuiltinMailDescriptorsFromProviders`, `CollectInventory`, `DecodeMailSendOutput`, `DiscoverExternal`, `ExecuteRequest`, `IsExecutableFile`, `NewRequestEnvelope`, `ParseProviderFromBinary`, `ProbeCapabilities`, `SupportsCapability`
+**Functions** — `BuiltinMailDescriptorsFromProviders`, `CollectInventory`, `DecodeMailSendOutput`, `DiscoverAllowed`, `DiscoverExternal`, `ExecuteRequest`, `Fail`, `IsExecutableFile`, `NewRequestEnvelope`, `ParseProviderFromBinary`, `ProbeCapabilities`, `Serve`, `ServeIO`, `SupportsCapability`
 
 **Constants** — `CapabilityMailSend`, `CapabilityQueuePublish`, `CapabilityWebhookDeliver`, `DefaultProbeTimeout`, `EnvelopeVersionV1`, `ExitCodeInternal`, `ExitCodeRejected`, `ExitCodeSuccess`, `ExitCodeTimeout`, `ExitCodeTransient`, `ExitCodeValidation`, `GenericBinaryPrefix`, `SourceBuiltinMail`, `SourceExternalGeneric`
 
 ## `pkg/router` {#pkg-router}
 
-`github.com/jcsvwinston/nucleus/pkg/router` · 192 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/router)
+`github.com/jcsvwinston/nucleus/pkg/router` · 192 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/router)
 
 **Types**
 
@@ -577,11 +593,12 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/router/interceptor` {#pkg-router-interceptor}
 
-`github.com/jcsvwinston/nucleus/pkg/router/interceptor` · 11 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/router/interceptor)
+`github.com/jcsvwinston/nucleus/pkg/router/interceptor` · 13 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/router/interceptor)
 
 **Types**
 
 - `Config` — fields `Name`, `ProviderConfig`; methods `Bind`
+- `ErrorReporter` interface — methods `ReportError`
 - `Factory`
 - `Interceptor`
 
@@ -589,7 +606,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/signals` {#pkg-signals}
 
-`github.com/jcsvwinston/nucleus/pkg/signals` · 44 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/signals)
+`github.com/jcsvwinston/nucleus/pkg/signals` · 44 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/signals)
 
 **Types**
 
@@ -609,7 +626,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/storage` {#pkg-storage}
 
-`github.com/jcsvwinston/nucleus/pkg/storage` · 84 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/storage)
+`github.com/jcsvwinston/nucleus/pkg/storage` · 84 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/storage)
 
 **Types**
 
@@ -648,7 +665,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/storage/provider` {#pkg-storage-provider}
 
-`github.com/jcsvwinston/nucleus/pkg/storage/provider` · 109 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/storage/provider)
+`github.com/jcsvwinston/nucleus/pkg/storage/provider` · 109 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/storage/provider)
 
 **Types**
 
@@ -678,7 +695,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/tasks` {#pkg-tasks}
 
-`github.com/jcsvwinston/nucleus/pkg/tasks` · 130 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/tasks)
+`github.com/jcsvwinston/nucleus/pkg/tasks` · 130 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/tasks)
 
 **Types**
 
@@ -706,17 +723,18 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/validate` {#pkg-validate}
 
-`github.com/jcsvwinston/nucleus/pkg/validate` · 2 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.31.0/pkg/validate)
+`github.com/jcsvwinston/nucleus/pkg/validate` · 2 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.32.0/pkg/validate)
 
 **Functions** — `RegisterRule`, `Validate`
 
 ## Fields an extension may rely on {#extension-surface}
 
-An `app.Extension` receives the whole `*app.App`. These are the **18** fields of `App` that Nucleus freezes for extensions, kept in [`contracts/baseline/extension_surface.txt`](https://github.com/jcsvwinston/nucleus/blob/v1.31.0/contracts/baseline/extension_surface.txt) and compared with the code by the same CI: removing one, or adding one without listing it, fails the build.
+An `app.Extension` receives the whole `*app.App`. These are the **20** fields of `App` that Nucleus freezes for extensions, kept in [`contracts/baseline/extension_surface.txt`](https://github.com/jcsvwinston/nucleus/blob/v1.32.0/contracts/baseline/extension_surface.txt) and compared with the code by the same CI: removing one, or adding one without listing it, fails the build.
 
 - `AuthChain *auth.Chain`
 - `AuthFederated *auth.FederatedSet`
 - `Authorizer *authz.Enforcer`
+- `Cache cache.Cache`
 - `Config *app.Config`
 - `DB *db.DB`
 - `DBs map[string]*db.DB`
@@ -727,6 +745,7 @@ An `app.Extension` receives the whole `*app.App`. These are the **18** fields of
 - `Models *model.Registry`
 - `Observability *observability.Bus`
 - `Outbox *outbox.ManagedOutbox`
+- `Realtime *realtime.Hub`
 - `Router *router.Router`
 - `Session *auth.SessionManager`
 - `SessionRecorder *hooks.SessionRecorder`

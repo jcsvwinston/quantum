@@ -6,6 +6,54 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.40.0 — los P0 de tenants de quark y la mayor parte de A11 en quark y en el panel
+
+Quantum 1.40.0 publica tres defectos de quark que cruzaban tenants bajo
+RowLevelSecurityClient —dos de ellos P0— y la mayor parte del arco A11
+(extensibilidad y catálogo) en quark y en el panel. Se mueven quark
+(v1.15.2 → v1.16.0, minor) y orbit (v1.18.1 → v1.19.1: la minor v1.19.0 y
+un patch que la completa); nucleus v1.31.0 sigue donde estaba. Módulos
+hermanos que cambian: los seis de quark (CLI v1.2.0, drivers v0.2.5) y
+cuatro de orbit (ui v1.1.0, server v0.20.2, quarkbridge v1.9.4,
+quarkdatasource v1.12.2). Minor de suite porque lo son las de quark y orbit
+(QADR-0002). Corte FUERA de la cadencia semanal (QADR-0008), un día después
+de 1.39.0: los arreglos de tenants no esperan a la semana.
+
+Qué cambia para quien instala. Quien use un router de tenants con
+RowLevelSecurityClient debe subir a quark v1.16.0: Find(id) leía la fila de
+otro tenant (QK-42), la rama de actualización de Upsert y UpsertBatch
+escribía en la fila de otro tenant que tuviera la clave en conflicto
+(QK-43), UpdateMap podía mover una fila de tenant (QK-44), las escrituras
+por clave ignoraban el Where del llamador (QK-40) y un grupo Or escapaba de
+los ámbitos de tenant y de borrado lógico (QK-41). Las escrituras que las
+condiciones excluyen devuelven ahora (0, nil) sin hooks ni auditoría. En
+quark, además y por adición: el contrato del dialecto vive en quarkdriver
+con alias en quark, el camino de esquema pregunta al dialecto por
+interfaces en vez de leer su nombre, integraciones con chi, Echo, Gin,
+gRPC y Nucleus probadas en CI, `quark init --with` que genera ese mismo
+código, y un banco de rendimiento sobre PostgreSQL y MySQL reales. En el
+panel, también por adición: acciones que piden datos con un formulario
+validado en el servidor, acciones sobre un registro que responden con una
+redirección dentro del panel o una descarga confinada, widgets de serie
+alimentados desde Go y varios dashboards cada uno con su permiso, tema y
+paleta por configuración aplicados antes del primer frame, y el código de
+cliente de la aplicación con sus renderers de campo bajo la CSP del panel.
+Lo único que se niega ahora a arrancar es una configuración que nunca tuvo
+efecto: un field_widgets que nombra un widget o un campo inexistente.
+
+Qué aprendió el tren. Un módulo que sube en el mismo corte que la raíz que
+lo requiere deja a la raíz con la versión vieja: orbit v1.19.0 cortó ui
+v1.1.0 con la raíz aún en ui v1.0.0, y hizo falta v1.19.1 para que las
+pantallas nuevas llegaran a quien instala; el set pina la segunda. El
+banco de rendimiento de quark —workflow no requerido— tumbó dos veces el
+release al tocarle un modelo de CPU nuevo con asignaciones idénticas; se
+fusionó con el gate obligatorio en verde y quark main ya ata los tiempos
+al modelo (QK-47). La minor de quark necesita su snapshot de docs y el
+tren no lo corta; el guard de voz de quark rechaza ids de ADR en las notas
+publicadas; y el tren escribió para orbit v1.19.0 notas de «alineación sin
+cambios» que había que reescribir. El go.work del paraguas gana
+quark/internal/integrations, el primer módulo de fixtures de quark.
+
 ## Quantum 1.39.0 — el arco A10 cerrado: Testing y OpenAPI de primera clase, y QK-39 arreglado dentro del set
 
 Quantum 1.39.0 cierra el arco A10 (Testing y OpenAPI de primera clase) y

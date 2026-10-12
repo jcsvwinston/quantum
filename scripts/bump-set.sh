@@ -107,13 +107,43 @@ PYEOF
 # es el fallo que dejó once módulos en el árbol sin entrada en release-please
 # —existían, y nada de lo que enumera módulos lo sabía—. Las versiones se
 # leen del manifiesto AL PIN, no del último tag publicado (manifest-guard §3b).
+#
+# Un módulo del árbol que NO es paquete de release-please (el CLI de nucleus,
+# `cmd/nucleus`, va en lockstep con la raíz: release.yml le corta
+# `cmd/nucleus/vX.Y.Z` en el commit de cada `vX.Y.Z`, ADR-038 de nucleus) no
+# está en el manifiesto de release-please, y regenerar el bloque sólo desde él
+# borraba su fila en cada re-pin: manifest-guard §3b lo DESCUBRE del árbol y
+# exige la entrada. Se escribe con la versión de la raíz cuando su tag
+# `<ruta>/<tag raíz>` existe y apunta al pin; si no existe, se avisa y se deja
+# fuera, para que el juez (manifest-guard) lo diga con su nombre.
 regen_module_block() {
-  local repo=$1 section=$2
-  python3 - "$repo" "$section" <<'PYEOF'
-import json, re, sys, subprocess
-repo, section = sys.argv[1], sys.argv[2]
+  local repo=$1 section=$2 roottag=$3
+  python3 - "$repo" "$section" "$roottag" <<'PYEOF'
+import json, os, re, sys, subprocess
+repo, section, roottag = sys.argv[1], sys.argv[2], sys.argv[3]
 man = json.load(open(f'{repo}/.release-please-manifest.json'))
 mods = {k: v for k, v in man.items() if k != '.'}
+# El mismo filtro de descubrimiento que manifest-guard §3b (discover_modules).
+skip = ('examples', 'website', 'benchmarks', 'bugbash', 'acceptance', 'internal', '.git')
+pin = subprocess.run(['git', '-C', repo, 'rev-parse', 'HEAD'], capture_output=True, text=True).stdout.strip()
+for root, dirs, files in os.walk(repo):
+    rel = os.path.relpath(root, repo)
+    if rel != '.' and rel.split(os.sep)[0] in skip:
+        dirs[:] = []
+        continue
+    # Las dependencias de npm de un checkout local (orbit/ui/node_modules) no
+    # son módulos del repo: no se recorren.
+    dirs[:] = [d for d in dirs if d not in ('node_modules', '.git')]
+    if 'go.mod' not in files or rel == '.' or rel in mods:
+        continue
+    tag = f'{rel}/{roottag}'
+    got = subprocess.run(['git', '-C', repo, 'rev-list', '-n1', tag], capture_output=True, text=True).stdout.strip()
+    if got and got == pin:
+        mods[rel] = roottag.lstrip('v')
+        print(f'  {section}: {rel} va en lockstep con la raíz ({tag} en el pin)')
+    else:
+        print(f'  AVISO: {repo}/{rel} es un módulo del árbol sin paquete de release-please y sin el tag {tag} en el pin: '
+              f'no lo escribo en {section} (manifest-guard §3b lo rechazará con su nombre)', file=sys.stderr)
 if not mods:
     sys.exit(0)
 # Las versiones se leen del manifiesto AL PIN, no del último tag publicado:
@@ -176,9 +206,9 @@ PY
 
 # Los bloques de modulos hermanos, DESPUES de los pines: se leen del
 # manifiesto al pin, asi que el submodulo tiene que estar ya en el tag.
-regen_module_block nucleus nucleus_modules
-regen_module_block quark quark_modules
-regen_module_block orbit orbit_modules
+regen_module_block nucleus nucleus_modules "$NT"
+regen_module_block quark quark_modules "$QT"
+regen_module_block orbit orbit_modules "$OT"
 
 # 6. Las páginas del sitio que se GENERAN del pin (arco A11, W4): la API
 # congelada de cada producto y el catálogo de `nucleus add` siguen a los pines

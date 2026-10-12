@@ -1,7 +1,7 @@
 ---
 title: "Orbit API surface"
 sidebar_label: "Orbit"
-description: "The exported Go API of Orbit v1.19.1 that its CI keeps frozen, generated from the file it compares the code with, at the version Quantum 1.40.0 certifies."
+description: "The exported Go API of Orbit v1.19.3 that its CI keeps frozen, generated from the file it compares the code with, at the version Quantum 1.41.0 certifies."
 custom_edit_url: null
 ---
 
@@ -9,7 +9,7 @@ custom_edit_url: null
 
 # Orbit API surface
 
-The public Go API of **Orbit v1.19.1**, the version Quantum 1.40.0 certifies: **174** exported symbols in **2** packages. Orbit keeps this list in [`contracts/baseline/api_exported_symbols.txt`](https://github.com/jcsvwinston/orbit/blob/v1.19.1/contracts/baseline/api_exported_symbols.txt). Orbit's CI compares this file with the code on every change and fails when they differ, so adding or removing an exported symbol means changing the file in the same change. Removing an exported symbol is a breaking change, and the suite ships breaking changes only in a major version. This page is generated from that file at the pinned version, so it lists exactly what the check protects.
+The public Go API of **Orbit v1.19.3**, the version Quantum 1.41.0 certifies: **174** exported symbols in **2** packages. Orbit keeps this list in [`contracts/baseline/api_exported_symbols.txt`](https://github.com/jcsvwinston/orbit/blob/v1.19.3/contracts/baseline/api_exported_symbols.txt). Orbit's CI compares this file with the code on every change and fails when they differ, so adding or removing an exported symbol means changing the file in the same change. Removing an exported symbol is a breaking change, and the suite ships breaking changes only in a major version. This page is generated from that file at the pinned version, so it lists exactly what the check protects.
 
 Each package links to its documentation on pkg.go.dev at this version, where every symbol has its signature and its comment.
 
@@ -20,7 +20,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `orbit` (module root) {#orbit}
 
-`github.com/jcsvwinston/orbit` · 75 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/orbit@v1.19.1)
+`github.com/jcsvwinston/orbit` · 75 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/orbit@v1.19.3)
 
 **Types**
 
@@ -56,7 +56,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `datasource` {#datasource}
 
-`github.com/jcsvwinston/orbit/datasource` · 99 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/orbit/datasource@v1.0.0)
+`github.com/jcsvwinston/orbit/datasource` · 99 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/orbit/datasource@v1.0.1)
 
 **Types**
 

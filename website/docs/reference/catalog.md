@@ -1,7 +1,7 @@
 ---
 title: "The nucleus add catalog"
 sidebar_label: "nucleus add catalog"
-description: "What nucleus add and nucleus new --with resolve by name in Nucleus v1.31.0, generated from the table the CLI reads, at the version Quantum 1.40.0 certifies."
+description: "What nucleus add and nucleus new --with resolve by name in Nucleus v1.32.0, generated from the table the CLI reads, at the version Quantum 1.41.0 certifies."
 custom_edit_url: null
 ---
 
@@ -9,82 +9,113 @@ custom_edit_url: null
 
 # The `nucleus add` catalog
 
-The optional modules and suite products that `nucleus add <name>` and `nucleus new --with <name>` resolve by name in **Nucleus v1.31.0**, the version Quantum 1.40.0 certifies: **16** entries. This page is generated from the table the CLI reads, [`internal/knownproviders`](https://github.com/jcsvwinston/nucleus/tree/v1.31.0/internal/knownproviders), so a name is listed here exactly when that version of the CLI knows it, and each module shows the version this set certifies.
+The optional modules, framework capabilities and suite products that `nucleus add <name>` and `nucleus new --with <name>` resolve by name in **Nucleus v1.32.0**, the version Quantum 1.41.0 certifies: **24** entries. This page is generated from the table the CLI reads, [`internal/knownproviders`](https://github.com/jcsvwinston/nucleus/tree/v1.32.0/internal/knownproviders), so a name is listed here exactly when that version of the CLI knows it, and each module shows the version this set certifies.
 
 | Name | Ships as | Module | Version in this set |
 |---|---|---|---|
-| [`postgres`](#entry-postgres) | module | `github.com/jcsvwinston/nucleus/drivers/postgres` | v0.1.8 |
-| [`mysql`](#entry-mysql) | module | `github.com/jcsvwinston/nucleus/drivers/mysql` | v0.1.8 |
-| [`sqlite`](#entry-sqlite) | module | `github.com/jcsvwinston/nucleus/drivers/sqlite` | v0.1.8 |
-| [`sqlserver`](#entry-sqlserver) | module | `github.com/jcsvwinston/nucleus/drivers/mssql` | v0.1.8 |
-| [`oracle`](#entry-oracle) | module | `github.com/jcsvwinston/nucleus/drivers/oracle` | v0.1.8 |
-| [`otlp`](#entry-otlp) | module | `github.com/jcsvwinston/nucleus/exporters/otlp` | v0.1.8 |
-| [`prometheus`](#entry-prometheus) | module | `github.com/jcsvwinston/nucleus/exporters/prometheus` | v0.1.8 |
-| [`s3`](#entry-s3) | module | `github.com/jcsvwinston/nucleus/providers/storage-s3` | v0.1.8 |
-| [`gcs`](#entry-gcs) | module | `github.com/jcsvwinston/nucleus/providers/storage-gcs` | v0.1.8 |
-| [`azure`](#entry-azure) | module | `github.com/jcsvwinston/nucleus/providers/storage-azure` | v0.1.8 |
-| [`ldap`](#entry-ldap) | module | `github.com/jcsvwinston/nucleus/providers/ldap` | v0.2.12 |
-| [`aws-sm:`](#entry-aws-sm) | module | `github.com/jcsvwinston/nucleus/providers/secrets-aws` | v0.1.8 |
-| [`orbit`](#entry-orbit) | suite | `github.com/jcsvwinston/orbit` | v1.19.1 |
-| [`quark`](#entry-quark) | suite | `github.com/jcsvwinston/quark` | v1.16.0 |
-| [`quarkbridge`](#entry-quarkbridge) | suite | `github.com/jcsvwinston/orbit/quarkbridge` | v1.9.4 |
-| [`quarkdatasource`](#entry-quarkdatasource) | suite | `github.com/jcsvwinston/orbit/quarkdatasource` | v1.12.2 |
+| [`postgres`](#entry-postgres) | module | `github.com/jcsvwinston/nucleus/drivers/postgres` | v0.1.9 |
+| [`mysql`](#entry-mysql) | module | `github.com/jcsvwinston/nucleus/drivers/mysql` | v0.1.9 |
+| [`sqlite`](#entry-sqlite) | module | `github.com/jcsvwinston/nucleus/drivers/sqlite` | v0.1.9 |
+| [`sqlserver`](#entry-sqlserver) | module | `github.com/jcsvwinston/nucleus/drivers/mssql` | v0.1.9 |
+| [`oracle`](#entry-oracle) | module | `github.com/jcsvwinston/nucleus/drivers/oracle` | v0.1.9 |
+| [`otlp`](#entry-otlp) | module | `github.com/jcsvwinston/nucleus/exporters/otlp` | v0.1.9 |
+| [`prometheus`](#entry-prometheus) | module | `github.com/jcsvwinston/nucleus/exporters/prometheus` | v0.1.9 |
+| [`s3`](#entry-s3) | module | `github.com/jcsvwinston/nucleus/providers/storage-s3` | v0.1.9 |
+| [`gcs`](#entry-gcs) | module | `github.com/jcsvwinston/nucleus/providers/storage-gcs` | v0.1.9 |
+| [`azure`](#entry-azure) | module | `github.com/jcsvwinston/nucleus/providers/storage-azure` | v0.1.9 |
+| [`ldap`](#entry-ldap) | module | `github.com/jcsvwinston/nucleus/providers/ldap` | v0.2.13 |
+| [`aws-sm`](#entry-aws-sm) | module | `github.com/jcsvwinston/nucleus/providers/secrets-aws` | v0.1.9 |
+| [`sentry`](#entry-sentry) | module | `github.com/jcsvwinston/nucleus/providers/errors-sentry` | v0.1.0 |
+| [`oidc`](#entry-oidc) | core | `github.com/jcsvwinston/nucleus` | v1.32.0 |
+| [`saml`](#entry-saml) | module | `github.com/jcsvwinston/nucleus/providers/auth-saml` | v0.1.0 |
+| [`redis-cache`](#entry-redis-cache) | core | `github.com/jcsvwinston/nucleus` | v1.32.0 |
+| [`apikeys`](#entry-apikeys) | core | `github.com/jcsvwinston/nucleus` | v1.32.0 |
+| [`sql-queue`](#entry-sql-queue) | core | `github.com/jcsvwinston/nucleus` | v1.32.0 |
+| [`accounts`](#entry-accounts) | core | `github.com/jcsvwinston/nucleus` | v1.32.0 |
+| [`websockets`](#entry-websockets) | core | `github.com/jcsvwinston/nucleus` | v1.32.0 |
+| [`orbit`](#entry-orbit) | suite | `github.com/jcsvwinston/orbit` | v1.19.3 |
+| [`quark`](#entry-quark) | suite | `github.com/jcsvwinston/quark` | v1.17.0 |
+| [`quarkbridge`](#entry-quarkbridge) | suite | `github.com/jcsvwinston/orbit/quarkbridge` | v1.9.5 |
+| [`quarkdatasource`](#entry-quarkdatasource) | suite | `github.com/jcsvwinston/orbit/quarkdatasource` | v1.12.4 |
 
 **Ships as** says how an entry reaches an application:
 
 - **module**: a module of the nucleus repository, published on its own so that an application links only what it uses: `nucleus add <name>` fetches it and writes the blank import that registers it.
+- **core**: part of the framework module itself: there is nothing to fetch, and `nucleus add <name>` writes the wiring.
 - **suite**: a sibling product of the suite (the admin panel, the ORM and the bridges between them): `nucleus new --with <name>` adds it to a new project.
 
 ## Database drivers {#group-database-drivers}
 
 ### `postgres` {#entry-postgres}
 
-- **Module**: `github.com/jcsvwinston/nucleus/drivers/postgres`, v0.1.8 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/drivers/postgres`, v0.1.9 in this set
+- **Also accepted as**: `postgresql`, `pg`, `pgx`
 - **Runtime name**: `pgx`, the name the runtime looks it up by
+- **Selected by**: databases.default.url: postgres://user:password@host:5432/app
+- **Wires**: its blank import registers the pgx database/sql driver and its error classifier
 
 ### `mysql` {#entry-mysql}
 
-- **Module**: `github.com/jcsvwinston/nucleus/drivers/mysql`, v0.1.8 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/drivers/mysql`, v0.1.9 in this set
+- **Selected by**: databases.default.url: mysql://user:password@host:3306/app
+- **Wires**: its blank import registers the mysql database/sql driver and its error classifier
 
 ### `sqlite` {#entry-sqlite}
 
-- **Module**: `github.com/jcsvwinston/nucleus/drivers/sqlite`, v0.1.8 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/drivers/sqlite`, v0.1.9 in this set
+- **Selected by**: databases.default.url: sqlite://app.db
+- **Wires**: its blank import registers the sqlite database/sql driver and its error classifier
 
 ### `sqlserver` {#entry-sqlserver}
 
-- **Module**: `github.com/jcsvwinston/nucleus/drivers/mssql`, v0.1.8 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/drivers/mssql`, v0.1.9 in this set
+- **Also accepted as**: `mssql`
+- **Selected by**: databases.default.url: sqlserver://user:password@host:1433?database=app
+- **Wires**: its blank import registers the sqlserver database/sql driver and its error classifier
 
 ### `oracle` {#entry-oracle}
 
-- **Module**: `github.com/jcsvwinston/nucleus/drivers/oracle`, v0.1.8 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/drivers/oracle`, v0.1.9 in this set
+- **Selected by**: databases.default.url: oracle://user:password@host:1521/service
+- **Wires**: its blank import registers the oracle database/sql driver and its error classifier
 
 ## Telemetry exporters {#group-telemetry-exporters}
 
 ### `otlp` {#entry-otlp}
 
-- **Module**: `github.com/jcsvwinston/nucleus/exporters/otlp`, v0.1.8 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/exporters/otlp`, v0.1.9 in this set
+- **Selected by**: otlp_endpoint: http://collector:4318
+- **Wires**: its blank import registers the otlp exporter with pkg/observe
 
 ### `prometheus` {#entry-prometheus}
 
-- **Module**: `github.com/jcsvwinston/nucleus/exporters/prometheus`, v0.1.8 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/exporters/prometheus`, v0.1.9 in this set
+- **Selected by**: metrics_path: /metrics (the default; an empty value turns the endpoint off)
+- **Wires**: its blank import registers the prometheus exporter with pkg/observe
 
 ## Storage providers {#group-storage-providers}
 
 ### `s3` {#entry-s3}
 
-- **Module**: `github.com/jcsvwinston/nucleus/providers/storage-s3`, v0.1.8 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/providers/storage-s3`, v0.1.9 in this set
+- **Selected by**: storage.provider: s3 (bucket, region and credentials under storage.s3)
+- **Wires**: its blank import registers the s3 provider with pkg/storage
 - **Needs a configuration block of its own** to work
 - **Depends on a system outside the application**
 
 ### `gcs` {#entry-gcs}
 
-- **Module**: `github.com/jcsvwinston/nucleus/providers/storage-gcs`, v0.1.8 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/providers/storage-gcs`, v0.1.9 in this set
+- **Selected by**: storage.provider: gcs (the bucket under storage.gcs)
+- **Wires**: its blank import registers the gcs provider with pkg/storage
 - **Needs a configuration block of its own** to work
 - **Depends on a system outside the application**
 
 ### `azure` {#entry-azure}
 
-- **Module**: `github.com/jcsvwinston/nucleus/providers/storage-azure`, v0.1.8 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/providers/storage-azure`, v0.1.9 in this set
+- **Selected by**: storage.provider: azure (account and container under storage.azure)
+- **Wires**: its blank import registers the azure provider with pkg/storage
 - **Needs a configuration block of its own** to work
 - **Depends on a system outside the application**
 
@@ -92,40 +123,237 @@ The optional modules and suite products that `nucleus add <name>` and `nucleus n
 
 ### `ldap` {#entry-ldap}
 
-- **Module**: `github.com/jcsvwinston/nucleus/providers/ldap`, v0.2.12 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/providers/ldap`, v0.2.13 in this set
+- **Selected by**: auth_backends: [ldap] (the directory under auth.ldap: url, base_dn)
+- **Wires**: its blank import registers the ldap backend with the authentication chain
 - **Needs a configuration block of its own** to work
 - **Depends on a system outside the application**
 
 ## Secrets resolvers {#group-secrets-resolvers}
 
-### `aws-sm:` {#entry-aws-sm}
+### `aws-sm` {#entry-aws-sm}
 
-- **Module**: `github.com/jcsvwinston/nucleus/providers/secrets-aws`, v0.1.8 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/providers/secrets-aws`, v0.1.9 in this set
+- **Runtime name**: `aws-sm:`, the name the runtime looks it up by
+- **Selected by**: a key reference written aws-sm:&lt;secret-id&gt;[#json-key], e.g. jwt_keys[].secret_env: aws-sm:myapp/prod/jwt
+- **Wires**: its blank import registers the aws-sm: scheme with pkg/auth/secrets
 - **Depends on a system outside the application**
+
+## Request interceptors {#group-request-interceptors}
+
+### `sentry` {#entry-sentry}
+
+- **Module**: `github.com/jcsvwinston/nucleus/providers/errors-sentry`, v0.1.0 in this set
+- **Kind**: error reporter
+- **Selected by**: http_interceptors: [sentry] (the DSN under interceptors.sentry.dsn, or SENTRY_DSN)
+- **Wires**: its blank import registers the sentry request interceptor, and http_interceptors puts it in the request path: handler errors answered with a 500 and recovered panics are sent to Sentry
+- **Depends on a system outside the application**
+- **Left to you**: set interceptors.sentry.dsn to the project's DSN (Sentry: Project Settings, Client Keys), or export SENTRY_DSN; what is sent, and what is redacted before it leaves: https://jcsvwinston.github.io/quantum/nucleus/features/error-reporting
+
+The configuration block `nucleus add` writes:
+
+```yaml
+# Error reporting (nucleus add sentry): handler errors answered with a 500
+# and recovered panics are sent to Sentry, with the request's method,
+# route, status, request id and user. An empty value is read from
+# SENTRY_DSN, SENTRY_ENVIRONMENT or SENTRY_RELEASE; with no DSN at all the
+# interceptor is in place and sends nothing.
+http_interceptors: [sentry]
+interceptors:
+  sentry:
+    dsn: ""
+    environment: ""
+    release: ""
+    sample_rate: 1.0
+```
+
+## Federated sign-in {#group-federated-sign-in}
+
+### `oidc` {#entry-oidc}
+
+- **Module**: `github.com/jcsvwinston/nucleus`, v1.32.0 in this set
+- **Kind**: federated sign-in provider
+- **Imports**: `github.com/jcsvwinston/nucleus/pkg/auth/federated/oidc`
+- **Selected by**: auth_federated: [&#123;name: corp, provider: oidc&#125;] (issuer and client_id under auth.corp; public_base_url is required)
+- **Wires**: its blank import registers the oidc provider with the federated registry, and Mount(nucleus.FederatedSignIn()) serves the sign-in routes of every instance auth_federated declares
+- **Needs a configuration block of its own** to work
+- **Depends on a system outside the application**
+- **Writes into `main.go`**: `Mount(nucleus.FederatedSignIn())`
+- **Serves**: `GET /auth/corp/start`, `GET /auth/corp/callback`, `POST /auth/corp/callback`
+- **Left to you**: set auth.corp.issuer and auth.corp.client_id to the identity provider's values; register http://localhost:8080/auth/corp/callback with it (the address follows public_base_url); after sign-in the session carries the identity (nucleus.SessionKeyFederated*); modules.federated.redirect sends the browser on
+
+The configuration block `nucleus add` writes:
+
+```yaml
+# Federated sign-in (nucleus add oidc): one identity provider, named corp.
+# public_base_url is the address the browser uses; register
+# <public_base_url>/auth/corp/callback with the identity provider.
+public_base_url: http://localhost:8080
+auth_federated:
+  - name: corp
+    provider: oidc
+auth:
+  corp:
+    issuer: https://idp.example.com/
+    client_id: change-me
+```
+
+### `saml` {#entry-saml}
+
+- **Module**: `github.com/jcsvwinston/nucleus/providers/auth-saml`, v0.1.0 in this set
+- **Kind**: federated sign-in provider
+- **Also accepted as**: `saml2`
+- **Selected by**: auth_federated: [&#123;name: corp, provider: saml&#125;] (sp_entity_id and idp_metadata_url or idp_metadata_file under auth.corp; public_base_url is required)
+- **Wires**: its blank import registers the saml provider with the federated registry, and Mount(nucleus.FederatedSignIn()) serves the sign-in routes and the service-provider metadata of every instance auth_federated declares
+- **Needs a configuration block of its own** to work
+- **Depends on a system outside the application**
+- **Writes into `main.go`**: `Mount(nucleus.FederatedSignIn())`
+- **Serves**: `GET /auth/corp/start`, `GET /auth/corp/callback`, `POST /auth/corp/callback`, `GET /auth/corp/metadata`
+- **Left to you**: set auth.corp.idp_metadata_url (or idp_metadata_file) to the identity provider's SAML metadata; it must sign the assertion; register this application with it: the metadata at http://localhost:8080/auth/corp/metadata, or entity ID http://localhost:8080/auth/corp/metadata and ACS http://localhost:8080/auth/corp/callback (HTTP-POST); serve it over https: the identity provider posts back from its own site, and the sign-in's cookie rides that post only as SameSite=None, which browsers accept over https; after sign-in the session carries the identity (nucleus.SessionKeyFederated*); modules.federated.redirect sends the browser on
+
+The configuration block `nucleus add` writes:
+
+```yaml
+# Federated sign-in over SAML 2.0 (nucleus add saml): one identity provider,
+# named corp. public_base_url is the address the browser uses; the identity
+# provider reads this application's metadata at
+# <public_base_url>/auth/corp/metadata.
+public_base_url: http://localhost:8080
+auth_federated:
+  - name: corp
+    provider: saml
+auth:
+  corp:
+    sp_entity_id: http://localhost:8080/auth/corp/metadata
+    idp_metadata_url: https://idp.example.com/saml/metadata
+    # or the identity provider's metadata as a file:
+    # idp_metadata_file: idp-metadata.xml
+    # sign the AuthnRequest with this application's key pair (PEM, both or neither):
+    # sp_certificate_file: saml-sp.crt
+    # sp_key_file: saml-sp.key
+```
+
+## Cache backends {#group-cache-backends}
+
+### `redis-cache` {#entry-redis-cache}
+
+- **Module**: `github.com/jcsvwinston/nucleus`, v1.32.0 in this set
+- **Also accepted as**: `cache-redis`
+- **Runtime name**: `redis`, the name the runtime looks it up by
+- **Imports**: `github.com/jcsvwinston/nucleus/pkg/cache/rediscache`
+- **Selected by**: cache.provider: redis (the server under cache.redis_url, or redis_url)
+- **Wires**: its blank import registers the redis backend with pkg/cache, cache.provider: redis selects it, and a module reaches it through nucleus.CacheFrom(rt): every instance pointed at the same Redis reads what another wrote
+- **Needs a configuration block of its own** to work
+- **Depends on a system outside the application**
+- **Left to you**: point cache.redis_url at your Redis server; a module caches through it: c, _ := nucleus.CacheFrom(rt); c.Set(ctx, key, value, time.Minute) — keys are stored under cache.prefix (default nucleus:cache:)
+
+The configuration block `nucleus add` writes:
+
+```yaml
+# The cache (nucleus add redis-cache): values a module caches through
+# nucleus.CacheFrom(rt) are kept in Redis, so every instance of the
+# application pointed at the same server reads what another wrote.
+# Without cache.redis_url the backend uses redis_url.
+cache:
+  provider: redis
+  redis_url: redis://localhost:6379/0
+```
+
+## Framework capabilities {#group-framework-capabilities}
+
+### `apikeys` {#entry-apikeys}
+
+- **Module**: `github.com/jcsvwinston/nucleus`, v1.32.0 in this set
+- **Kind**: API-key authentication
+- **Also accepted as**: `api-keys`, `apikey`
+- **Wires**: WithAPIKeys() in the nucleus.New() chain: a request that presents a key (X-API-Key, or Authorization: Bearer nk_…) is authenticated against the keys `nucleus apikey create` issues into the default database
+- **Writes into `main.go`**: `WithAPIKeys()`
+- **Left to you**: issue a key: nucleus apikey create --config nucleus.yml --name &lt;what it is for&gt;; a route that must have one: r.With(apikeys.Require()).Get(...) (github.com/jcsvwinston/nucleus/pkg/auth/apikeys)
+
+### `sql-queue` {#entry-sql-queue}
+
+- **Module**: `github.com/jcsvwinston/nucleus`, v1.32.0 in this set
+- **Kind**: job queue
+- **Also accepted as**: `sql-jobs`
+- **Runtime name**: `sql`, the name the runtime looks it up by
+- **Selected by**: jobs_provider: sql (the queue lives in the default database, tables nucleus_jobs and nucleus_jobs_leader)
+- **Wires**: jobs_provider: sql in nucleus.yml: the jobs modules register and the tasks they enqueue are kept in the default database and survive a restart
+- **Left to you**: a module registers a job: Jobs: func(j nucleus.JobRegistry, _ Config) &#123; j.Register("name", nucleus.JobSpec&#123;Every: time.Minute, Handler: run&#125;) &#125;; see the queue: nucleus doctor --config nucleus.yml --check tasks
+
+The configuration block `nucleus add` writes:
+
+```yaml
+# The durable job queue (nucleus add sql-queue): jobs and the tasks
+# modules enqueue are kept in the default database and survive a restart.
+jobs_provider: sql
+```
+
+### `accounts` {#entry-accounts}
+
+- **Module**: `github.com/jcsvwinston/nucleus`, v1.32.0 in this set
+- **Kind**: account flows
+- **Also accepted as**: `account`
+- **Selected by**: modules.accounts.base_url and modules.accounts.from (the address the mailed links point at, and their sender), and a mail_driver that delivers
+- **Wires**: WithMail() and Mount(accounts.FromRuntime()) in the nucleus.New() chain: registration, address confirmation, sign-in, password reset and magic links at /auth/*, on the default database and mailed through the application's mail sender
+- **Writes into `main.go`**: `WithMail()`, `Mount(accounts.FromRuntime())`
+- **Serves**: `POST /auth/register`, `GET /auth/verify-email`, `POST /auth/login`, `POST /auth/logout`, `POST /auth/password/reset`, `PUT /auth/password/reset`, `POST /auth/password/change`, `POST /auth/magic-link`, `GET /auth/magic-link`
+- **Left to you**: set modules.accounts.base_url to the address the browser reaches the application at, and modules.accounts.from to the sender; in development the confirmation link is in the application log (mail_driver: log); set mail_driver: smtp with smtp_host and smtp_port before the application faces anyone; a signed-in account is the subject of its session: a policy row or a role (g, &lt;account id&gt;, &lt;role&gt;) for its id applies to it, as to a token or an API key it owns; second factors: modules.accounts.mfa_key_env names a variable holding 32 bytes, base64 (openssl rand -base64 32)
+
+The configuration block `nucleus add` writes:
+
+```yaml
+# Account flows (nucleus add accounts): registration, address confirmation,
+# sign-in, password reset and magic links at /auth/*. The links in account
+# mail point at base_url.
+# mail_driver: log writes each message — its confirmation or reset link
+# included — to the application log instead of sending it, for development;
+# it refuses to start in any other env. Before the application faces
+# anyone, set mail_driver: smtp with smtp_host and smtp_port.
+mail_driver: log
+modules:
+  accounts:
+    base_url: http://localhost:8080
+    from: no-reply@example.com
+```
+
+### `websockets` {#entry-websockets}
+
+- **Module**: `github.com/jcsvwinston/nucleus`, v1.32.0 in this set
+- **Kind**: realtime channels
+- **Also accepted as**: `websocket`, `realtime`
+- **Runtime name**: `realtime`, the name the runtime looks it up by
+- **Wires**: WithRealtime() in the nucleus.New() chain: the application owns a realtime hub — nucleus.RealtimeFrom hands it to a module — and serves GET /realtime/&#123;topic&#125; as a WebSocket, or as server-sent events for an EventSource
+- **Writes into `main.go`**: `WithRealtime()`
+- **Serves**: `GET /realtime/{topic}`
+- **Left to you**: publish from a module: hub, _ := nucleus.RealtimeFrom(rt) in OnStart, then hub.Broadcast(ctx, realtime.Message&#123;Topic: "news", Data: payload&#125;) (github.com/jcsvwinston/nucleus/pkg/realtime); subscribe: new WebSocket("ws://localhost:8080/realtime/news") or new EventSource("/realtime/news") from the application's own pages; with the default-deny layer, a policy row says who may subscribe to a topic: p, anonymous, /realtime/news, read, allow
 
 ## Suite products {#group-suite-products}
 
 ### `orbit` {#entry-orbit}
 
-- **Module**: `github.com/jcsvwinston/orbit`, v1.19.1 in this set
+- **Module**: `github.com/jcsvwinston/orbit`, v1.19.3 in this set
 - **Kind**: admin panel
+- **Wires**: Mount(orbit.Module(orbit.Config&#123;...&#125;)) in main.go — `nucleus new --with orbit` writes it in a new project
 - **Adds**: the admin panel mounted under /admin with its own login gate, Data Studio and the live observability feed
 
 ### `quark` {#entry-quark}
 
-- **Module**: `github.com/jcsvwinston/quark`, v1.16.0 in this set
+- **Module**: `github.com/jcsvwinston/quark`, v1.17.0 in this set
 - **Kind**: ORM
+- **Wires**: a module whose storage runs on Quark — `nucleus generate module &lt;name&gt; --data quark` writes one, with the import of Quark's driver module for the engine
 - **Adds**: the Quark ORM (Active Record models, migrations from the model registry) for the application's domain
 - **Driver module**: `github.com/jcsvwinston/quark/drivers/<engine>`, one per database engine
 
 ### `quarkbridge` {#entry-quarkbridge}
 
-- **Module**: `github.com/jcsvwinston/orbit/quarkbridge`, v1.9.4 in this set
+- **Module**: `github.com/jcsvwinston/orbit/quarkbridge`, v1.9.5 in this set
 - **Kind**: observability bridge
+- **Wires**: quark.WithMiddleware(quarkbridge.New(rt.Observability())) on the Quark client a module opens
 - **Adds**: a Quark middleware that publishes every statement on the observability bus, so orbit's live feed shows the SQL correlated to the request
 
 ### `quarkdatasource` {#entry-quarkdatasource}
 
-- **Module**: `github.com/jcsvwinston/orbit/quarkdatasource`, v1.12.2 in this set
+- **Module**: `github.com/jcsvwinston/orbit/quarkdatasource`, v1.12.4 in this set
 - **Kind**: Data Studio adapter
+- **Wires**: quarkdatasource.New(client) and Register[Model] for each model, handed to orbit.Config
 - **Adds**: the adapter that backs orbit's Data Studio with Quark models, so /admin browses and edits them

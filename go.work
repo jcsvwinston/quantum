@@ -1,6 +1,6 @@
 go 1.26.6
 
-toolchain go1.26.6
+toolchain go1.26.9
 
 // Conveniencia de desarrollo: enlaza los tres productos de la suite para
 // trabajarlos a la vez en local (mismo patrón que Orbit ya usa entre sus
@@ -27,6 +27,7 @@ toolchain go1.26.6
 //   go build $(bash scripts/gowork-patterns.sh)
 use (
 	./nucleus
+	./nucleus/cmd/nucleus
 	./nucleus/drivers/mssql
 	./nucleus/drivers/mysql
 	./nucleus/drivers/oracle
@@ -34,6 +35,9 @@ use (
 	./nucleus/drivers/sqlite
 	./nucleus/exporters/otlp
 	./nucleus/exporters/prometheus
+	./nucleus/internal/testdeps
+	./nucleus/providers/auth-saml
+	./nucleus/providers/errors-sentry
 	./nucleus/providers/ldap
 	./nucleus/providers/secrets-aws
 	./nucleus/providers/storage-azure
@@ -55,6 +59,7 @@ use (
 	./quark/drivers/oracle
 	./quark/drivers/postgres
 	./quark/drivers/sqlite
+	./quark/internal/drivertemplate
 	./quark/internal/enginesuite
 	./quark/internal/integrations
 )
