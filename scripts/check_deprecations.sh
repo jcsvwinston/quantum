@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
-# check_deprecations.sh — toda deprecación ESCRITA A MANO en los tres
-# productos nombra su recambio y una versión de retirada que todavía no ha
-# salido.
+# check_deprecations.sh — todo lo que los tres productos han prometido
+# retirar o cambiar tiene aviso, versión y fecha, y lo que va al major está
+# en la lista cerrada del 2.0. Tres cosas, en este orden:
 #
-# El problema que cierra, medido el 2026-09-09 sobre el pin 1.29.0: quark
+#   A. las marcas `// Deprecated:` escritas a mano en los .go (al pin);
+#   B. los avisos <repo>/docs/deprecations/DEP-*.md con `Status: active`
+#      (al pin), tengan marca o no;
+#   C. la tabla del §3.0 de docs/planes/quantum-2.0.md —la lista cerrada del
+#      major— cruzada con B en las dos direcciones.
+#
+# A. El problema que cierra, medido el 2026-09-09 sobre el pin 1.29.0: quark
 # llevaba cinco marcas `// Deprecated:` y una de ellas —el alias
 # `RowLevelSecurity`— prometía la retirada «in v1.0». Quark iba por v1.12.0,
 # así que la promesa había vencido doce minors atrás sin que nada lo dijera.
-# Nucleus y orbit no tenían ninguna: su forma de retirar algo ha sido
-# quitarlo en un minor con un error guiado (el arco D3), que es una decisión
-# legítima pero distinta, y hasta hoy no estaba escrita en ninguna parte.
-#
 # Una deprecación sin fecha de caducidad no es una deprecación: es una nota.
 # Y una nota que nombra una versión ya publicada es peor, porque dice al
-# lector que el símbolo ya no debería existir. Este guard exige las dos
-# mitades del contrato que fija docs/gobernanza/POLITICA_DEPRECACION.md:
+# lector que el símbolo ya no debería existir. Para cada marca a mano:
 #
 #   1. el párrafo empieza por `Deprecated: ` (convención de Go, que es lo que
 #      leen `go doc`, los editores y staticcheck SA1019);
@@ -27,29 +28,86 @@
 #      en algo consultable: el aviso lleva la guía de migración, y sin él la
 #      marca dice «no uses esto» sin decir cómo dejar de usarlo.
 #
+# B. Existe porque A no bastaba (QM-20, medido el 2026-10-16 por `M0-S0` de
+# A12 sobre el pin de 1.41.0): siete avisos anunciaban un cambio de
+# comportamiento —`UpdateBatch` comprobando versiones por defecto, seis
+# negativas de configuración de `WithoutDefaults()`— y ninguno tenía marca,
+# porque el símbolo se queda y lo que cambia es lo que hace. Un guard que
+# sólo recorre marcas no veía ni su fecha, ni su versión, ni si estaban en la
+# lista del major. Para cada aviso `active`:
+#
+#   1. una línea de la cabecera dice cuándo: «Earliest removal», «Behaviour
+#      flip» o «Earliest change» con `vX.Y.Z` y «no earlier than YYYY-MM-DD»
+#      (FALLA si falta);
+#   2. esa vX.Y.Z es MAYOR que el pin del repo (FALLA si no);
+#   3. la fecha no ha pasado (AVISA con los días, como en A);
+#   4. si esa versión es un major respecto al pin, el aviso está en la tabla
+#      del §3.0 (FALLA si no: es la mitad «el guard ve el 100 % de lo que va
+#      al major»).
+#
+#   Los avisos `removed`, `completed` y `proposed` se ignoran: no prometen
+#   nada pendiente. Un aviso `active` SIN versión ni fecha se tolera —con
+#   AVISO— sólo mientras la tabla lo tenga en `decisión`: es DEP-2026-003 de
+#   nucleus (las filas de política de 3 columnas), que espera D2 de
+#   quantum-2.0.md §3.3. En cuanto la fila cambie de estado, la fecha se
+#   exige; con cualquier otro estado, o sin fila, FALLA.
+#
+# C. La tabla misma. Por cada fila: `publicado` exige el fichero al pin
+# (FALLA si no está); `por escribir` y `decisión` AVISAN y se cuentan —son
+# lo que falta antes de `M1`—; `en main` se cuenta (el fichero llega con el
+# set que lo publique); un estado que no sea uno de esos, un producto que no
+# sea quark/nucleus/orbit o un aviso repetido FALLAN. Y al revés: un aviso
+# que ya está al pin con su fecha en una fila que no dice `publicado` es una
+# tabla rancia, y FALLA (se corrige en el PR de set que trae el aviso). El id
+# se lee de la columna «Aviso» y el producto de la columna «Producto», no
+# del id: los tres repos numeran por su cuenta y DEP-2026-001 de orbit no es
+# DEP-2026-001 de quark.
+#
 # La versión FALLA y la fecha AVISA, por el mismo motivo que manifest-guard
 # reparte así sus secciones: una versión ya publicada es una contradicción
 # entre lo que dice el código y lo que hay en el proxy, y eso se arregla
 # editando el código; una fecha cumplida es trabajo pendiente —retirar el
-# símbolo—, y ese trabajo no puede secuestrar el CI de un cambio que no lo
-# toca. El aviso dice cuántos días lleva vencida, que es lo que hace que se
-# note.
+# símbolo o voltear el comportamiento—, y ese trabajo no puede secuestrar el
+# CI de un cambio que no lo toca. El aviso dice cuántos días lleva vencida,
+# que es lo que hace que se note.
 #
 # Fuera de alcance, por construcción:
 #   - el código generado (cabecera `Code generated ... DO NOT EDIT.`): sus
 #     marcas las escribe protoc o ent, no nosotros, y reescribirlas se
 #     perdería en la siguiente generación;
-#   - website/ y node_modules/, que no son código del producto.
+#   - website/ y node_modules/, que no son código del producto;
+#   - un repo sin docs/deprecations/ (orbit al pin de 1.41.0): no hay aviso
+#     que leer, y se dice. Su primer aviso lo trae `M0-O`.
 #
 # Uso: bash scripts/check_deprecations.sh
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
+CONTRATO=docs/planes/quantum-2.0.md
+
 status=0
+hoy=$(date -u +%Y-%m-%d)
+
+# A. marcas
 total=0
 malas=0
 vencidas=0
-hoy=$(date -u +%Y-%m-%d)
+# B. avisos
+avisos=0
+avisos_retirada=0
+avisos_volteo=0
+avisos_malos=0
+avisos_vencidos=0
+avisos_tolerados=0
+avisos_ignorados=0
+# C. filas
+filas=0
+filas_publicado=0
+filas_en_main=0
+filas_por_escribir=0
+filas_decision=0
+filas_descartado=0
+filas_malas=0
 
 # dias_entre DESDE HASTA — días naturales entre dos fechas ISO. `date -j -f`
 # es la forma de BSD (macOS); `date -d` la de GNU (el CI). Se prueban las dos
@@ -87,6 +145,80 @@ EOF
   [ "${a3:-0}" -gt "${b3:-0}" ]
 }
 
+# major_de vX.Y.Z -> X
+major_de() {
+  local v=${1#v}
+  echo "${v%%.*}"
+}
+
+# ---------------------------------------------------------------------------
+# C (lectura). La tabla del §3.0 del contrato del 2.0, una línea por fila:
+#   n|producto|id|estado|hallazgo|sesion
+# Las columnas se localizan por su NOMBRE en la cabecera, no por posición,
+# para que reordenar la tabla no deje al guard leyendo la columna de al lado
+# sin decirlo. El estado es lo que va entre los primeros acentos graves de
+# su celda (`decisión` (D7) → decisión); el id, el primer DEP-YYYY-NNN de la
+# celda «Aviso» (DEP-2026-001 (orbit) → DEP-2026-001).
+# ---------------------------------------------------------------------------
+if [ ! -f "$CONTRATO" ]; then
+  echo "FAIL: falta $CONTRATO — la lista cerrada del major vive en su §3.0 y este guard la cruza con los avisos al pin." >&2
+  exit 1
+fi
+
+tabla=$(awk -F'|' '
+  function trim(s) { gsub(/^[[:space:]]+|[[:space:]]+$/, "", s); return s }
+  function entre_graves(s,   m) {
+    if (match(s, /`[^`]+`/)) { m = substr(s, RSTART + 1, RLENGTH - 2); return trim(m) }
+    return trim(s)
+  }
+  /^### 3\.0/ { en = 1; next }
+  en && /^### / { exit }
+  !en || !/^\|/ { next }
+  {
+    if (!cab) {
+      for (i = 1; i <= NF; i++) {
+        c = trim($i)
+        if (c == "#") cn = i
+        else if (c == "Producto") cp = i
+        else if (c == "Aviso") ca = i
+        else if (c == "Estado") ce = i
+        else if (c == "Hallazgo") ch = i
+        else if (c == "Sesión") cs = i
+      }
+      cab = 1
+      if (!cn || !cp || !ca || !ce) { print "CABECERA_SIN_COLUMNAS"; exit }
+      next
+    }
+    if ($0 ~ /^\|[[:space:]]*-+/) next
+    n = trim($cn); if (n == "") next
+    prod = trim($cp)
+    id = ""
+    if (match($ca, /DEP-[0-9][0-9][0-9][0-9]-[0-9][0-9][0-9]/)) id = substr($ca, RSTART, RLENGTH)
+    est = entre_graves($ce)
+    hal = (ch ? trim($ch) : "")
+    ses = (cs ? entre_graves($cs) : "")
+    print n "|" prod "|" id "|" est "|" hal "|" ses
+  }
+' "$CONTRATO")
+
+if [ -z "$tabla" ]; then
+  echo "FAIL: $CONTRATO no tiene la tabla del §3.0 (o está vacía) — es la lista cerrada del major y el guard no puede cruzarla." >&2
+  exit 1
+fi
+if [ "$tabla" = "CABECERA_SIN_COLUMNAS" ]; then
+  echo "FAIL: la tabla del §3.0 de $CONTRATO no tiene las columnas #, Producto, Aviso y Estado — el guard las busca por nombre." >&2
+  exit 1
+fi
+
+# fila_de PRODUCTO ID -> la línea de la tabla para ese aviso (vacío si no está).
+fila_de() {
+  printf '%s\n' "$tabla" | awk -F'|' -v p="$1" -v i="$2" '$2 == p && $3 == i { print; exit }'
+}
+
+# ---------------------------------------------------------------------------
+# A. Las marcas de godoc.
+# ---------------------------------------------------------------------------
+echo "-- A. marcas // Deprecated: escritas a mano (al pin)"
 for repo in quark nucleus orbit; do
   [ -d "$repo" ] || { echo "FAIL: falta el submódulo $repo — ¿git submodule update --init?" >&2; exit 1; }
   pin=$(pin_de "$repo")
@@ -169,10 +301,179 @@ $(find "$repo" -name '*.go' -not -path '*/node_modules/*' -not -path '*/website/
     ')
 EOF
 done
+echo
 
+# ---------------------------------------------------------------------------
+# B. Los avisos `active` al pin, con marca o sin ella.
+# ---------------------------------------------------------------------------
+echo "-- B. avisos docs/deprecations/DEP-*.md con Status: active (al pin)"
+for repo in quark nucleus orbit; do
+  pin=$(pin_de "$repo")
+  if [ ! -d "$repo/docs/deprecations" ]; then
+    echo "  --  $repo: sin docs/deprecations/ al pin (ningún aviso que leer)"
+    continue
+  fi
+  for f in "$repo"/docs/deprecations/DEP-*.md; do
+    [ -f "$f" ] || continue
+    id=$(basename "$f" | sed -nE 's/^(DEP-[0-9]{4}-[0-9]{3})-.*/\1/p')
+    if [ -z "$id" ]; then
+      echo "FAIL: $f — el nombre no es DEP-YYYY-NNN-<slug>.md." >&2
+      avisos_malos=$((avisos_malos + 1))
+      status=1
+      continue
+    fi
+    # La cabecera son las viñetas anteriores a la primera sección `## `;
+    # una viñeta partida en varias líneas (las continuaciones van sangradas)
+    # se une en una, igual que los párrafos de godoc en A.
+    cabecera=$(awk '
+      /^## / { exit }
+      /^# / { next }
+      /^- / { if (acc != "") print acc; acc = $0; next }
+      /^[[:space:]]+[^[:space:]]/ { if (acc != "") { t = $0; sub(/^[[:space:]]+/, "", t); acc = acc " " t }; next }
+      { if (acc != "") { print acc; acc = "" } }
+      END { if (acc != "") print acc }
+    ' "$f")
+    estado=$(printf '%s\n' "$cabecera" | sed -nE 's/^- Status:[[:space:]]*`?([a-z]+).*/\1/p' | head -1)
+    if [ -z "$estado" ]; then
+      echo "FAIL: $f — la cabecera no tiene línea «- Status:» (proposed/active/completed/removed)." >&2
+      avisos_malos=$((avisos_malos + 1))
+      status=1
+      continue
+    fi
+    if [ "$estado" != "active" ]; then
+      avisos_ignorados=$((avisos_ignorados + 1))
+      continue
+    fi
+    avisos=$((avisos + 1))
+    fila=$(fila_de "$repo" "$id")
+    n_fila=$(printf '%s' "$fila" | cut -d'|' -f1)
+    estado_fila=$(printf '%s' "$fila" | cut -d'|' -f4)
+    ventana=$(printf '%s\n' "$cabecera" | grep -m1 'no earlier than' || true)
+    ver=$(printf '%s' "$ventana" | sed -nE 's/.*(v[0-9]+\.[0-9]+\.[0-9]+).*/\1/p')
+    fecha=$(printf '%s' "$ventana" | sed -nE 's/.*no earlier than `?([0-9]{4}-[0-9]{2}-[0-9]{2}).*/\1/p')
+    if [ -z "$ver" ] || [ -z "$fecha" ]; then
+      if [ "$estado_fila" = "decisión" ]; then
+        echo "AVISO: $f — \`active\` sin versión ni fecha; la fila $n_fila del §3.0 lo tiene en \`decisión\`, así que se tolera hasta que se decida (con cualquier otro estado FALLARÍA)."
+        avisos_tolerados=$((avisos_tolerados + 1))
+        continue
+      fi
+      echo "FAIL: $f — el aviso no dice cuándo se retira o cambia." >&2
+      echo "      Escribe en la cabecera «Earliest removal | Behaviour flip | Earliest change: \`vX.Y.Z\`, no earlier than YYYY-MM-DD»" >&2
+      echo "      (ver docs/gobernanza/POLITICA_DEPRECACION.md §5). Sólo una fila en \`decisión\` del §3.0 de $CONTRATO lo excusa." >&2
+      avisos_malos=$((avisos_malos + 1))
+      status=1
+      continue
+    fi
+    if ! semver_gt "$ver" "$pin"; then
+      echo "FAIL: $f — promete cambiar en $ver y $repo ya va por $pin." >&2
+      echo "      La promesa ha vencido: retira o voltea, o fecha de nuevo el aviso." >&2
+      avisos_malos=$((avisos_malos + 1))
+      status=1
+      continue
+    fi
+    # Retirada o volteo lo dice la CLAVE de la viñeta («Earliest removal»
+    # frente a «Behaviour flip» / «Earliest change»), no su texto: la prosa
+    # de un volteo suele decir «not a symbol removal».
+    clave=$(printf '%s' "$ventana" | sed -nE 's/^- ([^:]+):.*/\1/p')
+    if printf '%s' "$clave" | grep -qi 'removal'; then
+      tipo=retirada
+      avisos_retirada=$((avisos_retirada + 1))
+    else
+      tipo=volteo
+      avisos_volteo=$((avisos_volteo + 1))
+    fi
+    if [ "$(major_de "$ver")" -gt "$(major_de "$pin")" ]; then
+      if [ -z "$fila" ]; then
+        echo "FAIL: $f — nombra $ver (el major) y no está en la tabla del §3.0 de $CONTRATO." >&2
+        echo "      La lista cerrada del major tiene que tener el 100 % de lo que va al major: añade la fila ($repo, $id)." >&2
+        avisos_malos=$((avisos_malos + 1))
+        status=1
+        continue
+      fi
+      if [ "$estado_fila" != "publicado" ]; then
+        echo "FAIL: $f — está al pin con su fecha y la fila $n_fila del §3.0 dice \`$estado_fila\`; tiene que decir \`publicado\`." >&2
+        echo "      La tabla se ha quedado rancia: corrígela en el PR de set que trae el aviso." >&2
+        avisos_malos=$((avisos_malos + 1))
+        status=1
+        continue
+      fi
+      donde="§3.0 fila $n_fila"
+    else
+      donde="fuera del major"
+    fi
+    if [ "$fecha" \< "$hoy" ]; then
+      dias=$(dias_entre "$fecha" "$hoy")
+      echo "AVISO: $f — la ventana venció hace $dias día(s) ($fecha); el cambio en $ver está pendiente ($donde)."
+      avisos_vencidos=$((avisos_vencidos + 1))
+      continue
+    fi
+    echo "  ok  $f → $tipo, $ver, no antes de $fecha ($donde; pin $repo $pin)"
+  done
+done
+echo
+
+# ---------------------------------------------------------------------------
+# C. La tabla del §3.0, fila a fila.
+# ---------------------------------------------------------------------------
+echo "-- C. la lista cerrada del major ($CONTRATO §3.0)"
+vistas=""
+while IFS='|' read -r n prod id est hal ses; do
+  [ -n "$n" ] || continue
+  filas=$((filas + 1))
+  case "$prod" in
+    quark|nucleus|orbit) ;;
+    *)
+      echo "FAIL: §3.0 fila $n — el producto es «$prod» y tiene que ser quark, nucleus u orbit." >&2
+      filas_malas=$((filas_malas + 1)); status=1; continue ;;
+  esac
+  if [ -n "$id" ]; then
+    if printf '%s\n' "$vistas" | grep -qxF "$prod|$id"; then
+      echo "FAIL: §3.0 fila $n — $prod $id ya está en otra fila; un aviso es una decisión y una fila." >&2
+      filas_malas=$((filas_malas + 1)); status=1; continue
+    fi
+    vistas="$vistas
+$prod|$id"
+  fi
+  etiqueta="$prod ${id:-sin aviso}"
+  [ -n "$hal" ] && [ "$hal" != "—" ] && etiqueta="$etiqueta ($hal)"
+  case "$est" in
+    publicado)
+      if [ -z "$id" ]; then
+        echo "FAIL: §3.0 fila $n — dice \`publicado\` y la columna Aviso no tiene ningún DEP-YYYY-NNN." >&2
+        filas_malas=$((filas_malas + 1)); status=1; continue
+      fi
+      if ! ls "$prod"/docs/deprecations/"$id"-*.md >/dev/null 2>&1; then
+        echo "FAIL: §3.0 fila $n — $etiqueta dice \`publicado\` y no hay $prod/docs/deprecations/$id-*.md al pin." >&2
+        echo "      O el aviso no ha salido en ningún set todavía (\`en main\`) o nunca se escribió (\`por escribir\`)." >&2
+        filas_malas=$((filas_malas + 1)); status=1; continue
+      fi
+      filas_publicado=$((filas_publicado + 1))
+      echo "  ok  §3.0 fila $n — $etiqueta publicado, fichero al pin" ;;
+    "en main")
+      filas_en_main=$((filas_en_main + 1))
+      echo "  --  §3.0 fila $n — $etiqueta en main (llega con el próximo set de $prod)" ;;
+    "por escribir")
+      filas_por_escribir=$((filas_por_escribir + 1))
+      echo "AVISO: §3.0 fila $n — $etiqueta por escribir${ses:+ → $ses}" ;;
+    "decisión")
+      filas_decision=$((filas_decision + 1))
+      echo "AVISO: §3.0 fila $n — $etiqueta espera decisión${ses:+ → $ses}" ;;
+    descartado)
+      filas_descartado=$((filas_descartado + 1))
+      echo "  --  §3.0 fila $n — $etiqueta descartado (el número no se reutiliza)" ;;
+    *)
+      echo "FAIL: §3.0 fila $n — estado «$est» desconocido; vale \`publicado\`, \`en main\`, \`por escribir\`, \`decisión\` o \`descartado\`." >&2
+      filas_malas=$((filas_malas + 1)); status=1 ;;
+  esac
+done <<EOF
+$tabla
+EOF
+echo
+
+pendientes=$((filas_por_escribir + filas_decision))
 if [ "$status" -eq 0 ]; then
-  echo "OK: deprecaciones — $total marca(s) escrita(s) a mano, $vencidas con la ventana vencida (aviso), ninguna prometiendo una versión ya publicada"
+  echo "OK: deprecaciones — $total marca(s) a mano ($vencidas vencida(s)); $avisos aviso(s) \`active\` al pin: $avisos_retirada de retirada, $avisos_volteo de volteo, $avisos_tolerados sin fecha tolerado(s) por \`decisión\`, $avisos_vencidos vencido(s), $avisos_ignorados no activo(s) ignorado(s); §3.0: $filas fila(s) — $filas_publicado publicado con fichero al pin, $filas_en_main en main, $filas_por_escribir por escribir, $filas_decision en decisión → $pendientes pendiente(s) antes de M1"
 else
-  echo "FAIL: $malas de $total deprecación(es) incumplen docs/gobernanza/POLITICA_DEPRECACION.md" >&2
+  echo "FAIL: $malas marca(s), $avisos_malos aviso(s) y $filas_malas fila(s) del §3.0 incumplen docs/gobernanza/POLITICA_DEPRECACION.md §5 (de $total, $avisos y $filas)" >&2
 fi
 exit $status
