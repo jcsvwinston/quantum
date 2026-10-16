@@ -103,10 +103,10 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 > `publicado` FALLA). El id se lee de la columna «Aviso» y el producto de la
 > columna «Producto», porque los tres repos numeran por su cuenta. `M1` no
 > empieza con una fila que no diga `publicado`. Contado al pin de 1.41.0 al
-> cierre del 2026-10-16: 12 filas `publicado`, **15 `en main`** (las seis de
-> quark#470 y las nueve de nucleus#630, que el set del 2026-10-19 lleva al
-> pin y su PR de set pasa a `publicado`), 3 `por escribir` (la 10, que
-> espera a `M0-Q`, y la 29 y la 30, de `M0-O`) y 0 `decisión`.
+> cierre del 2026-10-16: 12 filas `publicado`, **16 `en main`** (las siete
+> de quark, quark#470 y quark#471, y las nueve de nucleus#630, que el set
+> del 2026-10-19 lleva al pin y su PR de set pasa a `publicado`), 2 `por
+> escribir` (la 29 y la 30, de `M0-O`) y 0 `decisión`.
 
 | # | Producto | Qué cambia en el 2.0 | Tipo | Hallazgo | Aviso | Estado | Ventana abre | Sesión |
 |---|---|---|---|---|---|---|---|---|
@@ -119,7 +119,7 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 | 7 | quark | `ON DELETE SET DEFAULT` igual en los seis motores | volteo | QK-60 | DEP-2026-007 | `en main` | — | `M0-Q` |
 | 8 | quark | `GroupBy` sin `Select` es un error | volteo | QK-24 | DEP-2026-008 | `en main` | — | `M0-Q` |
 | 9 | quark | el `LIKE` plano declara `ESCAPE '\'` en todos los motores | volteo | QK-32 | DEP-2026-009 | `en main` | — | `M0-Q` |
-| 10 | quark | Oracle cuenta `VARCHAR2` en caracteres | volteo (esquema) | QK-50 | DEP-2026-010 | `por escribir` | — | `M0-Q` |
+| 10 | quark | Oracle cuenta `VARCHAR2` en caracteres | volteo (esquema) | QK-50 | DEP-2026-010 | `en main` | — | `M0-Q` |
 | 11 | nucleus | se retira `Context.HTML` con cadena cruda | retirada (1 marca) | NU-41 | DEP-2026-009 | `publicado` | 2027-01-04 | — |
 | 12 | nucleus | se retiran `Context.Get`/`Set` sin tipo (`router.Context.Set` se promociona con la misma firma: hay que mirar las dos) | retirada (2 marcas) | — | DEP-2026-011 | `publicado` | 2027-01-02 | — |
 | 13 | nucleus | se retiran los constructores que paniquean (`NewJWTManager`, `NewModuleMigrator`, `NewModuleFSMigrator`, `CSRFMiddleware`) | retirada (4 marcas) | NU-41 | DEP-2026-012 | `publicado` | 2027-01-02 | — |

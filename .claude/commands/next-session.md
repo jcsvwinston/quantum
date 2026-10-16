@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-16, QUANTUM 1.41.0 — A11 CERRADO; A12 en curso: `M0` EN MARCHA (`M0-S0`, `M0-G` y `M0-N` hechas, `M0-Q` en curso; siguiente `M0-O` tras el set del 19) → R1 → M1 → R2; el 2.0 no antes de 2027-01-04)
+## 3. Estado al cierre (2026-10-16, QUANTUM 1.41.0 — A11 CERRADO; A12 en curso: `M0` EN MARCHA (`M0-S0`, `M0-G`, `M0-N` y `M0-Q` hechas; siguiente `M0-O` tras el set del 19) → R1 → M1 → R2; el 2.0 no antes de 2027-01-04)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -114,8 +114,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `pkg/model` se retira en el 2.0 y con él el adaptador `datasource/nucleus`
   de orbit), así que ninguna fila queda en `decisión`; **`M0-N` está hecha
   (nucleus#630, fusionado el 2026-10-16: nueve avisos, trece marcas,
-  `WithErrorEnvelope()`, `router.Wrap`)**, `M0-Q` tiene quark#470 fusionado y
-  le queda DEP-2026-010, y quince filas del §3.0 están `en main` hasta que
+  `WithErrorEnvelope()`, `router.Wrap`)**, **`M0-Q` también** (quark#470 y
+  quark#471: DEP-2026-004…010), y dieciséis filas del §3.0 están `en main` hasta que
   el set del 2026-10-19 las lleve al pin y su PR de set las pase a
   `publicado`. Siguiente: `M0-O`, que requiere esa release de nucleus).
   Decisiones de Carlos para A11: ejemplos como fixtures probados,
@@ -322,10 +322,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `make check` de nucleus hay que mirarlo en su log: el primer intento paró
   en los guards por `configuration.md`, que es GENERADA desde
   `CONFIG_KEY_REGISTRY.md`, y la fase `test` no corrió. Las filas 4…9 y
-  20…28 del §3.0 pasan a `en main`; el guard tolera el aviso sin fecha al
-  pin también con la fila `en main`, porque el fichero nuevo aún no está al
-  pin. **El PR de set del 2026-10-19 debe pasar esas quince filas a
-  `publicado`** (si no, `umbrella-deprecations` se pone rojo al re-pinar).
+  20…28 del §3.0 pasan a `en main`, y la 10 esa misma noche con quark#471
+  (`M0-Q` (b): DEP-2026-010, QK-50; quark no tiene interruptor para la
+  semántica de longitud en Oracle, la salida es `NLS_LENGTH_SEMANTICS=CHAR`
+  del motor); el guard tolera el aviso sin fecha al pin también con la fila
+  `en main`, porque el fichero nuevo aún no está al pin. **El PR de set del
+  2026-10-19 debe pasar esas dieciséis filas a `publicado`** (si no,
+  `umbrella-deprecations` se pone rojo al re-pinar).
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -366,8 +369,8 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 **Trabajo con destinatario (por orden de arranque):**
 
 - **Trampa anunciada para el tren del 2026-10-19** (nace el 2026-10-16):
-  quince filas del §3.0 de `docs/planes/quantum-2.0.md` están `en main`
-  (quark#470, nucleus#630). Al re-pinar quark y nucleus, `umbrella-deprecations`
+  dieciséis filas del §3.0 de `docs/planes/quantum-2.0.md` están `en main`
+  (quark#470, quark#471, nucleus#630). Al re-pinar quark y nucleus, `umbrella-deprecations`
   FALLA por cada aviso que llegue al pin con su fecha y cuya fila no diga
   `publicado`: el PR de set las pasa a `publicado` (y la cabecera del §3.0
   actualiza el recuento). Es el guard haciendo su trabajo, no un fallo.
