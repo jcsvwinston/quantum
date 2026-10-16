@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-16, QUANTUM 1.41.0 — A11 CERRADO; A12 en curso: `M0` EN MARCHA (`M0-S0` y `M0-G` hechas, `M0-Q` en marcha, D1…D8 pendientes de Carlos) → R1 → M1 → R2; el 2.0 no antes de 2027-01-04)
+## 3. Estado al cierre (2026-10-16, QUANTUM 1.41.0 — A11 CERRADO; A12 en curso: `M0` EN MARCHA (`M0-S0` y `M0-G` hechas, `M0-Q` en curso, D1…D8 DECIDIDAS; siguiente `M0-N`) → R1 → M1 → R2; el 2.0 no antes de 2027-01-04)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -108,11 +108,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   lo troceó en `M0-Q` ∥ `M0-N` ∥ `M0-G` → `M0-O` → `M0-E`; la lista cerrada
   del major, con el estado de cada aviso, es el §3.0 de
   [`docs/planes/quantum-2.0.md`](../../docs/planes/quantum-2.0.md), que
-  desde `M0-G` (quantum#285, sin fusionar) lee `umbrella-deprecations`
-  junto con los avisos `active` sin marca; y sus
-  **ocho decisiones D1…D8 esperan a Carlos** en el §3.3 —`M0-N` no
-  escribe un aviso de una fila `decisión` sin ellas; `M0-Q` no las
-  necesita—). Decisiones de Carlos para A11: ejemplos como fixtures probados,
+  desde `M0-G` (quantum#285, fusionado) lee `umbrella-deprecations`
+  junto con los avisos `active` sin marca; y sus **ocho decisiones D1…D8
+  las tomó Carlos el 2026-10-16** (§3.3; D5 contra la recomendación:
+  `pkg/model` se retira en el 2.0 y con él el adaptador `datasource/nucleus`
+  de orbit), así que ninguna fila queda en `decisión` y **`M0-N` puede
+  arrancar**; `M0-Q` tiene quark#470 fusionado y le queda DEP-2026-010).
+  Decisiones de Carlos para A11: ejemplos como fixtures probados,
   construir saml/redis-cache/sentry (Stripe se construyó y se
   retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
   embebido y fijado a la release. El estado de cada sesión (hecha, PR
@@ -296,6 +298,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   que entre en él abre su ventana el 2027-01-17, y **la fecha del 2.0 la
   fija la última ventana que `M0` abra** (`M0-E` la escribe en el §1 del
   contrato).
+- **La misma tarde**: quantum#284 y quantum#285 fusionados con el squash
+  controlado (la pila con squash dejó #285 en conflicto: la sesión `M0-G`
+  rebasó y empujó); quark#470 (`M0-Q`, DEP-2026-004…009) fusionado.
+  **Carlos decidió D1…D8 una a una**: 30m; DEP-003 de nucleus fechado al
+  2.0; problem+json con `WithErrorEnvelope()` antes; sólo
+  `NewWrapResponseWriter`; **`pkg/model` se retira en el 2.0 y el adaptador
+  `datasource/nucleus` de orbit con él** (fila 30 del §3.0, `DEP-2026-002`
+  de orbit); la puerta sin tipo de `signals` fuera; QK-50 y NU-110 entran.
+  El §3.0 queda con 18 filas `por escribir` y 0 `decisión`; `M0-N` puede
+  arrancar.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -466,8 +478,6 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
   cuál no lo decide una sesión de arco sola — y hacerlo ANTES del tren
   ahorra un rojo a mitad de corte.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
-  **decidir D1…D8** del bloque de `docs/planes/quantum-2.0.md` §3.3 (sin
-  ellas `M0-N` no escribe los avisos de nucleus y el 2.0 no tiene fecha);
   cerrar los issues automáticos quantum#262 y quantum#263 (lanes del
   2026-10-05; la corrida del 12/10 pasó);
   proteger `main` en quark, orbit y quantum exigiendo `CI Required Gate`

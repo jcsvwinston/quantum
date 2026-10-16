@@ -36,8 +36,12 @@
    errores sólo del sobre (`ui/src/services/api.ts`) si D3 voltea el
    default, el `LIKE` plano con escape propio de `quarkdatasource/store.go`
    (la forma portable `WhereLike`/`WhereContains` existe desde A8) y lo que
-   llame a la puerta sin tipo de `signals` si D6 la retira. `authz.New` no
-   rompe (D4). El 2.0 no puede romper el panel.
+   llame a la puerta sin tipo de `signals` (D6 la retira). `authz.New` no
+   rompe (D4). **Y lo que D5/D5b añaden**: el adaptador `datasource/nucleus`
+   se deprecia en 1.x (`DEP-2026-002` de orbit, fila 30) y se retira en el
+   2.0, así que el panel sobre `pkg/model` deja de existir con el major y
+   la guía de migración lo dice. El 2.0 no puede romper el panel sobre
+   quark.
 5. **`R1` hecha**: la re-auditoría completa sobre el último set 1.x. Lo
    rompiente que encuentre entra en el §3 (con su aviso); lo demás, en sets
    semanales.
@@ -75,8 +79,8 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 **Nucleus — Datos (3)**
 - Quark como capa de datos por defecto (starter y generadores).
 - Migraciones autogeneradas desde modelos con lock y detección de deriva.
-- `pkg/model` reducido a sustrato (su retirada como capa pública, en el
-  §3.3).
+- `pkg/model` fuera del camino: generadores, starter y `nucleustest` sobre
+  quark en 1.x, porque en el 2.0 se retira como capa pública (D5, fila 26).
 
 ## 3. Lo que entra en el 2.0
 
@@ -93,12 +97,15 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 > aquí, y por un aviso ya al pin con su fecha cuya fila no diga `publicado`
 > (se corrige en el PR de set que lo trae); AVISA por cada `por escribir` y
 > cada `decisión`, y cuenta las que quedan. Un aviso `active` sin fecha
-> sólo se tolera mientras su fila esté en `decisión` (`DEP-2026-003` de
-> nucleus, hasta D2). El id se lee de la columna «Aviso» y el producto de la
+> sólo se tolera mientras su fila esté en `decisión` o `por escribir`
+> (`DEP-2026-003` de nucleus: D2 lo fechó al 2.0 y `M0-N` escribe la
+> fecha). El id se lee de la columna «Aviso» y el producto de la
 > columna «Producto», porque los tres repos numeran por su cuenta. `M1` no
-> empieza con una fila que no diga `publicado`. Contado al pin de 1.41.0:
-> 12 filas `publicado`, 0 `en main`, 9 `por escribir` y 8 `decisión` (17
-> pendientes, que es lo que el guard imprime).
+> empieza con una fila que no diga `publicado`. Contado al pin de 1.41.0,
+> con D1…D8 decididas la tarde del 2026-10-16: 12 filas `publicado`, 0
+> `en main`, 18 `por escribir` y 0 `decisión` (18 pendientes, que es lo
+> que el guard imprime; quark#470 trae seis de ellas a `en main` en cuanto
+> el PR del paraguas que lo recoja mueva sus filas).
 
 | # | Producto | Qué cambia en el 2.0 | Tipo | Hallazgo | Aviso | Estado | Ventana abre | Sesión |
 |---|---|---|---|---|---|---|---|---|
@@ -111,7 +118,7 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 | 7 | quark | `ON DELETE SET DEFAULT` igual en los seis motores | volteo | QK-60 | DEP-2026-007 | `por escribir` | — | `M0-Q` |
 | 8 | quark | `GroupBy` sin `Select` es un error | volteo | QK-24 | DEP-2026-008 | `por escribir` | — | `M0-Q` |
 | 9 | quark | el `LIKE` plano declara `ESCAPE '\'` en todos los motores | volteo | QK-32 | DEP-2026-009 | `por escribir` | — | `M0-Q` |
-| 10 | quark | Oracle cuenta `VARCHAR2` en caracteres | volteo (esquema) | QK-50 | DEP-2026-010 | `decisión` (D7) | — | `M0-Q` |
+| 10 | quark | Oracle cuenta `VARCHAR2` en caracteres | volteo (esquema) | QK-50 | DEP-2026-010 | `por escribir` | — | `M0-Q` |
 | 11 | nucleus | se retira `Context.HTML` con cadena cruda | retirada (1 marca) | NU-41 | DEP-2026-009 | `publicado` | 2027-01-04 | — |
 | 12 | nucleus | se retiran `Context.Get`/`Set` sin tipo (`router.Context.Set` se promociona con la misma firma: hay que mirar las dos) | retirada (2 marcas) | — | DEP-2026-011 | `publicado` | 2027-01-02 | — |
 | 13 | nucleus | se retiran los constructores que paniquean (`NewJWTManager`, `NewModuleMigrator`, `NewModuleFSMigrator`, `CSRFMiddleware`) | retirada (4 marcas) | NU-41 | DEP-2026-012 | `publicado` | 2027-01-02 | — |
@@ -121,22 +128,23 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 | 17 | nucleus | `rate_limit_*` sin `WithRateLimit()`, deja de arrancar | negativa | — | DEP-2026-016 | `publicado` | 2027-01-02 | — |
 | 18 | nucleus | claves de authz y `Module.Policies` sin `WithAuthz()`, deja de arrancar | negativa | — | DEP-2026-017 | `publicado` | 2027-01-02 | — |
 | 19 | nucleus | `profiling_enabled` sin guarda, deja de arrancar | negativa | — | DEP-2026-018 | `publicado` | 2027-01-02 | — |
-| 20 | nucleus | las filas de política de 3 columnas dejan de leerse (hoy `active` SIN fecha, contra la política §2) | retirada | — | DEP-2026-003 | `decisión` (D2) | — | `M0-N` |
+| 20 | nucleus | las filas de política de 3 columnas dejan de leerse (hoy `active` SIN fecha, contra la política §2) | retirada | — | DEP-2026-003 | `por escribir` | — | `M0-N` |
 | 21 | nucleus | `nucleustest` deja de enlazar SQLite siempre | volteo (empaquetado de test) | NU-121 | DEP-2026-019 | `por escribir` | — | `M0-N` |
 | 22 | nucleus | el proveedor asynq sale a `providers/tasks-asynq` (decisión 4 de A12) | empaquetado | — | DEP-2026-020 | `por escribir` | — | `M0-N` |
-| 23 | nucleus | `session_idle_timeout` con valor de fábrica | volteo (config) | NU-72 | DEP-2026-021 | `decisión` (D1) | — | `M0-N` |
-| 24 | nucleus | los errores salen en problem+json por defecto; `WithErrorEnvelope()` para quedarse | volteo | — | DEP-2026-022 | `decisión` (D3) | — | `M0-N` |
-| 25 | nucleus | se retira `NewWrapResponseWriter(w, _ int)`; `router.Wrap(w)` desde 1.x | retirada (1 marca) | NU-41 | DEP-2026-023 | `decisión` (D4) | — | `M0-N` |
-| 26 | nucleus | `pkg/model` pasa a sustrato (`transitional`): los generadores, el starter y la doc dejan de enseñarlo; retirada en el 3.0 | degradación | — | DEP-2026-024 | `decisión` (D5) | — | `M0-N` |
-| 27 | nucleus | se retira la puerta sin tipo de `signals` (`Signal`, `Event`, `Handler`, `Bus.On/Emit/EmitAsync`); las señales de ciclo de vida como topics tipados desde 1.x | retirada (marcas) | — | DEP-2026-025 | `decisión` (D6) | — | `M0-N` |
-| 28 | nucleus | SQLite guarda las fechas en un formato que `date()` entiende | volteo (datos) | NU-110 | DEP-2026-026 | `decisión` (D8) | — | `M0-N` |
+| 23 | nucleus | `session_idle_timeout` con valor de fábrica | volteo (config) | NU-72 | DEP-2026-021 | `por escribir` | — | `M0-N` |
+| 24 | nucleus | los errores salen en problem+json por defecto; `WithErrorEnvelope()` para quedarse | volteo | — | DEP-2026-022 | `por escribir` | — | `M0-N` |
+| 25 | nucleus | se retira `NewWrapResponseWriter(w, _ int)`; `router.Wrap(w)` desde 1.x | retirada (1 marca) | NU-41 | DEP-2026-023 | `por escribir` | — | `M0-N` |
+| 26 | nucleus | se retira `pkg/model` como capa de datos pública (48 símbolos); los generadores, el starter, `nucleustest` y la doc pasan a quark en 1.x (la DX al 5) y `pkg/app`/`pkg/nucleus` dejan de exponerlo | retirada (paquete) | — | DEP-2026-024 | `por escribir` | — | `M0-N` |
+| 27 | nucleus | se retira la puerta sin tipo de `signals` (`Signal`, `Event`, `Handler`, `Bus.On/Emit/EmitAsync`); las señales de ciclo de vida como topics tipados desde 1.x | retirada (marcas) | — | DEP-2026-025 | `por escribir` | — | `M0-N` |
+| 28 | nucleus | SQLite guarda las fechas en un formato que `date()` entiende | volteo (datos) | NU-110 | DEP-2026-026 | `por escribir` | — | `M0-N` |
 | 29 | orbit | la identidad del nodo del fleet atada al certificado cuando hay mTLS; `AllowSharedAgentCertificate` para quedarse | volteo (config) | OR-57 | DEP-2026-001 (orbit) | `por escribir` | — | `M0-O` |
+| 30 | orbit | se retira el adaptador `datasource/nucleus` (el panel sobre modelos de `pkg/model`): el panel se monta sólo sobre `quarkdatasource` (D5b) | retirada (paquete) | — | DEP-2026-002 (orbit) | `por escribir` | — | `M0-O` |
 
 Lo que esta tabla deja fuera a propósito: la migración de orbit (§2.4, es
 trabajo de 1.x, no un cambio del 2.0), la DX al 5 (§2.1, aditiva) y el
 rediseño (§3.4, que llega como opción en una minor y se vuelve el defecto
 en el 2.0 sin retirar nada). Los ids `DEP-2026-010` y `019…026` de arriba
-son los siguientes libres de cada repo al 2026-10-16; si una decisión se
+y el `DEP-2026-002` de orbit son los siguientes libres de cada repo al 2026-10-16; si una decisión se
 cae, su número no se reutiliza (queda la fila como `descartado` con la
 fecha).
 
@@ -184,24 +192,25 @@ existe en 1.x.
 | OR-57 | la identidad del nodo del fleet atada al certificado (con mTLS) | opcional |
 | NU-121 | `nucleustest` deja de enlazar SQLite siempre | lo enlaza |
 
-**Las ocho decisiones de `M0` — BLOQUE QUE DECIDE CARLOS.** `M0-S0` las
-midió el 2026-10-16 y las deja escritas con su recomendación; `M0-N`,
-`M0-Q` y `M0-O` no escriben el aviso de una fila `decisión` hasta que su
-columna derecha diga algo. Lo medido está en el plan de A12, sección
-«`M0` — inventario medido».
+**Las ocho decisiones de `M0` — DECIDIDAS por Carlos el 2026-10-16**, una
+a una, sobre lo que `M0-S0` midió esa misma mañana (plan de A12, sección
+«`M0` — inventario medido»). Siete siguen la recomendación; **D5 no**:
+`pkg/model` se retira en el 2.0, y con él el adaptador `datasource/nucleus`
+de orbit (D5b). Ninguna fila del §3.0 queda en `decisión`: `M0-N` y
+`M0-O` pueden escribir todos sus avisos.
 
 <!-- INICIO BLOQUE DE DECISIÓN M0 -->
 
 | id | Qué decide | Propuesto | Decisión de Carlos |
 |---|---|---|---|
-| **D1** | NU-72: el valor de fábrica de `session_idle_timeout` | **30m**: es lo que ya muestra `docs/guides/AUTH_GUIDE.md`, lo que `doctor security` pide al avisar del `0` y lo que satisface ASVS V3.3.2. Un `0` explícito en la configuración sigue apagándolo; `M0-N` comprueba que el cargador distingue «sin clave» de «clave a 0» | |
-| **D2** | DEP-2026-003 de nucleus (filas de política de 3 columnas), `active` sin fecha | **Fecharlo al 2.0**: la lectura de filas de 3 columnas se retira en v2.0.0 con ventana desde el set que lo publique. La política §2 no admite un aviso sin fecha, y hoy es el único. La alternativa es cerrarlo como `completed` sin retirar nada, que es dejar el código de compatibilidad para siempre | |
-| **D3** | el sobre de errores: problem+json por defecto en el 2.0 | **Sí, con la salida primero**: `WithErrorEnvelope()` en 1.x (hoy sólo existe `WithProblemDetails()`, el opt-in), y orbit leyendo los dos formatos en su minor de migración (`api.ts` hoy lee sólo el sobre). Sin la salida, voltear rompe a todo cliente que parsee `{"error":…}` | |
-| **D4** | las firmas de constructores que NU-41 señaló | **Sólo `NewWrapResponseWriter`**: tiene un parámetro muerto (`_ int`), orbit lo llama en 2 sitios, y la salida es `router.Wrap(w)` en 1.x con la marca en el viejo. **`authz.New` se queda**: su variádico no rompe a nadie, y moverle el logger al final por estilo tocaría 18 ficheros de orbit a cambio de nada. La guía de estilo (cfg-struct, logger último, nunca panic) rige para constructores NUEVOS | |
-| **D5** | `pkg/model` como capa de datos pública | **Bajarlo a sustrato en el 2.0 y retirarlo en el 3.0**: pasa a `transitional`, los generadores, el starter y la doc enseñan quark (es la DX al 5, aditiva, en 1.x), y el registro sigue publicado porque el adaptador `datasource/nucleus` de orbit entero se apoya en él (6 ficheros, 3 módulos) y no hay sustituto en la ventana. Retirarlo en el 2.0 es decidir que el panel sobre `pkg/model` desaparece con el major | |
-| **D6** | los buses que se solapan | **Retirar la puerta sin tipo de `signals`** (`Signal`, `Event{Payload any}`, `Handler`, `Bus.On/Emit/EmitAsync`) y quedarse con `signals.Bus` y la API tipada que A7 entregó; las señales de ciclo de vida (`PostSave`…) se publican como topics tipados en 1.x. `observability.Bus` no se toca: es el fan-out de observabilidad, no un bus de dominio. Orbit guarda un `*signals.Bus` en el adaptador y en el panel; `M0-O` migra lo que use la puerta vieja | |
-| **D7** | QK-50: Oracle cuenta `VARCHAR2` en caracteres | **Entra** (ya estaba propuesto): cambia el DDL que genera el plan en Oracle, no los datos; una tabla existente conserva su semántica de bytes hasta que una migración la toque, y el aviso lo dice | |
-| **D8** | NU-110: SQLite guarda las fechas en un formato que sus funciones de fecha entienden | **Entra** (ya estaba propuesto), con la lectura de las dos formas en el 2.0 y una migración de datos opcional documentada: cambia lo que hay escrito en bases existentes, y es el único de la lista que lo hace | |
+| **D1** | NU-72: el valor de fábrica de `session_idle_timeout` | **30m**: es lo que ya muestra `docs/guides/AUTH_GUIDE.md`, lo que `doctor security` pide al avisar del `0` y lo que satisface ASVS V3.3.2. Un `0` explícito en la configuración sigue apagándolo; `M0-N` comprueba que el cargador distingue «sin clave» de «clave a 0» | **30m** (2026-10-16). Un `0` explícito sigue apagándolo. |
+| **D2** | DEP-2026-003 de nucleus (filas de política de 3 columnas), `active` sin fecha | **Fecharlo al 2.0**: la lectura de filas de 3 columnas se retira en v2.0.0 con ventana desde el set que lo publique. La política §2 no admite un aviso sin fecha, y hoy es el único. La alternativa es cerrarlo como `completed` sin retirar nada, que es dejar el código de compatibilidad para siempre | **Fecharlo al 2.0** (2026-10-16): la lectura de filas de 3 columnas se retira en v2.0.0. |
+| **D3** | el sobre de errores: problem+json por defecto en el 2.0 | **Sí, con la salida primero**: `WithErrorEnvelope()` en 1.x (hoy sólo existe `WithProblemDetails()`, el opt-in), y orbit leyendo los dos formatos en su minor de migración (`api.ts` hoy lee sólo el sobre). Sin la salida, voltear rompe a todo cliente que parsee `{"error":…}` | **Sí, con la salida primero** (2026-10-16): `WithErrorEnvelope()` en 1.x; orbit lee los dos formatos. |
+| **D4** | las firmas de constructores que NU-41 señaló | **Sólo `NewWrapResponseWriter`**: tiene un parámetro muerto (`_ int`), orbit lo llama en 2 sitios, y la salida es `router.Wrap(w)` en 1.x con la marca en el viejo. **`authz.New` se queda**: su variádico no rompe a nadie, y moverle el logger al final por estilo tocaría 18 ficheros de orbit a cambio de nada. La guía de estilo (cfg-struct, logger último, nunca panic) rige para constructores NUEVOS | **Sólo `NewWrapResponseWriter`** (2026-10-16): `router.Wrap(w)` en 1.x; `authz.New` se queda. |
+| **D5** | `pkg/model` como capa de datos pública | **Bajarlo a sustrato en el 2.0 y retirarlo en el 3.0**: pasa a `transitional`, los generadores, el starter y la doc enseñan quark (es la DX al 5, aditiva, en 1.x), y el registro sigue publicado porque el adaptador `datasource/nucleus` de orbit entero se apoya en él (6 ficheros, 3 módulos) y no hay sustituto en la ventana. Retirarlo en el 2.0 es decidir que el panel sobre `pkg/model` desaparece con el major | **RETIRARLO EN EL 2.0** (2026-10-16, contra la recomendación): desaparece como capa pública con el major; generadores, starter, `nucleustest` y doc pasan a quark en 1.x. **D5b** (misma tarde): el adaptador `datasource/nucleus` de orbit **se retira** con él y el panel queda sólo sobre `quarkdatasource` (fila 30; orbit lo deprecia en 1.x con su `DEP-2026-002`). |
+| **D6** | los buses que se solapan | **Retirar la puerta sin tipo de `signals`** (`Signal`, `Event{Payload any}`, `Handler`, `Bus.On/Emit/EmitAsync`) y quedarse con `signals.Bus` y la API tipada que A7 entregó; las señales de ciclo de vida (`PostSave`…) se publican como topics tipados en 1.x. `observability.Bus` no se toca: es el fan-out de observabilidad, no un bus de dominio. Orbit guarda un `*signals.Bus` en el adaptador y en el panel; `M0-O` migra lo que use la puerta vieja | **La puerta sin tipo** (2026-10-16): se retiran `Signal`, `Event`, `Handler`, `Bus.On/Emit/EmitAsync`; `observability.Bus` no se toca. |
+| **D7** | QK-50: Oracle cuenta `VARCHAR2` en caracteres | **Entra** (ya estaba propuesto): cambia el DDL que genera el plan en Oracle, no los datos; una tabla existente conserva su semántica de bytes hasta que una migración la toque, y el aviso lo dice | **Entra** (2026-10-16). |
+| **D8** | NU-110: SQLite guarda las fechas en un formato que sus funciones de fecha entienden | **Entra** (ya estaba propuesto), con la lectura de las dos formas en el 2.0 y una migración de datos opcional documentada: cambia lo que hay escrito en bases existentes, y es el único de la lista que lo hace | **Entra, leyendo las dos formas** (2026-10-16), con la migración de datos opcional documentada. |
 
 <!-- FIN BLOQUE DE DECISIÓN M0 -->
 

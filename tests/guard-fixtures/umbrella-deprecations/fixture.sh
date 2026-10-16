@@ -15,9 +15,10 @@
 #     que es por lo que este guard se escribió.
 #
 # (C) un aviso `active` sin versión ni fecha cuya fila del §3.0 NO está en
-#     `decisión`. Es el caso que se distingue del tolerado: DEP-2026-003 de
-#     nucleus (filas de política de 3 columnas) está `active` sin fecha y
-#     se AVISA porque su fila espera D2; aquí se le quita la viñeta
+#     `decisión` ni en `por escribir`. Es el caso que se distingue del
+#     tolerado: DEP-2026-003 de nucleus (filas de política de 3 columnas)
+#     está `active` sin fecha y se AVISA porque su fila está `por escribir`
+#     (D2 se decidió el 2026-10-16 y M0-N escribe la fecha); aquí se le quita la viñeta
 #     «Behaviour flip» a DEP-2026-013, cuya fila dice `publicado`, y eso
 #     tiene que FALLAR. Si el guard dejara de distinguir los dos casos, o
 #     tolerara cualquier aviso sin fecha, esta rotura pasaría.

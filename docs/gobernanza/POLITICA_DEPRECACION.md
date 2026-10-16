@@ -214,7 +214,7 @@ el `DEP-2026-001` de quark):
 
 El guard tiene fixture en `tests/guard-fixtures/umbrella-deprecations/`, con
 cinco roturas: la nota sin cláusula, la nota que promete una versión ya
-publicada, el aviso `active` sin fecha cuya fila no está en `decisión`, la
+publicada, el aviso `active` sin fecha cuya fila no está en `decisión` ni en `por escribir`, la
 fila `publicado` sin fichero al pin y el aviso del major que falta en la
 tabla.
 
