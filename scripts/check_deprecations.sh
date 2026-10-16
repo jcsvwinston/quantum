@@ -47,13 +47,13 @@
 #
 #   Los avisos `removed`, `completed` y `proposed` se ignoran: no prometen
 #   nada pendiente. Un aviso `active` SIN versión ni fecha se tolera —con
-#   AVISO— sólo mientras la tabla lo tenga en `decisión` o en `por
-#   escribir`: es DEP-2026-003 de nucleus (las filas de política de 3
-#   columnas), que esperó D2 de quantum-2.0.md §3.3 (decidida el
-#   2026-10-16: fecharlo al 2.0) y ahora espera a que M0-N escriba la fecha
-#   en el aviso y un set la traiga al pin. En cuanto la fila diga `en main`
-#   o `publicado` la fecha se exige; con cualquier otro estado, o sin fila,
-#   FALLA.
+#   AVISO— mientras la tabla lo tenga en `decisión`, `por escribir` o `en
+#   main`: es DEP-2026-003 de nucleus (las filas de política de 3 columnas),
+#   que esperó D2 de quantum-2.0.md §3.3 (decidida el 2026-10-16: fecharlo
+#   al 2.0), cuya fecha escribió nucleus#630 en main y que un set tiene que
+#   traer al pin. Los tres estados dicen lo mismo: el fichero AL PIN es el
+#   viejo porque el nuevo aún no ha llegado. En cuanto la fila diga
+#   `publicado` la fecha se exige; sin fila, FALLA.
 #
 # C. La tabla misma. Por cada fila: `publicado` exige el fichero al pin
 # (FALLA si no está); `por escribir` y `decisión` AVISAN y se cuentan —son
@@ -355,14 +355,14 @@ for repo in quark nucleus orbit; do
     ver=$(printf '%s' "$ventana" | sed -nE 's/.*(v[0-9]+\.[0-9]+\.[0-9]+).*/\1/p')
     fecha=$(printf '%s' "$ventana" | sed -nE 's/.*no earlier than `?([0-9]{4}-[0-9]{2}-[0-9]{2}).*/\1/p')
     if [ -z "$ver" ] || [ -z "$fecha" ]; then
-      if [ "$estado_fila" = "decisión" ] || [ "$estado_fila" = "por escribir" ]; then
-        echo "AVISO: $f — \`active\` sin versión ni fecha; la fila $n_fila del §3.0 lo tiene en \`$estado_fila\`, así que se tolera hasta que el aviso lleve la fecha al pin (en \`en main\` o \`publicado\` FALLARÍA)."
+      if [ "$estado_fila" = "decisión" ] || [ "$estado_fila" = "por escribir" ] || [ "$estado_fila" = "en main" ]; then
+        echo "AVISO: $f — \`active\` sin versión ni fecha; la fila $n_fila del §3.0 lo tiene en \`$estado_fila\`, así que se tolera hasta que el aviso lleve la fecha al pin (en \`publicado\` FALLARÍA)."
         avisos_tolerados=$((avisos_tolerados + 1))
         continue
       fi
       echo "FAIL: $f — el aviso no dice cuándo se retira o cambia." >&2
       echo "      Escribe en la cabecera «Earliest removal | Behaviour flip | Earliest change: \`vX.Y.Z\`, no earlier than YYYY-MM-DD»" >&2
-      echo "      (ver docs/gobernanza/POLITICA_DEPRECACION.md §5). Sólo una fila en \`decisión\` o \`por escribir\` del §3.0 de $CONTRATO lo excusa." >&2
+      echo "      (ver docs/gobernanza/POLITICA_DEPRECACION.md §5). Sólo una fila en \`decisión\`, \`por escribir\` o \`en main\` del §3.0 de $CONTRATO lo excusa." >&2
       avisos_malos=$((avisos_malos + 1))
       status=1
       continue
@@ -475,7 +475,7 @@ echo
 
 pendientes=$((filas_por_escribir + filas_decision))
 if [ "$status" -eq 0 ]; then
-  echo "OK: deprecaciones — $total marca(s) a mano ($vencidas vencida(s)); $avisos aviso(s) \`active\` al pin: $avisos_retirada de retirada, $avisos_volteo de volteo, $avisos_tolerados sin fecha tolerado(s) por su fila del §3.0 (decisión/por escribir), $avisos_vencidos vencido(s), $avisos_ignorados no activo(s) ignorado(s); §3.0: $filas fila(s) — $filas_publicado publicado con fichero al pin, $filas_en_main en main, $filas_por_escribir por escribir, $filas_decision en decisión → $pendientes pendiente(s) antes de M1"
+  echo "OK: deprecaciones — $total marca(s) a mano ($vencidas vencida(s)); $avisos aviso(s) \`active\` al pin: $avisos_retirada de retirada, $avisos_volteo de volteo, $avisos_tolerados sin fecha tolerado(s) por su fila del §3.0 (decisión/por escribir/en main), $avisos_vencidos vencido(s), $avisos_ignorados no activo(s) ignorado(s); §3.0: $filas fila(s) — $filas_publicado publicado con fichero al pin, $filas_en_main en main, $filas_por_escribir por escribir, $filas_decision en decisión → $pendientes pendiente(s) antes de M1"
 else
   echo "FAIL: $malas marca(s), $avisos_malos aviso(s) y $filas_malas fila(s) del §3.0 incumplen docs/gobernanza/POLITICA_DEPRECACION.md §5 (de $total, $avisos y $filas)" >&2
 fi

@@ -97,27 +97,28 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 > aquí, y por un aviso ya al pin con su fecha cuya fila no diga `publicado`
 > (se corrige en el PR de set que lo trae); AVISA por cada `por escribir` y
 > cada `decisión`, y cuenta las que quedan. Un aviso `active` sin fecha
-> sólo se tolera mientras su fila esté en `decisión` o `por escribir`
-> (`DEP-2026-003` de nucleus: D2 lo fechó al 2.0 y `M0-N` escribe la
-> fecha). El id se lee de la columna «Aviso» y el producto de la
+> sólo se tolera mientras su fila esté en `decisión`, `por escribir` o `en
+> main` (`DEP-2026-003` de nucleus: D2 lo fechó al 2.0, nucleus#630 escribió
+> la fecha y el set del 2026-10-19 la lleva al pin; con la fila en
+> `publicado` FALLA). El id se lee de la columna «Aviso» y el producto de la
 > columna «Producto», porque los tres repos numeran por su cuenta. `M1` no
-> empieza con una fila que no diga `publicado`. Contado al pin de 1.41.0,
-> con D1…D8 decididas la tarde del 2026-10-16: 12 filas `publicado`, 0
-> `en main`, 18 `por escribir` y 0 `decisión` (18 pendientes, que es lo
-> que el guard imprime; quark#470 trae seis de ellas a `en main` en cuanto
-> el PR del paraguas que lo recoja mueva sus filas).
+> empieza con una fila que no diga `publicado`. Contado al pin de 1.41.0 al
+> cierre del 2026-10-16: 12 filas `publicado`, **15 `en main`** (las seis de
+> quark#470 y las nueve de nucleus#630, que el set del 2026-10-19 lleva al
+> pin y su PR de set pasa a `publicado`), 3 `por escribir` (la 10, que
+> espera a `M0-Q`, y la 29 y la 30, de `M0-O`) y 0 `decisión`.
 
 | # | Producto | Qué cambia en el 2.0 | Tipo | Hallazgo | Aviso | Estado | Ventana abre | Sesión |
 |---|---|---|---|---|---|---|---|---|
 | 1 | quark | se retira el alias `RowLevelSecurity` | retirada (1 marca) | — | DEP-2026-001 | `publicado` | 2026-12-08 | — |
 | 2 | quark | se retira el contrato viejo de listeners (`NewListenerFunc` y 3 más) | retirada (4 marcas) | QK-8 | DEP-2026-002 | `publicado` | 2026-12-08 | — |
 | 3 | quark | `UpdateBatch` comprueba la versión por defecto | volteo | QK-45 | DEP-2026-003 | `publicado` | 2027-01-04 | — |
-| 4 | quark | las demás escrituras de un modelo versionado entran en el bloqueo optimista | volteo | QK-58 | DEP-2026-004 | `por escribir` | — | `M0-Q` |
-| 5 | quark | una escritura que no toca filas no dispara hooks, auditoría ni eventos | volteo | QK-46 | DEP-2026-005 | `por escribir` | — | `M0-Q` |
-| 6 | quark | `Upsert` hace lo mismo en los seis motores (sin `updateCols`; con el duplicado en otra clave única) | volteo | QK-59, QK-65 | DEP-2026-006 | `por escribir` | — | `M0-Q` |
-| 7 | quark | `ON DELETE SET DEFAULT` igual en los seis motores | volteo | QK-60 | DEP-2026-007 | `por escribir` | — | `M0-Q` |
-| 8 | quark | `GroupBy` sin `Select` es un error | volteo | QK-24 | DEP-2026-008 | `por escribir` | — | `M0-Q` |
-| 9 | quark | el `LIKE` plano declara `ESCAPE '\'` en todos los motores | volteo | QK-32 | DEP-2026-009 | `por escribir` | — | `M0-Q` |
+| 4 | quark | las demás escrituras de un modelo versionado entran en el bloqueo optimista | volteo | QK-58 | DEP-2026-004 | `en main` | — | `M0-Q` |
+| 5 | quark | una escritura que no toca filas no dispara hooks, auditoría ni eventos | volteo | QK-46 | DEP-2026-005 | `en main` | — | `M0-Q` |
+| 6 | quark | `Upsert` hace lo mismo en los seis motores (sin `updateCols`; con el duplicado en otra clave única) | volteo | QK-59, QK-65 | DEP-2026-006 | `en main` | — | `M0-Q` |
+| 7 | quark | `ON DELETE SET DEFAULT` igual en los seis motores | volteo | QK-60 | DEP-2026-007 | `en main` | — | `M0-Q` |
+| 8 | quark | `GroupBy` sin `Select` es un error | volteo | QK-24 | DEP-2026-008 | `en main` | — | `M0-Q` |
+| 9 | quark | el `LIKE` plano declara `ESCAPE '\'` en todos los motores | volteo | QK-32 | DEP-2026-009 | `en main` | — | `M0-Q` |
 | 10 | quark | Oracle cuenta `VARCHAR2` en caracteres | volteo (esquema) | QK-50 | DEP-2026-010 | `por escribir` | — | `M0-Q` |
 | 11 | nucleus | se retira `Context.HTML` con cadena cruda | retirada (1 marca) | NU-41 | DEP-2026-009 | `publicado` | 2027-01-04 | — |
 | 12 | nucleus | se retiran `Context.Get`/`Set` sin tipo (`router.Context.Set` se promociona con la misma firma: hay que mirar las dos) | retirada (2 marcas) | — | DEP-2026-011 | `publicado` | 2027-01-02 | — |
@@ -128,15 +129,15 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 | 17 | nucleus | `rate_limit_*` sin `WithRateLimit()`, deja de arrancar | negativa | — | DEP-2026-016 | `publicado` | 2027-01-02 | — |
 | 18 | nucleus | claves de authz y `Module.Policies` sin `WithAuthz()`, deja de arrancar | negativa | — | DEP-2026-017 | `publicado` | 2027-01-02 | — |
 | 19 | nucleus | `profiling_enabled` sin guarda, deja de arrancar | negativa | — | DEP-2026-018 | `publicado` | 2027-01-02 | — |
-| 20 | nucleus | las filas de política de 3 columnas dejan de leerse (hoy `active` SIN fecha, contra la política §2) | retirada | — | DEP-2026-003 | `por escribir` | — | `M0-N` |
-| 21 | nucleus | `nucleustest` deja de enlazar SQLite siempre | volteo (empaquetado de test) | NU-121 | DEP-2026-019 | `por escribir` | — | `M0-N` |
-| 22 | nucleus | el proveedor asynq sale a `providers/tasks-asynq` (decisión 4 de A12) | empaquetado | — | DEP-2026-020 | `por escribir` | — | `M0-N` |
-| 23 | nucleus | `session_idle_timeout` con valor de fábrica | volteo (config) | NU-72 | DEP-2026-021 | `por escribir` | — | `M0-N` |
-| 24 | nucleus | los errores salen en problem+json por defecto; `WithErrorEnvelope()` para quedarse | volteo | — | DEP-2026-022 | `por escribir` | — | `M0-N` |
-| 25 | nucleus | se retira `NewWrapResponseWriter(w, _ int)`; `router.Wrap(w)` desde 1.x | retirada (1 marca) | NU-41 | DEP-2026-023 | `por escribir` | — | `M0-N` |
-| 26 | nucleus | se retira `pkg/model` como capa de datos pública (48 símbolos); los generadores, el starter, `nucleustest` y la doc pasan a quark en 1.x (la DX al 5) y `pkg/app`/`pkg/nucleus` dejan de exponerlo | retirada (paquete) | — | DEP-2026-024 | `por escribir` | — | `M0-N` |
-| 27 | nucleus | se retira la puerta sin tipo de `signals` (`Signal`, `Event`, `Handler`, `Bus.On/Emit/EmitAsync`); las señales de ciclo de vida como topics tipados desde 1.x | retirada (marcas) | — | DEP-2026-025 | `por escribir` | — | `M0-N` |
-| 28 | nucleus | SQLite guarda las fechas en un formato que `date()` entiende | volteo (datos) | NU-110 | DEP-2026-026 | `por escribir` | — | `M0-N` |
+| 20 | nucleus | las filas de política de 3 columnas dejan de leerse (hoy `active` SIN fecha, contra la política §2) | retirada | — | DEP-2026-003 | `en main` | — | `M0-N` |
+| 21 | nucleus | `nucleustest` deja de enlazar SQLite siempre | volteo (empaquetado de test) | NU-121 | DEP-2026-019 | `en main` | — | `M0-N` |
+| 22 | nucleus | el proveedor asynq sale a `providers/tasks-asynq` (decisión 4 de A12) | empaquetado | — | DEP-2026-020 | `en main` | — | `M0-N` |
+| 23 | nucleus | `session_idle_timeout` con valor de fábrica | volteo (config) | NU-72 | DEP-2026-021 | `en main` | — | `M0-N` |
+| 24 | nucleus | los errores salen en problem+json por defecto; `WithErrorEnvelope()` para quedarse | volteo | — | DEP-2026-022 | `en main` | — | `M0-N` |
+| 25 | nucleus | se retira `NewWrapResponseWriter(w, _ int)`; `router.Wrap(w)` desde 1.x | retirada (1 marca) | NU-41 | DEP-2026-023 | `en main` | — | `M0-N` |
+| 26 | nucleus | se retira `pkg/model` como capa de datos pública (48 símbolos); los generadores, el starter, `nucleustest` y la doc pasan a quark en 1.x (la DX al 5) y `pkg/app`/`pkg/nucleus` dejan de exponerlo | retirada (paquete) | — | DEP-2026-024 | `en main` | — | `M0-N` |
+| 27 | nucleus | se retira la puerta sin tipo de `signals` (`Signal`, `Event`, `Handler`, `Bus.On/Emit/EmitAsync`); las señales de ciclo de vida como topics tipados desde 1.x | retirada (marcas) | — | DEP-2026-025 | `en main` | — | `M0-N` |
+| 28 | nucleus | SQLite guarda las fechas en un formato que `date()` entiende | volteo (datos) | NU-110 | DEP-2026-026 | `en main` | — | `M0-N` |
 | 29 | orbit | la identidad del nodo del fleet atada al certificado cuando hay mTLS; `AllowSharedAgentCertificate` para quedarse | volteo (config) | OR-57 | DEP-2026-001 (orbit) | `por escribir` | — | `M0-O` |
 | 30 | orbit | se retira el adaptador `datasource/nucleus` (el panel sobre modelos de `pkg/model`): el panel se monta sólo sobre `quarkdatasource` (D5b) | retirada (paquete) | — | DEP-2026-002 (orbit) | `por escribir` | — | `M0-O` |
 
