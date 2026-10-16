@@ -20,20 +20,27 @@
 ## 1. Qué hace hoy la suite, medido
 
 Medido el 2026-09-09 sobre el pin de 1.29.0 (quark v1.12.0, nucleus v1.25.0,
-orbit v1.9.3). Se cuentan sólo las marcas escritas a mano: las del código
-generado —55 en `orbit/proto/gen/…/admin.pb.go`, 1 en `quark/benchmarks/ent`—
-las escribe protoc o ent y se reescriben solas en la siguiente generación.
+orbit v1.9.3), y **vuelto a medir el 2026-10-16 sobre el pin de 1.41.0**
+(quark v1.17.0, nucleus v1.32.0, orbit v1.19.3) por `M0-S0` de A12. Se
+cuentan sólo las marcas escritas a mano: las del código generado —55 en
+`orbit/proto/gen/…/admin.pb.go`, 1 en `quark/benchmarks/ent`— las escribe
+protoc o ent y se reescriben solas en la siguiente generación.
 
-| Producto | Marcas `// Deprecated:` a mano | Ciclo escrito | Registro de avisos |
+| Producto | Marcas a mano (1.29.0 → 1.41.0) | Ciclo escrito | Registro de avisos (1.29.0 → 1.41.0) |
 |---|---|---|---|
-| nucleus | **0** | sí (`docs/governance/DEPRECATION_TEMPLATE.md`) | sí: 8 avisos `DEP-2026-NNN` + 9 especificaciones `MA-2026-NNN` |
-| quark | **5** | no | no |
-| orbit | **0** | no | no |
+| nucleus | **0 → 7** (3 avisos: 009, 011, 012) | sí (`docs/governance/DEPRECATION_TEMPLATE.md`) | 8 → **17** avisos `DEP-2026-NNN` (9 `active`: 003 sin fecha, 009, 011…018; 013…018 son volteos sin marca) + especificaciones `MA-2026-NNN` |
+| quark | **5 → 5** (2 avisos: 001, 002) | sí desde quark#373 (`docs/deprecations/README.md`) | 0 → **3** (001, 002 y 003, un volteo sin marca) |
+| orbit | **0 → 0** | **no** (sin `docs/deprecations/`) | no |
 
-Los tres números de la primera columna dicen lo mismo desde tres sitios: el
-único producto con ciclo es el único sin deprecaciones vivas, porque las
-llevó todas hasta `removed` antes de su v1.0. Los otros dos no tienen ciclo,
-y uno de ellos tiene cinco marcas sueltas.
+Lo que decían los tres números en 1.29.0: el único producto con ciclo era el
+único sin deprecaciones vivas, porque las llevó todas hasta `removed` antes
+de su v1.0; los otros dos no tenían ciclo, y uno tenía cinco marcas sueltas.
+Lo que dicen en 1.41.0: los dos productos con marcas tienen ciclo y aviso
+por cada una (el guard del §5 lo exige), **siete avisos anuncian un cambio
+de comportamiento sin marca que el guard no lee** (QM-20, lo cierra `M0-G`
+de A12), uno de nucleus sigue `active` sin fecha (D2 del bloque de
+`docs/planes/quantum-2.0.md`), y orbit sigue sin ciclo: su primer aviso
+(OR-57) lo escribe `M0-O`.
 
 ### El defecto concreto que hay debajo
 
@@ -170,6 +177,14 @@ DO NOT EDIT.` que la convención de Go pone antes de la cláusula `package`
 — no en las tres primeras líneas, que es donde no está en la salida de
 protoc-gen-go.
 
+**Lo que el guard todavía no lee** (medido el 2026-10-16): un aviso que
+anuncia un cambio de comportamiento, una negativa de configuración o un
+movimiento de empaquetado no tiene marca de godoc —el símbolo se queda— y
+el guard, que sólo recorre marcas, no lo ve: ni su fecha, ni su versión, ni
+si está en la lista del major. `M0-G` de A12 le enseña a leer también
+`<repo>/docs/deprecations/DEP-*.md` con `Status: active` y a cruzarlos con
+la tabla del §3.0 de `docs/planes/quantum-2.0.md` (QM-20).
+
 El guard tiene fixture en `tests/guard-fixtures/umbrella-deprecations/`, con
 las dos roturas que importan: la nota sin cláusula y la nota que promete una
 versión ya publicada.
@@ -181,54 +196,31 @@ fuera del registro con su porqué escrito al lado.
 
 ## 6. Índice de deprecaciones vivas de la suite
 
-Al 2026-09-09, sobre el pin de 1.29.0. Se actualiza en el PR de set que
-publica un aviso nuevo o una retirada.
+Al 2026-10-16, sobre el pin de 1.41.0 (antes: 2026-09-09 sobre 1.29.0). Se
+actualiza en el PR de set que publica un aviso nuevo o una retirada, y la
+lista cerrada del major —con el estado de cada aviso, los que faltan por
+escribir incluidos— vive en `docs/planes/quantum-2.0.md` §3.0.
 
-| Aviso | Producto | Qué se deprecia | Recambio | Estado | Retirada no antes de |
+| Aviso | Producto | Qué se deprecia o cambia | Recambio o salida | Estado | Retirada o cambio no antes de |
 |---|---|---|---|---|---|
+| `DEP-2026-003` | nucleus | la lectura de filas de política Casbin de 3 columnas | filas de 4 columnas | `active` **sin fecha** (contra el §2; D2 lo fecha o lo cierra) | — |
 | `DEP-2026-009` | nucleus | `Context.HTML(code, html)`, que escribe una cadena cruda con el nombre del render de plantillas (NU-41) | `Context.RawHTML` (cadena) y `Context.Render` (plantilla) | `active` | 2027-01-04, retirada en v2.0.0 |
 | `DEP-2026-011` | nucleus | `Context.Get` / `Context.Set`, el almacén por clave con aserción de tipo en cada lectura | `NewKey` + `SetValue` / `Value` (valores tipados); el mapa de `Render` o `BindData` para datos de plantilla | `active` | 2027-01-02, retirada en v2.0.0 |
 | `DEP-2026-012` | nucleus | constructores que hacen panic con entrada mala: `auth.NewJWTManager`, `db.NewModuleMigrator`, `db.NewModuleFSMigrator`, `router.CSRFMiddleware` (NU-41) | `NewJWTManagerFromSecret`, `NewMigratorFromConfig`, `NewCSRFMiddleware`, que devuelven el error | `active` | 2027-01-02, retirada en v2.0.0 |
+| `DEP-2026-013` | nucleus | **volteo**: storage declarado en una aplicación `WithoutDefaults()` sin `WithStorage()` deja de arrancar | `WithStorage()`, o quitar el bloque | `active` (sin marca) | 2027-01-02, en v2.0.0 |
+| `DEP-2026-014` | nucleus | **volteo**: plugins externos fuera de la allowlist, denegados | la allowlist | `active` (sin marca) | 2027-01-02, en v2.0.0 |
+| `DEP-2026-015` | nucleus | **volteo**: `mail_driver` sin `WithMail()`, deja de arrancar | `WithMail()` | `active` (sin marca) | 2027-01-02, en v2.0.0 |
+| `DEP-2026-016` | nucleus | **volteo**: `rate_limit_*` sin `WithRateLimit()`, deja de arrancar | `WithRateLimit()` | `active` (sin marca) | 2027-01-02, en v2.0.0 |
+| `DEP-2026-017` | nucleus | **volteo**: claves de authz y `Module.Policies` sin `WithAuthz()`, deja de arrancar | `WithAuthz()` | `active` (sin marca) | 2027-01-02, en v2.0.0 |
+| `DEP-2026-018` | nucleus | **volteo**: `profiling_enabled` sin guarda, deja de arrancar | `WithAuthz()` | `active` (sin marca) | 2027-01-02, en v2.0.0 |
 | `DEP-2026-001` | quark | `RowLevelSecurity` (alias de constante) | `RowLevelSecurityClient` | `active` | 2026-12-08, retirada en v2.0.0 |
 | `DEP-2026-002` | quark | forma anterior del registro de listeners (4 símbolos) | `ListenerFactory` + `RegisterListenerFactory` | `active` | 2026-12-08, retirada en v2.0.0 |
-| — | orbit | — | — | — | ninguna |
+| `DEP-2026-003` | quark | **volteo**: `UpdateBatch` comprueba la versión por defecto (QK-45) | `CheckVersions()` hoy; en el 2.0 es el defecto | `active` (sin marca) | 2027-01-04, en v2.0.0 |
+| — | orbit | — | — | — | ninguna (OR-57 será su `DEP-2026-001`, en `M0-O`) |
 
-Los dos avisos de quark los abre quark#373, que trae el registro y reescribe
-las cinco marcas. El agrupamiento es por DECISIÓN y no por símbolo: los
-cuatro símbolos del registro de listeners migran y se retiran juntos, así que
-llevan un aviso y no cuatro.
-
-Un detalle que el aviso `DEP-2026-002` deja escrito y conviene no perder: los
-registradores deprecados nombran `internal/guard.SQLGuard` en su firma, y la
-regla `internal` de Go impide que nadie de fuera del repo los llame. O sea que
-esa mitad deprecada **no tiene consumidor externo posible**, y su retirada en
-v2.0.0 es más barata de lo que la nota deja entender.
-
-## 7. Qué NO decide esta política
-
-- **Cuándo hay un major de suite.** La retirada cabe en el próximo major;
-  este documento no lo convoca ni lo fecha. QADR-0002 dice lo que cuesta.
-- **La ventana**, que es S4 de la política de soporte (≥ 90 días) y se decide
-  allí, no aquí.
-- **El ciclo interno de nucleus**, que ya existe y no se toca: esta política
-  lo eleva a estándar de suite y no lo reescribe.
-- **Las deprecaciones de terceros** que aparecen en el grafo de dependencias.
-  Eso es `govulncheck` y Dependabot, no esto.
-
-## 8. Plan de adopción
-
-1. **Este PR** deja el documento, el guard y su fixture; el guard todavía no
-   se registra.
-2. **PR en quark** (quark#373, hecho): `docs/deprecations/` con su README,
-   los avisos `DEP-2026-001` y `DEP-2026-002` y las cinco marcas reescritas a
-   la forma del §5. Sin retirar nada. Con esa rama, el guard sale **EXIT=0**;
-   contra `main` sigue saliendo «5 de 5», que es lo que prueba que el verde es
-   el cambio y no un pase vacío.
-3. **PR de set** que re-pina quark por encima de (2): registra
-   `umbrella-deprecations` en `scripts/lib/guard-registry.sh` y rellena las
-   dos filas del §6.
-4. **Orbit y nucleus** no necesitan PR: no tienen marcas a mano. Adoptan la
-   forma cuando escriban la primera, y el guard la exigirá desde ese momento.
-5. **Publicación**: este documento sale del borrador cuando el propietario
-   apruebe el §4, a la vez que S4 de la política de soporte. Antes de eso no
-   está en `website/` ni enlazado desde ningún `SECURITY.md`.
+Los dos avisos de retirada de quark los abrió quark#373, que trajo el
+registro y reescribió las cinco marcas. El agrupamiento es por DECISIÓN y
+no por símbolo: los cuatro símbolos del registro de listeners migran y se
+retiran juntos, así que llevan un aviso y no cuatro. Los avisos de volteo
+los lee hoy sólo quien abre el fichero: hasta `M0-G`, esta tabla y la del
+§3.0 del contrato del 2.0 son lo único que los enumera.

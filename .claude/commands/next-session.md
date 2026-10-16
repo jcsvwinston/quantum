@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-12, QUANTUM 1.41.0 — A11 CERRADO; A12 en curso: M0 → R1 → M1 → R2; el 2.0 no antes de 2027-01-04)
+## 3. Estado al cierre (2026-10-16, QUANTUM 1.41.0 — A11 CERRADO; A12 en curso: `M0` EN MARCHA (`M0-S0` hecha, D1…D8 pendientes de Carlos) → R1 → M1 → R2; el 2.0 no antes de 2027-01-04)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -103,8 +103,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   [`docs/planes/A11-extensibilidad-y-catalogo.md`](../../docs/planes/A11-extensibilidad-y-catalogo.md)
   (33 sesiones en carriles N/O/Q/W) y
   [`docs/planes/A12-rendimiento-reauditoria-cierre.md`](../../docs/planes/A12-rendimiento-reauditoria-cierre.md)
-  (12 sesiones; **cuatro decisiones escritas como propuesta, pendientes de
-  Carlos**). Decisiones de Carlos para A11: ejemplos como fixtures probados,
+  (12 sesiones; sus cuatro decisiones APROBADAS por Carlos el 2026-10-06, y
+  **`M0` en marcha desde el 2026-10-16**: `M0-S0` contó el major al pin y
+  lo troceó en `M0-Q` ∥ `M0-N` ∥ `M0-G` → `M0-O` → `M0-E`; la lista cerrada
+  del major, con el estado de cada aviso, es el §3.0 de
+  [`docs/planes/quantum-2.0.md`](../../docs/planes/quantum-2.0.md), y sus
+  **ocho decisiones D1…D8 esperan a Carlos** en el §3.3 —`M0-N` no
+  escribe un aviso de una fila `decisión` sin ellas; `M0-Q` y `M0-G` no
+  las necesitan—). Decisiones de Carlos para A11: ejemplos como fixtures probados,
   construir saml/redis-cache/sentry (Stripe se construyó y se
   retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
   embebido y fijado a la release. El estado de cada sesión (hecha, PR
@@ -210,6 +216,48 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-10-16 — **A12 `M0-S0`: el major contado al pin de 1.41.0, y `M0` troceado en seis sesiones**
+
+- **Arranque limpio**: `estado.sh` con el checkout en el pin, la lane
+  semanal del 2026-10-12 verde, `main` de nucleus y orbit con un `chore`
+  cada uno sin publicar, y 26 hallazgos abiertos, todos de A12 (P2=2,
+  P3=24). Lo único fuera de sitio: los issues automáticos quantum#262 y
+  quantum#263 (lanes del 2026-10-05) siguen abiertos aunque la corrida
+  programada del 12/10 pasó — cerrarlos es de Carlos (§5).
+- **Lo que midió, sobre el pin** (detalle en el plan de A12, sección «`M0`
+  — inventario medido»): 12 marcas `// Deprecated:` a mano que el guard ve
+  (quark 5 en 2 avisos, nucleus 7 en 3); **7 avisos de volteo que el guard
+  NO ve** (nucleus 013…018, quark 003) porque sólo recorre marcas; nucleus
+  DEP-2026-003 `active` SIN fecha; 9 volteos ya decididos sin aviso (6 de
+  quark, 2 de nucleus, OR-57); orbit sin `docs/deprecations/`. Y cuatro
+  cosas que el enunciado de `M0` daba por supuestas y no eran así: los
+  «~14 sitios» de orbit son **2 llamadas** a `NewWrapResponseWriter` (y
+  `authz.New`, que no tiene nada roto); el bus único **ya existe**
+  (`signals.Bus` con la puerta tipada de A7 y la no tipada: sobra la
+  segunda, no un paquete); **`pkg/model` sostiene el adaptador
+  `datasource/nucleus` de orbit entero** (6 ficheros, 3 módulos) y no se
+  retira en el 2.0 sin matarlo; y el sobre de errores **no tiene opción de
+  quedarse** (hay `WithProblemDetails()`, no `WithErrorEnvelope()`).
+- **Lo que escribió** (este PR): el troceado de `M0` —`M0-S0` → D1…D8 →
+  `M0-Q` ∥ `M0-N` ∥ `M0-G` → `M0-O` → `M0-E`, cada una con precondición y
+  criterio— en el plan de A12; el **§3.0 del contrato del 2.0**, la lista
+  cerrada de 29 filas con el aviso de cada una y su estado (`publicado` /
+  `en main` / `por escribir` / `decisión`), que es lo que `M0-G` enseña a
+  leer al guard; el **bloque de decisión D1…D8** con recomendación (idle
+  timeout 30m; fechar DEP-003 de nucleus; problem+json con
+  `WithErrorEnvelope()` primero; deprecar sólo `NewWrapResponseWriter`;
+  `pkg/model` a sustrato en el 2.0 y fuera en el 3.0; retirar la puerta sin
+  tipo de `signals`; QK-50 y NU-110 entran); y la política de deprecación
+  §1/§5/§6 remedidas al pin de 1.41.0. **QM-20 sigue abierto**: la prosa
+  está, el guard lo cierra `M0-G`.
+- **Lo siguiente**: `M0-Q` (los seis avisos de quark ya decididos) y
+  `M0-G` (el guard) pueden arrancar sin esperar a nadie; `M0-N` espera el
+  bloque D1…D8; `M0-O`, a la release de nucleus que traiga `M0-N`. El set
+  del 2026-10-19 sale por cadencia con lo que esté fusionado; cada aviso
+  que entre en él abre su ventana el 2027-01-17, y **la fecha del 2.0 la
+  fija la última ventana que `M0` abra** (`M0-E` la escribe en el §1 del
+  contrato).
+
 ### Sesión 2026-10-12 — **set 1.41.0 certificado: A11 cerrado, y un tren con una vuln de Go el mismo día**
 
 - **Publicado**: Quantum 1.41.0 (quantum#281 y quantum#282). quark v1.17.0,
@@ -232,51 +280,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   el contrato en [`docs/planes/quantum-2.0.md`](../../docs/planes/quantum-2.0.md)
   y la «DX al 5» como precondición; en paralelo, las sesiones cortas de los
   P3 abiertos. El set siguiente, por cadencia, el lunes 2026-10-19.
-
-### Sesión 2026-10-07 — **OR-77 y OR-70: las políticas por campo de orbit conocen un campo por su clave JSON, y el conteo de un modelo es el total de su lista**
-
-- **El arreglo de seguridad que la sesión anterior dejó anotado sólo en la
-  memoria de Claude, hecho y fusionado**: orbit#554 (en `main`, sin
-  publicar; sale en el corte de orbit del set del 2026-10-12). `fieldRules`
-  resolvía el campo que nombra una política, y las claves de los registros
-  que enmascara y de las cargas que guarda, por columna y nombre Go; el
-  adaptador de Nucleus emite y acepta los registros por clave JSON, así que
-  un campo cuya clave JSON era una tercera grafía no se enmascaraba en
-  lectura (registro, lista, historial, rastro) ni se rechazaba en escritura
-  (formulario, importación, hijos en línea, fixtures). Ahora
-  `fieldRules.resolve` prueba columna y nombre Go y después la clave JSON
-  (`Panel.fieldJSONKeys`), en el orden de `fieldForInput` del adaptador, y
-  una política puede nombrar el campo por las tres grafías; el 403 sigue
-  nombrando la columna. Registrado como **OR-77 (P1, orbit, A12, hecho)**
-  con su fila en el informe `orbit.md` (este PR).
-- **Medido, no supuesto**: tres tests nuevos sobre un modelo de tres grafías
-  (`field_key_scope_test.go`: `secret_note`/`Secret`/`hidden`) y `PERM-06`
-  del banco ampliado con un campo de tres grafías en `Note`
-  (`internal_note`/`Internal`/`editor_note`, sin etiqueta `admin` para no
-  mover la rejilla del navegador); banco **72 de 72**. Cada mutación parcial
-  (sólo la máscara, sólo el guarda, sólo el objeto de la política) la caza
-  exactamente el test que la vigila, y el servidor del commit padre pone
-  `PERM-06` en `partial`. ADR-007 lleva la enmienda; `features.md` dice qué
-  grafías resuelve una política y en qué orden; `admin-bench.md` la sección
-  con la tabla «verified by breaking it».
-- **Para el tren del 2026-10-12 no añade nada**: orbit se corta de todos
-  modos (OR-64/65/72/73, OR-77 y OR-70 en `main` sin publicar). **Decisión
-  de Carlos (2026-10-07): OR-77 se publica en el set del 2026-10-12**, no
-  como patch de orbit fuera de cadencia.
-- **OR-70 (P3) también hecho, en orbit#555** (fusionado el 2026-10-07):
-  el conteo de cada modelo en `GET /api/models` salía de `st.Count` sin
-  alcance para cualquiera con `list_models`; ahora es lo que la lista
-  contestaría al operador —dentro del tenant, sus filas bajo `#own`, y
-  desconocido (`-1`, `count_known: false`) para un modelo que no puede
-  listar— y `records_total` suma sólo lo que lee. `PERM-07` del banco lo
-  lee contra el total de la propia lista; banco 72 de 72; ADR-007 con su
-  enmienda; cinco mutaciones medidas en `admin-bench.md`.
-- **Ya no queda nada de A12 que una sesión cierre sola antes del lunes**:
-  el resto de los abiertos pide una decisión, un cambio de contrato o toca
-  la UI (OR-71, OR-74…76, QK-32/50/54/55/68/69, NU-108/110/129/131), o va
-  a M0/2.0; NU-127 (P2) es de la DX al 5, precondición del 2.0. M0 sigue
-  esperando a que el set cierre A11.
-
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -447,6 +450,10 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
   cuál no lo decide una sesión de arco sola — y hacerlo ANTES del tren
   ahorra un rojo a mitad de corte.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
+  **decidir D1…D8** del bloque de `docs/planes/quantum-2.0.md` §3.3 (sin
+  ellas `M0-N` no escribe los avisos de nucleus y el 2.0 no tiene fecha);
+  cerrar los issues automáticos quantum#262 y quantum#263 (lanes del
+  2026-10-05; la corrida del 12/10 pasó);
   proteger `main` en quark, orbit y quantum exigiendo `CI Required Gate`
   (sólo nucleus la tiene); activar `allow_auto_merge` en los cuatro (medido
   en `false` el 2026-09-10, y sin él la auto-fusión de Dependabot no se arma);
