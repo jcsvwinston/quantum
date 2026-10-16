@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-16, QUANTUM 1.41.0 — A11 CERRADO; A12 en curso: `M0` EN MARCHA (`M0-S0` hecha, D1…D8 pendientes de Carlos) → R1 → M1 → R2; el 2.0 no antes de 2027-01-04)
+## 3. Estado al cierre (2026-10-16, QUANTUM 1.41.0 — A11 CERRADO; A12 en curso: `M0` EN MARCHA (`M0-S0` y `M0-G` hechas, `M0-Q` en marcha, D1…D8 pendientes de Carlos) → R1 → M1 → R2; el 2.0 no antes de 2027-01-04)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -107,10 +107,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   **`M0` en marcha desde el 2026-10-16**: `M0-S0` contó el major al pin y
   lo troceó en `M0-Q` ∥ `M0-N` ∥ `M0-G` → `M0-O` → `M0-E`; la lista cerrada
   del major, con el estado de cada aviso, es el §3.0 de
-  [`docs/planes/quantum-2.0.md`](../../docs/planes/quantum-2.0.md), y sus
+  [`docs/planes/quantum-2.0.md`](../../docs/planes/quantum-2.0.md), que
+  desde `M0-G` (quantum#285, sin fusionar) lee `umbrella-deprecations`
+  junto con los avisos `active` sin marca; y sus
   **ocho decisiones D1…D8 esperan a Carlos** en el §3.3 —`M0-N` no
-  escribe un aviso de una fila `decisión` sin ellas; `M0-Q` y `M0-G` no
-  las necesitan—). Decisiones de Carlos para A11: ejemplos como fixtures probados,
+  escribe un aviso de una fila `decisión` sin ellas; `M0-Q` no las
+  necesita—). Decisiones de Carlos para A11: ejemplos como fixtures probados,
   construir saml/redis-cache/sentry (Stripe se construyó y se
   retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
   embebido y fijado a la release. El estado de cada sesión (hecha, PR
@@ -216,6 +218,43 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-10-16 (segunda) — **A12 `M0-G`: el guard de deprecaciones lee los avisos sin marca y la lista cerrada del major**
+
+- **Lo que hizo** (quantum#285, apilado sobre quantum#284; **sin fusionar:
+  Carlos decide**): `scripts/check_deprecations.sh` lee, además de las 12
+  marcas de godoc, cada `<repo>/docs/deprecations/DEP-*.md` con `Status:
+  active` al pin —versión y «no earlier than» obligatorias, FAIL por
+  versión ≤ pin, AVISO con los días por fecha vencida— y, si nombra el
+  major, exige su fila en el §3.0 de `quantum-2.0.md` en `publicado`; y
+  cruza la tabla entera (fila `publicado` sin fichero al pin FAIL; `por
+  escribir` y `decisión` AVISO con recuento; producto o estado desconocidos
+  y avisos repetidos FAIL; el producto se lee de la columna «Producto»,
+  porque los tres repos numeran por su cuenta). Al pin de 1.41.0: 13
+  avisos `active` (5 de retirada, 7 de volteo, 1 tolerado), 29 filas, 17
+  pendientes antes de `M1`. Fixture con cinco roturas; `guard-of-guards`
+  60 de 60. Política §1/§5/§6, nota del §3.0, comentario del registro de
+  guards y **QM-20 `hecho`**. No toca ningún producto.
+- **Lo que midió**: los doce avisos publicados llevan la viñeta de ventana
+  con tres grafías («Earliest removal», «Behaviour flip», «Earliest
+  change») y el guard las lee todas tal cual: ninguno está mal escrito, y
+  `M0-N`/`M0-Q` no tienen nada que corregir en los que ya existen.
+  `DEP-2026-003` de nucleus (`active` sin fecha) se tolera con AVISO
+  **sólo** porque su fila 20 está en `decisión`: en cuanto D2 se decida y
+  la fila cambie de estado, el guard exige la fecha.
+- **Trampa anunciada para el tren**: el PR de set que re-pine quark con los
+  avisos de `M0-Q` (o nucleus con los de `M0-N`) sale ROJO en
+  `umbrella-deprecations` hasta que sus filas del §3.0 pasen de `por
+  escribir` a `publicado` en ese mismo PR. Es a propósito —la tabla no
+  puede quedarse rancia—, pero hay que saberlo antes de lanzar `train.sh`.
+- **Pila de PRs**: quantum#285 contiene el commit de quantum#284. Cuando
+  #284 se fusione con squash, `git rebase --onto origin/main
+  docs/a12-m0-s0-inventario-major` en `claude/confident-goldstine-b07287` y
+  push forzado; si se fusiona #285 primero, se lleva consigo el §3.0 y el
+  troceado de `M0-S0` y #284 queda vacío. No fusionar el primero con
+  `--delete-branch` sin reapuntar antes (trampa de 1.32.0).
+- **Lo siguiente**: `M0-Q` arrancó en paralelo el mismo día (quark, sesión
+  aparte); `M0-N` espera D1…D8; `M0-O`, la release de nucleus con `M0-N`.
+
 ### Sesión 2026-10-16 — **A12 `M0-S0`: el major contado al pin de 1.41.0, y `M0` troceado en seis sesiones**
 
 - **Arranque limpio**: `estado.sh` con el checkout en el pin, la lane
@@ -257,29 +296,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   que entre en él abre su ventana el 2027-01-17, y **la fecha del 2.0 la
   fija la última ventana que `M0` abra** (`M0-E` la escribe en el §1 del
   contrato).
-
-### Sesión 2026-10-12 — **set 1.41.0 certificado: A11 cerrado, y un tren con una vuln de Go el mismo día**
-
-- **Publicado**: Quantum 1.41.0 (quantum#281 y quantum#282). quark v1.17.0,
-  nucleus v1.32.0 (+ `cmd/nucleus` v1.32.0, auth-saml y errors-sentry
-  v0.1.0), orbit v1.19.2 y v1.19.3 (segundo corte para re-pinar `ui`,
-  `proto` y `datasource`). A11 `S-fin` (b): `umbrella-catalog-posture` (60º
-  guard, catálogo 36 de 38), suelo de la extensión de quark a 22, NU-111
-  hecho y **A11 en `arcos_cerrados`**.
-- **Lo que paró el tren y cómo se resolvió** (detalle en
-  `scripts/train/README.md`, sección 1.41.0, y en la memoria de Claude):
-  GO-2026-6617 salió el mismo día → Go 1.26.9 en los tres productos con la
-  directiva `toolchain` (quark#466, nucleus#623, orbit#556 con x/net
-  v0.60.0); los módulos nuevos de nucleus salían en v1.9.2 → `release-as`
-  (nucleus#622, quitado en nucleus#627); el driver no para para las notas
-  de nucleus ni de orbit → suelos/pines a mano, notas en la rama del
-  release y relanzar; bump-set borraba la fila de la CLI (arreglado en el
-  PR de set); N1 (nucleus#607) rebasado con un paquete más en el techo de
-  hello-size (NU-118).
-- **Lo siguiente**: A12 `M0` (preparar el 2.0; A11 ya está cerrado), con
-  el contrato en [`docs/planes/quantum-2.0.md`](../../docs/planes/quantum-2.0.md)
-  y la «DX al 5» como precondición; en paralelo, las sesiones cortas de los
-  P3 abiertos. El set siguiente, por cadencia, el lunes 2026-10-19.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 

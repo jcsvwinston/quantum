@@ -82,17 +82,23 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 
 ### 3.0 La lista cerrada, con el estado de cada aviso (medida el 2026-10-16)
 
-> Es la tabla que `M0-G` enseña a leer al guard de deprecaciones
-> (`scripts/check_deprecations.sh`): una fila por decisión, con el aviso
-> `DEP` que la anuncia y en qué estado está. Los estados son tres —
-> **`publicado`** (el fichero está en el pin del set vigente), **`en main`**
-> (fusionado en el producto, aún sin set) y **`por escribir`** (la sesión de
-> `M0` que lo escribe)— y una fila **`decisión`** espera a Carlos (§3.3). El
-> guard FALLA por una fila `publicado` sin fichero al pin y por un aviso
-> `active` al pin que nombre `v2.0.0` y no esté aquí; AVISA por cada
-> `por escribir`. `M1` no empieza con una fila que no diga `publicado`.
-> Contado al pin de 1.41.0: 12 filas `publicado`, 0 `en main`, 9 `por
-> escribir` y 8 `decisión`.
+> Es la tabla que lee el guard de deprecaciones
+> (`scripts/check_deprecations.sh`, desde `M0-G`, quantum#285): una fila por
+> decisión, con el aviso `DEP` que la anuncia y en qué estado está. Los
+> estados son tres — **`publicado`** (el fichero está en el pin del set
+> vigente), **`en main`** (fusionado en el producto, aún sin set) y **`por
+> escribir`** (la sesión de `M0` que lo escribe)— y una fila **`decisión`**
+> espera a Carlos (§3.3). El guard FALLA por una fila `publicado` sin
+> fichero al pin, por un aviso `active` al pin que nombre el major y no esté
+> aquí, y por un aviso ya al pin con su fecha cuya fila no diga `publicado`
+> (se corrige en el PR de set que lo trae); AVISA por cada `por escribir` y
+> cada `decisión`, y cuenta las que quedan. Un aviso `active` sin fecha
+> sólo se tolera mientras su fila esté en `decisión` (`DEP-2026-003` de
+> nucleus, hasta D2). El id se lee de la columna «Aviso» y el producto de la
+> columna «Producto», porque los tres repos numeran por su cuenta. `M1` no
+> empieza con una fila que no diga `publicado`. Contado al pin de 1.41.0:
+> 12 filas `publicado`, 0 `en main`, 9 `por escribir` y 8 `decisión` (17
+> pendientes, que es lo que el guard imprime).
 
 | # | Producto | Qué cambia en el 2.0 | Tipo | Hallazgo | Aviso | Estado | Ventana abre | Sesión |
 |---|---|---|---|---|---|---|---|---|

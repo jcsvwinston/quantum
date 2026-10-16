@@ -81,7 +81,7 @@
 #
 # Uso: bash scripts/check_deprecations.sh
 set -uo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/.." || exit 1
 
 CONTRATO=docs/planes/quantum-2.0.md
 
