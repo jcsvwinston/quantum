@@ -37,8 +37,9 @@ Lo que decían los tres números en 1.29.0: el único producto con ciclo era el
 de su v1.0; los otros dos no tenían ciclo, y uno tenía cinco marcas sueltas.
 Lo que dicen en 1.41.0: los dos productos con marcas tienen ciclo y aviso
 por cada una (el guard del §5 lo exige), **siete avisos anuncian un cambio
-de comportamiento sin marca que el guard no lee** (QM-20, lo cierra `M0-G`
-de A12), uno de nucleus sigue `active` sin fecha (D2 del bloque de
+de comportamiento sin marca**, que el guard del §5 lee desde `M0-G` de A12
+(QM-20, cerrado el 2026-10-16 en quantum#285: hasta entonces sólo recorría
+marcas), uno de nucleus sigue `active` sin fecha (D2 del bloque de
 `docs/planes/quantum-2.0.md`), y orbit sigue sin ciclo: su primer aviso
 (OR-57) lo escribe `M0-O`.
 
@@ -161,8 +162,8 @@ Un párrafo de godoc, en inglés como todo lo de un repo de producto
 // removal in v2.0.0, no earlier than 2026-12-08.
 ```
 
-`scripts/check_deprecations.sh` recorre los tres submódulos **al pin** y exige,
-para cada marca escrita a mano:
+`scripts/check_deprecations.sh` recorre los tres submódulos **al pin** en tres
+pasadas. La primera, por cada marca escrita a mano:
 
 | Comprueba | Si falla |
 |---|---|
@@ -177,17 +178,45 @@ DO NOT EDIT.` que la convención de Go pone antes de la cláusula `package`
 — no en las tres primeras líneas, que es donde no está en la salida de
 protoc-gen-go.
 
-**Lo que el guard todavía no lee** (medido el 2026-10-16): un aviso que
-anuncia un cambio de comportamiento, una negativa de configuración o un
-movimiento de empaquetado no tiene marca de godoc —el símbolo se queda— y
-el guard, que sólo recorre marcas, no lo ve: ni su fecha, ni su versión, ni
-si está en la lista del major. `M0-G` de A12 le enseña a leer también
-`<repo>/docs/deprecations/DEP-*.md` con `Status: active` y a cruzarlos con
-la tabla del §3.0 de `docs/planes/quantum-2.0.md` (QM-20).
+La segunda pasada, por cada aviso `<repo>/docs/deprecations/DEP-*.md` con
+`Status: active`, **tenga marca o no**. Existe desde `M0-G` de A12
+(2026-10-16, quantum#285; QM-20): un aviso que anuncia un cambio de
+comportamiento, una negativa de configuración o un movimiento de
+empaquetado no tiene marca de godoc —el símbolo se queda—, y hasta entonces
+el guard, que sólo recorría marcas, no veía ni su fecha, ni su versión, ni
+si estaba en la lista del major. Los siete del pin de 1.41.0 (nucleus
+013…018, quark 003) son de esos.
+
+| Comprueba | Si falla |
+|---|---|
+| una viñeta de la cabecera dice `Earliest removal`, `Behaviour flip` o `Earliest change: vX.Y.Z, no earlier than YYYY-MM-DD` | **FAIL** — salvo que su fila en el §3.0 de `docs/planes/quantum-2.0.md` esté en `decisión`: entonces **AVISO** (es `DEP-2026-003` de nucleus, hasta D2) |
+| esa `vX.Y.Z` es mayor que la versión que `versions.yaml` pina para ese repo | **FAIL** |
+| si esa versión es un major respecto al pin, el aviso está en la tabla del §3.0 | **FAIL** (es la mitad «el guard ve el 100 % de lo que va al major») |
+| y su fila dice `publicado` | **FAIL** (la tabla se quedó rancia: se corrige en el PR de set que trae el aviso) |
+| la fecha no ha pasado | **AVISO**, con los días vencidos |
+
+Los avisos `removed`, `completed` y `proposed` se ignoran: no prometen nada
+pendiente. Si un repo no tiene `docs/deprecations/` (orbit, hasta `M0-O`),
+el guard lo dice y sigue.
+
+La tercera pasada es la tabla del §3.0 misma, fila a fila. El id se lee de
+la columna «Aviso» y el producto de la columna «Producto», no del id,
+porque los tres repos numeran por su cuenta (`DEP-2026-001 (orbit)` no es
+el `DEP-2026-001` de quark):
+
+| Comprueba | Si falla |
+|---|---|
+| el producto es `quark`, `nucleus` u `orbit`, y ningún aviso se repite | **FAIL** |
+| una fila `publicado` tiene su fichero `<producto>/docs/deprecations/<id>-*.md` al pin | **FAIL** |
+| una fila `por escribir` o `decisión` | **AVISO**, y el recuento de las que quedan antes de `M1` |
+| una fila `en main` | se cuenta (el fichero llega con el set que lo publique) |
+| un estado que no es ninguno de esos ni `descartado` | **FAIL** |
 
 El guard tiene fixture en `tests/guard-fixtures/umbrella-deprecations/`, con
-las dos roturas que importan: la nota sin cláusula y la nota que promete una
-versión ya publicada.
+cinco roturas: la nota sin cláusula, la nota que promete una versión ya
+publicada, el aviso `active` sin fecha cuya fila no está en `decisión`, la
+fila `publicado` sin fichero al pin y el aviso del major que falta en la
+tabla.
 
 **Registrado en `scripts/lib/guard-registry.sh` desde Quantum 1.30.0**, que es
 el primer set cuyo pin de quark contiene las cinco marcas reescritas y su
@@ -222,5 +251,7 @@ Los dos avisos de retirada de quark los abrió quark#373, que trajo el
 registro y reescribió las cinco marcas. El agrupamiento es por DECISIÓN y
 no por símbolo: los cuatro símbolos del registro de listeners migran y se
 retiran juntos, así que llevan un aviso y no cuatro. Los avisos de volteo
-los lee hoy sólo quien abre el fichero: hasta `M0-G`, esta tabla y la del
-§3.0 del contrato del 2.0 son lo único que los enumera.
+los lee también el guard del §5 desde `M0-G` (quantum#285): enumera cada
+aviso `active` al pin con su fecha y su fila del §3.0 del contrato del 2.0,
+y falla si uno nombra el major y no está en esa lista. Esta tabla sigue
+siendo la vista de un vistazo; la del §3.0, la que el guard cruza.

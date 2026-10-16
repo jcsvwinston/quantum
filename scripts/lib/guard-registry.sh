@@ -115,9 +115,14 @@ GUARDS=(
   # repo en su propio PR (este guard no mira dentro de los submódulos).
   "umbrella-actions-pinned|.|bash scripts/check_actions_pinned.sh"
   # Toda deprecación escrita a mano en los tres productos nombra su recambio,
-  # su aviso DEP-YYYY-NNN y una versión de retirada que todavía no ha salido
-  # (docs/gobernanza/POLITICA_DEPRECACION.md §5). Entra al set con la release
-  # de quark que trae docs/deprecations/ y las marcas reescritas.
+  # su aviso DEP-YYYY-NNN y una versión de retirada que todavía no ha salido;
+  # todo aviso DEP-*.md `active` al pin —con marca o sin ella: los volteos
+  # de comportamiento no la tienen— nombra versión y fecha, y si nombra el
+  # major está en la lista cerrada del 2.0 (docs/planes/quantum-2.0.md §3.0),
+  # cuya tabla también se cruza fila a fila
+  # (docs/gobernanza/POLITICA_DEPRECACION.md §5; QM-20, A12 M0-G). Entró al
+  # set con la release de quark que trae docs/deprecations/ y las marcas
+  # reescritas.
   "umbrella-deprecations|.|bash scripts/check_deprecations.sh"
   # Los tres productos siguen publicando con SBOM, firma sin clave y
   # atestación de procedencia, y el paraguas sigue publicando el set firmado
