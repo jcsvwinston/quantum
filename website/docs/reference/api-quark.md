@@ -1,7 +1,7 @@
 ---
 title: "Quark API surface"
 sidebar_label: "Quark"
-description: "The exported Go API of Quark v1.17.0 that its CI keeps frozen, generated from the file it compares the code with, at the version Quantum 1.41.0 certifies."
+description: "The exported Go API of Quark v1.17.0 that its CI keeps frozen, generated from the file it compares the code with, at the version Quantum 1.42.0 certifies."
 custom_edit_url: null
 ---
 
@@ -9,7 +9,7 @@ custom_edit_url: null
 
 # Quark API surface
 
-The public Go API of **Quark v1.17.0**, the version Quantum 1.41.0 certifies: **928** exported symbols in **12** packages. Quark keeps this list in [`acceptance/apisurface.json`](https://github.com/jcsvwinston/quark/blob/v1.17.0/acceptance/apisurface.json). Quark regenerates this file from the code in CI and fails a change whose committed copy differs, so adding or removing an exported symbol means changing the file in the same change. Removing an exported symbol is a breaking change, and the suite ships breaking changes only in a major version. This page is generated from that file at the pinned version, so it lists exactly what the check protects.
+The public Go API of **Quark v1.17.0**, the version Quantum 1.42.0 certifies: **928** exported symbols in **12** packages. Quark keeps this list in [`acceptance/apisurface.json`](https://github.com/jcsvwinston/quark/blob/v1.17.0/acceptance/apisurface.json). Quark regenerates this file from the code in CI and fails a change whose committed copy differs, so adding or removing an exported symbol means changing the file in the same change. Removing an exported symbol is a breaking change, and the suite ships breaking changes only in a major version. This page is generated from that file at the pinned version, so it lists exactly what the check protects.
 
 Each package links to its documentation on pkg.go.dev at this version, where every symbol has its signature and its comment.
 

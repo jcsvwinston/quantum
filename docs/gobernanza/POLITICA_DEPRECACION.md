@@ -28,9 +28,9 @@ protoc o ent y se reescriben solas en la siguiente generación.
 
 | Producto | Marcas a mano (1.29.0 → 1.41.0) | Ciclo escrito | Registro de avisos (1.29.0 → 1.41.0) |
 |---|---|---|---|
-| nucleus | **0 → 7** (3 avisos: 009, 011, 012) | sí (`docs/governance/DEPRECATION_TEMPLATE.md`) | 8 → **17** avisos `DEP-2026-NNN` (9 `active`: 003 sin fecha, 009, 011…018; 013…018 son volteos sin marca) + especificaciones `MA-2026-NNN` |
+| nucleus | **0 → 7** (3 avisos: 009, 011, 012; → **20** al pin de 1.42.0, nucleus#630: 023, 024 y 025 con marca) | sí (`docs/governance/DEPRECATION_TEMPLATE.md`) | 8 → **17** avisos `DEP-2026-NNN` (9 `active`: 003 sin fecha, 009, 011…018; 013…018 son volteos sin marca) → **25** al pin de 1.42.0 (003 fechado, 019…026) + especificaciones `MA-2026-NNN` |
 | quark | **5 → 5** (2 avisos: 001, 002) | sí desde quark#373 (`docs/deprecations/README.md`) | 0 → **3** (001, 002 y 003, un volteo sin marca) |
-| orbit | **0 → 0** (4 en main desde orbit#568, 2026-10-18) | **no** al pin; sí en main desde orbit#568 (`docs/deprecations/README.md`) | no al pin; 2 en main (001, un volteo; 002, una retirada) |
+| orbit | **0 → 0** (→ **4** al pin de 1.42.0, orbit#568) | sí desde orbit v1.20.0 (`docs/deprecations/README.md`) | 0 → **2** al pin de 1.42.0 (001, un volteo; 002, una retirada) |
 
 Lo que decían los tres números en 1.29.0: el único producto con ciclo era el
 único sin deprecaciones vivas, porque las llevó todas hasta `removed` antes
@@ -40,10 +40,11 @@ por cada una (el guard del §5 lo exige), **siete avisos anuncian un cambio
 de comportamiento sin marca**, que el guard del §5 lee desde `M0-G` de A12
 (QM-20, cerrado el 2026-10-16 en quantum#285: hasta entonces sólo recorría
 marcas), uno de nucleus sigue `active` sin fecha (D2 del bloque de
-`docs/planes/quantum-2.0.md`), y orbit estrenó su ciclo el 2026-10-18
-(orbit#568, `M0-O` (a)): `docs/deprecations/` con README, `DEP-2026-001`
-(OR-57, un volteo) y `DEP-2026-002` (la retirada del adaptador
-`datasource/nucleus`, con cuatro marcas), al pin con el set del 2026-10-19.
+`docs/planes/quantum-2.0.md`; fechado por nucleus#630 y al pin con 1.42.0),
+y orbit estrenó su ciclo el 2026-10-18 (orbit#568, `M0-O` (a)):
+`docs/deprecations/` con README, `DEP-2026-001` (OR-57, un volteo) y
+`DEP-2026-002` (la retirada del adaptador `datasource/nucleus`, con cuatro
+marcas), al pin con el set 1.42.0 (orbit v1.20.0).
 
 ### El defecto concreto que hay debajo
 
@@ -198,7 +199,7 @@ si estaba en la lista del major. Los siete del pin de 1.41.0 (nucleus
 | la fecha no ha pasado | **AVISO**, con los días vencidos |
 
 Los avisos `removed`, `completed` y `proposed` se ignoran: no prometen nada
-pendiente. Si un repo no tiene `docs/deprecations/` (orbit, hasta el set que pine orbit#568),
+pendiente. Si un repo no tiene `docs/deprecations/` (orbit, hasta 1.42.0),
 el guard lo dice y sigue.
 
 La tercera pasada es la tabla del §3.0 misma, fila a fila. El id se lee de
@@ -227,14 +228,23 @@ fuera del registro con su porqué escrito al lado.
 
 ## 6. Índice de deprecaciones vivas de la suite
 
-Al 2026-10-16, sobre el pin de 1.41.0 (antes: 2026-09-09 sobre 1.29.0). Se
+Al 2026-10-18, sobre el pin de 1.42.0 (antes: 2026-10-16 sobre 1.41.0 y
+2026-09-09 sobre 1.29.0). Se
 actualiza en el PR de set que publica un aviso nuevo o una retirada, y la
 lista cerrada del major —con el estado de cada aviso, los que faltan por
 escribir incluidos— vive en `docs/planes/quantum-2.0.md` §3.0.
 
 | Aviso | Producto | Qué se deprecia o cambia | Recambio o salida | Estado | Retirada o cambio no antes de |
 |---|---|---|---|---|---|
-| `DEP-2026-003` | nucleus | la lectura de filas de política Casbin de 3 columnas | filas de 4 columnas | `active` **sin fecha** (contra el §2; D2 lo fecha o lo cierra) | — |
+| `DEP-2026-003` | nucleus | la lectura de filas de política Casbin de 3 columnas (casbin v2.135.0 ya las rechaza al cargar; `authz.New` nombra el migrador) | `authz.MigrateCSVPolicyFile` a 4 columnas | `active` (fechado por D2) | 2027-01-17, retirada en v2.0.0 |
+| `DEP-2026-019` | nucleus | **volteo**: `nucleustest` deja de enlazar SQLite siempre (NU-121) | importar `drivers/sqlite` en un `_test.go` del paquete | `active` (sin marca) | 2027-01-17, en v2.0.0 |
+| `DEP-2026-020` | nucleus | **empaquetado**: el proveedor asynq sale a `providers/tasks-asynq` | `nucleus add tasks-asynq` / import del módulo | `active` (sin marca) | 2027-01-17, en v2.0.0 |
+| `DEP-2026-021` | nucleus | **volteo**: `session_idle_timeout` con valor de fábrica 30m (NU-72) | `session_idle_timeout: 0` explícito | `active` (sin marca) | 2027-01-17, en v2.0.0 |
+| `DEP-2026-022` | nucleus | **volteo**: problem+json como forma de error por defecto | `WithErrorEnvelope()` | `active` (sin marca) | 2027-01-17, en v2.0.0 |
+| `DEP-2026-023` | nucleus | `router.NewWrapResponseWriter(w, _ int)` | `router.Wrap(w)` | `active` | 2027-01-17, retirada en v2.0.0 |
+| `DEP-2026-024` | nucleus | `pkg/model` como capa de datos pública (el paquete, `BaseModel`, `NewRegistry`, `NewCRUD`) | un modelo quark con sus hooks | `active` | 2027-01-17, retirada en v2.0.0 |
+| `DEP-2026-025` | nucleus | la puerta sin tipo de `signals` (`Signal`, `Event`, `Handler`, `Bus.On/Emit/EmitAsync`, `Topic.Name`) | la API tipada (`Define`/`Subscribe`/`Publish`) y `Topic.String` | `active` | 2027-01-17, retirada en v2.0.0 |
+| `DEP-2026-026` | nucleus | **volteo (datos)**: SQLite guarda `time.Time` en el formato que `date()` lee (NU-110) | `?_time_format=sqlite` en la URL hoy | `active` (sin marca) | 2027-01-17, en v2.0.0 |
 | `DEP-2026-009` | nucleus | `Context.HTML(code, html)`, que escribe una cadena cruda con el nombre del render de plantillas (NU-41) | `Context.RawHTML` (cadena) y `Context.Render` (plantilla) | `active` | 2027-01-04, retirada en v2.0.0 |
 | `DEP-2026-011` | nucleus | `Context.Get` / `Context.Set`, el almacén por clave con aserción de tipo en cada lectura | `NewKey` + `SetValue` / `Value` (valores tipados); el mapa de `Render` o `BindData` para datos de plantilla | `active` | 2027-01-02, retirada en v2.0.0 |
 | `DEP-2026-012` | nucleus | constructores que hacen panic con entrada mala: `auth.NewJWTManager`, `db.NewModuleMigrator`, `db.NewModuleFSMigrator`, `router.CSRFMiddleware` (NU-41) | `NewJWTManagerFromSecret`, `NewMigratorFromConfig`, `NewCSRFMiddleware`, que devuelven el error | `active` | 2027-01-02, retirada en v2.0.0 |
@@ -247,8 +257,8 @@ escribir incluidos— vive en `docs/planes/quantum-2.0.md` §3.0.
 | `DEP-2026-001` | quark | `RowLevelSecurity` (alias de constante) | `RowLevelSecurityClient` | `active` | 2026-12-08, retirada en v2.0.0 |
 | `DEP-2026-002` | quark | forma anterior del registro de listeners (4 símbolos) | `ListenerFactory` + `RegisterListenerFactory` | `active` | 2026-12-08, retirada en v2.0.0 |
 | `DEP-2026-003` | quark | **volteo**: `UpdateBatch` comprueba la versión por defecto (QK-45) | `CheckVersions()` hoy; en el 2.0 es el defecto | `active` (sin marca) | 2027-01-04, en v2.0.0 |
-| `DEP-2026-001` | orbit | **volteo**: con mTLS en el listener de agentes, la identidad del nodo atada al certificado por defecto (OR-57) | `AllowSharedAgentCertificate` (`--allow-shared-agent-certificate`) para quedarse; `AgentIdentityFromCertificate` para atar ya | `en main` (orbit#568), al pin con el set del 2026-10-19 | 2027-01-17, en v2.0.0 |
-| `DEP-2026-002` | orbit | el adaptador `datasource/nucleus` (el panel sobre modelos de `pkg/model`; 4 marcas) y el nil por defecto de `orbit.Config.DataSource` | `quarkdatasource` en `orbit.Config.DataSource` / `agent.Config.DataSource` | `en main` (orbit#568), al pin con el set del 2026-10-19 | 2027-01-17, retirada en v2.0.0 |
+| `DEP-2026-001` | orbit | **volteo**: con mTLS en el listener de agentes, la identidad del nodo atada al certificado por defecto (OR-57) | `AllowSharedAgentCertificate` (`--allow-shared-agent-certificate`) para quedarse; `AgentIdentityFromCertificate` para atar ya | `active` (sin marca) | 2027-01-17, en v2.0.0 |
+| `DEP-2026-002` | orbit | el adaptador `datasource/nucleus` (el panel sobre modelos de `pkg/model`; 4 marcas) y el nil por defecto de `orbit.Config.DataSource` | `quarkdatasource` en `orbit.Config.DataSource` / `agent.Config.DataSource` | `active` | 2027-01-17, retirada en v2.0.0 |
 
 Los dos avisos de retirada de quark los abrió quark#373, que trajo el
 registro y reescribió las cinco marcas. El agrupamiento es por DECISIÓN y

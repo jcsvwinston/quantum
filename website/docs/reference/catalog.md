@@ -1,7 +1,7 @@
 ---
 title: "The nucleus add catalog"
 sidebar_label: "nucleus add catalog"
-description: "What nucleus add and nucleus new --with resolve by name in Nucleus v1.32.0, generated from the table the CLI reads, at the version Quantum 1.41.0 certifies."
+description: "What nucleus add and nucleus new --with resolve by name in Nucleus v1.33.0, generated from the table the CLI reads, at the version Quantum 1.42.0 certifies."
 custom_edit_url: null
 ---
 
@@ -9,34 +9,34 @@ custom_edit_url: null
 
 # The `nucleus add` catalog
 
-The optional modules, framework capabilities and suite products that `nucleus add <name>` and `nucleus new --with <name>` resolve by name in **Nucleus v1.32.0**, the version Quantum 1.41.0 certifies: **24** entries. This page is generated from the table the CLI reads, [`internal/knownproviders`](https://github.com/jcsvwinston/nucleus/tree/v1.32.0/internal/knownproviders), so a name is listed here exactly when that version of the CLI knows it, and each module shows the version this set certifies.
+The optional modules, framework capabilities and suite products that `nucleus add <name>` and `nucleus new --with <name>` resolve by name in **Nucleus v1.33.0**, the version Quantum 1.42.0 certifies: **24** entries. This page is generated from the table the CLI reads, [`internal/knownproviders`](https://github.com/jcsvwinston/nucleus/tree/v1.33.0/internal/knownproviders), so a name is listed here exactly when that version of the CLI knows it, and each module shows the version this set certifies.
 
 | Name | Ships as | Module | Version in this set |
 |---|---|---|---|
-| [`postgres`](#entry-postgres) | module | `github.com/jcsvwinston/nucleus/drivers/postgres` | v0.1.9 |
-| [`mysql`](#entry-mysql) | module | `github.com/jcsvwinston/nucleus/drivers/mysql` | v0.1.9 |
-| [`sqlite`](#entry-sqlite) | module | `github.com/jcsvwinston/nucleus/drivers/sqlite` | v0.1.9 |
-| [`sqlserver`](#entry-sqlserver) | module | `github.com/jcsvwinston/nucleus/drivers/mssql` | v0.1.9 |
-| [`oracle`](#entry-oracle) | module | `github.com/jcsvwinston/nucleus/drivers/oracle` | v0.1.9 |
-| [`otlp`](#entry-otlp) | module | `github.com/jcsvwinston/nucleus/exporters/otlp` | v0.1.9 |
-| [`prometheus`](#entry-prometheus) | module | `github.com/jcsvwinston/nucleus/exporters/prometheus` | v0.1.9 |
-| [`s3`](#entry-s3) | module | `github.com/jcsvwinston/nucleus/providers/storage-s3` | v0.1.9 |
-| [`gcs`](#entry-gcs) | module | `github.com/jcsvwinston/nucleus/providers/storage-gcs` | v0.1.9 |
-| [`azure`](#entry-azure) | module | `github.com/jcsvwinston/nucleus/providers/storage-azure` | v0.1.9 |
-| [`ldap`](#entry-ldap) | module | `github.com/jcsvwinston/nucleus/providers/ldap` | v0.2.13 |
-| [`aws-sm`](#entry-aws-sm) | module | `github.com/jcsvwinston/nucleus/providers/secrets-aws` | v0.1.9 |
-| [`sentry`](#entry-sentry) | module | `github.com/jcsvwinston/nucleus/providers/errors-sentry` | v0.1.0 |
-| [`oidc`](#entry-oidc) | core | `github.com/jcsvwinston/nucleus` | v1.32.0 |
-| [`saml`](#entry-saml) | module | `github.com/jcsvwinston/nucleus/providers/auth-saml` | v0.1.0 |
-| [`redis-cache`](#entry-redis-cache) | core | `github.com/jcsvwinston/nucleus` | v1.32.0 |
-| [`apikeys`](#entry-apikeys) | core | `github.com/jcsvwinston/nucleus` | v1.32.0 |
-| [`sql-queue`](#entry-sql-queue) | core | `github.com/jcsvwinston/nucleus` | v1.32.0 |
-| [`accounts`](#entry-accounts) | core | `github.com/jcsvwinston/nucleus` | v1.32.0 |
-| [`websockets`](#entry-websockets) | core | `github.com/jcsvwinston/nucleus` | v1.32.0 |
-| [`orbit`](#entry-orbit) | suite | `github.com/jcsvwinston/orbit` | v1.19.3 |
+| [`postgres`](#entry-postgres) | module | `github.com/jcsvwinston/nucleus/drivers/postgres` | v0.1.10 |
+| [`mysql`](#entry-mysql) | module | `github.com/jcsvwinston/nucleus/drivers/mysql` | v0.1.10 |
+| [`sqlite`](#entry-sqlite) | module | `github.com/jcsvwinston/nucleus/drivers/sqlite` | v0.2.0 |
+| [`sqlserver`](#entry-sqlserver) | module | `github.com/jcsvwinston/nucleus/drivers/mssql` | v0.1.10 |
+| [`oracle`](#entry-oracle) | module | `github.com/jcsvwinston/nucleus/drivers/oracle` | v0.1.10 |
+| [`otlp`](#entry-otlp) | module | `github.com/jcsvwinston/nucleus/exporters/otlp` | v0.1.10 |
+| [`prometheus`](#entry-prometheus) | module | `github.com/jcsvwinston/nucleus/exporters/prometheus` | v0.1.10 |
+| [`s3`](#entry-s3) | module | `github.com/jcsvwinston/nucleus/providers/storage-s3` | v0.1.10 |
+| [`gcs`](#entry-gcs) | module | `github.com/jcsvwinston/nucleus/providers/storage-gcs` | v0.1.10 |
+| [`azure`](#entry-azure) | module | `github.com/jcsvwinston/nucleus/providers/storage-azure` | v0.1.10 |
+| [`ldap`](#entry-ldap) | module | `github.com/jcsvwinston/nucleus/providers/ldap` | v0.2.14 |
+| [`aws-sm`](#entry-aws-sm) | module | `github.com/jcsvwinston/nucleus/providers/secrets-aws` | v0.1.10 |
+| [`sentry`](#entry-sentry) | module | `github.com/jcsvwinston/nucleus/providers/errors-sentry` | v0.1.1 |
+| [`oidc`](#entry-oidc) | core | `github.com/jcsvwinston/nucleus` | v1.33.0 |
+| [`saml`](#entry-saml) | module | `github.com/jcsvwinston/nucleus/providers/auth-saml` | v0.1.1 |
+| [`redis-cache`](#entry-redis-cache) | core | `github.com/jcsvwinston/nucleus` | v1.33.0 |
+| [`apikeys`](#entry-apikeys) | core | `github.com/jcsvwinston/nucleus` | v1.33.0 |
+| [`sql-queue`](#entry-sql-queue) | core | `github.com/jcsvwinston/nucleus` | v1.33.0 |
+| [`accounts`](#entry-accounts) | core | `github.com/jcsvwinston/nucleus` | v1.33.0 |
+| [`websockets`](#entry-websockets) | core | `github.com/jcsvwinston/nucleus` | v1.33.0 |
+| [`orbit`](#entry-orbit) | suite | `github.com/jcsvwinston/orbit` | v1.20.1 |
 | [`quark`](#entry-quark) | suite | `github.com/jcsvwinston/quark` | v1.17.0 |
-| [`quarkbridge`](#entry-quarkbridge) | suite | `github.com/jcsvwinston/orbit/quarkbridge` | v1.9.5 |
-| [`quarkdatasource`](#entry-quarkdatasource) | suite | `github.com/jcsvwinston/orbit/quarkdatasource` | v1.12.4 |
+| [`quarkbridge`](#entry-quarkbridge) | suite | `github.com/jcsvwinston/orbit/quarkbridge` | v1.9.6 |
+| [`quarkdatasource`](#entry-quarkdatasource) | suite | `github.com/jcsvwinston/orbit/quarkdatasource` | v1.13.1 |
 
 **Ships as** says how an entry reaches an application:
 
@@ -48,7 +48,7 @@ The optional modules, framework capabilities and suite products that `nucleus ad
 
 ### `postgres` {#entry-postgres}
 
-- **Module**: `github.com/jcsvwinston/nucleus/drivers/postgres`, v0.1.9 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/drivers/postgres`, v0.1.10 in this set
 - **Also accepted as**: `postgresql`, `pg`, `pgx`
 - **Runtime name**: `pgx`, the name the runtime looks it up by
 - **Selected by**: databases.default.url: postgres://user:password@host:5432/app
@@ -56,26 +56,26 @@ The optional modules, framework capabilities and suite products that `nucleus ad
 
 ### `mysql` {#entry-mysql}
 
-- **Module**: `github.com/jcsvwinston/nucleus/drivers/mysql`, v0.1.9 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/drivers/mysql`, v0.1.10 in this set
 - **Selected by**: databases.default.url: mysql://user:password@host:3306/app
 - **Wires**: its blank import registers the mysql database/sql driver and its error classifier
 
 ### `sqlite` {#entry-sqlite}
 
-- **Module**: `github.com/jcsvwinston/nucleus/drivers/sqlite`, v0.1.9 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/drivers/sqlite`, v0.2.0 in this set
 - **Selected by**: databases.default.url: sqlite://app.db
 - **Wires**: its blank import registers the sqlite database/sql driver and its error classifier
 
 ### `sqlserver` {#entry-sqlserver}
 
-- **Module**: `github.com/jcsvwinston/nucleus/drivers/mssql`, v0.1.9 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/drivers/mssql`, v0.1.10 in this set
 - **Also accepted as**: `mssql`
 - **Selected by**: databases.default.url: sqlserver://user:password@host:1433?database=app
 - **Wires**: its blank import registers the sqlserver database/sql driver and its error classifier
 
 ### `oracle` {#entry-oracle}
 
-- **Module**: `github.com/jcsvwinston/nucleus/drivers/oracle`, v0.1.9 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/drivers/oracle`, v0.1.10 in this set
 - **Selected by**: databases.default.url: oracle://user:password@host:1521/service
 - **Wires**: its blank import registers the oracle database/sql driver and its error classifier
 
@@ -83,13 +83,13 @@ The optional modules, framework capabilities and suite products that `nucleus ad
 
 ### `otlp` {#entry-otlp}
 
-- **Module**: `github.com/jcsvwinston/nucleus/exporters/otlp`, v0.1.9 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/exporters/otlp`, v0.1.10 in this set
 - **Selected by**: otlp_endpoint: http://collector:4318
 - **Wires**: its blank import registers the otlp exporter with pkg/observe
 
 ### `prometheus` {#entry-prometheus}
 
-- **Module**: `github.com/jcsvwinston/nucleus/exporters/prometheus`, v0.1.9 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/exporters/prometheus`, v0.1.10 in this set
 - **Selected by**: metrics_path: /metrics (the default; an empty value turns the endpoint off)
 - **Wires**: its blank import registers the prometheus exporter with pkg/observe
 
@@ -97,7 +97,7 @@ The optional modules, framework capabilities and suite products that `nucleus ad
 
 ### `s3` {#entry-s3}
 
-- **Module**: `github.com/jcsvwinston/nucleus/providers/storage-s3`, v0.1.9 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/providers/storage-s3`, v0.1.10 in this set
 - **Selected by**: storage.provider: s3 (bucket, region and credentials under storage.s3)
 - **Wires**: its blank import registers the s3 provider with pkg/storage
 - **Needs a configuration block of its own** to work
@@ -105,7 +105,7 @@ The optional modules, framework capabilities and suite products that `nucleus ad
 
 ### `gcs` {#entry-gcs}
 
-- **Module**: `github.com/jcsvwinston/nucleus/providers/storage-gcs`, v0.1.9 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/providers/storage-gcs`, v0.1.10 in this set
 - **Selected by**: storage.provider: gcs (the bucket under storage.gcs)
 - **Wires**: its blank import registers the gcs provider with pkg/storage
 - **Needs a configuration block of its own** to work
@@ -113,7 +113,7 @@ The optional modules, framework capabilities and suite products that `nucleus ad
 
 ### `azure` {#entry-azure}
 
-- **Module**: `github.com/jcsvwinston/nucleus/providers/storage-azure`, v0.1.9 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/providers/storage-azure`, v0.1.10 in this set
 - **Selected by**: storage.provider: azure (account and container under storage.azure)
 - **Wires**: its blank import registers the azure provider with pkg/storage
 - **Needs a configuration block of its own** to work
@@ -123,7 +123,7 @@ The optional modules, framework capabilities and suite products that `nucleus ad
 
 ### `ldap` {#entry-ldap}
 
-- **Module**: `github.com/jcsvwinston/nucleus/providers/ldap`, v0.2.13 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/providers/ldap`, v0.2.14 in this set
 - **Selected by**: auth_backends: [ldap] (the directory under auth.ldap: url, base_dn)
 - **Wires**: its blank import registers the ldap backend with the authentication chain
 - **Needs a configuration block of its own** to work
@@ -133,7 +133,7 @@ The optional modules, framework capabilities and suite products that `nucleus ad
 
 ### `aws-sm` {#entry-aws-sm}
 
-- **Module**: `github.com/jcsvwinston/nucleus/providers/secrets-aws`, v0.1.9 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/providers/secrets-aws`, v0.1.10 in this set
 - **Runtime name**: `aws-sm:`, the name the runtime looks it up by
 - **Selected by**: a key reference written aws-sm:&lt;secret-id&gt;[#json-key], e.g. jwt_keys[].secret_env: aws-sm:myapp/prod/jwt
 - **Wires**: its blank import registers the aws-sm: scheme with pkg/auth/secrets
@@ -143,7 +143,7 @@ The optional modules, framework capabilities and suite products that `nucleus ad
 
 ### `sentry` {#entry-sentry}
 
-- **Module**: `github.com/jcsvwinston/nucleus/providers/errors-sentry`, v0.1.0 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/providers/errors-sentry`, v0.1.1 in this set
 - **Kind**: error reporter
 - **Selected by**: http_interceptors: [sentry] (the DSN under interceptors.sentry.dsn, or SENTRY_DSN)
 - **Wires**: its blank import registers the sentry request interceptor, and http_interceptors puts it in the request path: handler errors answered with a 500 and recovered panics are sent to Sentry
@@ -171,7 +171,7 @@ interceptors:
 
 ### `oidc` {#entry-oidc}
 
-- **Module**: `github.com/jcsvwinston/nucleus`, v1.32.0 in this set
+- **Module**: `github.com/jcsvwinston/nucleus`, v1.33.0 in this set
 - **Kind**: federated sign-in provider
 - **Imports**: `github.com/jcsvwinston/nucleus/pkg/auth/federated/oidc`
 - **Selected by**: auth_federated: [&#123;name: corp, provider: oidc&#125;] (issuer and client_id under auth.corp; public_base_url is required)
@@ -200,7 +200,7 @@ auth:
 
 ### `saml` {#entry-saml}
 
-- **Module**: `github.com/jcsvwinston/nucleus/providers/auth-saml`, v0.1.0 in this set
+- **Module**: `github.com/jcsvwinston/nucleus/providers/auth-saml`, v0.1.1 in this set
 - **Kind**: federated sign-in provider
 - **Also accepted as**: `saml2`
 - **Selected by**: auth_federated: [&#123;name: corp, provider: saml&#125;] (sp_entity_id and idp_metadata_url or idp_metadata_file under auth.corp; public_base_url is required)
@@ -237,7 +237,7 @@ auth:
 
 ### `redis-cache` {#entry-redis-cache}
 
-- **Module**: `github.com/jcsvwinston/nucleus`, v1.32.0 in this set
+- **Module**: `github.com/jcsvwinston/nucleus`, v1.33.0 in this set
 - **Also accepted as**: `cache-redis`
 - **Runtime name**: `redis`, the name the runtime looks it up by
 - **Imports**: `github.com/jcsvwinston/nucleus/pkg/cache/rediscache`
@@ -263,7 +263,7 @@ cache:
 
 ### `apikeys` {#entry-apikeys}
 
-- **Module**: `github.com/jcsvwinston/nucleus`, v1.32.0 in this set
+- **Module**: `github.com/jcsvwinston/nucleus`, v1.33.0 in this set
 - **Kind**: API-key authentication
 - **Also accepted as**: `api-keys`, `apikey`
 - **Wires**: WithAPIKeys() in the nucleus.New() chain: a request that presents a key (X-API-Key, or Authorization: Bearer nk_…) is authenticated against the keys `nucleus apikey create` issues into the default database
@@ -272,7 +272,7 @@ cache:
 
 ### `sql-queue` {#entry-sql-queue}
 
-- **Module**: `github.com/jcsvwinston/nucleus`, v1.32.0 in this set
+- **Module**: `github.com/jcsvwinston/nucleus`, v1.33.0 in this set
 - **Kind**: job queue
 - **Also accepted as**: `sql-jobs`
 - **Runtime name**: `sql`, the name the runtime looks it up by
@@ -290,7 +290,7 @@ jobs_provider: sql
 
 ### `accounts` {#entry-accounts}
 
-- **Module**: `github.com/jcsvwinston/nucleus`, v1.32.0 in this set
+- **Module**: `github.com/jcsvwinston/nucleus`, v1.33.0 in this set
 - **Kind**: account flows
 - **Also accepted as**: `account`
 - **Selected by**: modules.accounts.base_url and modules.accounts.from (the address the mailed links point at, and their sender), and a mail_driver that delivers
@@ -318,7 +318,7 @@ modules:
 
 ### `websockets` {#entry-websockets}
 
-- **Module**: `github.com/jcsvwinston/nucleus`, v1.32.0 in this set
+- **Module**: `github.com/jcsvwinston/nucleus`, v1.33.0 in this set
 - **Kind**: realtime channels
 - **Also accepted as**: `websocket`, `realtime`
 - **Runtime name**: `realtime`, the name the runtime looks it up by
@@ -331,7 +331,7 @@ modules:
 
 ### `orbit` {#entry-orbit}
 
-- **Module**: `github.com/jcsvwinston/orbit`, v1.19.3 in this set
+- **Module**: `github.com/jcsvwinston/orbit`, v1.20.1 in this set
 - **Kind**: admin panel
 - **Wires**: Mount(orbit.Module(orbit.Config&#123;...&#125;)) in main.go — `nucleus new --with orbit` writes it in a new project
 - **Adds**: the admin panel mounted under /admin with its own login gate, Data Studio and the live observability feed
@@ -346,14 +346,14 @@ modules:
 
 ### `quarkbridge` {#entry-quarkbridge}
 
-- **Module**: `github.com/jcsvwinston/orbit/quarkbridge`, v1.9.5 in this set
+- **Module**: `github.com/jcsvwinston/orbit/quarkbridge`, v1.9.6 in this set
 - **Kind**: observability bridge
 - **Wires**: quark.WithMiddleware(quarkbridge.New(rt.Observability())) on the Quark client a module opens
 - **Adds**: a Quark middleware that publishes every statement on the observability bus, so orbit's live feed shows the SQL correlated to the request
 
 ### `quarkdatasource` {#entry-quarkdatasource}
 
-- **Module**: `github.com/jcsvwinston/orbit/quarkdatasource`, v1.12.4 in this set
+- **Module**: `github.com/jcsvwinston/orbit/quarkdatasource`, v1.13.1 in this set
 - **Kind**: Data Studio adapter
 - **Wires**: quarkdatasource.New(client) and Register[Model] for each model, handed to orbit.Config
 - **Adds**: the adapter that backs orbit's Data Studio with Quark models, so /admin browses and edits them

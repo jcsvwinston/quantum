@@ -6,6 +6,66 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.41.0 — cierra el arco A11 (extensibilidad y catálogo) y publica lo que va de A12 y la tanda de arreglos del 2026-10-06/07, varios de seguridad del panel
+
+Quantum 1.41.0 cierra el arco A11 (extensibilidad y catálogo) y publica lo
+que va de A12 y la tanda de arreglos del 2026-10-06/07, varios de
+seguridad del panel. Se mueven quark (v1.16.0 → v1.17.0), nucleus
+(v1.31.0 → v1.32.0) y orbit (v1.19.1 → v1.19.3: un patch con los arreglos
+y otro que re-pina sus módulos internos). Módulos hermanos que cambian: la
+CLI de quark (v1.2.0 → v1.2.1) y sus cinco drivers (v0.2.5 → v0.3.0); en
+nucleus nacen auth-saml y errors-sentry (v0.1.0) y la CLI sale a su propio
+módulo, cmd/nucleus, que se publica en lockstep con la raíz (v1.32.0); los
+doce hermanos de antes suben un patch (ldap v0.2.13, los demás v0.1.9); en
+orbit agent v0.15.3, datasource v1.0.1, proto v0.8.1, quarkbridge v1.9.5,
+quarkdatasource v1.12.4, server v0.20.4 y ui v1.1.1. Minor de suite porque
+lo son las de quark y nucleus (QADR-0002). Corte en cadencia (lunes).
+
+Qué cambia para quien instala. Los tres productos se compilan y prueban
+con Go 1.26.9, que corrige GO-2026-6617 (una carrera en el codificador
+HPACK de HTTP/2 de net/http) y otros defectos de net/http y crypto/tls;
+la directiva go no cambia, así que una aplicación recibe el arreglo de la
+librería estándar al compilar con Go 1.26.9 o posterior, y orbit sube
+además golang.org/x/net a v0.60.0. En nucleus: el catálogo de nucleus add
+va embebido en la CLI y fijado al set, con recetas que cablean lo que
+instala; SAML y Sentry como módulos; WithAuthz() da a una aplicación
+WithoutDefaults() la autorización default-deny del stack por defecto, y
+WithRateLimit() su limitador; esas aplicaciones dicen ahora al arrancar la
+configuración que ignoran (storage, mail, rate limit, authz, políticas de
+módulo, profiler sin guarda), con avisos DEP-2026-013…018 que la rechazan
+en el 2.0; la cola SQL reclama con SKIP LOCKED; y se corrigen un
+scheduler SQL que podía disparar dos veces el mismo job, un Mux.With que
+repetía la pila de middleware, /healthz en aplicaciones multi-tenant y dos
+degradaciones silenciosas del clasificador de errores. En quark: varias
+escrituras se corrigen (UpdateBatch dentro de la transacción del llamador,
+la clave y las columnas que escribe Upsert en MySQL, SQL Server y Oracle,
+la invalidación de la caché en todas las escrituras, ApplyPlan tras
+resetear el esquema, las acciones de FK en Oracle y SQL Server); llegan
+dos opciones, WithStatementCache (FindByPK en MySQL un 46–48 % más rápido
+en el runner de CI) y CheckVersions() para el bloqueo optimista en lotes,
+que será el comportamiento por defecto en el 2.0; y el contrato de
+extensión se estrecha: dentro de v1 un punto de extensión no gana
+métodos. En orbit: el panel aplica el alcance del operador (tenant, filas
+propias y políticas por campo) en la exportación, la importación, los
+fixtures, el historial, el rastro de auditoría, los hijos del formulario,
+los filtros y los conteos, y Data Studio ofrece sólo lo que el servidor
+autoriza. Lo que puede notar un operador: con import_data pero sin el
+permiso de un modelo, importar en él da 403; sin retrieve, el rastro ya no
+le enseña los valores de las filas; y con un campo buscable oculto, la
+búsqueda de ese modelo se rechaza.
+
+Qué aprendió el tren. GO-2026-6617 se publicó el mismo día del corte y
+puso govulncheck en rojo en los tres productos: se subió el toolchain
+(con la directiva toolchain, no la go) antes de cortar nada. Los dos
+módulos nuevos de nucleus salían en v1.9.2, un número replayado del
+historial: release-as los fijó en v0.1.0 y hay que quitarlo antes del
+próximo corte. El driver no para en nucleus ni en orbit para las notas:
+tras los suelos fusionaría el release sin ellas, así que se paró, se
+escribieron en la rama del release y se relanzó. bump-set borraba la fila
+de la CLI de nucleus en el manifiesto (arreglado en este set), el go.work
+necesitó cinco módulos nuevos, y orbit volvió a necesitar un segundo corte
+porque ui, proto y datasource salieron en el mismo corte que la raíz.
+
 ## Quantum 1.40.0 — los P0 de tenants de quark y la mayor parte de A11 en quark y en el panel
 
 Quantum 1.40.0 publica tres defectos de quark que cruzaban tenants bajo

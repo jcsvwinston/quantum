@@ -11,34 +11,36 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-10-12)
+## Estado real (2026-10-18)
 
-- **Set certificado: Quantum 1.41.0** (2026-10-12, en cadencia) —
-  quark v1.17.0 (CLI v1.2.1, los cinco drivers v0.3.0) · nucleus v1.32.0 (la CLI
-  en su propio módulo, cmd/nucleus v1.32.0 en lockstep; nacen
-  providers/auth-saml y providers/errors-sentry en v0.1.0; los doce hermanos
-  de antes en v0.1.9 y providers/ldap v0.2.13) · orbit v1.19.3 (proto
-  v0.8.1, datasource v1.0.1, ui v1.1.1, agent v0.15.3, server v0.20.4,
-  quarkbridge v1.9.5, quarkdatasource v1.12.4). Publica **A11 entero**
-  (extensibilidad y catálogo: `nucleus add` embebido y fijado al set con
-  recetas, el lado plugin, SAML, Sentry y redis-cache, el kit de conformidad
-  y la plantilla de driver de quark, el contrato de extensión estrechado, y
-  el panel extensible) y lo que va de **A12**: la cola SQL con `SKIP
-  LOCKED`, la caché de sentencias y los lotes en un viaje de quark, la CLI
-  de nucleus fuera del módulo raíz, el panel comprimido. Y la tanda de
-  arreglos del 2026-10-06/07, con varios de seguridad del panel (el alcance
-  del operador en exportación, importación, historial, rastro, hijos del
-  formulario y filtros) y de nucleus (`WithAuthz()` y `WithRateLimit()` para
-  aplicaciones core-only, que ahora avisan al arrancar de lo que ignoran).
-  Los tres productos se compilan con Go 1.26.9 (GO-2026-6617).
-  1.40.0 publicó los P0 de tenants de quark; 1.39.0 cerró **A10**
-  (Testing y OpenAPI, 46 de 46) y 1.38.0 **A9** (Fleet unificado, 50 de 50).
-  El detalle de cada arco cerrado, en su plan de [`planes/`](planes/README.md).
-  **A12** (Rendimiento, re-auditoría y cierre a 5) sigue EN CURSO en
+- **Set certificado: Quantum 1.42.0** (2026-10-18, la semana de cadencia del
+  19 adelantada un día) — quark v1.17.0 (sin mover: CLI v1.2.1, los cinco
+  drivers v0.3.0) · nucleus v1.33.0 (cmd/nucleus v1.33.0 en lockstep;
+  drivers/sqlite v0.2.0, providers/ldap v0.2.14, providers/auth-saml y
+  providers/errors-sentry v0.1.1, los diez hermanos restantes v0.1.10) ·
+  orbit v1.20.1 (proto v0.8.1, datasource v1.1.0, ui v1.2.0, agent v0.16.1,
+  server v0.21.1, quarkbridge v1.9.6, quarkdatasource v1.13.1). Publica la
+  primera mitad de **`M0` de A12**, el 2.0 anunciado donde se lee: los
+  nueve avisos de nucleus (`DEP-2026-003` fechado y `019…026`) con sus
+  salidas en 1.x (`WithErrorEnvelope()`, `router.Wrap`, `Topic.String`) y
+  trece marcas; el registro `docs/deprecations/` de orbit con
+  `DEP-2026-001` (identidad del nodo atada al certificado por defecto en el
+  2.0; salida `AllowSharedAgentCertificate`) y `DEP-2026-002` (el adaptador
+  `datasource/nucleus` se retira; el panel sobre `quarkdatasource`), el
+  `LIKE` escapado en los seis motores, el panel leyendo problem+json y
+  `router.Wrap` en sus dos llamadas (`M0-O` completa). Los siete avisos de
+  quark (`M0-Q`) siguen en su `main`: quark no cortó porque desde v1.17.0
+  sólo lleva documentación. Del §3.0 del contrato del 2.0: 23 filas
+  `publicado`, 7 `en main`, ninguna por escribir.
+  1.41.0 cerró **A11** (extensibilidad y catálogo); 1.40.0 publicó los P0
+  de tenants de quark; 1.39.0 cerró **A10** (Testing y OpenAPI, 46 de 46)
+  y 1.38.0 **A9** (Fleet unificado, 50 de 50). El detalle de cada arco
+  cerrado, en su plan de [`planes/`](planes/README.md). **A12**
+  (Rendimiento, re-auditoría y cierre a 5) sigue EN CURSO en
   [`planes/A12-rendimiento-reauditoria-cierre.md`](planes/A12-rendimiento-reauditoria-cierre.md):
-  le quedan `M0` → `R1` → `M1` → `R2`, y lo que tiene que cumplir el 2.0 está
-  en [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
-  2027-01-04).
+  le quedan `M0-E` → `R1` → `M1` → `R2`, y lo que tiene que cumplir el 2.0
+  está en [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
+  2027-01-17, la última ventana que este set abre; `M0-E` fija la fecha).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
   TIPADO con el outbox como transporte opcional, CANALES sobre WebSocket y
