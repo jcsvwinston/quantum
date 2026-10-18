@@ -699,6 +699,61 @@ release-please@17` y llamar a `parseConventionalCommits` de
 bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
 la línea y la columna.
 
+### Lo que aprendió el tren de 1.42.0 (la primera mitad de `M0`, y un pilar que no corta)
+
+Conducido el domingo 2026-10-18 (la semana de cadencia del 19, un día
+antes a petición del propietario): nucleus#632 (suelos) → nucleus#631
+(v1.33.0, quince tags) → orbit#570 (alineación + `M0-O` (b)) → orbit#569
+(v1.20.0) → orbit#571 (pines internos) → orbit#572 (v1.20.1) →
+quantum#289. Reloj: 1h08m conducido en ocho invocaciones, 44m de espera
+del propietario, 1h52m de punta a punta. `suite-integral --cierre` 60 de 60.
+
+1. **Un pilar cuyo `main` sólo lleva `docs:` desde su tag NO corta, y NO
+   hay que subirle los suelos.** Quark llevaba quark#470 y quark#471
+   (`docs(deprecations)`) y siete suelos por detrás de v1.17.0; la fase
+   quark del driver los habría subido (QM-19) y ese `fix(deps)` habría
+   cortado los siete módulos por delante de la raíz, que manifest-guard
+   §3b rechaza por definición. Se saltó la fase (`--desde nucleus`); los
+   siete avisos de quark siguen `en main` hasta su primera release.
+   Deuda del driver: que `fase_repo` compruebe si hay commits releasables
+   desde el último tag antes de subir suelos.
+2. **El driver no para para las notas de una minor** (ya en 1.41.0) y en
+   orbit `alinea_pines_orbit` encadena `orbit-align-notes.sh`, que escribe
+   la sección de una release de ALINEACIÓN —falsa sobre una minor con
+   `feat`—. Receta: nucleus con `--solo-suelos`, esperar la corrida de
+   Release Please, sección y snapshot en la rama del bot (Docusaurus
+   arranca en el Mac: `cut_docs_snapshot.sh` sirve tal cual), relanzar la
+   fase. Orbit: `align-orbit-pins.sh` sobre una rama propia, PR con
+   `merge-group`, sección y snapshot en la rama regenerada, y la fase
+   después, que ve los pines al día y la sección escrita.
+3. **`align_set.sh` y manifest-guard §5 tienen la lista fija de seis
+   módulos**: ni `datasource` ni `ui` se alinean ni se vigilan.
+   `datasource` sigue requiriendo nucleus v1.30.1 y MVS lo resuelve
+   (ningún guard lo mira). Es la trampa de 1.37.0 con otra cara.
+4. **Segundo corte de orbit otra vez** (`ui`, `datasource` y `quarkbridge`
+   salieron con la raíz), y esta vez A MANO entero: `align-orbit-pins.sh
+   --check` sólo mira los pines cruzados (nucleus/quark), así que la fase
+   dijo «pines al día» con `check_internal_pins.sh` rojo en main y no
+   encontró release PR. Receta: `go mod edit -require` en raíz, agent,
+   server y quarkdatasource, `GOWORK=off go mod tidy` en cada uno,
+   `check_internal_pins.sh`, PR `fix(deps)`, `merge-group`, esperar
+   Release Please, `orbit-align-notes.sh` y la fase. Y comprobar antes que
+   el proxy sirve los tags nuevos (`curl proxy.golang.org/.../@v/vX.Y.Z.info`).
+5. **La plantilla de `orbit-align-notes.sh` es de antes de ADR-012**: dice
+   «`quarkdatasource` pins the root at vX» (ya no requiere la raíz) y lista
+   TODOS los módulos del manifiesto como «cut alongside», también los que
+   no se mueven. Se reescribió la sección v1.20.1 a mano; la plantilla
+   sigue igual.
+6. **Las notas de la versión se redactaron con un workflow de agentes**
+   (borrador por repo desde el diff, tres refutadores con lentes distintas,
+   revisión) y se corrigieron a mano con lo que el tren cambió después:
+   los suelos movieron los catorce hermanos de nucleus y `align_set.sh` no
+   tocó `datasource`. Una nota se escribe DESPUÉS de los suelos y la
+   alineación, no antes.
+7. **quantum-app#34** (el bump a 1.42.0) sale en borrador con sus gates en
+   rojo, igual que #32 (1.41.0): deuda suya, no del set (decisión del
+   2026-09-20).
+
 ### Lo que aprendió el tren de 1.41.0 (A11 cerrado, y una vuln de Go el mismo día)
 
 1. **Una vuln de la librería estándar publicada el día del corte**

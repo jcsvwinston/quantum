@@ -64,20 +64,21 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-18, QUANTUM 1.41.0 — A11 CERRADO; A12 en curso: `M0` EN MARCHA (`M0-S0`, `M0-G`, `M0-N`, `M0-Q` y `M0-O` (a) hechas; siguientes `M0-O` (b) tras el set del 19 y `M0-E`) → R1 → M1 → R2; el 2.0 no antes de 2027-01-04)
+## 3. Estado al cierre (2026-10-18, QUANTUM 1.42.0 — A11 CERRADO; A12 en curso: `M0` casi cerrado (`M0-S0`, `M0-G`, `M0-N`, `M0-Q` y `M0-O` hechas; siguiente `M0-E`) → R1 → M1 → R2; el 2.0 no antes de 2027-01-17)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.41.0** (2026-10-12, en cadencia) — quark
-  v1.17.0, nucleus v1.32.0 (con la CLI en su propio módulo, `cmd/nucleus`,
-  en lockstep, y `providers/auth-saml` y `providers/errors-sentry` nuevos en
-  v0.1.0) y orbit v1.19.3 con sus módulos, tal como los lista
-  `versions.yaml` (la fuente; no copies números de aquí). `declared_lags`
-  vacío. `suite-integral --cierre` **60 de 60**. **Cierra A11** y publica lo
-  que va de A12, la tanda de arreglos del 2026-10-06/07 (varios de
-  seguridad del panel y de las aplicaciones core-only) y Go 1.26.9 en los
-  tres productos (GO-2026-6617). Sus trampas, en la sección 1.41.0 de
-  `scripts/train/README.md`.
+- **Set certificado: Quantum 1.42.0** (2026-10-18, la semana de cadencia
+  del 19 un día antes) — quark v1.17.0 (sin mover), nucleus v1.33.0 (con
+  `cmd/nucleus` v1.33.0 en lockstep y los catorce hermanos subidos por los
+  suelos) y orbit v1.20.1 (dos cortes: v1.20.0 con sus módulos y v1.20.1
+  re-pinando `ui` y `datasource`), tal como los lista `versions.yaml` (la
+  fuente; no copies números de aquí). `declared_lags` vacío.
+  `suite-integral --cierre` **60 de 60**. Publica **la primera mitad de
+  `M0` de A12**: los nueve avisos de nucleus (`M0-N`) y los dos de orbit
+  con `M0-O` completa; del §3.0 del contrato del 2.0, 23 filas `publicado`
+  y las 7 de quark `en main` (quark no cortó: sólo `docs:` desde v1.17.0).
+  Sus trampas, en la sección 1.42.0 de `scripts/train/README.md`.
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
@@ -115,14 +116,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   de orbit), así que ninguna fila queda en `decisión`; **`M0-N` está hecha
   (nucleus#630, fusionado el 2026-10-16: nueve avisos, trece marcas,
   `WithErrorEnvelope()`, `router.Wrap`)**, **`M0-Q` también** (quark#470 y
-  quark#471: DEP-2026-004…010), **y `M0-O` (a) también** (orbit#568,
-  2026-10-18: orbit estrena `docs/deprecations/` con DEP-2026-001 y 002, la
-  salida `AllowSharedAgentCertificate`, las marcas del adaptador y el aviso
-  al montar, el `LIKE` escapado de `quarkdatasource` y `api.ts` leyendo
-  problem+json); dieciocho filas del §3.0 están `en main` hasta que el set
-  del 2026-10-19 las lleve al pin y su PR de set las pase a `publicado`.
-  Siguiente: `M0-O` (b) —`router.Wrap` en dos llamadas, con el require de
-  nucleus v1.33.0— cuando ese set pine la release de nucleus, y `M0-E`).
+  quark#471: DEP-2026-004…010), **y `M0-O` completa** (orbit#568 (a) y
+  orbit#570 (b), publicadas en 1.42.0: orbit estrena `docs/deprecations/`
+  con DEP-2026-001 y 002, la salida `AllowSharedAgentCertificate`, las
+  marcas del adaptador y el aviso al montar, el `LIKE` escapado de
+  `quarkdatasource`, `api.ts` leyendo problem+json y `router.Wrap` en sus
+  dos llamadas); del §3.0, 23 filas `publicado` al pin de 1.42.0 y las 7
+  de quark `en main` hasta la primera release de quark posterior a
+  v1.17.0. Siguiente: `M0-E`, el ensayo del major; su precondición está
+  cumplida y el §3.0 no tiene ninguna fila `por escribir`).
   Decisiones de Carlos para A11: ejemplos como fixtures probados,
   construir saml/redis-cache/sentry (Stripe se construyó y se
   retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
@@ -229,6 +231,45 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-10-18 (segunda) — **Quantum 1.42.0 certificado: la primera mitad de `M0` publicada, `M0-O` completa, y un tren con un pilar que no corta**
+
+- **Arranque**: Carlos pidió hacer aquí el tren propuesto para el 19.
+  Medido antes de tocar nada: quark SIN release PR (sólo `docs:` desde
+  v1.17.0 y siete suelos por detrás), nucleus#631 (v1.33.0) y orbit#569
+  (v1.20.0) abiertos; ninguna otra sesión conduciendo.
+- **Lo que hizo, en el orden real**: nucleus#632 (suelos, `--solo-suelos`)
+  → sección v1.33.0 y snapshot en la rama del bot → nucleus#631 fusionado
+  (v1.33.0, quince tags, `cmd/nucleus/v1.33.0`, activos firmados) →
+  orbit#570 (alineación a nucleus v1.33.0 + **`M0-O` (b)**: `router.Wrap`
+  en `audit.go` y `live.go`) → sección v1.20.0 y snapshot en la rama
+  regenerada → orbit#569 fusionado (v1.20.0 con quarkbridge v1.9.6,
+  quarkdatasource v1.13.0, agent v0.16.0, server v0.21.0, datasource
+  v1.1.0, ui v1.2.0) → orbit#571 (pines internos `ui` v1.2.0 y
+  `datasource` v1.1.0 en raíz, agent, server y quarkdatasource) → sección
+  v1.20.1 reescrita sobre la de `orbit-align-notes.sh` → orbit#572
+  fusionado (v1.20.1, agent v0.16.1, server v0.21.1, quarkdatasource
+  v1.13.1) → quantum#289 (re-pin, notas, RUMBO, el §3.0 con 23 filas
+  `publicado` y 7 `en main`, la política §1/§5/§6) → tag v1.42.0,
+  `--cierre` 60 de 60, quantum-app#34 en borrador con gates rojos (deuda
+  suya, como #32). Reloj: 1h08m conducido en ocho invocaciones, 44m de
+  espera del propietario, 1h52m de punta a punta.
+- **Las notas de la versión de nucleus y orbit** salieron de un workflow de
+  agentes (un borrador por repo desde el diff, tres refutadores con lentes
+  distintas, revisión) y se corrigieron a mano con lo que el tren cambió
+  DESPUÉS de redactarlas: los suelos movieron los catorce hermanos de
+  nucleus y `align_set.sh` no tocó `datasource`. Una nota se cierra tras
+  los suelos y la alineación.
+- **Trampas nuevas** (sección 1.42.0 del README del tren): un pilar con
+  sólo `docs:` no corta y NO se le suben los suelos; el driver escribe la
+  sección de alineación sobre una minor real; `align_set.sh` y
+  manifest-guard §5 no conocen `datasource` ni `ui`; el `--check` de pines
+  no mira los internos (segundo corte de orbit a mano entero); la
+  plantilla de `orbit-align-notes.sh` es anterior a ADR-012.
+- **Lo siguiente**: `M0-E` (el ensayo del major: ramas `dry-run/2.0` en
+  quark y nucleus, orbit `main` compilando contra ellas por `go.work`, el
+  borrador del generador de la guía de migración); su precondición está
+  cumplida. Después `R1`.
+
 ### Sesión 2026-10-18 — **A12 `M0-O` (a): orbit estrena `docs/deprecations/`, la salida `AllowSharedAgentCertificate`, el adaptador marcado y la migración que no espera a nucleus**
 
 - **Precondición medida y troceo**: `M0-O` pedía nucleus v1.33.0 (la
@@ -283,43 +324,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 - **Lo siguiente**: `M0-O` (b) cuando el set del 19 pine nucleus v1.33.0;
   luego `M0-E`.
 
-### Sesión 2026-10-16 (segunda) — **A12 `M0-G`: el guard de deprecaciones lee los avisos sin marca y la lista cerrada del major**
-
-- **Lo que hizo** (quantum#285, apilado sobre quantum#284; **sin fusionar:
-  Carlos decide**): `scripts/check_deprecations.sh` lee, además de las 12
-  marcas de godoc, cada `<repo>/docs/deprecations/DEP-*.md` con `Status:
-  active` al pin —versión y «no earlier than» obligatorias, FAIL por
-  versión ≤ pin, AVISO con los días por fecha vencida— y, si nombra el
-  major, exige su fila en el §3.0 de `quantum-2.0.md` en `publicado`; y
-  cruza la tabla entera (fila `publicado` sin fichero al pin FAIL; `por
-  escribir` y `decisión` AVISO con recuento; producto o estado desconocidos
-  y avisos repetidos FAIL; el producto se lee de la columna «Producto»,
-  porque los tres repos numeran por su cuenta). Al pin de 1.41.0: 13
-  avisos `active` (5 de retirada, 7 de volteo, 1 tolerado), 29 filas, 17
-  pendientes antes de `M1`. Fixture con cinco roturas; `guard-of-guards`
-  60 de 60. Política §1/§5/§6, nota del §3.0, comentario del registro de
-  guards y **QM-20 `hecho`**. No toca ningún producto.
-- **Lo que midió**: los doce avisos publicados llevan la viñeta de ventana
-  con tres grafías («Earliest removal», «Behaviour flip», «Earliest
-  change») y el guard las lee todas tal cual: ninguno está mal escrito, y
-  `M0-N`/`M0-Q` no tienen nada que corregir en los que ya existen.
-  `DEP-2026-003` de nucleus (`active` sin fecha) se tolera con AVISO
-  **sólo** porque su fila 20 está en `decisión`: en cuanto D2 se decida y
-  la fila cambie de estado, el guard exige la fecha.
-- **Trampa anunciada para el tren**: el PR de set que re-pine quark con los
-  avisos de `M0-Q` (o nucleus con los de `M0-N`) sale ROJO en
-  `umbrella-deprecations` hasta que sus filas del §3.0 pasen de `por
-  escribir` a `publicado` en ese mismo PR. Es a propósito —la tabla no
-  puede quedarse rancia—, pero hay que saberlo antes de lanzar `train.sh`.
-- **Pila de PRs**: quantum#285 contiene el commit de quantum#284. Cuando
-  #284 se fusione con squash, `git rebase --onto origin/main
-  docs/a12-m0-s0-inventario-major` en `claude/confident-goldstine-b07287` y
-  push forzado; si se fusiona #285 primero, se lleva consigo el §3.0 y el
-  troceado de `M0-S0` y #284 queda vacío. No fusionar el primero con
-  `--delete-branch` sin reapuntar antes (trampa de 1.32.0).
-- **Lo siguiente**: `M0-Q` arrancó en paralelo el mismo día (quark, sesión
-  aparte); `M0-N` espera D1…D8; `M0-O`, la release de nucleus con `M0-N`.
-
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -358,18 +362,21 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **Trampa anunciada para el tren del 2026-10-19** (nace el 2026-10-16,
-  ampliada el 2026-10-18): **dieciocho** filas del §3.0 de
-  `docs/planes/quantum-2.0.md` están `en main` (quark#470, quark#471,
-  nucleus#630 y orbit#568). Al re-pinar los tres, `umbrella-deprecations`
-  FALLA por cada aviso que llegue al pin con su fecha y cuya fila no diga
-  `publicado`: el PR de set las pasa a `publicado` (y la cabecera del §3.0
-  actualiza el recuento). Es el guard haciendo su trabajo, no un fallo. Y
-  **orbit corta minor** (el squash de orbit#568 es `feat:` → v1.20.0, con
-  `server`, `datasource`, `quarkdatasource` y `ui` en minor también): notas
-  de la versión y snapshot de docs en la rama del release (RT-9), que el
-  driver no escribe solo (trampa de 1.41.0: parar tras los suelos,
-  escribir, relanzar).
+- **Las siete filas de quark del §3.0 siguen `en main`** (quark#470,
+  quark#471; desde el 2026-10-18): quark no cortó en 1.42.0 porque desde
+  v1.17.0 sólo lleva `docs:`. Llegan al pin con la primera release de quark
+  posterior a v1.17.0, y el PR de ese set las pasa a `publicado` y escribe
+  su ventana (90 días desde ese set); `umbrella-deprecations` lo exigirá
+  en rojo. Hasta entonces el 2.0 no tiene fecha final (`M0-E` la escribe).
+- **Lo que el tren de 1.42.0 dejó al driver** (nace el 2026-10-18; sección
+  1.42.0 de `scripts/train/README.md`): `fase_repo` sube los suelos sin
+  mirar si hay commits releasables desde el tag (con quark en `docs:` habría
+  cortado módulos por delante de la raíz: se saltó la fase a mano);
+  `align_set.sh` y manifest-guard §5 no conocen `datasource` ni `ui` (lista
+  fija de seis); `align-orbit-pins.sh --check` no mira los pines internos,
+  así que el segundo corte de orbit es a mano entero; y la plantilla de
+  `orbit-align-notes.sh` es de antes de ADR-012. Ninguno frena un set;
+  cada uno cuesta una vuelta a mano.
 
 - **El plan a 5 de 5** manda el orden: ~~A1~~ … ~~A8~~ CERRADOS (1.28.0 …
   1.35.0) → **A9 (Fleet unificado y una sola SPA), EN CURSO y TROCEADO** por
