@@ -108,12 +108,14 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 > `publicado` FALLA). El id se lee de la columna «Aviso» y el producto de la
 > columna «Producto», porque los tres repos numeran por su cuenta. `M1` no
 > empieza con una fila que no diga `publicado`. Contado al pin de 1.41.0 al
-> cierre del 2026-10-16: 12 filas `publicado`, **16 `en main`** (las siete
-> de quark, quark#470 y quark#471, y las nueve de nucleus#630, que el set
-> del 2026-10-19 lleva al pin y su PR de set pasa a `publicado`), 2 `por
-> escribir` (la 29 y la 30, de `M0-O`) y 0 `decisión`. **Al 2026-10-18**,
-> con orbit#568 (`M0-O` (a)): **18 `en main`** y 0 `por escribir` — el PR
-> de set del 2026-10-19 pasa las dieciocho a `publicado`.
+> cierre del 2026-10-16: 12 filas `publicado`, 16 `en main` y 2 `por
+> escribir`. **Al pin de 1.42.0 (2026-10-18)**: **23 `publicado`** (las
+> nueve de nucleus#630 con nucleus v1.33.0 y las dos de orbit#568 con orbit
+> v1.20.0, ventana abierta el 2027-01-17), **7 `en main`** (las de quark,
+> quark#470 y quark#471: quark no cortó en 1.42.0 porque desde v1.17.0 sólo
+> lleva documentación, y release-please no abre release por `docs:`; llegan
+> al pin con la primera release de quark que las contenga, y su ventana se
+> cuenta desde ese set), 0 `por escribir` y 0 `decisión`.
 
 | # | Producto | Qué cambia en el 2.0 | Tipo | Hallazgo | Aviso | Estado | Ventana abre | Sesión |
 |---|---|---|---|---|---|---|---|---|
@@ -136,17 +138,17 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 | 17 | nucleus | `rate_limit_*` sin `WithRateLimit()`, deja de arrancar | negativa | — | DEP-2026-016 | `publicado` | 2027-01-02 | — |
 | 18 | nucleus | claves de authz y `Module.Policies` sin `WithAuthz()`, deja de arrancar | negativa | — | DEP-2026-017 | `publicado` | 2027-01-02 | — |
 | 19 | nucleus | `profiling_enabled` sin guarda, deja de arrancar | negativa | — | DEP-2026-018 | `publicado` | 2027-01-02 | — |
-| 20 | nucleus | las filas de política de 3 columnas dejan de leerse (hoy `active` SIN fecha, contra la política §2) | retirada | — | DEP-2026-003 | `en main` | — | `M0-N` |
-| 21 | nucleus | `nucleustest` deja de enlazar SQLite siempre | volteo (empaquetado de test) | NU-121 | DEP-2026-019 | `en main` | — | `M0-N` |
-| 22 | nucleus | el proveedor asynq sale a `providers/tasks-asynq` (decisión 4 de A12) | empaquetado | — | DEP-2026-020 | `en main` | — | `M0-N` |
-| 23 | nucleus | `session_idle_timeout` con valor de fábrica | volteo (config) | NU-72 | DEP-2026-021 | `en main` | — | `M0-N` |
-| 24 | nucleus | los errores salen en problem+json por defecto; `WithErrorEnvelope()` para quedarse | volteo | — | DEP-2026-022 | `en main` | — | `M0-N` |
-| 25 | nucleus | se retira `NewWrapResponseWriter(w, _ int)`; `router.Wrap(w)` desde 1.x | retirada (1 marca) | NU-41 | DEP-2026-023 | `en main` | — | `M0-N` |
-| 26 | nucleus | se retira `pkg/model` como capa de datos pública (48 símbolos); los generadores, el starter, `nucleustest` y la doc pasan a quark en 1.x (la DX al 5) y `pkg/app`/`pkg/nucleus` dejan de exponerlo | retirada (paquete) | — | DEP-2026-024 | `en main` | — | `M0-N` |
-| 27 | nucleus | se retira la puerta sin tipo de `signals` (`Signal`, `Event`, `Handler`, `Bus.On/Emit/EmitAsync`); las señales de ciclo de vida como topics tipados desde 1.x | retirada (marcas) | — | DEP-2026-025 | `en main` | — | `M0-N` |
-| 28 | nucleus | SQLite guarda las fechas en un formato que `date()` entiende | volteo (datos) | NU-110 | DEP-2026-026 | `en main` | — | `M0-N` |
-| 29 | orbit | la identidad del nodo del fleet atada al certificado cuando hay mTLS; `AllowSharedAgentCertificate` para quedarse | volteo (config) | OR-57 | DEP-2026-001 (orbit) | `en main` | — | `M0-O` |
-| 30 | orbit | se retira el adaptador `datasource/nucleus` (el panel sobre modelos de `pkg/model`): el panel se monta sólo sobre `quarkdatasource` (D5b) | retirada (paquete) | — | DEP-2026-002 (orbit) | `en main` | — | `M0-O` |
+| 20 | nucleus | las filas de política de 3 columnas dejan de leerse (hoy `active` SIN fecha, contra la política §2) | retirada | — | DEP-2026-003 | `publicado` | 2027-01-17 | `M0-N` |
+| 21 | nucleus | `nucleustest` deja de enlazar SQLite siempre | volteo (empaquetado de test) | NU-121 | DEP-2026-019 | `publicado` | 2027-01-17 | `M0-N` |
+| 22 | nucleus | el proveedor asynq sale a `providers/tasks-asynq` (decisión 4 de A12) | empaquetado | — | DEP-2026-020 | `publicado` | 2027-01-17 | `M0-N` |
+| 23 | nucleus | `session_idle_timeout` con valor de fábrica | volteo (config) | NU-72 | DEP-2026-021 | `publicado` | 2027-01-17 | `M0-N` |
+| 24 | nucleus | los errores salen en problem+json por defecto; `WithErrorEnvelope()` para quedarse | volteo | — | DEP-2026-022 | `publicado` | 2027-01-17 | `M0-N` |
+| 25 | nucleus | se retira `NewWrapResponseWriter(w, _ int)`; `router.Wrap(w)` desde 1.x | retirada (1 marca) | NU-41 | DEP-2026-023 | `publicado` | 2027-01-17 | `M0-N` |
+| 26 | nucleus | se retira `pkg/model` como capa de datos pública (48 símbolos); los generadores, el starter, `nucleustest` y la doc pasan a quark en 1.x (la DX al 5) y `pkg/app`/`pkg/nucleus` dejan de exponerlo | retirada (paquete) | — | DEP-2026-024 | `publicado` | 2027-01-17 | `M0-N` |
+| 27 | nucleus | se retira la puerta sin tipo de `signals` (`Signal`, `Event`, `Handler`, `Bus.On/Emit/EmitAsync`); las señales de ciclo de vida como topics tipados desde 1.x | retirada (marcas) | — | DEP-2026-025 | `publicado` | 2027-01-17 | `M0-N` |
+| 28 | nucleus | SQLite guarda las fechas en un formato que `date()` entiende | volteo (datos) | NU-110 | DEP-2026-026 | `publicado` | 2027-01-17 | `M0-N` |
+| 29 | orbit | la identidad del nodo del fleet atada al certificado cuando hay mTLS; `AllowSharedAgentCertificate` para quedarse | volteo (config) | OR-57 | DEP-2026-001 (orbit) | `publicado` | 2027-01-17 | `M0-O` |
+| 30 | orbit | se retira el adaptador `datasource/nucleus` (el panel sobre modelos de `pkg/model`): el panel se monta sólo sobre `quarkdatasource` (D5b) | retirada (paquete) | — | DEP-2026-002 (orbit) | `publicado` | 2027-01-17 | `M0-O` |
 
 Lo que esta tabla deja fuera a propósito: la migración de orbit (§2.4, es
 trabajo de 1.x, no un cambio del 2.0), la DX al 5 (§2.1, aditiva) y el
