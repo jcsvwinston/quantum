@@ -15,7 +15,10 @@
   del set que los lleve (si es el del 2026-10-19, hacia el 2027-01-17; si
   es el del 10-26, el 2027-01-24). **La fecha del 2.0 la fija la última
   ventana que `M0` abra**, y `M0-E` la escribe aquí cuando no quede
-  ninguna fila `por escribir` en el §3.0.
+  ninguna fila `por escribir` en el §3.0. Medido al cierre de 1.42.0
+  (2026-10-18): las veintitrés filas `publicado` abren el 2027-01-17 como
+  muy tarde; las siete de quark (`en main`) abrirán 90 días después del
+  set que lleve la primera release de quark posterior a v1.17.0.
 - **El orden lo decidió Carlos: primero se termina lo pendiente**, después el
   2.0. Nada de este documento se empieza antes de que se cumpla el §2.
 
@@ -41,12 +44,13 @@
    se deprecia en 1.x (`DEP-2026-002` de orbit, fila 30) y se retira en el
    2.0, así que el panel sobre `pkg/model` deja de existir con el major y
    la guía de migración lo dice. El 2.0 no puede romper el panel sobre
-   quark. **Hecho en su mitad (a) el 2026-10-18 (orbit#568)**: los dos
-   avisos, la salida `AllowSharedAgentCertificate`, las marcas y el aviso
-   al montar, el `LIKE` escapado y `api.ts` leyendo problem+json; medido
-   al hacerlo, orbit no llama a la puerta sin tipo de `signals` (guarda el
-   bus sólo para `model.NewCRUD`, que se va con el adaptador). Queda (b):
-   `router.Wrap` en las dos llamadas, con el require de nucleus v1.33.0.
+   quark. **HECHO el 2026-10-18** (orbit#568 y orbit#570, en Quantum
+   1.42.0): los dos avisos, la salida `AllowSharedAgentCertificate`, las
+   marcas y el aviso al montar, el `LIKE` escapado, `api.ts` leyendo
+   problem+json y `router.Wrap` en las dos llamadas con el require de
+   nucleus v1.33.0; medido al hacerlo, orbit no llama a la puerta sin tipo
+   de `signals` (guarda el bus sólo para `model.NewCRUD`, que se va con el
+   adaptador). `grep` de los símbolos del §3.1 sobre orbit = 0.
 5. **`R1` hecha**: la re-auditoría completa sobre el último set 1.x. Lo
    rompiente que encuentre entra en el §3 (con su aviso); lo demás, en sets
    semanales.
