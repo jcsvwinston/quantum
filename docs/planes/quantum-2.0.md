@@ -41,7 +41,12 @@
    se deprecia en 1.x (`DEP-2026-002` de orbit, fila 30) y se retira en el
    2.0, así que el panel sobre `pkg/model` deja de existir con el major y
    la guía de migración lo dice. El 2.0 no puede romper el panel sobre
-   quark.
+   quark. **Hecho en su mitad (a) el 2026-10-18 (orbit#568)**: los dos
+   avisos, la salida `AllowSharedAgentCertificate`, las marcas y el aviso
+   al montar, el `LIKE` escapado y `api.ts` leyendo problem+json; medido
+   al hacerlo, orbit no llama a la puerta sin tipo de `signals` (guarda el
+   bus sólo para `model.NewCRUD`, que se va con el adaptador). Queda (b):
+   `router.Wrap` en las dos llamadas, con el require de nucleus v1.33.0.
 5. **`R1` hecha**: la re-auditoría completa sobre el último set 1.x. Lo
    rompiente que encuentre entra en el §3 (con su aviso); lo demás, en sets
    semanales.
@@ -106,7 +111,9 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 > cierre del 2026-10-16: 12 filas `publicado`, **16 `en main`** (las siete
 > de quark, quark#470 y quark#471, y las nueve de nucleus#630, que el set
 > del 2026-10-19 lleva al pin y su PR de set pasa a `publicado`), 2 `por
-> escribir` (la 29 y la 30, de `M0-O`) y 0 `decisión`.
+> escribir` (la 29 y la 30, de `M0-O`) y 0 `decisión`. **Al 2026-10-18**,
+> con orbit#568 (`M0-O` (a)): **18 `en main`** y 0 `por escribir` — el PR
+> de set del 2026-10-19 pasa las dieciocho a `publicado`.
 
 | # | Producto | Qué cambia en el 2.0 | Tipo | Hallazgo | Aviso | Estado | Ventana abre | Sesión |
 |---|---|---|---|---|---|---|---|---|
@@ -138,8 +145,8 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 | 26 | nucleus | se retira `pkg/model` como capa de datos pública (48 símbolos); los generadores, el starter, `nucleustest` y la doc pasan a quark en 1.x (la DX al 5) y `pkg/app`/`pkg/nucleus` dejan de exponerlo | retirada (paquete) | — | DEP-2026-024 | `en main` | — | `M0-N` |
 | 27 | nucleus | se retira la puerta sin tipo de `signals` (`Signal`, `Event`, `Handler`, `Bus.On/Emit/EmitAsync`); las señales de ciclo de vida como topics tipados desde 1.x | retirada (marcas) | — | DEP-2026-025 | `en main` | — | `M0-N` |
 | 28 | nucleus | SQLite guarda las fechas en un formato que `date()` entiende | volteo (datos) | NU-110 | DEP-2026-026 | `en main` | — | `M0-N` |
-| 29 | orbit | la identidad del nodo del fleet atada al certificado cuando hay mTLS; `AllowSharedAgentCertificate` para quedarse | volteo (config) | OR-57 | DEP-2026-001 (orbit) | `por escribir` | — | `M0-O` |
-| 30 | orbit | se retira el adaptador `datasource/nucleus` (el panel sobre modelos de `pkg/model`): el panel se monta sólo sobre `quarkdatasource` (D5b) | retirada (paquete) | — | DEP-2026-002 (orbit) | `por escribir` | — | `M0-O` |
+| 29 | orbit | la identidad del nodo del fleet atada al certificado cuando hay mTLS; `AllowSharedAgentCertificate` para quedarse | volteo (config) | OR-57 | DEP-2026-001 (orbit) | `en main` | — | `M0-O` |
+| 30 | orbit | se retira el adaptador `datasource/nucleus` (el panel sobre modelos de `pkg/model`): el panel se monta sólo sobre `quarkdatasource` (D5b) | retirada (paquete) | — | DEP-2026-002 (orbit) | `en main` | — | `M0-O` |
 
 Lo que esta tabla deja fuera a propósito: la migración de orbit (§2.4, es
 trabajo de 1.x, no un cambio del 2.0), la DX al 5 (§2.1, aditiva) y el

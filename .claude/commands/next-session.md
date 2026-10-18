@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-16, QUANTUM 1.41.0 — A11 CERRADO; A12 en curso: `M0` EN MARCHA (`M0-S0`, `M0-G`, `M0-N` y `M0-Q` hechas; siguiente `M0-O` tras el set del 19) → R1 → M1 → R2; el 2.0 no antes de 2027-01-04)
+## 3. Estado al cierre (2026-10-18, QUANTUM 1.41.0 — A11 CERRADO; A12 en curso: `M0` EN MARCHA (`M0-S0`, `M0-G`, `M0-N`, `M0-Q` y `M0-O` (a) hechas; siguientes `M0-O` (b) tras el set del 19 y `M0-E`) → R1 → M1 → R2; el 2.0 no antes de 2027-01-04)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -115,9 +115,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   de orbit), así que ninguna fila queda en `decisión`; **`M0-N` está hecha
   (nucleus#630, fusionado el 2026-10-16: nueve avisos, trece marcas,
   `WithErrorEnvelope()`, `router.Wrap`)**, **`M0-Q` también** (quark#470 y
-  quark#471: DEP-2026-004…010), y dieciséis filas del §3.0 están `en main` hasta que
-  el set del 2026-10-19 las lleve al pin y su PR de set las pase a
-  `publicado`. Siguiente: `M0-O`, que requiere esa release de nucleus).
+  quark#471: DEP-2026-004…010), **y `M0-O` (a) también** (orbit#568,
+  2026-10-18: orbit estrena `docs/deprecations/` con DEP-2026-001 y 002, la
+  salida `AllowSharedAgentCertificate`, las marcas del adaptador y el aviso
+  al montar, el `LIKE` escapado de `quarkdatasource` y `api.ts` leyendo
+  problem+json); dieciocho filas del §3.0 están `en main` hasta que el set
+  del 2026-10-19 las lleve al pin y su PR de set las pase a `publicado`.
+  Siguiente: `M0-O` (b) —`router.Wrap` en dos llamadas, con el require de
+  nucleus v1.33.0— cuando ese set pine la release de nucleus, y `M0-E`).
   Decisiones de Carlos para A11: ejemplos como fixtures probados,
   construir saml/redis-cache/sentry (Stripe se construyó y se
   retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
@@ -224,6 +229,60 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-10-18 — **A12 `M0-O` (a): orbit estrena `docs/deprecations/`, la salida `AllowSharedAgentCertificate`, el adaptador marcado y la migración que no espera a nucleus**
+
+- **Precondición medida y troceo**: `M0-O` pedía nucleus v1.33.0 (la
+  release con `M0-N`) y no existe: nucleus#631 (el release PR de
+  release-please) sigue abierto hasta el tren del 19. De lo que entrega
+  `M0-O` sólo `router.Wrap` la necesita, así que se partió como `M0-Q`:
+  **(a)** hecha hoy (orbit#568) y **(b)** —las dos llamadas a
+  `NewWrapResponseWriter` en `internal/admin/audit.go:397` y `live.go:540`,
+  con el require de nucleus v1.33.0— tras el set del 19.
+- **Lo que hizo** (orbit#568, un PR; squash `feat:` → **orbit corta
+  minor, v1.20.0**): `docs/deprecations/README.md` (calcado del de quark:
+  sin asistentes de migración ni CHANGELOG a mano); **DEP-2026-001**
+  (OR-57, volteo: al 2.0 un listener con `--agent-client-ca` ata la
+  identidad del nodo al certificado por defecto; salida
+  `server.Config.AllowSharedAgentCertificate` /
+  `--allow-shared-agent-certificate` /
+  `NUCLEUS_ADMIN_ALLOW_SHARED_AGENT_CERTIFICATE`, que contradice
+  `AgentIdentityFromCertificate` —`Run` rehúsa las dos— y un WARN único al
+  arrancar con mTLS y ninguna de las dos); **DEP-2026-002** (D5b: cuatro
+  marcas `Deprecated` en `datasource/nucleus` —paquete, `Config`, `Adapter`,
+  `New`—, WARN al montar el panel y al arrancar el agente sobre el camino
+  por defecto; al 2.0 `orbit.Config.DataSource` nil es error de
+  configuración, y el editor de metadatos de campo y el `*signals.Bus` del
+  adaptador se van con él); `quarkdatasource` pasa del `LIKE` plano con
+  escape propio a `quark.Contains/StartsWith/EndsWith` (escape declarado en
+  los seis motores: SQLite y Oracle contestan un `%` en vez de rechazarlo,
+  QK-25 cerrado por este lado; `escapeLike` y `FuzzEscapeLike` fuera y
+  `fuzz.sh` al día); `api.ts` lee problem+json (detail > title) junto al
+  sobre y `ApiError.code` en las dos formas; dist reconstruido (16 chunks
+  del panel renombrados por el hash del módulo compartido; el del fleet
+  igual). Doc: `security.md`, `cluster/server.md`, `features.md`,
+  `admin-bench.md`, `fleet-bench.md`. Tests nuevos: tres en
+  `server/node_identity_test.go`, `agent/datasource_deprecation_test.go`,
+  `datasource_deprecation_test.go` en la raíz (captura stdout: el logger
+  de nucleus no admite writer), `api.errors.test.ts` y los dos del comodín
+  en `quarkdatasource`.
+- **Lo que midió y no decía el enunciado**: orbit **no llama** a la puerta
+  sin tipo de `signals` (0 sitios): guarda el bus sólo para
+  `model.NewCRUD`, que se va con el adaptador, y `Panel.SetSignalBus` no lo
+  lee nadie → nada que migrar a topics tipados. `ExtensionConfig.DataSource`
+  del agente cae al mismo adaptador por defecto (el aviso lo cubre). El
+  banco del fleet **con `GOWORK=off` da dos fallos falsos**
+  (`TestFleetParityThreeAgents` y UI-09) porque `internal/fleettest/go.mod`
+  resuelve server y agent publicados: se corre con el workspace de orbit,
+  como CI. Criterio de `M0-O` en (a): banco admin 72/72, IDENT-06 present,
+  CI verde; `grep NewWrapResponseWriter` = 2 hasta (b).
+- **Guard**: `check_deprecations.sh` lee las cuatro marcas y los dos avisos
+  de orbit; con el submódulo en la rama FALLA sólo porque las filas 29 y 30
+  decían `por escribir`, que este PR pasa a `en main`. La trampa del tren
+  del 19 crece: **dieciocho** filas a `publicado` y la minor de orbit con
+  sus notas y snapshot (§5).
+- **Lo siguiente**: `M0-O` (b) cuando el set del 19 pine nucleus v1.33.0;
+  luego `M0-E`.
+
 ### Sesión 2026-10-16 (segunda) — **A12 `M0-G`: el guard de deprecaciones lee los avisos sin marca y la lista cerrada del major**
 
 - **Lo que hizo** (quantum#285, apilado sobre quantum#284; **sin fusionar:
@@ -260,75 +319,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `--delete-branch` sin reapuntar antes (trampa de 1.32.0).
 - **Lo siguiente**: `M0-Q` arrancó en paralelo el mismo día (quark, sesión
   aparte); `M0-N` espera D1…D8; `M0-O`, la release de nucleus con `M0-N`.
-
-### Sesión 2026-10-16 — **A12 `M0-S0`: el major contado al pin de 1.41.0, y `M0` troceado en seis sesiones**
-
-- **Arranque limpio**: `estado.sh` con el checkout en el pin, la lane
-  semanal del 2026-10-12 verde, `main` de nucleus y orbit con un `chore`
-  cada uno sin publicar, y 26 hallazgos abiertos, todos de A12 (P2=2,
-  P3=24). Lo único fuera de sitio: los issues automáticos quantum#262 y
-  quantum#263 (lanes del 2026-10-05) siguen abiertos aunque la corrida
-  programada del 12/10 pasó — cerrarlos es de Carlos (§5).
-- **Lo que midió, sobre el pin** (detalle en el plan de A12, sección «`M0`
-  — inventario medido»): 12 marcas `// Deprecated:` a mano que el guard ve
-  (quark 5 en 2 avisos, nucleus 7 en 3); **7 avisos de volteo que el guard
-  NO ve** (nucleus 013…018, quark 003) porque sólo recorre marcas; nucleus
-  DEP-2026-003 `active` SIN fecha; 9 volteos ya decididos sin aviso (6 de
-  quark, 2 de nucleus, OR-57); orbit sin `docs/deprecations/`. Y cuatro
-  cosas que el enunciado de `M0` daba por supuestas y no eran así: los
-  «~14 sitios» de orbit son **2 llamadas** a `NewWrapResponseWriter` (y
-  `authz.New`, que no tiene nada roto); el bus único **ya existe**
-  (`signals.Bus` con la puerta tipada de A7 y la no tipada: sobra la
-  segunda, no un paquete); **`pkg/model` sostiene el adaptador
-  `datasource/nucleus` de orbit entero** (6 ficheros, 3 módulos) y no se
-  retira en el 2.0 sin matarlo; y el sobre de errores **no tiene opción de
-  quedarse** (hay `WithProblemDetails()`, no `WithErrorEnvelope()`).
-- **Lo que escribió** (este PR): el troceado de `M0` —`M0-S0` → D1…D8 →
-  `M0-Q` ∥ `M0-N` ∥ `M0-G` → `M0-O` → `M0-E`, cada una con precondición y
-  criterio— en el plan de A12; el **§3.0 del contrato del 2.0**, la lista
-  cerrada de 29 filas con el aviso de cada una y su estado (`publicado` /
-  `en main` / `por escribir` / `decisión`), que es lo que `M0-G` enseña a
-  leer al guard; el **bloque de decisión D1…D8** con recomendación (idle
-  timeout 30m; fechar DEP-003 de nucleus; problem+json con
-  `WithErrorEnvelope()` primero; deprecar sólo `NewWrapResponseWriter`;
-  `pkg/model` a sustrato en el 2.0 y fuera en el 3.0; retirar la puerta sin
-  tipo de `signals`; QK-50 y NU-110 entran); y la política de deprecación
-  §1/§5/§6 remedidas al pin de 1.41.0. **QM-20 sigue abierto**: la prosa
-  está, el guard lo cierra `M0-G`.
-- **Lo siguiente**: `M0-Q` (los seis avisos de quark ya decididos) y
-  `M0-G` (el guard) pueden arrancar sin esperar a nadie; `M0-N` espera el
-  bloque D1…D8; `M0-O`, a la release de nucleus que traiga `M0-N`. El set
-  del 2026-10-19 sale por cadencia con lo que esté fusionado; cada aviso
-  que entre en él abre su ventana el 2027-01-17, y **la fecha del 2.0 la
-  fija la última ventana que `M0` abra** (`M0-E` la escribe en el §1 del
-  contrato).
-- **La misma tarde**: quantum#284 y quantum#285 fusionados con el squash
-  controlado (la pila con squash dejó #285 en conflicto: la sesión `M0-G`
-  rebasó y empujó); quark#470 (`M0-Q`, DEP-2026-004…009) fusionado.
-  **Carlos decidió D1…D8 una a una**: 30m; DEP-003 de nucleus fechado al
-  2.0; problem+json con `WithErrorEnvelope()` antes; sólo
-  `NewWrapResponseWriter`; **`pkg/model` se retira en el 2.0 y el adaptador
-  `datasource/nucleus` de orbit con él** (fila 30 del §3.0, `DEP-2026-002`
-  de orbit); la puerta sin tipo de `signals` fuera; QK-50 y NU-110 entran.
-  El §3.0 queda con 18 filas `por escribir` y 0 `decisión`.
-- **Y `M0-N`, hecha en esta misma sesión** (nucleus#630, fusionado): los
-  nueve avisos de nucleus (003 fechado al 2.0; 019…026) con asistente y el
-  test que pina v1, trece marcas `Deprecated`, `WithErrorEnvelope()`,
-  `router.Wrap`, `Topic.String` y la pista al migrador en `authz.New`.
-  **Dos correcciones al enunciado**: los topics tipados de ciclo de vida
-  no se construyen (las señales las emite `pkg/model`, que D5 retira), y
-  **casbin v2.135.0 ya rechaza una fila de política de 3 columnas al
-  cargar** (DEP-003 describía filas inertes; el aviso dice lo medido). El
-  `make check` de nucleus hay que mirarlo en su log: el primer intento paró
-  en los guards por `configuration.md`, que es GENERADA desde
-  `CONFIG_KEY_REGISTRY.md`, y la fase `test` no corrió. Las filas 4…9 y
-  20…28 del §3.0 pasan a `en main`, y la 10 esa misma noche con quark#471
-  (`M0-Q` (b): DEP-2026-010, QK-50; quark no tiene interruptor para la
-  semántica de longitud en Oracle, la salida es `NLS_LENGTH_SEMANTICS=CHAR`
-  del motor); el guard tolera el aviso sin fecha al pin también con la fila
-  `en main`, porque el fichero nuevo aún no está al pin. **El PR de set del
-  2026-10-19 debe pasar esas dieciséis filas a `publicado`** (si no,
-  `umbrella-deprecations` se pone rojo al re-pinar).
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -368,12 +358,18 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **Trampa anunciada para el tren del 2026-10-19** (nace el 2026-10-16):
-  dieciséis filas del §3.0 de `docs/planes/quantum-2.0.md` están `en main`
-  (quark#470, quark#471, nucleus#630). Al re-pinar quark y nucleus, `umbrella-deprecations`
+- **Trampa anunciada para el tren del 2026-10-19** (nace el 2026-10-16,
+  ampliada el 2026-10-18): **dieciocho** filas del §3.0 de
+  `docs/planes/quantum-2.0.md` están `en main` (quark#470, quark#471,
+  nucleus#630 y orbit#568). Al re-pinar los tres, `umbrella-deprecations`
   FALLA por cada aviso que llegue al pin con su fecha y cuya fila no diga
   `publicado`: el PR de set las pasa a `publicado` (y la cabecera del §3.0
-  actualiza el recuento). Es el guard haciendo su trabajo, no un fallo.
+  actualiza el recuento). Es el guard haciendo su trabajo, no un fallo. Y
+  **orbit corta minor** (el squash de orbit#568 es `feat:` → v1.20.0, con
+  `server`, `datasource`, `quarkdatasource` y `ui` en minor también): notas
+  de la versión y snapshot de docs en la rama del release (RT-9), que el
+  driver no escribe solo (trampa de 1.41.0: parar tras los suelos,
+  escribir, relanzar).
 
 - **El plan a 5 de 5** manda el orden: ~~A1~~ … ~~A8~~ CERRADOS (1.28.0 …
   1.35.0) → **A9 (Fleet unificado y una sola SPA), EN CURSO y TROCEADO** por

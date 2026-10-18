@@ -30,7 +30,7 @@ protoc o ent y se reescriben solas en la siguiente generación.
 |---|---|---|---|
 | nucleus | **0 → 7** (3 avisos: 009, 011, 012) | sí (`docs/governance/DEPRECATION_TEMPLATE.md`) | 8 → **17** avisos `DEP-2026-NNN` (9 `active`: 003 sin fecha, 009, 011…018; 013…018 son volteos sin marca) + especificaciones `MA-2026-NNN` |
 | quark | **5 → 5** (2 avisos: 001, 002) | sí desde quark#373 (`docs/deprecations/README.md`) | 0 → **3** (001, 002 y 003, un volteo sin marca) |
-| orbit | **0 → 0** | **no** (sin `docs/deprecations/`) | no |
+| orbit | **0 → 0** (4 en main desde orbit#568, 2026-10-18) | **no** al pin; sí en main desde orbit#568 (`docs/deprecations/README.md`) | no al pin; 2 en main (001, un volteo; 002, una retirada) |
 
 Lo que decían los tres números en 1.29.0: el único producto con ciclo era el
 único sin deprecaciones vivas, porque las llevó todas hasta `removed` antes
@@ -40,8 +40,10 @@ por cada una (el guard del §5 lo exige), **siete avisos anuncian un cambio
 de comportamiento sin marca**, que el guard del §5 lee desde `M0-G` de A12
 (QM-20, cerrado el 2026-10-16 en quantum#285: hasta entonces sólo recorría
 marcas), uno de nucleus sigue `active` sin fecha (D2 del bloque de
-`docs/planes/quantum-2.0.md`), y orbit sigue sin ciclo: su primer aviso
-(OR-57) lo escribe `M0-O`.
+`docs/planes/quantum-2.0.md`), y orbit estrenó su ciclo el 2026-10-18
+(orbit#568, `M0-O` (a)): `docs/deprecations/` con README, `DEP-2026-001`
+(OR-57, un volteo) y `DEP-2026-002` (la retirada del adaptador
+`datasource/nucleus`, con cuatro marcas), al pin con el set del 2026-10-19.
 
 ### El defecto concreto que hay debajo
 
@@ -196,7 +198,7 @@ si estaba en la lista del major. Los siete del pin de 1.41.0 (nucleus
 | la fecha no ha pasado | **AVISO**, con los días vencidos |
 
 Los avisos `removed`, `completed` y `proposed` se ignoran: no prometen nada
-pendiente. Si un repo no tiene `docs/deprecations/` (orbit, hasta `M0-O`),
+pendiente. Si un repo no tiene `docs/deprecations/` (orbit, hasta el set que pine orbit#568),
 el guard lo dice y sigue.
 
 La tercera pasada es la tabla del §3.0 misma, fila a fila. El id se lee de
@@ -245,7 +247,8 @@ escribir incluidos— vive en `docs/planes/quantum-2.0.md` §3.0.
 | `DEP-2026-001` | quark | `RowLevelSecurity` (alias de constante) | `RowLevelSecurityClient` | `active` | 2026-12-08, retirada en v2.0.0 |
 | `DEP-2026-002` | quark | forma anterior del registro de listeners (4 símbolos) | `ListenerFactory` + `RegisterListenerFactory` | `active` | 2026-12-08, retirada en v2.0.0 |
 | `DEP-2026-003` | quark | **volteo**: `UpdateBatch` comprueba la versión por defecto (QK-45) | `CheckVersions()` hoy; en el 2.0 es el defecto | `active` (sin marca) | 2027-01-04, en v2.0.0 |
-| — | orbit | — | — | — | ninguna (OR-57 será su `DEP-2026-001`, en `M0-O`) |
+| `DEP-2026-001` | orbit | **volteo**: con mTLS en el listener de agentes, la identidad del nodo atada al certificado por defecto (OR-57) | `AllowSharedAgentCertificate` (`--allow-shared-agent-certificate`) para quedarse; `AgentIdentityFromCertificate` para atar ya | `en main` (orbit#568), al pin con el set del 2026-10-19 | 2027-01-17, en v2.0.0 |
+| `DEP-2026-002` | orbit | el adaptador `datasource/nucleus` (el panel sobre modelos de `pkg/model`; 4 marcas) y el nil por defecto de `orbit.Config.DataSource` | `quarkdatasource` en `orbit.Config.DataSource` / `agent.Config.DataSource` | `en main` (orbit#568), al pin con el set del 2026-10-19 | 2027-01-17, retirada en v2.0.0 |
 
 Los dos avisos de retirada de quark los abrió quark#373, que trajo el
 registro y reescribió las cinco marcas. El agrupamiento es por DECISIÓN y
