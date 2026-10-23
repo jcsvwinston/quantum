@@ -38,7 +38,8 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   cerrado, en su plan de [`planes/`](planes/README.md). **A12**
   (Rendimiento, re-auditoría y cierre a 5) sigue EN CURSO en
   [`planes/A12-rendimiento-reauditoria-cierre.md`](planes/A12-rendimiento-reauditoria-cierre.md):
-  le quedan `M0-E` → `R1` → `M1` → `R2`, y lo que tiene que cumplir el 2.0
+  le quedan `R1` → `M1` → `R2` (`M0` cerrado el 2026-10-23 con el ensayo del
+  major en ramas `dry-run/2.0`), y lo que tiene que cumplir el 2.0
   está en [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
   2027-01-17, la última ventana que este set abre; `M0-E` fija la fecha).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de

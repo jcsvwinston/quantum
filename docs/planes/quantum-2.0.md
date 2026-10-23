@@ -54,7 +54,17 @@
 5. **`R1` hecha**: la re-auditoría completa sobre el último set 1.x. Lo
    rompiente que encuentre entra en el §3 (con su aviso); lo demás, en sets
    semanales.
-6. **La DX al 5** (§2.1), en 1.x: es aditiva, así que no espera al major.
+6. **La DX al 5** (§2.1), en 1.x: es aditiva, así que no espera al major —
+   y **es prerrequisito de DEP-2026-024** (medido por `M0-E` el 2026-10-18):
+   `nucleus generate model` y `generate resource` escriben
+   `import "github.com/jcsvwinston/nucleus/pkg/model"` y `model.BaseModel`
+   en el código del usuario, `nucleustest.Make` escribe por el CRUD de
+   `pkg/model`, y el sitio enseña `pkg/model` en el quickstart y en
+   `models-and-database.md`; sin ella, `M1` no puede retirar `pkg/model`
+   (en el ensayo quedan rojos los seis tests de `internal/cli` que
+   construyen lo que los generadores escriben). Alcanza también al
+   paraguas: el starter de la suite y el showcase montan `orbit.Module`
+   sin `DataSource`, que en el 2.0 rehúsa arrancar.
 
 ### 2.1 La DX al 5 (decisión de Carlos, 2026-10-06)
 
@@ -233,6 +243,21 @@ esperar al bloque): QK-58, QK-46, QK-59+QK-65, QK-60, QK-24 y QK-32 en
 quark; NU-121 y asynq a módulo propio en nucleus; OR-57 en orbit (que
 además estrena `docs/deprecations/`).
 
+**Las decisiones que deja `M0-E`** (el ensayo del major, 2026-10-18; lo
+medido está en el plan de A12, sección «`M0-E` — el ensayo del major,
+medido»). Tres cosas que ningún aviso decidía y que la rama `dry-run/2.0`
+tuvo que resolver de la forma menos sorprendente; Carlos confirma o cambia.
+
+<!-- INICIO BLOQUE DE DECISIÓN M0-E -->
+
+| id | Qué decide | Propuesto | Decisión de Carlos |
+|---|---|---|---|
+| **D9** | DEP-2026-017 contra el starter `api`: en el 2.0 un `nucleus new --template api` (sin `WithAuthz()`, por la decisión del 2026-10-06 escrita en el aviso) con un `nucleus generate module` (que escribe filas de política) rehúsa arrancar | **`generate module` deja de escribir filas de política en un proyecto `WithoutDefaults()` sin `WithAuthz()`** (las escribe comentadas, con la pista de `WithAuthz()`), y el starter `api` conserva su contrato «sin authz». La alternativa —que el starter pase `WithAuthz()`— contradice la decisión escrita y cambia qué protege un starter recién generado. La rama hace lo propuesto | |
+| **D10** | El adaptador de Quark no tiene metadatos por campo (lista, búsqueda, filtro, sólo lectura); el de Nucleus los leía de las etiquetas `admin:`, y con D5b el panel sólo tiene el de Quark | **Añadir a `quarkdatasource` opciones por modelo y por campo en una minor 1.x, ANTES del major** (leídas de una etiqueta `admin:` en el struct de quark o pasadas en `Register`): es lo que hace que «el panel sobre quarkdatasource» sea el mismo panel. Sin ello el 2.0 lista y busca todas las columnas de cada modelo | |
+| **D11** | ADR-012 de orbit (quark fuera del grafo de la raíz) frente a D5b | **Sucederlo en el 2.0**: la raíz de orbit requiere quark y `quarkdatasource` (el panel sólo se monta sobre ellos; sus tests y el banco los necesitan). En 1.x nada cambia | |
+
+<!-- FIN BLOQUE DE DECISIÓN M0-E -->
+
 ### 3.4 Rediseño estético (decisión de Carlos, 2026-10-06)
 
 Que el salto de versión **se note**:
@@ -255,6 +280,41 @@ Que el salto de versión **se note**:
   defecto, no uno impuesto), y los guards del sitio (páginas generadas, «Why
   Quantum», jerga, enlaces). Los specs del banco de navegador se rehacen a la
   vez.
+
+### 3.5 La ruta de módulo `/v2` (medido por `M0-E`, 2026-10-18)
+
+Ningún aviso ni fila del §3.0 lo dice, y Go lo exige: **un tag `v2.0.0`
+sobre un módulo con `go.mod` sólo se resuelve si la ruta del módulo lleva
+el sufijo `/v2`** (semantic import versioning; sin él, el proxy y `go get`
+lo rechazan, y `+incompatible` sólo vale para módulos sin `go.mod`). Así
+que el primer commit del major de cada pilar renombra la ruta de TODOS sus
+módulos (`github.com/jcsvwinston/quark/v2`, `…/quark/drivers/postgres/v2`…)
+y reescribe cada import, y los consumidores (orbit de nucleus y quark; el
+paraguas de los tres) cambian con ellos. Medido sobre el `main` del
+2026-10-18:
+
+| Repo | `go.mod` | ficheros `.go` que importan la ruta propia | líneas de import | otros ficheros que la nombran (docs, plantillas, json, yml, sh; sin `versioned_docs`) |
+|---|---:|---:|---:|---:|
+| quark | 13 | 397 | 808 | 764 (casi todos `acceptance/apisurface.json` y `allowlist.json`, generados) |
+| nucleus | 17 | 479 | 1 020 | 115 (las plantillas del starter y los generadores incluidos: lo que escriben a una aplicación cambia de ruta) |
+| orbit | 9 | 152 | 267 | 37 |
+| orbit → nucleus/quark | — | 151 | — | — |
+| paraguas | `go.work` con rutas relativas: no cambia | — | — | 21 scripts y páginas nombran rutas |
+
+Lo que implica, además del `sed`: los tags no cambian de forma
+(`v2.0.0`, `drivers/postgres/v2.0.0`…: release-please usa el directorio,
+no la ruta de módulo); `go install github.com/jcsvwinston/nucleus/v2/cmd/nucleus@v2.0.0`
+y `…/quark/v2/cmd/quark` cambian de ruta en toda la documentación y en el
+catálogo de `nucleus add`; los `go.work` de cada repo (`make workspace`) y
+`link_workspace.sh` de quark leen la ruta del `go.mod` y no se tocan;
+`manifest-guard` §5, `align_set.sh` de orbit y `print-requires.sh` del
+paraguas comparan rutas literales y necesitan el sufijo. Es trabajo
+mecánico de `M1`, pero de un tamaño que no cabe «dentro» del PR que retira
+símbolos: va como el primer commit del major de cada repo, con el
+workspace de cada uno probando que compila antes de cambiar nada más. En
+el ensayo de `M0-E` NO se aplicó (las ramas `dry-run/2.0` conservan la
+ruta v1 para que orbit compile contra ellas por `go.work`); queda medido
+aquí para que `M1` lo presupueste.
 
 ## 4. Cuándo está terminado el 2.0
 
