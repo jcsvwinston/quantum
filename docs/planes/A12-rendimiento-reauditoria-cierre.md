@@ -297,6 +297,184 @@ cumple el criterio de `M0`.
 decidir la dirección visual del rediseño (§3.4 del contrato, Carlos entre
 maquetas), ni la DX al 5 (§2.1, aditiva, en sets 1.x por su lado).
 
+## `M0-E` — el ensayo del major, medido (2026-10-18 / 2026-10-23)
+
+> Ramas `dry-run/2.0` en los tres hermanos (quark, nucleus y orbit; sin
+> fusionar, sin tag, empujadas como ramas de trabajo) con los treinta
+> avisos aplicados: doce grupos en paralelo (uno por conjunto de avisos que
+> comparten ficheros), cada grupo refutado por un revisor, un integrador
+> por producto que fusionó, regeneró y corrió la verificación completa, y
+> un auditor por producto que la repitió. Lo de abajo es lo que el §3 del
+> contrato NO decía y el 2.0 necesita; los números son del `main` del
+> 2026-10-18. Las ramas de grupo (`dry-run/2.0-A…F`) quedan como historia
+> en cada hermano.
+
+### Tres dependencias estructurales que ningún aviso nombraba
+
+1. **La ruta de módulo `/v2`** (§3.5 del contrato): Go no resuelve un tag
+   `v2.0.0` sobre un módulo cuyo `go.mod` no lleve el sufijo. Es el primer
+   commit del major de cada repo (13+17+9 `go.mod`, 397+479+152 ficheros
+   Go, 151 más en orbit por nucleus/quark), y lo que el paraguas compara
+   por ruta literal (manifest-guard §5, `align_set.sh`, `print-requires.sh`,
+   el catálogo de `nucleus add`, `go install …/cmd/nucleus@v2.0.0`). El
+   ensayo NO lo aplicó, para que orbit compile contra las ramas por
+   `go.work`; va presupuestado en `M1`.
+2. **El §2.1 (la DX al 5) es prerrequisito de DEP-2026-024, no trabajo
+   paralelo**: `nucleus generate model` y `generate resource` escriben
+   `import "github.com/jcsvwinston/nucleus/pkg/model"` y `model.BaseModel`
+   en el código del usuario, `nucleustest.Make` escribe por el CRUD de
+   `pkg/model`, y el sitio enseña `pkg/model` en `quickstart.md` y
+   `models-and-database.md`. En la rama `pkg/model` se movió a
+   `internal/model` y el framework compila; lo que queda rojo son los
+   tests de `internal/cli` que construyen lo que los generadores escriben.
+   Sin la DX al 5 en 1.x, `M1` no puede retirar `pkg/model`.
+3. **El panel de orbit sin el adaptador necesita quark en el grafo de la
+   raíz**: 31+7 ficheros de test del panel y el banco admin montaban sobre
+   `datasource/nucleus`; la rama los mueve a `quarkdatasource` sobre SQLite
+   y la raíz de orbit pasa a requerir quark y `quarkdatasource`. El ADR-012
+   de orbit (quark fuera del grafo de la raíz) deja de tener razón de ser
+   con D5b (D11). Y el starter de la suite y el showcase del paraguas, que
+   montan `orbit.Module` sin `DataSource`, rehúsan arrancar en el 2.0
+   (`TestModule_DataSourceIsRequired` lo pina): la DX al 5 también los
+   alcanza.
+
+### Lo que cada aviso no decía (y la rama tuvo que decidir o medir)
+
+- **quark**. DEP-003 y DEP-004 se cruzan: los tests de salida de 003
+  siembran con `UpdateMap` sobre una fila versionada y voltean bajo 004.
+  `Dialect.UpsertSQL` NO necesitó parámetro nuevo (la guarda de versión no
+  liga nada), así que el punto de extensión congelado no se toca. La
+  propuesta de DEP-004 de rechazar con `ErrInvalidQuery` un mapa que nombre
+  la columna de versión NO se aplicó: rompería la salida v1 que el propio
+  aviso enseña (`Where("version","=",v).UpdateMap(…"version": v+1)`); el
+  mapa se escribe tal cual, sin bump, y los pines lo dicen (`M1`
+  confirma). `UpsertBatch` pasa a fila a fila también en los demás motores
+  cuando el modelo es versionado y hay `updateCols`; en MSSQL/Oracle una
+  entidad con clave entera cuesta uno o dos viajes más antes del `MERGE`.
+  **Defecto de 1.x destapado**: en `UpsertBatch` la columna clave entra en
+  el INSERT multifila sólo si la PRIMERA entidad lleva clave; las claves de
+  las siguientes se descartan en silencio. DEP-007: el catálogo de MySQL
+  devuelve `SET DEFAULT` para claves creadas antes, así que un `Diff` de un
+  esquema que aún lo declara no planifica nada ni rehúsa. DEP-010: un
+  `VARCHAR2(n)` a secas en `normalizeType` es la columna BYTE (el default
+  de Oracle) y la introspección devuelve la unidad que encuentra. DEP-009
+  alcanza también `Having`/`HavingAggregate` con LIKE, `WhereJSON` y
+  `PreloadWhere` (trece puertas validan el patrón); las sondas
+  LIKE-01/02/05 del banco enterprise abortaban en vez de reverdictar.
+  DEP-008 valida los identificadores agrupados ANTES de exigir la
+  proyección (el kit de drivers lo espera así) y `Paginate` envía su COUNT
+  antes de rehusar. Las páginas `docs/enterprise-bench.md` (49 de 69),
+  `docs/extension-bench.md` (22 de 22) y `docs/query-bench.md` (60/0/0) se
+  regeneran y coinciden con lo que fusionó git. Los pines por motor sólo
+  se ejercitan en la matriz de integración de CI (Docker): la rama no se
+  certifica desde los tests del módulo raíz. Los drivers en `GOWORK=off`
+  ya estaban rojos en el `main` base (pinan quark v1.16.0 y su kit de test
+  usa símbolos posteriores): el efecto «módulo nacido tras el pin», no de
+  la rama.
+- **nucleus**. DEP-017 choca con la decisión del propietario del
+  2026-10-06 (el starter `api` sin `WithAuthz()`): un starter recién
+  generado con un módulo generado (`generate module` escribe filas de
+  política) rehúsa arrancar en el 2.0 → D9. DEP-020 necesita un registro
+  de proveedores en `pkg/tasks` que no existe (hoy `pkg/nucleus/jobs.go`
+  elige asynq por import directo): es trabajo de 1.x ANTES del major, y el
+  módulo nuevo nace con el tag (las lanes `standalone` están rojas hasta
+  entonces; las listas de módulos de ci.yml, dependabot, release-please,
+  `knownproviders`, SECURITY.md y codeql.yml son a mano). DEP-025 se
+  contradice: `RedisRelay` (`Channel/Publish/Subscribe/ForwardToBus`) está
+  tipado sobre `Signal/Event/Handler` aunque diga «not affected» → se
+  retipa sobre nombres y `Topic[T]`; el bridge del outbox publica por la
+  puerta tipada con `Define[[]byte]`. DEP-024 arrastra más que
+  `Runtime.Models()`/`App.Models`: `App.RegisterModel`,
+  `ErrModelsRegistered…`, `hooks.NewSQLObserver` (ahora con tipos propios
+  en `pkg/observability/hooks`), y `App.AutoMigrate` sigue leyendo la
+  gramática `db:` de `pkg/model`; el WARN de arranque por directivas `db:`
+  desconocidas no lo retira ningún aviso y se conserva. DEP-022:
+  `App.ProblemDetails()` pasa a significar «la forma efectiva»; las tres
+  plantillas del starter no pasan opción y contestan problem+json; los
+  handlers que escribe `generate resource|module` escriben su propio
+  `{"error": "<texto>"}` fuera del marco. DEP-021 cambia dos baselines
+  congelados (postura de seguridad y ASVS). DEP-026: el default
+  `_time_format=sqlite` vive en `pkg/db` (junto a `busy_timeout`), así que
+  el test del driver sólo es verde con el workspace hasta el re-pin; se
+  aplica también a rutas desnudas y `:memory:`. DEP-019: tres consumidores
+  internos del driver implícito (`internal/jobsbench`, `internal/apibench`,
+  `internal/catalogbench`), no uno.
+- **orbit**. `quarkdatasource` necesitó tres arreglos para que el panel
+  fuera correcto sobre él (un `Get` de un id inexistente contestaba 500 en
+  vez de 404, un `Delete` de cero filas no decía NotFound, y la respuesta a
+  un alias que ningún adaptador sirve): son `fix` de 1.x y van ANTES del
+  major, con los tests que la rama añade. El panel se apoyaba en
+  coerciones del adaptador de Nucleus que el contrato nunca prometió
+  (celdas CSV como cadenas…). El adaptador de Quark no tiene opciones de
+  metadatos por campo (lo que las etiquetas `admin:` daban al de Nucleus)
+  → D10. Quark no aplana structs embebidos y sólo corre `BeforeUpdate` en
+  guardados de entidad (el adaptador actualiza con `UpdateMap`): una
+  validación escrita como hook de Quark guarda sólo las creaciones.
+  DEP-001: cuatro tests fuera de la lista del aviso registraban un
+  `node_id` distinto del CN bajo mTLS (IDENT-02/04/08 y
+  `with_client_cert_connects`) y el test del WARN de arranque, listado como
+  «salida», pinaba el WARN de 1.x. El agente deja de recibir `Databases`;
+  el arnés del fleet envuelve su pool con `quark.NewWithDB`. El
+  `internal/fleettest/go.mod` pina `server` v0.19.0 y `ui` v1.1.0 (fuera
+  del guard de pines, que sólo mira los módulos publicados).
+
+### Resultado del ensayo (2026-10-23)
+
+| Repo | Rama `dry-run/2.0` (en origin) | Verde | Rojo que queda, y por qué |
+|---|---|---|---|
+| quark | `a2b4558d` (10 avisos `removed`/`completed`) | `make lint`, `make docs-guards`, `make regen` sin diff, `go build && go vet`, `go test ./...` del módulo raíz, `go vet -tags=integration` en enginesuite y los cinco drivers, `make superapp` en SQLite (gate estricto) | los pines por motor (PG, MySQL, MariaDB, MSSQL, Oracle) sólo corren en la matriz de integración de CI; los drivers en `GOWORK=off` ya estaban rojos en el `main` base (pinan quark v1.16.0 y su kit usa símbolos posteriores) |
+| nucleus | `2dd5b82f` (18 avisos `removed`/`completed`, 25 filas en el registro) | `make vet`, `make guards`, `go test ./contracts/` (seis baselines regenerados: cada línea que desaparece es un símbolo que un aviso retira), 52 paquetes del raíz, `check_hello_size` (75/88 enlazados, bajo techo), el starter de la suite con los hermanos en `dry-run/2.0` | **§2.1**: `internal/cli` (4 tests) y `cmd/nucleus` (3) porque `generate model/resource` y el quickstart escriben `pkg/model` en el código del usuario; `providers/tasks-asynq` y `cmd/nucleus` en `GOWORK=off` hasta que exista el tag (el registro de proveedores nace en la rama); `catalogbench` EX-01 sólo por el toolchain local (go1.26.6 con `GOTOOLCHAIN=auto` no puede bajar 1.26.9 en el HOME temporal; en CI pasa) |
+| orbit | `f584a53` (2 avisos) | build, vet y tests de raíz, agent, server, quarkdatasource y fleetbench con el workspace; **contra quark y nucleus en `dry-run/2.0` por el `go.work` del paraguas: build, vet y tests de todos sus módulos en verde** (el criterio de `M0-E`) | **rojo real**: la mitad de navegador del banco admin (UIX-08/12/16/17/18) mide `absent` sobre la fixture Quark, que abre un segundo pool SQLite sobre el mismo fichero que el handle de la app y bajo las peticiones concurrentes del navegador el `count` espera el lock hasta agotar los 10 s de Playwright (`main` pasa en el mismo entorno; el banco HTTP, secuencial, no lo ve; la rama sigue registrando `present` porque el arnés se salta sin `node_modules`): `M1` lo arregla compartiendo el pool (`quark.NewWithDB` sobre el handle, como hace el arnés del fleet). La lane `standalone` de la raíz necesita una release de `quarkdatasource` con los arreglos de la rama; las lanes de motores reales no se corrieron |
+
+**Lo que va a 1.x ANTES del major** (no rompe nada; sale de las ramas con
+el test que lo pina): en nucleus, el registro de proveedores de `pkg/tasks`
+(`Provider`, `RegisterProvider`, `LookupProvider`, `RegisteredProviders`;
+prerrequisito de DEP-2026-020), la entrada `tasks-asynq` en
+`knownproviders` y en `nucleus add`, `doctor --check tasks` por el registro,
+`knownproviders.RequireDBDriver` compartido por `pkg/db` y
+`nucleustest.Transactional`, los tipos públicos `hooks.SQLQueryEvent/
+SQLQueryObserver`, el WARN por directivas `db:` desconocidas enganchado en
+`AutoMigrate`, `nucleustest.Make` rehusando un modelo que no puede leer,
+nombres únicos en los tests de proveedores, los patrones nuevos de
+`check_retired_claims.sh` y las correcciones de doc (README/SPEC/
+DEVELOPER_MANUAL sobre `pkg/tasks`, AUTH_GUIDE y `jwt.go` sin
+`NewJWTManager`, la forma de error en las guías); en orbit,
+`fix(quarkdatasource)` (un `Get` de id inexistente → 404, un `Delete` de
+cero filas → NotFound, la respuesta a un alias que ningún adaptador
+sirve), `fix(admin)` con las coerciones que el adaptador de Nucleus hacía
+y Quark no (celdas CSV al tipo declarado; `IsReadOnly && !IsPK` en la
+importación; el stamp del padre en los inlines), las fixtures de identidad
+del fleet independientes del régimen, los pines de
+`internal/fleettest/go.mod` (nucleus v1.30.1→v1.33.0, quark v1.15.0→
+v1.17.0, sqlite, quarkdatasource, server, ui) y el README de
+`quarkdatasource`, que aún dice que nil deja al agente sobre el adaptador
+de Nucleus. En quark nada: sus diez avisos son volteos o retiradas puras.
+
+**Lo que los avisos deben corregir** (lo aplicado es más ancho o distinto
+de lo escrito): DEP-2026-025 sigue diciendo que `RedisRelay` «no se ve
+afectado» cuando se retipa entero; DEP-2026-002 no nombra la retirada de
+`agent.Config.Registry` y `agent.Config.Databases`; DEP-2026-014 promete
+«ni siquiera se le preguntan sus capacidades» pero `pkg/plugins.
+DiscoverExternal` y `Host.CollectInventory` siguen sondeando cada
+`nucleus-plugin-*` del PATH (en el repo nadie los llama con un plugin no
+listado; un consumidor externo —orbit tiene un `Host`— sí): falta un
+parámetro de política; DEP-2026-011 retira `nucleus.Context.Set` pero
+`c.Set` sigue compilando por la promoción de `router.Context.Set`
+(decisión deliberada, pinada); DEP-2026-004 propone rechazar un mapa que
+nombre la columna de versión y la rama no lo hace (rompería la salida v1
+del propio aviso); varias citas de rutas y tests renombrados (ya
+corregidas en las ramas al cerrar cada aviso). El generador de la guía de
+migración (`scripts/lib/migration-guide.py`, borrador) lee la rama que cada
+checkout tenga: al pin da 23 entradas, en las ramas cero (allí los avisos
+ya están cerrados).
+
+**`M0` queda hecha** con dos salvedades que `M1` hereda como precondición:
+las siete filas de quark del §3.0 siguen `en main` (su ventana se cuenta
+desde el set que lleve la primera release de quark posterior a v1.17.0,
+así que el 2.0 no tiene fecha final todavía), y lo de arriba —`/v2`, la DX
+al 5, los `fix` de 1.x, el registro de proveedores, D9…D11— tiene que
+estar en sets 1.x antes de que `M1` empiece.
+
 ## Registro de sesiones
 
 | Sesión | Estado | PR | Qué midió o cambió del plan |
@@ -309,12 +487,12 @@ maquetas), ni la DX al 5 (§2.1, aditiva, en sets 1.x por su lado).
 | N2 | **hecha** 2026-10-05 | nucleus#592 | claim con `SKIP LOCKED` en PostgreSQL y MySQL 8/MariaDB 10.6+ (en READ COMMITTED: en REPEATABLE READ los gap locks vuelven a serializar), SQLite y motores sin `SKIP LOCKED` con el claim de antes; el perdedor reintenta con jitter. 16 contra 1 worker: 4,4× PG y 5,1× MySQL en local, 2,9× y 2,6× en el runner (4 vCPU, se satura) — **el criterio cambió**: el ≥ 4× mide la máquina (la lección de NU-95), así que el gate exige ≤ 5 % de claims vacíos con 16 workers (0 % con SKIP LOCKED, 91 % con el claim viejo) y ≥ 2× por el `Manager` real. Parada con `sql`: 9 s → 0,7 ms (NU-103). El prototipo de `S0` era O(backlog): partido en dos rangos del índice. NU-108 nuevo (el pool por defecto churnea) |
 | O1 | **hecha** 2026-10-05 | orbit#544 | dist precomprimido y servido por negociación, admin-server sin el panel (25,6→23,8 MB), presupuesto en gzip de carga inicial + navegación más pesada (424,6→373,4 KB, `main` ya se pasaba), AG Grid 36 sin fuente de iconos; OR-59/61/62/63 |
 | R0 | **hecha** 2026-10-05 | quantum#258 | la escala en `docs/auditoria/criterios-5.csv`: las 36 dimensiones del 2026-09-03 con su nota de entonces, el listón y el 5 copiados del artefacto del plan a 5/5 (los dos artefactos, el plan y el informe de la auditoría, se pudieron leer), el 1 y el 3 escritos desde los informes, y el instrumento al pin —34 con banco, guard o lane, 2 sólo juicio (quark·ecosistema y suite·comunidad)—; guard `umbrella-audit-criteria` (56º) que saca la lista de dimensiones de los propios informes y valida también el `notas.csv` de cada re-auditoría. El brief en `docs/auditoria/reauditoria/` con sus prompts (el común, uno por auditor, el de la revisión adversarial y el de la consolidación): siete auditores en paralelo (quark, nucleus, orbit, orbit-fleet, orbit-ui, suite y uno de rendimiento nuevo), cada dimensión con un solo dueño, ids provisionales, revisión adversarial por informe y consolidación al mismo registro. `check_audit_backlog.sh` acepta A13+, falla ante un id repetido (registro o informes) y ante una fila de defecto sin id, lee los informes de `reauditoria/<fecha>/` y enseña los P0 abiertos (QK-42 no salía); `estado.sh` deriva el arco siguiente más allá de A12; `suite-integral` corre en los PRs que tocan `docs/auditoria/`. Para `R1`: cuatro instrumentos están en `main` de su producto y no al pin de 1.39.0 (`quark/benchmarks/engines`, `quark/internal/extbench`, `nucleus/internal/catalogbench`, la familia `extension` de adminbench): se mueven a la escala con el pin que los traiga |
-| M0 | **en curso** — `M0-S0`, `M0-G`, `M0-N` y `M0-Q` hechas 2026-10-16, `M0-O` 2026-10-18 (publicada en 1.42.0); queda `M0-E` | quantum#284 (`M0-S0`), quantum#285 (`M0-G`), nucleus#630 (`M0-N`), quark#470 y quark#471 (`M0-Q`) | el inventario del major contado al pin de 1.41.0 (12 marcas que el guard ve, 7 avisos de volteo que no ve, 9 volteos decididos sin aviso, 1 aviso sin fecha, orbit sin `docs/deprecations/`); los «~14 sitios» de orbit son 2 llamadas a `NewWrapResponseWriter` más una decisión sobre `authz.New`; el bus único ya es `signals.Bus` y lo que sobra es su puerta sin tipo; `pkg/model` sostiene el adaptador de orbit (6 ficheros, 3 módulos) y no se retira en el 2.0; el sobre no tiene opción de quedarse. `M0` troceado en `M0-Q` ∥ `M0-N` ∥ `M0-G` → `M0-O` → `M0-E`; ocho decisiones D1…D8 escritas como propuesta en `quantum-2.0.md` §3.3 |
+| M0 | **hecha** 2026-10-23 — `M0-S0`, `M0-G`, `M0-N` y `M0-Q` 2026-10-16, `M0-O` 2026-10-18 (en 1.42.0), `M0-E` 2026-10-23; dos salvedades que `M1` hereda (las siete filas de quark `en main`; `/v2`, la DX al 5, los `fix` de 1.x y D9…D11 antes de `M1`) | quantum#284 (`M0-S0`), quantum#285 (`M0-G`), nucleus#630 (`M0-N`), quark#470 y quark#471 (`M0-Q`) | el inventario del major contado al pin de 1.41.0 (12 marcas que el guard ve, 7 avisos de volteo que no ve, 9 volteos decididos sin aviso, 1 aviso sin fecha, orbit sin `docs/deprecations/`); los «~14 sitios» de orbit son 2 llamadas a `NewWrapResponseWriter` más una decisión sobre `authz.New`; el bus único ya es `signals.Bus` y lo que sobra es su puerta sin tipo; `pkg/model` sostiene el adaptador de orbit (6 ficheros, 3 módulos) y no se retira en el 2.0; el sobre no tiene opción de quedarse. `M0` troceado en `M0-Q` ∥ `M0-N` ∥ `M0-G` → `M0-O` → `M0-E`; ocho decisiones D1…D8 escritas como propuesta en `quantum-2.0.md` §3.3 |
 | M0-Q | **hecha** 2026-10-16 | quark#470, quark#471 | DEP-2026-004…009 (QK-58, QK-46, QK-59+65, QK-60, QK-24, QK-32) con godoc en cada método afectado y cinco tests que pinan v1 (verdes en seis motores), y DEP-2026-010 (QK-50, D7): en Oracle la longitud de un texto cuenta bytes hoy (`VARCHAR2(n)`) y caracteres en el 2.0 (`VARCHAR2(n CHAR)`); quark no tiene interruptor para la semántica, la salida en 1.x es `NLS_LENGTH_SEMANTICS=CHAR` de Oracle, y la introspección tendrá que leer `CHAR_USED`. Las siete filas de quark del §3.0 están `en main` hasta el set del 2026-10-19 |
 | M0-N | **hecha** 2026-10-16 | nucleus#630 | nueve avisos con asistente y test que pina v1: DEP-2026-003 fechado al 2.0 (D2) y 019…026 (NU-121, asynq, NU-72, problem+json, `NewWrapResponseWriter`, `pkg/model`, puerta sin tipo de `signals`, NU-110); trece marcas `Deprecated` que el guard lee; las salidas en 1.x `WithErrorEnvelope()` (app, nucleus, builder), `router.Wrap`, `Topic.String` y la pista al migrador en `authz.New`; seis adiciones al baseline de símbolos. Dos cosas que el enunciado daba por hechas y no eran: los topics tipados de ciclo de vida NO se construyen (las ocho señales las emite `pkg/model`, que D5 retira: se van con él y la salida es quark), y casbin v2.135.0 ya rechaza al cargar una fila de política de 3 columnas (la fase «inerte» de DEP-003 terminó con la dependencia; el aviso dice lo medido y `authz.New` nombra el migrador). Los avisos llegan al pin con el set del 2026-10-19; hasta entonces las filas 20…28 del §3.0 están `en main` |
 | M0-G | **hecha** 2026-10-16 | quantum#285 | `umbrella-deprecations` lee los 13 avisos `active` al pin (5 de retirada, 7 de volteo; `DEP-2026-003` de nucleus, `active` sin fecha, tolerado con AVISO sólo mientras su fila 20 esté en `decisión`) y las 29 filas del §3.0 (12 `publicado` con fichero al pin, 9 `por escribir`, 8 `decisión` → 17 pendientes antes de `M1`); un aviso al pin que nombre el major y falte en la tabla, o cuya fila no diga `publicado`, FALLA. Los doce avisos publicados se leen con su formato real —tres grafías de la viñeta de ventana: «Earliest removal», «Behaviour flip», «Earliest change»— sin tocar ningún producto, y ninguno está mal escrito. Fixture con cinco roturas (las dos de antes más el aviso `active` sin fecha fuera de `decisión`, la fila `publicado` sin fichero y el aviso del major que falta en la tabla); política §1/§5/§6, nota del §3.0 y registro de guards al día; **QM-20 hecho**. Trampa para el tren: el PR de set que re-pine quark o nucleus con los avisos de `M0-Q`/`M0-N` sale rojo hasta pasar sus filas del §3.0 a `publicado` |
 | M0-O | **hecha** 2026-10-18 — (a) orbit#568 y (b) orbit#570, publicadas en Quantum 1.42.0 (orbit v1.20.0/v1.20.1) | orbit#568 (a), orbit#570 (b) | La precondición no se cumplía (nucleus#631, la release con `M0-N`, sigue abierto hasta el tren del 19) y sólo `router.Wrap` la necesita, así que se troceó. (a): `docs/deprecations/` de orbit (README calcado del de quark: sin asistentes ni CHANGELOG), DEP-2026-001 (OR-57, volteo) con la salida `server.Config.AllowSharedAgentCertificate` (`--allow-shared-agent-certificate`, contradice `AgentIdentityFromCertificate` y `Run` rehúsa las dos; con mTLS y ninguna de las dos, un WARN al arrancar que nombra las dos) y DEP-2026-002 (D5b: 4 marcas en `datasource/nucleus`, WARN al montar el panel y al arrancar el agente sobre el camino por defecto; al 2.0 `orbit.Config.DataSource` nil es error de configuración y el editor de metadatos de campo y el `*signals.Bus` del adaptador se van con él); `quarkdatasource` pasa del `LIKE` plano con escape propio a `quark.Contains/StartsWith/EndsWith` —SQLite y Oracle contestan un `%` en vez de rechazarlo, QK-25 cerrado por este lado, `escapeLike` y `FuzzEscapeLike` fuera—; `api.ts` lee problem+json (detail > title) junto al sobre y `ApiError.code` en las dos formas; dist reconstruido. **Medido y distinto del enunciado**: orbit NO llama a la puerta sin tipo de `signals` (0 sitios: guarda el bus sólo para `model.NewCRUD`, que se va con el adaptador; `Panel.SetSignalBus` no lo lee nadie), así que no hay topics que migrar; `ExtensionConfig.DataSource` del agente cae al mismo adaptador por defecto; y el banco del fleet con `GOWORK=off` da dos fallos falsos (su go.mod resuelve server/agent publicados): se corre con el workspace de orbit, como CI. Criterio en (a): banco admin 72/72, IDENT-06 present, CI verde; `grep NewWrapResponseWriter` = 2 hasta (b). El squash es `feat:` → orbit cortó **minor** (v1.20.0) en el tren del 18. **(b)** entró en orbit#570, el PR de alineación a nucleus v1.33.0 del propio tren: las dos llamadas a `router.Wrap(w)`, `grep NewWrapResponseWriter` = 0 en orbit; nada de la lista de retiradas del 2.0 queda referenciado |
-| M0-E | pendiente | — | |
-| R1 | pendiente | — | |
-| M1 | pendiente | — | |
+| M0-E | **hecha** 2026-10-23 (arrancada el 2026-10-18) | ramas `dry-run/2.0` en origin: quark `a2b4558d`, nucleus `2dd5b82f`, orbit `f584a53`; quantum (este PR) | el ensayo del major: treinta avisos aplicados por doce grupos en worktrees con un refutador cada uno, un integrador y un auditor por producto (workflows de agentes); orbit `dry-run/2.0` compila y pasa sus tests contra quark y nucleus `dry-run/2.0` por el `go.work` del paraguas (el criterio); el §3.0 sin filas `por escribir`. Lo que el §3 no preveía: la ruta `/v2` (§3.5 del contrato), el §2.1 como prerrequisito de DEP-024, quark en el grafo de la raíz de orbit (D11), y las decisiones D9 (starter `api` contra `generate module`) y D10 (metadatos por campo en `quarkdatasource`); los rojos y los `fix` de 1.x en la sección «`M0-E` — el ensayo del major, medido». Borrador del generador de la guía: `scripts/lib/migration-guide.py` + `docs/planes/guia-migracion-2.0.md` (23 entradas al pin) |
+| R1 | pendiente — siguiente; no depende del 2.0 | — | |
+| M1 | pendiente — precondición ampliada por `M0-E`: `R1` hecha, D9…D11 decididas, la DX al 5 (§2.1) y los `fix` de 1.x publicados, el registro de proveedores de `pkg/tasks` en una minor, y las siete filas de quark `publicado` | — | |
 | R2 | pendiente | — | |
