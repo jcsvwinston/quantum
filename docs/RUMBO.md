@@ -38,7 +38,12 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   cerrado, en su plan de [`planes/`](planes/README.md). **A12**
   (Rendimiento, re-auditoría y cierre a 5) sigue EN CURSO en
   [`planes/A12-rendimiento-reauditoria-cierre.md`](planes/A12-rendimiento-reauditoria-cierre.md):
-  le quedan `R1` → `M1` → `R2` (`M0` cerrado el 2026-10-23 con el ensayo del
+  **`R1` hecha el 2026-10-27** (la re-auditoría de madurez sobre 1.42.0,
+  [`auditoria/reauditoria/2026-10-23/`](auditoria/reauditoria/2026-10-23/README.md):
+  media de las 36 dimensiones 2,79 → 4,12, ninguna baja, tres en 5; 122
+  hallazgos nuevos —0 P0, 4 P1— y cuatro volteos más para el 2.0; el gate
+  «5 en todo salvo comunidad» NO se cumple: 32 dimensiones por debajo);
+  quedan `M0-R` → `M1` → `R2` (`M0` cerrado el 2026-10-23 con el ensayo del
   major en ramas `dry-run/2.0`), y lo que tiene que cumplir el 2.0
   está en [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
   2027-01-17, la última ventana que este set abre; `M0-E` fija la fecha).

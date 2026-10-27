@@ -23,16 +23,20 @@ Directus, Payload.
 ## Lo que corres
 
 ```bash
-cd <paraguas>/orbit/ui && npm ci && npm run lint && npm test && npm run build
-git -C <paraguas>/orbit status --porcelain ui/dist          # el dist embebido es el que sale del build
-cd <paraguas>/orbit/internal/adminbench/browser && npm ci && npx playwright install chromium
+cp -R <paraguas>/orbit/ui <scratch>/ui && cd <scratch>/ui          # la SPA se construye en una COPIA: el árbol al pin no se toca
+npm ci && npm run typecheck && npm run lint && npm test && npm run build
+diff -r <paraguas>/orbit/ui/dist <scratch>/ui/dist                  # el dist embebido es el que sale del build (lo que el CI comprueba con git status)
+cd <paraguas>/orbit/internal/adminbench/browser && npm ci && npx playwright install chromium   # node_modules está en el .gitignore de orbit
 cd <paraguas>/orbit && ORBIT_BENCH_BROWSER=required go test ./internal/adminbench/ -run TestBrowserBench -v
 cd <paraguas>/orbit/internal/fleettest && ORBIT_BENCH_BROWSER=required go test ./fleetbench/ -run TestFleetBrowserBench -v
 ```
 
 Los nombres exactos de los scripts de npm están en `ui/package.json` y el
 modo en que el CI los corre en `.github/workflows/ci.yml`; si difieren de lo
-de arriba, manda el CI.
+de arriba, manda el CI. El `build` se hace en la copia porque siete auditores
+corren a la vez sobre el mismo árbol y `suite-integral.sh` (el auditor de la
+suite) exige el árbol limpio: un `dist` regenerado en el pin lo tumbaría
+aunque el diff fuera la prueba que buscas.
 
 - **El instrumento prueba su propio motor**: cada proyecto del navegador
   planta una violación (UIX-00, UIF-00) para demostrar que axe muerde. Si

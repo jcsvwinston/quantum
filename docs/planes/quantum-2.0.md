@@ -129,7 +129,11 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 > quark#470 y quark#471: quark no cortó en 1.42.0 porque desde v1.17.0 sólo
 > lleva documentación, y release-please no abre release por `docs:`; llegan
 > al pin con la primera release de quark que las contenga, y su ventana se
-> cuenta desde ese set), 0 `por escribir` y 0 `decisión`.
+> cuenta desde ese set), 0 `por escribir` y 0 `decisión`. **`R1` (2026-10-27)**
+> añade las filas 31–34, `por escribir`: los cuatro volteos de comportamiento
+> que la re-auditoría encontró (QK-76, OR-80, OR-93, OR-103;
+> `docs/auditoria/reauditoria/2026-10-23/README.md`); los escribe `M0-R` con
+> su salida en 1.x antes de `M1`.
 
 | # | Producto | Qué cambia en el 2.0 | Tipo | Hallazgo | Aviso | Estado | Ventana abre | Sesión |
 |---|---|---|---|---|---|---|---|---|
@@ -163,12 +167,18 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 | 28 | nucleus | SQLite guarda las fechas en un formato que `date()` entiende | volteo (datos) | NU-110 | DEP-2026-026 | `publicado` | 2027-01-17 | `M0-N` |
 | 29 | orbit | la identidad del nodo del fleet atada al certificado cuando hay mTLS; `AllowSharedAgentCertificate` para quedarse | volteo (config) | OR-57 | DEP-2026-001 (orbit) | `publicado` | 2027-01-17 | `M0-O` |
 | 30 | orbit | se retira el adaptador `datasource/nucleus` (el panel sobre modelos de `pkg/model`): el panel se monta sólo sobre `quarkdatasource` (D5b) | retirada (paquete) | — | DEP-2026-002 (orbit) | `publicado` | 2027-01-17 | `M0-O` |
+| 31 | quark | las directivas desnudas de la gramática de `pkg/model` en un tag `db` (`db:"pk"`, `db:"readonly"`…) pasan de aviso a `ErrInvalidTag`; opt-out explícito para una columna que de verdad se llame así | volteo | QK-76 | DEP-2026-011 | `por escribir` | — | `M0-R` |
+| 32 | orbit | el operador queda atado a su tenant (columna en la cuenta de operador): sin `tenant_switch` ni superusuario no lee ni escribe otro, venga de `?tenant=` o del resolver; en 1.x la columna es opcional y un operador sin tenant en una aplicación multi-tenant avisa | volteo (config) | OR-80 | DEP-2026-003 (orbit) | `por escribir` | — | `M0-R` |
+| 33 | orbit | el entorno del proceso sale del snapshot de `system_pulse` y pasa a un permiso propio (`system_env`); en 1.x el permiso existe y `system_pulse` sigue viéndolo con aviso | volteo (permisos) | OR-93 | DEP-2026-004 (orbit) | `por escribir` | — | `M0-R` |
+| 34 | orbit | `PeerService.Sync` sólo acepta peers configurados en `--peers` (y bajo mTLS, el CN del certificado ha de ser el `server_id` anunciado); en 1.x `--peer-allowlist` opt-in y un WARN por cada peer no configurado | volteo (fleet) | OR-103 | DEP-2026-005 (orbit) | `por escribir` | — | `M0-R` |
 
 Lo que esta tabla deja fuera a propósito: la migración de orbit (§2.4, es
 trabajo de 1.x, no un cambio del 2.0), la DX al 5 (§2.1, aditiva) y el
 rediseño (§3.4, que llega como opción en una minor y se vuelve el defecto
 en el 2.0 sin retirar nada). Los ids `DEP-2026-010` y `019…026` de arriba
-y el `DEP-2026-002` de orbit son los siguientes libres de cada repo al 2026-10-16; si una decisión se
+y el `DEP-2026-002` de orbit son los siguientes libres de cada repo al 2026-10-16, y
+`DEP-2026-011` de quark y `DEP-2026-003…005` de orbit (filas 31–34) los
+siguientes libres al 2026-10-27; si una decisión se
 cae, su número no se reutiliza (queda la fila como `descartado` con la
 fecha).
 
@@ -215,6 +225,10 @@ existe en 1.x.
 | — | los errores salen en problem+json por defecto | el sobre por defecto |
 | OR-57 | la identidad del nodo del fleet atada al certificado (con mTLS) | opcional |
 | NU-121 | `nucleustest` deja de enlazar SQLite siempre | lo enlaza |
+| QK-76 | las directivas desnudas de `pkg/model` en un tag `db` son `ErrInvalidTag` (R1) | WARN y migra una columna `pk` |
+| OR-80 | el operador del panel queda atado a su tenant (R1) | el panel confina lo que el host resuelve por petición |
+| OR-93 | el entorno del proceso sólo bajo un permiso propio (R1) | 58 de 70 variables en claro bajo `system_pulse` |
+| OR-103 | la malla sólo acepta peers configurados (R1) | cualquier llamante con credencial de agente es peer |
 
 **Las ocho decisiones de `M0` — DECIDIDAS por Carlos el 2026-10-16**, una
 a una, sobre lo que `M0-S0` midió esa misma mañana (plan de A12, sección

@@ -16,6 +16,7 @@ Lo que hay aquí:
 | [`prompts/quark.md`](prompts/quark.md) … [`prompts/rendimiento.md`](prompts/rendimiento.md) | cada auditor | su alcance, sus dimensiones, sus instrumentos y lo que tiene que verificar |
 | [`prompts/adversarial.md`](prompts/adversarial.md) | los revisores | la pasada que intenta tumbar cada nota y cada hallazgo |
 | [`prompts/consolidacion.md`](prompts/consolidacion.md) | quien consolida | del informe al registro, las notas en CSV y los guards |
+| [`prompts/lanzamiento.md`](prompts/lanzamiento.md) | quien lanza el equipo | la nota operativa que va detrás de cada prompt (set, commits, scratch, Docker, Go, git, dónde se copia el entregable); plantilla desde `R1` |
 
 La escala con la que se puntúa es [`../criterios-5.csv`](../criterios-5.csv)
 (explicada en [`../criterios-5.md`](../criterios-5.md)); los hallazgos van al
@@ -43,6 +44,8 @@ los dos guards ya leen.
 La línea base es la nota del 2026-09-03 que lleva cada fila de la escala.
 Ninguna re-auditoría se hizo entre medias: el plan preveía una ligera al
 cerrar A4 y otra al cerrar A8, y no se corrieron.
+`R1` se hizo el 2026-10-23 sobre 1.42.0 (revisión adversarial el 2026-10-27):
+[`2026-10-23/`](2026-10-23/README.md).
 
 ## 2. El equipo
 
@@ -128,6 +131,8 @@ Si el pin ya contiene los instrumentos que la escala cita en `notas` como
 comprueba que existan) y después se lanza el equipo.
 
 Se lanzan los siete auditores a la vez, cada uno con el texto de
-`prompts/comun.md` seguido del de su prompt, el set y los tres commits. Cuando
+`prompts/comun.md` seguido del de su prompt y de `prompts/lanzamiento.md`
+rellenado (el set, los tres commits, la carpeta persistente a la que copiar
+el entregable). Cuando
 vuelvan los siete, los revisores adversariales; cuando vuelvan, la
 consolidación.
