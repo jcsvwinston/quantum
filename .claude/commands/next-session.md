@@ -281,9 +281,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   el 15 % no se cumple en 5 de 9, COPY no, `N1` 26,2 MB > 25 MB (NU-150).
 - **Lo siguiente**: `M0-R` (los cuatro avisos `por escribir` con su salida
   en 1.x y los cuatro P1 como `fix` de 1.x), los `fix` de 1.x de `M0-E` y
-  la DX al 5 (§2.1); después `M1`. Lo que espera al propietario está en el
-  README del directorio (private vulnerability reporting en tres repos, la
-  política de soporte §8, la de estabilidad del contrato de quark).
+  la DX al 5 (§2.1); después `M1`. Lo que espera al propietario (private vulnerability
+  reporting en tres repos, Discussions, la política de estabilidad del
+  contrato de quark, la de soporte §8 y la protección de rama) está
+  anotado como paralelo a `M0-R`, con sus decisiones pendientes, en la
+  sección «Lo del propietario» del
+  [plan de A12](../../docs/planes/A12-rendimiento-reauditoria-cierre.md)
+  (decisión de Carlos del 2026-10-27).
 
 ### Sesión 2026-10-18 → 2026-10-23 — **A12 `M0-E`: el ensayo del major en ramas `dry-run/2.0`; `M0` hecha, y tres dependencias que el §3 no nombraba**
 
