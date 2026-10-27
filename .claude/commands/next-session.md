@@ -131,7 +131,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   las decisiones D9…D11 del contrato: la ruta `/v2`, la DX al 5 (§2.1)
   como prerrequisito de retirar `pkg/model`, quark en el grafo de la raíz
   de orbit, y una lista de `fix` de 1.x que van ANTES del major. **Y `R1`
-  hecha el 2026-10-27** (este PR): la re-auditoría completa sobre el pin de
+  hecha el 2026-10-27** (quantum#294): la re-auditoría completa sobre el pin de
   1.42.0 con el método de `R0` —siete auditores y siete revisores
   adversariales como workflows de agentes—, en
   [`docs/auditoria/reauditoria/2026-10-23/`](../../docs/auditoria/reauditoria/2026-10-23/README.md):
