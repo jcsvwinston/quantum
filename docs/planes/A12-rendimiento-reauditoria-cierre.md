@@ -204,11 +204,12 @@ Cinco hilos en paralelo (repos o ficheros distintos) y un cierre en serie.
 | `R0` | Preparar la re-auditoría: la tabla «qué significa 5» y los prompts de los auditores al repo, `check_audit_backlog.sh` acepta A13+ y detecta ids duplicados (QM-21) | `S0`; en cualquier momento | guards con su fixture; la tabla en el repo |
 | `M0` | Preparar el major: decidir cada volteo (NU-72, OR-57 sólo con mTLS, el sobre con opción de quedarse, las firmas de constructores, `pkg/model`, signals), un aviso DEP y una fila por volteo, `umbrella-deprecations` ampliado a volteos, la política corregida (QM-20); y **orbit migra antes, en una minor** | A11 cerrado | el guard ve el 100 % de lo que va al major; orbit compila contra la rama del major |
 | `R1` | La re-auditoría completa con el método del 2026-09-03 más un auditor de rendimiento, sobre el último set 1.x y la lista cerrada del major; pasada adversarial y consolidación con las notas en CSV y guard | `Q*`, `N*`, `O1`, `R0`, `M0` | informe, registro y notas con guard; lo rompiente que encuentre entra en `M1` |
-| `M1` | El 2.0: retirar los doce símbolos, voltear los defaults, asynq a módulo propio (decisión 4), guía de migración generada; tren de cuatro repos | `R1` | set 2.0.0 certificado; ninguna marca viva que prometa 2.0.0 |
+| `M0-R` | Lo que `R1` dejó para antes del major: los cuatro avisos `por escribir` del §3.0 (filas 31–34: QK-76, OR-80, OR-93, OR-103) con su salida en 1.x, y los cuatro P1 de la re-auditoría (OR-78, OR-79, OR-80, OR-99) como `fix` de 1.x | `R1` | las cuatro filas `publicado` al pin; los cuatro P1 `hecho` en un set 1.x; `umbrella-deprecations` sin `por escribir` |
+| `M1` | El 2.0: retirar los doce símbolos, voltear los defaults, asynq a módulo propio (decisión 4), guía de migración generada; tren de cuatro repos | `R1`, `M0-R` | set 2.0.0 certificado; ninguna marca viva que prometa 2.0.0 |
 | `R2` | Confirmación ligera sobre el 2.0: bancos, guards y re-puntuar sólo lo que `M1` tocó; A12 cerrado | `M1` | todas las dimensiones a 5 salvo comunidad, o A13 abierto con lo que falte |
 
 `Q1→(Q2 ∥ Q3)`, `N1`, `N2`, `O1` y `R0` van en paralelo y pueden solaparse
-con A11 si no tocan los mismos paquetes. `M0 → R1 → M1 → R2` va al final y
+con A11 si no tocan los mismos paquetes. `M0 → R1 → M0-R → M1 → R2` va al final y
 en serie.
 
 `M0` tiene su propio troceado en seis sesiones, medido el 2026-10-16: está
@@ -475,6 +476,67 @@ así que el 2.0 no tiene fecha final todavía), y lo de arriba —`/v2`, la DX
 al 5, los `fix` de 1.x, el registro de proveedores, D9…D11— tiene que
 estar en sets 1.x antes de que `M1` empiece.
 
+## `R1` — la re-auditoría, medida (2026-10-23 / 2026-10-27)
+
+> Informes, revisiones, notas y veredicto en
+> [`../auditoria/reauditoria/2026-10-23/`](../auditoria/reauditoria/2026-10-23/README.md);
+> los hallazgos en el registro con `informe = reauditoria/2026-10-23/…` y
+> `arco = A12`. Lo que sigue es lo que el gate de A12 y el 2.0 necesitan de
+> ella.
+
+- **Las notas**: media de las 36 dimensiones 2,79 → **4,12** (2,84 → 4,21
+  sin comunidad); por pilar quark 3,22 → 4,06, nucleus 3,00 → 4,55, orbit
+  2,45 → 4,15, suite 2,43 → 3,57. Ninguna baja; tres en 5 (nucleus
+  Routing/HTTP y Jobs/Eventos, orbit Personalización/extensibilidad). Las
+  36 las confirmó la revisión adversarial re-corriendo el instrumento de
+  cada fila.
+- **El gate (5 en todo salvo comunidad) NO se cumple**: 32 dimensiones no
+  llegan. Lo que le falta a cada una, en una línea, está en el README del
+  directorio («El gate de A12»); es la lista que `R2` convierte en A13 si
+  sigue en pie. Las más lejanas: quark docs/DX (3,5: playground, receta en
+  el 100 % de los `Err*`, deriva fuera de los guards), orbit Data Studio
+  (3,5: validación y clasificación sobre `quarkdatasource`, FK, M2M, 25
+  tipos), suite Tren (3,5: 68–88 min conducidos frente a 30, el segundo
+  corte de orbit a mano) y suite Coherencia (3,5: cifras a mano que ya no
+  son verdad).
+- **Hallazgos**: 122 nuevos, 0 P0, 4 P1, 24 P2, 94 P3 (QK-70…85, NU-132…151,
+  OR-78…140, QM-22…44), todos `abierto` en A12. Los P1: OR-78 (Data Studio
+  sobre `quarkdatasource` no valida ni clasifica), OR-79 (import/export
+  rotos en multi-tenant por la clave prefijada dos veces), OR-80 (el
+  operador no está atado a un tenant: lee y escribe en otro por la
+  cabecera), OR-99 (la flota de servidores no se forma bajo mTLS desde el
+  binario). No esperan a `R2`: `M0-R`.
+- **Lo rompiente**: cuatro volteos entran en el §3.0 del contrato del 2.0
+  como filas 31–34 `por escribir` (QK-76 la gramática de `db` a error, OR-80
+  el operador atado al tenant, OR-93 el entorno fuera de `system_pulse`,
+  OR-103 la malla sólo con peers configurados); `M0-R` escribe los avisos
+  con su salida en 1.x antes de `M1`.
+- **Los criterios de rendimiento del arco**: la decisión 1 (15 %) no se
+  cumple en 5 de 9 controles (InsertOne, FindByPK, List100, Preload100,
+  FindByPK en MySQL por defecto) ni el lote de 10 000 «cerca de COPY»; el
+  «≤ 25 MB» de `N1` tampoco (26,2 MB = 25,02 MiB en el runner; la lane
+  vigila 26 730 000 B y la fila `N1` de abajo decía «0,2 MB sobre», que no
+  sale en ninguna unidad: NU-150). Cumplen la cola (`N2`), el panel (`O1`,
+  decisión 2) y los 92 módulos. El auditor de rendimiento también encontró
+  que la página pública y Why Quantum siguen diciendo que el 15 % «no está
+  adoptado» (QK-82, QM-44).
+- **Lo que `M0-E` llamó «fix de 1.x» y la re-auditoría amplió**: en
+  `quarkdatasource` no sólo `Get`/`Delete` (OR-83: `Update` de cero filas,
+  el bulk que cuenta `deleted:1`, las entradas de auditoría falsas); en
+  `UpsertBatch` también `CreateBatch` (QK-70, con la mezcla inversa que
+  inserta `id=0`); y la DX al 5 (§2.1) con nombre: NU-137 (los generadores
+  sobre `pkg/model`), OR-89 (DEP-2026-002 apunta a una sección que no
+  existe).
+- **El método, probado**: los siete auditores y los siete revisores corrieron
+  como workflows de agentes (53 min y 3,8 M de tokens los auditores; 20 min
+  y 1,9 M los revisores). Dos trampas para `R2`: el límite de uso del modelo
+  mató la primera pasada adversarial entera, y el scratch (y el `mktemp` de
+  cada auditor) desaparece entre días —los informes se recuperaron de las
+  transcripciones—; desde este PR `prompts/lanzamiento.md` manda copiar
+  cada entregable a un sitio persistente. `orbit/go.work.sum` lo ensucia
+  cualquier `go` bajo el `go.work` de orbit (OR-138): se restaura antes de
+  `suite-integral`.
+
 ## Registro de sesiones
 
 | Sesión | Estado | PR | Qué midió o cambió del plan |
@@ -493,6 +555,7 @@ estar en sets 1.x antes de que `M1` empiece.
 | M0-G | **hecha** 2026-10-16 | quantum#285 | `umbrella-deprecations` lee los 13 avisos `active` al pin (5 de retirada, 7 de volteo; `DEP-2026-003` de nucleus, `active` sin fecha, tolerado con AVISO sólo mientras su fila 20 esté en `decisión`) y las 29 filas del §3.0 (12 `publicado` con fichero al pin, 9 `por escribir`, 8 `decisión` → 17 pendientes antes de `M1`); un aviso al pin que nombre el major y falte en la tabla, o cuya fila no diga `publicado`, FALLA. Los doce avisos publicados se leen con su formato real —tres grafías de la viñeta de ventana: «Earliest removal», «Behaviour flip», «Earliest change»— sin tocar ningún producto, y ninguno está mal escrito. Fixture con cinco roturas (las dos de antes más el aviso `active` sin fecha fuera de `decisión`, la fila `publicado` sin fichero y el aviso del major que falta en la tabla); política §1/§5/§6, nota del §3.0 y registro de guards al día; **QM-20 hecho**. Trampa para el tren: el PR de set que re-pine quark o nucleus con los avisos de `M0-Q`/`M0-N` sale rojo hasta pasar sus filas del §3.0 a `publicado` |
 | M0-O | **hecha** 2026-10-18 — (a) orbit#568 y (b) orbit#570, publicadas en Quantum 1.42.0 (orbit v1.20.0/v1.20.1) | orbit#568 (a), orbit#570 (b) | La precondición no se cumplía (nucleus#631, la release con `M0-N`, sigue abierto hasta el tren del 19) y sólo `router.Wrap` la necesita, así que se troceó. (a): `docs/deprecations/` de orbit (README calcado del de quark: sin asistentes ni CHANGELOG), DEP-2026-001 (OR-57, volteo) con la salida `server.Config.AllowSharedAgentCertificate` (`--allow-shared-agent-certificate`, contradice `AgentIdentityFromCertificate` y `Run` rehúsa las dos; con mTLS y ninguna de las dos, un WARN al arrancar que nombra las dos) y DEP-2026-002 (D5b: 4 marcas en `datasource/nucleus`, WARN al montar el panel y al arrancar el agente sobre el camino por defecto; al 2.0 `orbit.Config.DataSource` nil es error de configuración y el editor de metadatos de campo y el `*signals.Bus` del adaptador se van con él); `quarkdatasource` pasa del `LIKE` plano con escape propio a `quark.Contains/StartsWith/EndsWith` —SQLite y Oracle contestan un `%` en vez de rechazarlo, QK-25 cerrado por este lado, `escapeLike` y `FuzzEscapeLike` fuera—; `api.ts` lee problem+json (detail > title) junto al sobre y `ApiError.code` en las dos formas; dist reconstruido. **Medido y distinto del enunciado**: orbit NO llama a la puerta sin tipo de `signals` (0 sitios: guarda el bus sólo para `model.NewCRUD`, que se va con el adaptador; `Panel.SetSignalBus` no lo lee nadie), así que no hay topics que migrar; `ExtensionConfig.DataSource` del agente cae al mismo adaptador por defecto; y el banco del fleet con `GOWORK=off` da dos fallos falsos (su go.mod resuelve server/agent publicados): se corre con el workspace de orbit, como CI. Criterio en (a): banco admin 72/72, IDENT-06 present, CI verde; `grep NewWrapResponseWriter` = 2 hasta (b). El squash es `feat:` → orbit cortó **minor** (v1.20.0) en el tren del 18. **(b)** entró en orbit#570, el PR de alineación a nucleus v1.33.0 del propio tren: las dos llamadas a `router.Wrap(w)`, `grep NewWrapResponseWriter` = 0 en orbit; nada de la lista de retiradas del 2.0 queda referenciado |
 | M0-E | **hecha** 2026-10-23 (arrancada el 2026-10-18) | ramas `dry-run/2.0` en origin: quark `a2b4558d`, nucleus `2dd5b82f`, orbit `f584a53`; quantum (este PR) | el ensayo del major: treinta avisos aplicados por doce grupos en worktrees con un refutador cada uno, un integrador y un auditor por producto (workflows de agentes); orbit `dry-run/2.0` compila y pasa sus tests contra quark y nucleus `dry-run/2.0` por el `go.work` del paraguas (el criterio); el §3.0 sin filas `por escribir`. Lo que el §3 no preveía: la ruta `/v2` (§3.5 del contrato), el §2.1 como prerrequisito de DEP-024, quark en el grafo de la raíz de orbit (D11), y las decisiones D9 (starter `api` contra `generate module`) y D10 (metadatos por campo en `quarkdatasource`); los rojos y los `fix` de 1.x en la sección «`M0-E` — el ensayo del major, medido». Borrador del generador de la guía: `scripts/lib/migration-guide.py` + `docs/planes/guia-migracion-2.0.md` (23 entradas al pin) |
-| R1 | pendiente — siguiente; no depende del 2.0 | — | |
-| M1 | pendiente — precondición ampliada por `M0-E`: `R1` hecha, D9…D11 decididas, la DX al 5 (§2.1) y los `fix` de 1.x publicados, el registro de proveedores de `pkg/tasks` en una minor, y las siete filas de quark `publicado` | — | |
+| R1 | **hecha** 2026-10-27 (auditores el 2026-10-23, revisión adversarial el 2026-10-27) | este PR | la re-auditoría completa sobre el pin de 1.42.0 con el método de `R0`: siete auditores en paralelo, siete revisores adversariales (ninguna nota movida; tres severidades cambiadas, seis duplicados fundidos, dieciséis hallazgos nuevos de los revisores), consolidación en `docs/auditoria/reauditoria/2026-10-23/` (informes, `adversarial.md`, `notas.csv`, README) y en el registro (122 filas: 0 P0, 4 P1, 24 P2, 94 P3). Media 2,79 → 4,12; tres dimensiones en 5; **el gate de A12 no se cumple** (32 dimensiones por debajo, lista en el README). Cuatro volteos al §3.0 del 2.0 (filas 31–34, `por escribir` → `M0-R`). La escala con los cuatro instrumentos que estaban «en main» movidos a `instrumento` (35 con instrumento, 1 juicio). Los criterios de rendimiento del arco: 15 % no cumplido en 5 de 9, COPY no, `N1` 26,2 MB > 25 MB. Sección «`R1` — la re-auditoría, medida» |
+| M0-R | pendiente — siguiente: los cuatro avisos `por escribir` (QK-76, OR-80, OR-93, OR-103) con su salida en 1.x y los cuatro P1 de `R1` como `fix` de 1.x | — | |
+| M1 | pendiente — precondición ampliada por `M0-E` y `R1`: `R1` hecha (lo está), `M0-R` hecha, D9…D11 decididas, la DX al 5 (§2.1) y los `fix` de 1.x publicados, el registro de proveedores de `pkg/tasks` en una minor, y las siete filas de quark `publicado` | — | |
 | R2 | pendiente | — | |

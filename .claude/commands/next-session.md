@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-10-23, QUANTUM 1.42.0 — A11 CERRADO; A12 en curso: `M0` HECHO (el ensayo del major en ramas `dry-run/2.0`); siguiente `R1`, y antes de `M1` lo que `M0-E` midió → M1 → R2; el 2.0 no antes de 2027-01-17 y sin fecha final hasta que quark publique sus avisos)
+## 3. Estado al cierre (2026-10-27, QUANTUM 1.42.0 — A11 CERRADO; A12 en curso: `M0` y `R1` HECHAS (el ensayo del major y la re-auditoría: media 2,79 → 4,12, gate de A12 no cumplido, 122 hallazgos, 4 P1); siguiente `M0-R` (cuatro avisos + los cuatro P1) y lo que `M0-E` midió → M1 → R2; el 2.0 no antes de 2027-01-17 y sin fecha final hasta que quark publique sus avisos)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -130,8 +130,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   sección «`M0-E` — el ensayo del major, medido» del plan y en el §3.5 y
   las decisiones D9…D11 del contrato: la ruta `/v2`, la DX al 5 (§2.1)
   como prerrequisito de retirar `pkg/model`, quark en el grafo de la raíz
-  de orbit, y una lista de `fix` de 1.x que van ANTES del major. Siguiente:
-  `R1` (la re-auditoría, que no depende del 2.0); `M1` no empieza sin
+  de orbit, y una lista de `fix` de 1.x que van ANTES del major. **Y `R1`
+  hecha el 2026-10-27** (este PR): la re-auditoría completa sobre el pin de
+  1.42.0 con el método de `R0` —siete auditores y siete revisores
+  adversariales como workflows de agentes—, en
+  [`docs/auditoria/reauditoria/2026-10-23/`](../../docs/auditoria/reauditoria/2026-10-23/README.md):
+  media de las 36 dimensiones 2,79 → 4,12 (ninguna baja, tres en 5), 122
+  hallazgos nuevos en el registro (0 P0, 4 P1: OR-78, OR-79, OR-80, OR-99;
+  24 P2; 94 P3), cuatro volteos al §3.0 del 2.0 (filas 31–34 `por
+  escribir`), y el veredicto del gate: **32 dimensiones por debajo del 5**
+  (lista en el README, una línea cada una; `R2` la convierte en A13).
+  Siguiente: `M0-R` (los cuatro avisos con su salida en 1.x y los cuatro
+  P1 como `fix` de 1.x) y los `fix` de 1.x de `M0-E`; `M1` no empieza sin
   eso).
   Decisiones de Carlos para A11: ejemplos como fixtures probados,
   construir saml/redis-cache/sentry (Stripe se construyó y se
@@ -239,6 +249,42 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-10-23 → 2026-10-27 — **A12 `R1`: la re-auditoría de madurez sobre 1.42.0 — media 2,79 → 4,12, 122 hallazgos, el gate no se cumple**
+
+- **Cómo se hizo**: con el brief de `R0` tal cual. Antes de lanzar, los
+  cuatro instrumentos que la escala citaba como «entra con el siguiente
+  pin» pasaron a `instrumento` (35 con instrumento, 1 juicio) y el prompt
+  de `orbit-ui` pasó a construir la SPA en una copia (siete auditores sobre
+  el mismo árbol y `suite-integral` exige el árbol limpio). Un workflow de
+  agentes: siete auditores en paralelo (53 min, 3,8 M de tokens; cada uno
+  corrió sus bancos, las lanes de PostgreSQL y MySQL con Docker y el starter
+  generado), después siete revisores adversariales (20 min, 1,9 M), y la
+  consolidación a mano con dos guiones en la carpeta de notas de la sesión
+  (`aplicar_revision.py`, `renumerar_y_registro.py`).
+- **Lo que pasó y vale para `R2`**: los siete revisores de la primera
+  pasada (23) cayeron por el límite de uso del modelo antes de escribir
+  nada; al reanudar el 27 el scratch había desaparecido con los siete
+  informes (`mktemp` incluido). Se recuperaron íntegros de las
+  transcripciones de los agentes (las salidas persistidas de los `cat` y
+  los `Read` de los revisores, en `~/.claude/projects/…/tool-results/` y
+  `subagents/workflows/…/agent-*.jsonl`) y la pasada adversarial se
+  relanzó con `resumeFromRunId` (los auditores cacheados). Desde este PR
+  `prompts/lanzamiento.md` manda copiar cada entregable a un sitio
+  persistente. `orbit/go.work.sum` (OR-138) y el binario
+  `cmd/nucleus/nucleus` (NU-140) se restauran antes de certificar.
+- **Lo que midió**: 36 notas confirmadas por la revisión (ninguna movida);
+  tres severidades cambiadas (OR-80 a P1, OR-103 a P2, QM-25 a P3), seis
+  duplicados fundidos, dieciséis hallazgos nuevos de los revisores. Los P1
+  están en el panel de orbit sobre `quarkdatasource` (OR-78, OR-79, OR-80)
+  y en la flota bajo mTLS (OR-99). Cuatro volteos al §3.0 del 2.0 (QK-76,
+  OR-80, OR-93, OR-103) → `M0-R`. Los criterios de rendimiento del arco:
+  el 15 % no se cumple en 5 de 9, COPY no, `N1` 26,2 MB > 25 MB (NU-150).
+- **Lo siguiente**: `M0-R` (los cuatro avisos `por escribir` con su salida
+  en 1.x y los cuatro P1 como `fix` de 1.x), los `fix` de 1.x de `M0-E` y
+  la DX al 5 (§2.1); después `M1`. Lo que espera al propietario está en el
+  README del directorio (private vulnerability reporting en tres repos, la
+  política de soporte §8, la de estabilidad del contrato de quark).
+
 ### Sesión 2026-10-18 → 2026-10-23 — **A12 `M0-E`: el ensayo del major en ramas `dry-run/2.0`; `M0` hecha, y tres dependencias que el §3 no nombraba**
 
 - **Cómo se hizo**: con workflows de agentes. Un inventario por producto
@@ -280,45 +326,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   1.x, con su método en `docs/auditoria/reauditoria/`), y en 1.x, por su
   lado y antes de `M1`: la DX al 5, los `fix` listados, el registro de
   proveedores, y las decisiones D9…D11 de Carlos.
-
-### Sesión 2026-10-18 (segunda) — **Quantum 1.42.0 certificado: la primera mitad de `M0` publicada, `M0-O` completa, y un tren con un pilar que no corta**
-
-- **Arranque**: Carlos pidió hacer aquí el tren propuesto para el 19.
-  Medido antes de tocar nada: quark SIN release PR (sólo `docs:` desde
-  v1.17.0 y siete suelos por detrás), nucleus#631 (v1.33.0) y orbit#569
-  (v1.20.0) abiertos; ninguna otra sesión conduciendo.
-- **Lo que hizo, en el orden real**: nucleus#632 (suelos, `--solo-suelos`)
-  → sección v1.33.0 y snapshot en la rama del bot → nucleus#631 fusionado
-  (v1.33.0, quince tags, `cmd/nucleus/v1.33.0`, activos firmados) →
-  orbit#570 (alineación a nucleus v1.33.0 + **`M0-O` (b)**: `router.Wrap`
-  en `audit.go` y `live.go`) → sección v1.20.0 y snapshot en la rama
-  regenerada → orbit#569 fusionado (v1.20.0 con quarkbridge v1.9.6,
-  quarkdatasource v1.13.0, agent v0.16.0, server v0.21.0, datasource
-  v1.1.0, ui v1.2.0) → orbit#571 (pines internos `ui` v1.2.0 y
-  `datasource` v1.1.0 en raíz, agent, server y quarkdatasource) → sección
-  v1.20.1 reescrita sobre la de `orbit-align-notes.sh` → orbit#572
-  fusionado (v1.20.1, agent v0.16.1, server v0.21.1, quarkdatasource
-  v1.13.1) → quantum#289 (re-pin, notas, RUMBO, el §3.0 con 23 filas
-  `publicado` y 7 `en main`, la política §1/§5/§6) → tag v1.42.0,
-  `--cierre` 60 de 60, quantum-app#34 en borrador con gates rojos (deuda
-  suya, como #32). Reloj: 1h08m conducido en ocho invocaciones, 44m de
-  espera del propietario, 1h52m de punta a punta.
-- **Las notas de la versión de nucleus y orbit** salieron de un workflow de
-  agentes (un borrador por repo desde el diff, tres refutadores con lentes
-  distintas, revisión) y se corrigieron a mano con lo que el tren cambió
-  DESPUÉS de redactarlas: los suelos movieron los catorce hermanos de
-  nucleus y `align_set.sh` no tocó `datasource`. Una nota se cierra tras
-  los suelos y la alineación.
-- **Trampas nuevas** (sección 1.42.0 del README del tren): un pilar con
-  sólo `docs:` no corta y NO se le suben los suelos; el driver escribe la
-  sección de alineación sobre una minor real; `align_set.sh` y
-  manifest-guard §5 no conocen `datasource` ni `ui`; el `--check` de pines
-  no mira los internos (segundo corte de orbit a mano entero); la
-  plantilla de `orbit-align-notes.sh` es anterior a ADR-012.
-- **Lo siguiente**: `M0-E` (el ensayo del major: ramas `dry-run/2.0` en
-  quark y nucleus, orbit `main` compilando contra ellas por `go.work`, el
-  borrador del generador de la guía de migración); su precondición está
-  cumplida. Después `R1`.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
