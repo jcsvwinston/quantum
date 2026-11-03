@@ -43,10 +43,12 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   media de las 36 dimensiones 2,79 → 4,12, ninguna baja, tres en 5; 122
   hallazgos nuevos —0 P0, 4 P1— y cuatro volteos más para el 2.0; el gate
   «5 en todo salvo comunidad» NO se cumple: 32 dimensiones por debajo);
-  quedan `M0-R` → `M1` → `R2` (`M0` cerrado el 2026-10-23 con el ensayo del
-  major en ramas `dry-run/2.0`), y lo que tiene que cumplir el 2.0
-  está en [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
-  2027-01-17, la última ventana que este set abre; `M0-E` fija la fecha).
+  `M0` cerrado el 2026-10-23 con el ensayo del major en ramas
+  `dry-run/2.0`, y **`M0-R` hecha el 2026-11-03** (los cuatro avisos que
+  añadió `R1` y los P1 de orbit, en `main` para el set del 2026-11-09);
+  quedan `M1` → `R2`, y lo que tiene que cumplir el 2.0 está en
+  [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
+  2027-02-07 si ese set publica los once avisos que siguen en `main`).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
   TIPADO con el outbox como transporte opcional, CANALES sobre WebSocket y

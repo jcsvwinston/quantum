@@ -19,6 +19,13 @@
   (2026-10-18): las veintitrés filas `publicado` abren el 2027-01-17 como
   muy tarde; las siete de quark (`en main`) abrirán 90 días después del
   set que lleve la primera release de quark posterior a v1.17.0.
+- **Medido el 2026-11-03 (`M0-R`)**: no queda ninguna fila `por escribir`.
+  Las once que siguen `en main` (las siete de quark y las cuatro de
+  `M0-R`) llevan `no earlier than 2027-02-07`, que es la ventana de un set
+  del 2026-11-09: **si ese set las publica, el 2.0 no puede salir antes
+  del 2027-02-07**, y cada semana que se retrase las mueve una semana.
+  Lo que `M1` exige además antes de empezar (§2, §3.5, D9…D11) puede
+  retrasarlo más; esa fecha es un suelo, no una estimación.
 - **El orden lo decidió Carlos: primero se termina lo pendiente**, después el
   2.0. Nada de este documento se empieza antes de que se cumpla el §2.
 
@@ -133,7 +140,12 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 > añade las filas 31–34, `por escribir`: los cuatro volteos de comportamiento
 > que la re-auditoría encontró (QK-76, OR-80, OR-93, OR-103;
 > `docs/auditoria/reauditoria/2026-10-23/README.md`); los escribe `M0-R` con
-> su salida en 1.x antes de `M1`.
+> su salida en 1.x antes de `M1`. **`M0-R` (2026-11-03)** los deja `en
+> main`: quark#476 (fila 31, con la salida nueva `quark:"literal_column"`),
+> orbit#578 (32), orbit#576 (33) y orbit#582 (34). Quark#476 fecha además
+> de nuevo las siete de quark al 2027-02-07: llevaban el 2027-01-17,
+> contado desde un set que no las publicó. El set que lleve las releases
+> de quark y orbit pasa las once a `publicado`.
 
 | # | Producto | Qué cambia en el 2.0 | Tipo | Hallazgo | Aviso | Estado | Ventana abre | Sesión |
 |---|---|---|---|---|---|---|---|---|
@@ -167,10 +179,10 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 | 28 | nucleus | SQLite guarda las fechas en un formato que `date()` entiende | volteo (datos) | NU-110 | DEP-2026-026 | `publicado` | 2027-01-17 | `M0-N` |
 | 29 | orbit | la identidad del nodo del fleet atada al certificado cuando hay mTLS; `AllowSharedAgentCertificate` para quedarse | volteo (config) | OR-57 | DEP-2026-001 (orbit) | `publicado` | 2027-01-17 | `M0-O` |
 | 30 | orbit | se retira el adaptador `datasource/nucleus` (el panel sobre modelos de `pkg/model`): el panel se monta sólo sobre `quarkdatasource` (D5b) | retirada (paquete) | — | DEP-2026-002 (orbit) | `publicado` | 2027-01-17 | `M0-O` |
-| 31 | quark | las directivas desnudas de la gramática de `pkg/model` en un tag `db` (`db:"pk"`, `db:"readonly"`…) pasan de aviso a `ErrInvalidTag`; opt-out explícito para una columna que de verdad se llame así | volteo | QK-76 | DEP-2026-011 | `por escribir` | — | `M0-R` |
-| 32 | orbit | el operador queda atado a su tenant (columna en la cuenta de operador): sin `tenant_switch` ni superusuario no lee ni escribe otro, venga de `?tenant=` o del resolver; en 1.x la columna es opcional y un operador sin tenant en una aplicación multi-tenant avisa | volteo (config) | OR-80 | DEP-2026-003 (orbit) | `por escribir` | — | `M0-R` |
-| 33 | orbit | el entorno del proceso sale del snapshot de `system_pulse` y pasa a un permiso propio (`system_env`); en 1.x el permiso existe y `system_pulse` sigue viéndolo con aviso | volteo (permisos) | OR-93 | DEP-2026-004 (orbit) | `por escribir` | — | `M0-R` |
-| 34 | orbit | `PeerService.Sync` sólo acepta peers configurados en `--peers` (y bajo mTLS, el CN del certificado ha de ser el `server_id` anunciado); en 1.x `--peer-allowlist` opt-in y un WARN por cada peer no configurado | volteo (fleet) | OR-103 | DEP-2026-005 (orbit) | `por escribir` | — | `M0-R` |
+| 31 | quark | las directivas desnudas de la gramática de `pkg/model` en un tag `db` (`db:"pk"`, `db:"readonly"`…) pasan de aviso a `ErrInvalidTag`; opt-out explícito para una columna que de verdad se llame así | volteo | QK-76 | DEP-2026-011 | `en main` | — | `M0-R` |
+| 32 | orbit | el operador queda atado a su tenant (columna en la cuenta de operador): sin `tenant_switch` ni superusuario no lee ni escribe otro, venga de `?tenant=` o del resolver; en 1.x la columna es opcional y un operador sin tenant en una aplicación multi-tenant avisa | volteo (config) | OR-80 | DEP-2026-003 (orbit) | `en main` | — | `M0-R` |
+| 33 | orbit | el entorno del proceso sale del snapshot de `system_pulse` y pasa a un permiso propio (`system_env`); en 1.x el permiso existe y `system_pulse` sigue viéndolo con aviso | volteo (permisos) | OR-93 | DEP-2026-004 (orbit) | `en main` | — | `M0-R` |
+| 34 | orbit | `PeerService.Sync` sólo acepta peers configurados en `--peers` (y bajo mTLS, el CN del certificado ha de ser el `server_id` anunciado); en 1.x `--peer-allowlist` opt-in y un WARN por cada peer no configurado | volteo (fleet) | OR-103 | DEP-2026-005 (orbit) | `en main` | — | `M0-R` |
 
 Lo que esta tabla deja fuera a propósito: la migración de orbit (§2.4, es
 trabajo de 1.x, no un cambio del 2.0), la DX al 5 (§2.1, aditiva) y el

@@ -537,6 +537,57 @@ estar en sets 1.x antes de que `M1` empiece.
   cualquier `go` bajo el `go.work` de orbit (OR-138): se restaura antes de
   `suite-integral`.
 
+## `M0-R` — lo que `R1` dejó para antes del major (2026-11-03)
+
+> Cinco tramos en paralelo, uno por agente y cada uno en su worktree, con
+> sus PRs fusionados en serie tras integrar los seis de orbit en local
+> (build, vet y tests de todos los módulos con el workspace). Antes hubo
+> que pagar una vulnerabilidad de Go publicada esa semana: GO-2026-6809
+> (`crypto/x509`, en go1.26.9, arreglada en go1.26.10) ponía rojo
+> `govulncheck` en todo PR de los tres productos; el `toolchain` subió a
+> go1.26.10 en quark#477, nucleus#635 (con la imagen del builder por
+> digest y la constante del scaffold) y orbit#580, sin mover la directiva
+> `go`. El `go.work` del paraguas sube en el PR de set.
+
+| Tramo | PR | Qué deja |
+|---|---|---|
+| QK-76 (fila 31) | quark#476 | DEP-2026-011 con el test que pina v1; la salida en 1.x es un token NUEVO, `quark:"literal_column"` (la forma `db:"column:pk"` que se suponía es la gramática de `pkg/model` y ya daba `ErrInvalidTag`); el WARN nombra el aviso y la salida; y los siete avisos de `M0-Q` re-fechados al 2027-02-07 |
+| OR-80 (P1, fila 32) | orbit#578 | `tenant_id` en la cuenta de operador (columna nullable, API de operadores); un operador atado, sin superusuario ni `tenant_switch`, recibe 403 si la petición resuelve otro tenant (cabecera, subdominio o `?tenant=`) en lectura, export y escritura; el que no tiene tenant sigue al resolver con un WARN y en el 2.0 se rechaza (DEP-2026-003 de orbit); CUST-07 mide confinamiento de verdad (OR-87) |
+| OR-78 (P1) y OR-83 | orbit#579 | el panel valida contra `FieldInfo` antes del store, y `quarkdatasource` valida y clasifica como el adaptador de Nucleus (422 por campo, 409 sin texto del motor, 404, 400); sin auditoría de escrituras que no ocurrieron |
+| OR-79 (P1) | orbit#581 | claves lógicas en import, fixtures y export bajo un tenant; DS-13/14/15 corren también bajo uno |
+| OR-93 (fila 33) | orbit#576 | el permiso `system_env`; `system_pulse` sólo sigue viendo el entorno con un WARN por operador (DEP-2026-004 de orbit) |
+| OR-99 (P1) | orbit#577 | `--peer-ca/--peer-cert/--peer-key` y, bajo `--agent-client-ca`, la CA y el par del listener de agentes por defecto; la malla registra la causa de un enlace caído; control `HA-06` (el banco del fleet, 51 de 51) |
+| OR-103 (fila 34) | orbit#582 | `--peer-allowlist` opt-in: `Sync` sólo acepta el `server_id` que contestó en un enlace propio a un `--peers` y, con certificado verificado, su CN; sin él, un WARN por peer que el 2.0 rechazaría (DEP-2026-005 de orbit) |
+
+**Lo que la sesión encontró y el contrato no decía**:
+
+- **OR-80 no se cierra en 1.x por defecto.** La fila 32 decidió que el
+  tenant de la cuenta sea opcional en 1.x (rechazar al operador sin tenant
+  rompería despliegues en una minor), así que el hueco sigue abierto para
+  el operador que no tenga tenant hasta `M1`. Hay salida en 1.x (atarlo, o
+  no darle `tenant_switch`) y aviso, y el hallazgo queda `abierto` hasta el
+  volteo, como QK-45. El criterio de `M0-R` («los cuatro P1 `hecho`») se
+  cumple en tres; el cuarto lo cierra `M1`.
+- **El tenant se compara exacto y nucleus resuelve en minúsculas**: un
+  operador atado a `Acme` no coincide nunca (falla cerrado, 403). OR-143.
+- **«Configurado en `--peers`» no existía**: `--peers` lista endpoints,
+  no `server_id`. La regla es «el `server_id` que contestó cuando este
+  servidor marcó uno de sus `--peers`», y por eso una malla en una sola
+  dirección tendrá que listarse en los dos lados en el 2.0. Con sólo el
+  token, la lista compara nombres y no autentica; autentica bajo mTLS. El
+  aviso lo dice.
+- **Quark se avisaba a sí mismo**: el modelo de su log de auditoría tiene
+  una columna `pk` de verdad, y `EnableAuditLog` emitía el WARN desde
+  v1.14.0 (y en el 2.0 habría fallado). Lleva el token nuevo.
+- **La sonda DS-03 sobre Quark no cabe en 1.x**: el banco vive en el
+  módulo raíz de orbit y ADR-012 deja quark fuera de su grafo hasta D11
+  (OR-88 sigue abierto con esa razón).
+- **`nucleus/pkg/db.IsUniqueViolation` no ve un error de unicidad de Quark
+  sobre SQLite** si la aplicación no enlaza los módulos de driver de
+  nucleus; `quarkdatasource` usa `quark.IsUniqueViolation`.
+- **Hallazgos nuevos** (registro, A12): OR-141 a OR-144, NU-152, NU-153 y
+  QK-86 a QK-88.
+
 ## Lo del propietario — en paralelo a `M0-R` (2026-10-27)
 
 > Decisión de Carlos del 2026-10-27, al fusionar `R1`: lo que la
@@ -575,6 +626,6 @@ estar en sets 1.x antes de que `M1` empiece.
 | M0-O | **hecha** 2026-10-18 — (a) orbit#568 y (b) orbit#570, publicadas en Quantum 1.42.0 (orbit v1.20.0/v1.20.1) | orbit#568 (a), orbit#570 (b) | La precondición no se cumplía (nucleus#631, la release con `M0-N`, sigue abierto hasta el tren del 19) y sólo `router.Wrap` la necesita, así que se troceó. (a): `docs/deprecations/` de orbit (README calcado del de quark: sin asistentes ni CHANGELOG), DEP-2026-001 (OR-57, volteo) con la salida `server.Config.AllowSharedAgentCertificate` (`--allow-shared-agent-certificate`, contradice `AgentIdentityFromCertificate` y `Run` rehúsa las dos; con mTLS y ninguna de las dos, un WARN al arrancar que nombra las dos) y DEP-2026-002 (D5b: 4 marcas en `datasource/nucleus`, WARN al montar el panel y al arrancar el agente sobre el camino por defecto; al 2.0 `orbit.Config.DataSource` nil es error de configuración y el editor de metadatos de campo y el `*signals.Bus` del adaptador se van con él); `quarkdatasource` pasa del `LIKE` plano con escape propio a `quark.Contains/StartsWith/EndsWith` —SQLite y Oracle contestan un `%` en vez de rechazarlo, QK-25 cerrado por este lado, `escapeLike` y `FuzzEscapeLike` fuera—; `api.ts` lee problem+json (detail > title) junto al sobre y `ApiError.code` en las dos formas; dist reconstruido. **Medido y distinto del enunciado**: orbit NO llama a la puerta sin tipo de `signals` (0 sitios: guarda el bus sólo para `model.NewCRUD`, que se va con el adaptador; `Panel.SetSignalBus` no lo lee nadie), así que no hay topics que migrar; `ExtensionConfig.DataSource` del agente cae al mismo adaptador por defecto; y el banco del fleet con `GOWORK=off` da dos fallos falsos (su go.mod resuelve server/agent publicados): se corre con el workspace de orbit, como CI. Criterio en (a): banco admin 72/72, IDENT-06 present, CI verde; `grep NewWrapResponseWriter` = 2 hasta (b). El squash es `feat:` → orbit cortó **minor** (v1.20.0) en el tren del 18. **(b)** entró en orbit#570, el PR de alineación a nucleus v1.33.0 del propio tren: las dos llamadas a `router.Wrap(w)`, `grep NewWrapResponseWriter` = 0 en orbit; nada de la lista de retiradas del 2.0 queda referenciado |
 | M0-E | **hecha** 2026-10-23 (arrancada el 2026-10-18) | ramas `dry-run/2.0` en origin: quark `a2b4558d`, nucleus `2dd5b82f`, orbit `f584a53`; quantum (este PR) | el ensayo del major: treinta avisos aplicados por doce grupos en worktrees con un refutador cada uno, un integrador y un auditor por producto (workflows de agentes); orbit `dry-run/2.0` compila y pasa sus tests contra quark y nucleus `dry-run/2.0` por el `go.work` del paraguas (el criterio); el §3.0 sin filas `por escribir`. Lo que el §3 no preveía: la ruta `/v2` (§3.5 del contrato), el §2.1 como prerrequisito de DEP-024, quark en el grafo de la raíz de orbit (D11), y las decisiones D9 (starter `api` contra `generate module`) y D10 (metadatos por campo en `quarkdatasource`); los rojos y los `fix` de 1.x en la sección «`M0-E` — el ensayo del major, medido». Borrador del generador de la guía: `scripts/lib/migration-guide.py` + `docs/planes/guia-migracion-2.0.md` (23 entradas al pin) |
 | R1 | **hecha** 2026-10-27 (auditores el 2026-10-23, revisión adversarial el 2026-10-27) | quantum#294 | la re-auditoría completa sobre el pin de 1.42.0 con el método de `R0`: siete auditores en paralelo, siete revisores adversariales (ninguna nota movida; tres severidades cambiadas, seis duplicados fundidos, dieciséis hallazgos nuevos de los revisores), consolidación en `docs/auditoria/reauditoria/2026-10-23/` (informes, `adversarial.md`, `notas.csv`, README) y en el registro (122 filas: 0 P0, 4 P1, 24 P2, 94 P3). Media 2,79 → 4,12; tres dimensiones en 5; **el gate de A12 no se cumple** (32 dimensiones por debajo, lista en el README). Cuatro volteos al §3.0 del 2.0 (filas 31–34, `por escribir` → `M0-R`). La escala con los cuatro instrumentos que estaban «en main» movidos a `instrumento` (35 con instrumento, 1 juicio). Los criterios de rendimiento del arco: 15 % no cumplido en 5 de 9, COPY no, `N1` 26,2 MB > 25 MB. Sección «`R1` — la re-auditoría, medida» |
-| M0-R | pendiente — siguiente: los cuatro avisos `por escribir` (QK-76, OR-80, OR-93, OR-103) con su salida en 1.x y los cuatro P1 de `R1` como `fix` de 1.x. En paralelo, los cinco ítems del propietario de la sección «Lo del propietario» (tres decisiones pendientes de Carlos; el ítem 3 cabe en su set 1.x) | — | |
+| M0-R | **hecha** 2026-11-03 — tres de los cuatro P1 `hecho` (OR-78, OR-79, OR-99); OR-80 tiene la salida en 1.x y se cierra con el volteo de `M1` | quark#476, orbit#576…#579, orbit#581, orbit#582 (y el toolchain go1.26.10: quark#477, nucleus#635, orbit#580) | las cuatro filas 31–34 `en main` con su salida en 1.x; los siete avisos de quark re-fechados al 2027-02-07; la salida de QK-76 era un token nuevo; «configurado en `--peers`» definido por el `server_id` que contesta; nueve hallazgos nuevos (sección «`M0-R`») |
 | M1 | pendiente — precondición ampliada por `M0-E` y `R1`: `R1` hecha (lo está), `M0-R` hecha, D9…D11 decididas, la DX al 5 (§2.1) y los `fix` de 1.x publicados, el registro de proveedores de `pkg/tasks` en una minor, y las siete filas de quark `publicado` | — | |
 | R2 | pendiente | — | |
