@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-07, QUANTUM 1.42.0 — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R` y `M0-F` HECHAS (los `fix` de 1.x antes del major en quark y orbit; el de nucleus abierto y bloqueado por el gate: GO-2026-6909 en `crewjam/saml`, NU-155, decisión del propietario); siguiente: esa decisión y el set del 2026-11-09, que publica once avisos (el 2.0 no antes de 2027-02-07) → la DX al 5 y D9…D11 → M1 → R2)
+## 3. Estado al cierre (2026-11-07, QUANTUM 1.42.0 — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R` y `M0-F` HECHAS (los `fix` de 1.x antes del major en `main` de los tres; NU-155 decidida: la lane SAML de nucleus con un gate de `govulncheck` de excepciones acotadas); siguiente: el set del 2026-11-09 (nucleus MINOR, nucleus#640 con sus notas), que publica once avisos (el 2.0 no antes de 2027-02-07) → la DX al 5 y D9…D11 → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -153,13 +153,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   ellos), el registro de proveedores de `pkg/tasks` y D9…D11). **Y
   `M0-F` hecha el 2026-11-07** (sección «`M0-F`» del plan): los `fix` de
   1.x portados desde `dry-run/2.0` — quark#479 (QK-70), orbit#584 (OR-89),
-  #585 (OR-141), #586 (OR-144 y las coerciones) en `main`; nucleus#638
-  (el registro de proveedores de `pkg/tasks`) abierto y bloqueado por el
-  gate: **GO-2026-6909** en `crewjam/saml` (arreglada upstream en v0.5.2,
-  nucleus#639, pero sin versión arreglada en la base de datos de Go, así
-  que la lane SAML sigue roja; decisión del propietario, NU-155). Sin
-  esa decisión nucleus no corta el lunes. Queda delante de `M1`: la DX al
-  5 (NU-137), el módulo `providers/tasks-asynq` con su tag y D9…D11).
+  #585 (OR-141), #586 (OR-144 y las coerciones), nucleus#639 (el bump de
+  `crewjam/saml` a v0.5.2 por **GO-2026-6909** y, decidido por Carlos el
+  mismo día (NU-155, opción 1), el gate `scripts/ci/govulncheck_gate.sh`
+  en la lane SAML: excepciones acotadas a un id, módulo y versión, con
+  fecha, que se retiran solas cuando la base de Go registre la versión
+  arreglada) y nucleus#638 (el registro de proveedores de `pkg/tasks`,
+  que hace a nucleus MINOR) en `main`; las notas de v1.34.0 y el snapshot
+  en nucleus#640 (abierto, antes del tren). Queda delante de `M1`: la DX
+  al 5 (NU-137), el módulo `providers/tasks-asynq` con su tag y D9…D11).
   Decisiones de Carlos para A11: ejemplos como fixtures probados,
   construir saml/redis-cache/sentry (Stripe se construyó y se
   retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
@@ -290,9 +292,17 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   (nucleus#639 la pina; los tests del proveedor pasan, con `-race`), pero
   la base de datos de Go la lista sin versión arreglada, así que
   `govulncheck` sigue avisando contra v0.5.2. **Decisión del propietario
-  (NU-155)**: qué hace la lane mientras la base no registre la versión
-  (una excepción acotada al id y con fecha, o esperar); sin ella nucleus
-  no corta el lunes (ni el patch del toolchain, ni la minor de #638).
+  (NU-155), tomada el mismo día: la opción 1**, una excepción acotada al
+  id y con fecha en vez de esperar. La lane SAML corre
+  `scripts/ci/govulncheck_gate.sh` (mismo veredicto que el binario: falla
+  lo que el código LLAMA) con `scripts/ci/govulncheck_exceptions.txt`:
+  una línea por id+módulo+versión, con caducidad (2026-12-31) y válida
+  sólo mientras la base no registre versión arreglada; cuando la
+  registre, la línea queda rancia (aviso) o el hallazgo vuelve a fallar
+  porque el pin se quedó corto. Seis comprobaciones en local contra un
+  escaneo grabado. Con ella, nucleus#639 y #638 fusionados en serie (CI
+  de `main` verde entre medias) y nucleus#640 abierto con las notas de
+  v1.34.0 y el snapshot.
 - **Lo que el plan no decía**: `quarkdatasource` ya contestaba 404/400
   desde orbit#579 y el WARN por directivas `db:` ya corre al arrancar
   (el porte de esas dos partes era duplicado); el módulo
@@ -301,9 +311,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   Nucleus no acepta `uint64` (OR-145), así que el stamp del inline emite
   `int64`; y la DX al 5 (NU-137) es diseño, no porte: sigue delante de
   `M1`.
-- **Lo siguiente**: la decisión de NU-155; con ella, fusionar nucleus#639
-  y #638 (nucleus pasa a MINOR: notas de v1.34.0 y snapshot en un PR
-  `docs(release)` ANTES del tren) y conducir el set del 2026-11-09, cuyo
+- **Trampa nueva**: el `go.work` local (ignorado) del checkout de nucleus
+  aún listaba `providers/tasks-asynq` del ensayo `dry-run/2.0`, y
+  `check-coverage.sh --strict` fallaba en local por él (el CI no lo ve);
+  quitar la línea al volver de un ensayo.
+- **Lo siguiente**: fusionar nucleus#640 cuando esté verde y conducir el
+  set del 2026-11-09 (quark y orbit MINOR, nucleus MINOR v1.34.0), cuyo
   PR pasa las once filas del §3.0 a `publicado` y sube el `go.work` a
   go1.26.10.
 
@@ -382,13 +395,14 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
   (la política pide 90 días desde la publicación) y el 2.0 se mueve con
   ellas. **El `go.work` del paraguas sube a `toolchain go1.26.10`** en ese
   mismo PR de set (GO-2026-6809; los tres productos ya lo llevan).
-  **Y GO-2026-6909 bloquea nucleus** (NU-155, 2026-11-07): la lane SAML
-  y el gate obligatorio están rojos en todo PR de nucleus, incluido el
-  release PR, porque `govulncheck` avisa de `crewjam/saml` también en
-  v0.5.2 (la base de datos no registra la versión arreglada). Esperan la
-  decisión del propietario: nucleus#639 (el bump a v0.5.2) y nucleus#638
-  (el registro de proveedores, que hace a nucleus MINOR: sus notas y
-  snapshot van en un PR `docs(release)` antes del tren).
+  **Y nucleus corta MINOR (v1.34.0)**: nucleus#638 (el registro de
+  proveedores de `pkg/tasks`) y #639 (`crewjam/saml` v0.5.2 por
+  GO-2026-6909, con el gate de `govulncheck` de excepciones acotadas que
+  decidió NU-155) están en `main`; sus notas y el snapshot van en
+  nucleus#640, que se fusiona ANTES del tren. La excepción de
+  `scripts/ci/govulncheck_exceptions.txt` caduca el 2026-12-31: si la
+  base de Go no ha registrado la versión arreglada para entonces, la
+  lane vuelve a rojo y hay que re-argumentarla con fecha nueva.
 - **Lo que el tren de 1.42.0 dejó al driver** (nace el 2026-10-18; sección
   1.42.0 de `scripts/train/README.md`): `fase_repo` sube los suelos sin
   mirar si hay commits releasables desde el tag (con quark en `docs:` habría

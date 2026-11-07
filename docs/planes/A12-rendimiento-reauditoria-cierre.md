@@ -605,7 +605,7 @@ estar en sets 1.x antes de que `M1` empiece.
 | Tramo | PR | Qué deja |
 |---|---|---|
 | QK-70 (P2) | quark#479 | `CreateBatch` y `UpsertBatch` deciden la columna clave **por tramo** de entidades consecutivas que coinciden en llevar clave (`batchKeyRuns`), no por la primera: un lote mixto emite un juego de sentencias por tramo y ninguna clave se pierde ni se inserta `id=0`; sin cambio de firma; las guías de lotes corregidas |
-| Registro de proveedores de `pkg/tasks` (prerrequisito de DEP-2026-020) | nucleus#638 (abierto; ver NU-155) | `tasks.Provider`, `ProviderOptions`, `ProviderRuntime`, `RegisterProvider`, `MustRegisterProvider`, `LookupProvider`, `RegisteredProviders`; el proveedor asynq del árbol se registra en su `init` y `jobs.go` y `doctor --check tasks` resuelven por el registro (comportamiento idéntico en 1.x, con el import en blanco); `knownproviders.RequireDBDriver` compartido por `pkg/db` y `nucleustest.Transactional`; `hooks.SQLQueryEvent`, `hooks.SQLQueryObserver` y `hooks.NewSQLQueryObserver` sin tocar la firma de `NewSQLObserver`; la prosa de `pkg/tasks` en README, SPEC y el manual |
+| Registro de proveedores de `pkg/tasks` (prerrequisito de DEP-2026-020) | nucleus#638 | `tasks.Provider`, `ProviderOptions`, `ProviderRuntime`, `RegisterProvider`, `MustRegisterProvider`, `LookupProvider`, `RegisteredProviders`; el proveedor asynq del árbol se registra en su `init` y `jobs.go` y `doctor --check tasks` resuelven por el registro (comportamiento idéntico en 1.x, con el import en blanco); `knownproviders.RequireDBDriver` compartido por `pkg/db` y `nucleustest.Transactional`; `hooks.SQLQueryEvent`, `hooks.SQLQueryObserver` y `hooks.NewSQLQueryObserver` sin tocar la firma de `NewSQLObserver`; la prosa de `pkg/tasks` en README, SPEC y el manual |
 | OR-89 (P3) | orbit#584 | DEP-2026-002 remite al README del adaptador y al paso 4 del quick-start, que enseña el camino de Quark junto al del registro (el texto anterior citaba opciones del adaptador que no existen) |
 | OR-141 (P2) | orbit#585 | la subida de un widget de fichero contesta y audita la clave lógica bajo un tenant, como import/export/fixtures desde orbit#581 |
 | OR-144 (P3) y las coerciones | orbit#586 | `(IsReadOnly && !IsPK)` en la validación de importación con el invariante del fuzz al día; las celdas CSV llegan al store en el tipo declarado; el padre de un inline se escribe en el tipo de su campo (`int64` también para `uint`: el adaptador de Nucleus no acepta `uint64`, OR-145); los pines de `internal/fleettest/go.mod` al set vigente; las sondas de identidad del fleet con el CN igual al `node_id` donde no miden el enlace |
@@ -618,9 +618,21 @@ estar en sets 1.x antes de que `M1` empiece.
   obligatorio de todo PR. Upstream la arregla en v0.5.2 (nucleus#639 la
   pina; los tests del proveedor pasan), pero la base de datos de Go la
   lista sin versión arreglada, así que `govulncheck` sigue avisando
-  contra v0.5.2. Qué hace la lane mientras tanto es decisión del
-  propietario (NU-155); hasta entonces nucleus no fusiona nada (ni #638,
-  ni #639, ni su release PR).
+  contra v0.5.2. Qué hace la lane mientras tanto era decisión del
+  propietario (NU-155), y la tomó el mismo día: la opción 1, una
+  excepción explícita, acotada y que se retira sola. La lane SAML corre
+  ahora `scripts/ci/govulncheck_gate.sh` (nucleus#639): el mismo veredicto
+  que el binario —falla toda vulnerabilidad que el código del módulo
+  LLAMA— más las líneas de `scripts/ci/govulncheck_exceptions.txt`, cada
+  una para UN id en UN módulo a UNA versión, con fecha de caducidad
+  (2026-12-31 para esta) y válida sólo mientras la base no registre
+  versión arreglada: el día que la registre, o el hallazgo desaparece y
+  la línea queda rancia (la lane avisa de borrarla), o sigue y falla
+  porque el pin se quedó corto. Seis comprobaciones en local contra un
+  escaneo grabado (positivo, fichero vacío, fecha pasada, línea sin
+  hallazgo, base con fix y hallazgo vivo, base con fix y hallazgo ido).
+  Con la lane verde se fusionaron #639 y #638 en serie, y las notas de
+  v1.34.0 con el snapshot van en nucleus#640, antes del tren.
 - **La DX al 5 no empezó**: NU-137 (los generadores sobre `pkg/model`)
   es trabajo de diseño (Quark como capa de datos del starter y los
   generadores) que no cabe en un tramo de porte; sigue como precondición
@@ -667,6 +679,6 @@ estar en sets 1.x antes de que `M1` empiece.
 | M0-E | **hecha** 2026-10-23 (arrancada el 2026-10-18) | ramas `dry-run/2.0` en origin: quark `a2b4558d`, nucleus `2dd5b82f`, orbit `f584a53`; quantum (este PR) | el ensayo del major: treinta avisos aplicados por doce grupos en worktrees con un refutador cada uno, un integrador y un auditor por producto (workflows de agentes); orbit `dry-run/2.0` compila y pasa sus tests contra quark y nucleus `dry-run/2.0` por el `go.work` del paraguas (el criterio); el §3.0 sin filas `por escribir`. Lo que el §3 no preveía: la ruta `/v2` (§3.5 del contrato), el §2.1 como prerrequisito de DEP-024, quark en el grafo de la raíz de orbit (D11), y las decisiones D9 (starter `api` contra `generate module`) y D10 (metadatos por campo en `quarkdatasource`); los rojos y los `fix` de 1.x en la sección «`M0-E` — el ensayo del major, medido». Borrador del generador de la guía: `scripts/lib/migration-guide.py` + `docs/planes/guia-migracion-2.0.md` (23 entradas al pin) |
 | R1 | **hecha** 2026-10-27 (auditores el 2026-10-23, revisión adversarial el 2026-10-27) | quantum#294 | la re-auditoría completa sobre el pin de 1.42.0 con el método de `R0`: siete auditores en paralelo, siete revisores adversariales (ninguna nota movida; tres severidades cambiadas, seis duplicados fundidos, dieciséis hallazgos nuevos de los revisores), consolidación en `docs/auditoria/reauditoria/2026-10-23/` (informes, `adversarial.md`, `notas.csv`, README) y en el registro (122 filas: 0 P0, 4 P1, 24 P2, 94 P3). Media 2,79 → 4,12; tres dimensiones en 5; **el gate de A12 no se cumple** (32 dimensiones por debajo, lista en el README). Cuatro volteos al §3.0 del 2.0 (filas 31–34, `por escribir` → `M0-R`). La escala con los cuatro instrumentos que estaban «en main» movidos a `instrumento` (35 con instrumento, 1 juicio). Los criterios de rendimiento del arco: 15 % no cumplido en 5 de 9, COPY no, `N1` 26,2 MB > 25 MB. Sección «`R1` — la re-auditoría, medida» |
 | M0-R | **hecha** 2026-11-03 — tres de los cuatro P1 `hecho` (OR-78, OR-79, OR-99); OR-80 tiene la salida en 1.x y se cierra con el volteo de `M1` | quark#476, orbit#576…#579, orbit#581, orbit#582 (y el toolchain go1.26.10: quark#477, nucleus#635, orbit#580) | las cuatro filas 31–34 `en main` con su salida en 1.x; los siete avisos de quark re-fechados al 2027-02-07; la salida de QK-76 era un token nuevo; «configurado en `--peers`» definido por el `server_id` que contesta; nueve hallazgos nuevos (sección «`M0-R`») |
-| M0-F | **hecha** 2026-11-07 en quark y orbit; nucleus con el PR abierto y bloqueado por el gate (NU-155) | quark#479, orbit#584, orbit#585, orbit#586; nucleus#638 (abierto) y nucleus#639 (el bump de `crewjam/saml`, abierto) | tres tramos paralelos sobre las ramas `dry-run/2.0`, sólo lo válido en 1.x; el módulo `providers/tasks-asynq` nace en una sesión propia con su tag; la DX al 5 (NU-137) sigue como precondición de `M1`; doce hallazgos nuevos |
+| M0-F | **hecha** 2026-11-07 en los tres (nucleus el mismo día, tras la decisión de NU-155) | quark#479, orbit#584, orbit#585, orbit#586; nucleus#639 (el bump de `crewjam/saml` y el gate de `govulncheck` con excepciones) y nucleus#638; nucleus#640 (notas y snapshot de v1.34.0) | tres tramos paralelos sobre las ramas `dry-run/2.0`, sólo lo válido en 1.x; el módulo `providers/tasks-asynq` nace en una sesión propia con su tag; la DX al 5 (NU-137) sigue como precondición de `M1`; doce hallazgos nuevos |
 | M1 | pendiente — precondición ampliada por `M0-E` y `R1`: `R1` hecha (lo está), `M0-R` hecha, D9…D11 decididas, la DX al 5 (§2.1) y los `fix` de 1.x publicados, el registro de proveedores de `pkg/tasks` en una minor, y las siete filas de quark `publicado` | — | |
 | R2 | pendiente | — | |
