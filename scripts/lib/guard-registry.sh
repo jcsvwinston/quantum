@@ -492,6 +492,16 @@ GUARD_SCAN_EXCLUDE=(
   # standalone del producto, la misma que el paraguas ya cubre por su lado
   # con `go install …@tag` en caché virgen — no un guard estático del set.
   "nucleus/scripts/ci/check_modules_standalone.sh"
+  # Gate de govulncheck de la lane `providers-saml` de nucleus (NU-155,
+  # 2026-11-07): corre govulncheck sobre el módulo —red, el binario y la base
+  # de datos de Go del día— y aplica scripts/ci/govulncheck_exceptions.txt
+  # (un id, un módulo, una versión, con fecha; se retira solo cuando la base
+  # registra el arreglo). Es la misma familia que check_modules_standalone:
+  # una lane del producto contra el proxy, no un check estático del árbol que
+  # el paraguas repita al pin — una fixture con un escaneo grabado
+  # (GOVULNCHECK_GATE_SCAN, su modo de autocomprobación) juzgaría el fichero
+  # grabado, no el árbol. Las lanes root y CLI siguen con el binario a secas.
+  "nucleus/scripts/ci/govulncheck_gate.sh"
   # Lane hello-world-size del CI de nucleus (A12 N1, NU-106): construye con
   # GOWORK=off dos programas fuera del árbol (pkg/app solo y con
   # drivers/sqlite), resuelve su grafo contra el proxy con `go mod tidy` y

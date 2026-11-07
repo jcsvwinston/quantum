@@ -6,6 +6,75 @@ anterior se mueve aquí (DX-25 — antes el manifiesto acumulaba ~4 300
 palabras de historial interno en el fichero que la gente abre para saber
 qué instalar).
 
+## Quantum 1.42.0 — la primera mitad de M0 de A12: el 2.0 anunciado donde se lee (nucleus y orbit; quark no cortó)
+
+Quantum 1.42.0 publica la primera mitad de M0 de A12, el 2.0 anunciado
+donde se lee: nucleus trae sus nueve avisos de deprecación (DEP-2026-003
+fechado y 019…026) con asistentes de migración, trece marcas Deprecated y
+las salidas en 1.x (WithErrorEnvelope(), router.Wrap, Topic.String); orbit
+estrena su registro docs/deprecations/ con DEP-2026-001 (la identidad del
+nodo atada al certificado por defecto en el 2.0) y DEP-2026-002 (el
+adaptador datasource/nucleus se retira), la salida
+AllowSharedAgentCertificate, el adaptador marcado y un aviso al arrancar
+sobre el camino por defecto, el LIKE de quarkdatasource escapado en los
+seis motores, el panel leyendo problem+json y router.Wrap en sus dos
+llamadas (M0-O completa). Se mueven nucleus (v1.32.0 → v1.33.0) y orbit
+(v1.19.3 → v1.20.1); quark v1.17.0 sigue donde estaba. Módulos hermanos
+que cambian: nucleus auth-saml (v0.1.0 → v0.1.1), nucleus errors-sentry
+(v0.1.0 → v0.1.1), nucleus ldap (v0.2.13 → v0.2.14), nucleus mssql (v0.1.9
+→ v0.1.10), nucleus mysql (v0.1.9 → v0.1.10), nucleus nucleus (v1.32.0 →
+v1.33.0), nucleus oracle (v0.1.9 → v0.1.10), nucleus otlp (v0.1.9 →
+v0.1.10), nucleus postgres (v0.1.9 → v0.1.10), nucleus prometheus (v0.1.9
+→ v0.1.10), nucleus secrets-aws (v0.1.9 → v0.1.10), nucleus sqlite (v0.1.9
+→ v0.2.0), nucleus storage-azure (v0.1.9 → v0.1.10), nucleus storage-gcs
+(v0.1.9 → v0.1.10), nucleus storage-s3 (v0.1.9 → v0.1.10), orbit agent
+(v0.15.3 → v0.16.1), orbit datasource (v1.0.1 → v1.1.0), orbit quarkbridge
+(v1.9.5 → v1.9.6), orbit quarkdatasource (v1.12.4 → v1.13.1), orbit server
+(v0.20.4 → v0.21.1) y orbit ui (v1.1.1 → v1.2.0); el resto sin cambio.
+Quark no se mueve porque desde v1.17.0 sólo lleva documentación (los siete
+avisos de M0-Q) y release-please no abre release por docs: esas siete
+filas del §3.0 del contrato del 2.0 siguen en main. Minor de suite porque
+lo es la de nucleus y orbit (QADR-0002). Corte de la semana de cadencia
+del lunes 19 adelantado al domingo 18 a petición del propietario; la lane
+semanal del lunes lo vigila igual.
+
+Qué cambia para quien instala. Nada se retira ni cambia de valor por
+defecto en este set: los avisos anuncian y las salidas se entregan. En
+nucleus: WithErrorEnvelope() fija el sobre de errores como forma explícita
+(hoy es el defecto; en el 2.0 lo será problem+json), router.Wrap(w)
+sustituye a NewWrapResponseWriter(w, protoMajor), Topic.String() lee el
+nombre de un topic sin el tipo Signal; pkg/model, la puerta sin tipo de
+signals y NewWrapResponseWriter llevan marca y staticcheck las señala; un
+fichero de políticas de 3 columnas, que casbin v2.135.0 ya rechazaba al
+cargar, falla ahora nombrando authz.MigrateCSVPolicyFile. En orbit: un
+admin-server con --agent-client-ca y sin --agent-identity-from-cert ni el
+nuevo --allow-shared-agent-certificate avisa una vez al arrancar de que el
+2.0 ata la identidad por defecto (las dos banderas a la vez rehúsan el
+arranque); una aplicación que monta el panel sin orbit.Config.DataSource,
+y un nodo del fleet con registro y sin DataSource, avisan al arrancar de
+que el adaptador se va en el 2.0; sobre quark en SQLite y Oracle, un % o _
+en un filtro o en la caja de búsqueda ya se contesta (antes se rechazaba
+con 400 o ensanchaba la búsqueda) y en los otros motores nada cambia; el
+panel lee problem+json además del sobre; la raíz, agent, server,
+quarkbridge y quarkdatasource requieren nucleus v1.33.0, y datasource
+sigue en v1.30.1 (su suelo desde que es módulo propio).
+
+Qué aprendió el tren. Un pilar cuyo main sólo lleva docs: desde su tag no
+corta, y no hay que subirle los suelos: el fix(deps) cortaría sus módulos
+por delante de la raíz, que el manifest-guard §3b rechaza; la fase quark
+del driver lo haría sola, así que se saltó. El driver no para para las
+notas de una minor de nucleus ni de orbit, y en orbit encadena orbit-
+align-notes.sh, que escribe una sección de alineación sobre una minor
+real: nucleus con --solo-suelos, notas y snapshot en la rama del bot y la
+fase después; orbit con la alineación a mano (orbit#570, con M0-O (b)
+dentro), notas y snapshot en la rama regenerada y la fase después.
+align_set.sh y manifest-guard §5 tienen la lista fija de seis módulos y no
+ven datasource ni ui. Y ui, datasource y quarkbridge salieron con la raíz:
+segundo corte de orbit (v1.20.1) a mano para re-pinar ui y datasource en
+raíz, agent, server y quarkdatasource, con su sección reescrita (la
+plantilla de alineación hablaba de nucleus y de un pin a la raíz que ya no
+existe).
+
 ## Quantum 1.41.0 — cierra el arco A11 (extensibilidad y catálogo) y publica lo que va de A12 y la tanda de arreglos del 2026-10-06/07, varios de seguridad del panel
 
 Quantum 1.41.0 cierra el arco A11 (extensibilidad y catálogo) y publica lo

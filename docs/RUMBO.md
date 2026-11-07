@@ -11,31 +11,31 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-10-18)
+## Estado real (2026-11-07)
 
-- **Set certificado: Quantum 1.42.0** (2026-10-18, la semana de cadencia del
-  19 adelantada un día) — quark v1.17.0 (sin mover: CLI v1.2.1, los cinco
-  drivers v0.3.0) · nucleus v1.33.0 (cmd/nucleus v1.33.0 en lockstep;
-  drivers/sqlite v0.2.0, providers/ldap v0.2.14, providers/auth-saml y
-  providers/errors-sentry v0.1.1, los diez hermanos restantes v0.1.10) ·
-  orbit v1.20.1 (proto v0.8.1, datasource v1.1.0, ui v1.2.0, agent v0.16.1,
-  server v0.21.1, quarkbridge v1.9.6, quarkdatasource v1.13.1). Publica la
-  primera mitad de **`M0` de A12**, el 2.0 anunciado donde se lee: los
-  nueve avisos de nucleus (`DEP-2026-003` fechado y `019…026`) con sus
-  salidas en 1.x (`WithErrorEnvelope()`, `router.Wrap`, `Topic.String`) y
-  trece marcas; el registro `docs/deprecations/` de orbit con
-  `DEP-2026-001` (identidad del nodo atada al certificado por defecto en el
-  2.0; salida `AllowSharedAgentCertificate`) y `DEP-2026-002` (el adaptador
-  `datasource/nucleus` se retira; el panel sobre `quarkdatasource`), el
-  `LIKE` escapado en los seis motores, el panel leyendo problem+json y
-  `router.Wrap` en sus dos llamadas (`M0-O` completa). Los siete avisos de
-  quark (`M0-Q`) siguen en su `main`: quark no cortó porque desde v1.17.0
-  sólo lleva documentación. Del §3.0 del contrato del 2.0: 23 filas
-  `publicado`, 7 `en main`, ninguna por escribir.
-  1.41.0 cerró **A11** (extensibilidad y catálogo); 1.40.0 publicó los P0
-  de tenants de quark; 1.39.0 cerró **A10** (Testing y OpenAPI, 46 de 46)
-  y 1.38.0 **A9** (Fleet unificado, 50 de 50). El detalle de cada arco
-  cerrado, en su plan de [`planes/`](planes/README.md). **A12**
+- **Set certificado: Quantum 1.43.0** (2026-11-07, la semana de cadencia del
+  9 adelantada dos días) — quark v1.18.0 (CLI v1.2.2, los cinco drivers
+  v0.3.1) · nucleus v1.34.0 (cmd/nucleus v1.34.0 en lockstep;
+  drivers/sqlite v0.2.1, providers/ldap v0.2.15, providers/auth-saml y
+  providers/errors-sentry v0.1.2, los diez hermanos restantes v0.1.11) ·
+  orbit v1.21.1 (proto v0.8.2, datasource v1.1.1, ui v1.2.1, agent v0.16.3,
+  server v0.22.1, quarkbridge v1.9.7, quarkdatasource v1.13.3). Publica la
+  **segunda mitad de `M0` de A12** y lo que `M0-R` y `M0-F` dejaron en
+  `main`: los once avisos del 2.0 que seguían sin set —los siete de quark
+  (`DEP-2026-004…010`), `DEP-2026-011` de quark y `DEP-2026-003`, `004` y
+  `005` de orbit—, con lo que **las 34 filas del §3.0 del contrato del 2.0
+  están `publicado`** y el 2.0 no puede salir antes del 2027-02-07; los
+  cuatro P1 de la re-auditoría arreglados en orbit (OR-78, OR-79, OR-80,
+  OR-99); el registro de proveedores de `pkg/tasks` en nucleus;
+  `quark:"literal_column"` y la columna clave por tramos en
+  `CreateBatch`/`UpsertBatch` (QK-70) en quark; `crewjam/saml` v0.5.2 (con la
+  excepción acotada de NU-155 en la lane SAML, que caduca el 2026-12-31) y
+  Go 1.26.10 en los tres.
+  1.42.0 publicó la primera mitad de `M0` (los nueve avisos de nucleus y los
+  dos de orbit); 1.41.0 cerró **A11** (extensibilidad y catálogo); 1.40.0
+  publicó los P0 de tenants de quark; 1.39.0 cerró **A10** (Testing y
+  OpenAPI, 46 de 46) y 1.38.0 **A9** (Fleet unificado, 50 de 50). El detalle
+  de cada arco cerrado, en su plan de [`planes/`](planes/README.md). **A12**
   (Rendimiento, re-auditoría y cierre a 5) sigue EN CURSO en
   [`planes/A12-rendimiento-reauditoria-cierre.md`](planes/A12-rendimiento-reauditoria-cierre.md):
   **`R1` hecha el 2026-10-27** (la re-auditoría de madurez sobre 1.42.0,
@@ -44,16 +44,15 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   hallazgos nuevos —0 P0, 4 P1— y cuatro volteos más para el 2.0; el gate
   «5 en todo salvo comunidad» NO se cumple: 32 dimensiones por debajo);
   `M0` cerrado el 2026-10-23 con el ensayo del major en ramas
-  `dry-run/2.0`, y **`M0-R` hecha el 2026-11-03** (los cuatro avisos que
-  añadió `R1` y los P1 de orbit, en `main` para el set del 2026-11-09) y
-  **`M0-F` el 2026-11-07** (los `fix` de 1.x que `M0-E` listó antes del
-  major, en `main` de los tres; el de nucleus entró el mismo día, tras
-  decidir que la lane SAML tolere GO-2026-6909 —arreglada upstream pero
-  sin versión arreglada en la base de datos de Go— con una excepción
-  acotada, con fecha y que se retira sola);
+  `dry-run/2.0`, **`M0-R` hecha el 2026-11-03** (los cuatro avisos que
+  añadió `R1` y los P1 de orbit) y **`M0-F` el 2026-11-07** (los `fix` de
+  1.x que `M0-E` listó antes del major, en `main` de los tres; el de
+  nucleus entró el mismo día, tras decidir que la lane SAML tolere
+  GO-2026-6909 —arreglada upstream pero sin versión arreglada en la base de
+  datos de Go— con una excepción acotada, con fecha y que se retira sola);
   quedan `M1` → `R2`, y lo que tiene que cumplir el 2.0 está en
   [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
-  2027-02-07 si ese set publica los once avisos que siguen en `main`).
+  2027-02-07: este set publicó los once avisos que faltaban).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
   TIPADO con el outbox como transporte opcional, CANALES sobre WebSocket y

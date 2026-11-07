@@ -26,6 +26,11 @@
   del 2027-02-07**, y cada semana que se retrase las mueve una semana.
   Lo que `M1` exige además antes de empezar (§2, §3.5, D9…D11) puede
   retrasarlo más; esa fecha es un suelo, no una estimación.
+- **Medido el 2026-11-07 (Quantum 1.43.0, el set del 9 adelantado dos
+  días)**: las once filas que seguían `en main` están `publicado` (quark
+  v1.18.0 y orbit v1.21.1 las llevan al pin), ninguna queda `en main`, `por
+  escribir` ni `decisión`: **34 de 34 `publicado`, y el 2.0 no antes del
+  2027-02-07.**
 - **El orden lo decidió Carlos: primero se termina lo pendiente**, después el
   2.0. Nada de este documento se empieza antes de que se cumpla el §2.
 
@@ -145,20 +150,21 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 > orbit#578 (32), orbit#576 (33) y orbit#582 (34). Quark#476 fecha además
 > de nuevo las siete de quark al 2027-02-07: llevaban el 2027-01-17,
 > contado desde un set que no las publicó. El set que lleve las releases
-> de quark y orbit pasa las once a `publicado`.
+> de quark y orbit pasa las once a `publicado`. **Quantum 1.43.0
+> (2026-11-07)** las pasó: 34 `publicado`, 0 `en main`.
 
 | # | Producto | Qué cambia en el 2.0 | Tipo | Hallazgo | Aviso | Estado | Ventana abre | Sesión |
 |---|---|---|---|---|---|---|---|---|
 | 1 | quark | se retira el alias `RowLevelSecurity` | retirada (1 marca) | — | DEP-2026-001 | `publicado` | 2026-12-08 | — |
 | 2 | quark | se retira el contrato viejo de listeners (`NewListenerFunc` y 3 más) | retirada (4 marcas) | QK-8 | DEP-2026-002 | `publicado` | 2026-12-08 | — |
 | 3 | quark | `UpdateBatch` comprueba la versión por defecto | volteo | QK-45 | DEP-2026-003 | `publicado` | 2027-01-04 | — |
-| 4 | quark | las demás escrituras de un modelo versionado entran en el bloqueo optimista | volteo | QK-58 | DEP-2026-004 | `en main` | — | `M0-Q` |
-| 5 | quark | una escritura que no toca filas no dispara hooks, auditoría ni eventos | volteo | QK-46 | DEP-2026-005 | `en main` | — | `M0-Q` |
-| 6 | quark | `Upsert` hace lo mismo en los seis motores (sin `updateCols`; con el duplicado en otra clave única) | volteo | QK-59, QK-65 | DEP-2026-006 | `en main` | — | `M0-Q` |
-| 7 | quark | `ON DELETE SET DEFAULT` igual en los seis motores | volteo | QK-60 | DEP-2026-007 | `en main` | — | `M0-Q` |
-| 8 | quark | `GroupBy` sin `Select` es un error | volteo | QK-24 | DEP-2026-008 | `en main` | — | `M0-Q` |
-| 9 | quark | el `LIKE` plano declara `ESCAPE '\'` en todos los motores | volteo | QK-32 | DEP-2026-009 | `en main` | — | `M0-Q` |
-| 10 | quark | Oracle cuenta `VARCHAR2` en caracteres | volteo (esquema) | QK-50 | DEP-2026-010 | `en main` | — | `M0-Q` |
+| 4 | quark | las demás escrituras de un modelo versionado entran en el bloqueo optimista | volteo | QK-58 | DEP-2026-004 | `publicado` | 2027-02-07 | `M0-Q` |
+| 5 | quark | una escritura que no toca filas no dispara hooks, auditoría ni eventos | volteo | QK-46 | DEP-2026-005 | `publicado` | 2027-02-07 | `M0-Q` |
+| 6 | quark | `Upsert` hace lo mismo en los seis motores (sin `updateCols`; con el duplicado en otra clave única) | volteo | QK-59, QK-65 | DEP-2026-006 | `publicado` | 2027-02-07 | `M0-Q` |
+| 7 | quark | `ON DELETE SET DEFAULT` igual en los seis motores | volteo | QK-60 | DEP-2026-007 | `publicado` | 2027-02-07 | `M0-Q` |
+| 8 | quark | `GroupBy` sin `Select` es un error | volteo | QK-24 | DEP-2026-008 | `publicado` | 2027-02-07 | `M0-Q` |
+| 9 | quark | el `LIKE` plano declara `ESCAPE '\'` en todos los motores | volteo | QK-32 | DEP-2026-009 | `publicado` | 2027-02-07 | `M0-Q` |
+| 10 | quark | Oracle cuenta `VARCHAR2` en caracteres | volteo (esquema) | QK-50 | DEP-2026-010 | `publicado` | 2027-02-07 | `M0-Q` |
 | 11 | nucleus | se retira `Context.HTML` con cadena cruda | retirada (1 marca) | NU-41 | DEP-2026-009 | `publicado` | 2027-01-04 | — |
 | 12 | nucleus | se retiran `Context.Get`/`Set` sin tipo (`router.Context.Set` se promociona con la misma firma: hay que mirar las dos) | retirada (2 marcas) | — | DEP-2026-011 | `publicado` | 2027-01-02 | — |
 | 13 | nucleus | se retiran los constructores que paniquean (`NewJWTManager`, `NewModuleMigrator`, `NewModuleFSMigrator`, `CSRFMiddleware`) | retirada (4 marcas) | NU-41 | DEP-2026-012 | `publicado` | 2027-01-02 | — |
@@ -179,10 +185,10 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 | 28 | nucleus | SQLite guarda las fechas en un formato que `date()` entiende | volteo (datos) | NU-110 | DEP-2026-026 | `publicado` | 2027-01-17 | `M0-N` |
 | 29 | orbit | la identidad del nodo del fleet atada al certificado cuando hay mTLS; `AllowSharedAgentCertificate` para quedarse | volteo (config) | OR-57 | DEP-2026-001 (orbit) | `publicado` | 2027-01-17 | `M0-O` |
 | 30 | orbit | se retira el adaptador `datasource/nucleus` (el panel sobre modelos de `pkg/model`): el panel se monta sólo sobre `quarkdatasource` (D5b) | retirada (paquete) | — | DEP-2026-002 (orbit) | `publicado` | 2027-01-17 | `M0-O` |
-| 31 | quark | las directivas desnudas de la gramática de `pkg/model` en un tag `db` (`db:"pk"`, `db:"readonly"`…) pasan de aviso a `ErrInvalidTag`; opt-out explícito para una columna que de verdad se llame así | volteo | QK-76 | DEP-2026-011 | `en main` | — | `M0-R` |
-| 32 | orbit | el operador queda atado a su tenant (columna en la cuenta de operador): sin `tenant_switch` ni superusuario no lee ni escribe otro, venga de `?tenant=` o del resolver; en 1.x la columna es opcional y un operador sin tenant en una aplicación multi-tenant avisa | volteo (config) | OR-80 | DEP-2026-003 (orbit) | `en main` | — | `M0-R` |
-| 33 | orbit | el entorno del proceso sale del snapshot de `system_pulse` y pasa a un permiso propio (`system_env`); en 1.x el permiso existe y `system_pulse` sigue viéndolo con aviso | volteo (permisos) | OR-93 | DEP-2026-004 (orbit) | `en main` | — | `M0-R` |
-| 34 | orbit | `PeerService.Sync` sólo acepta peers configurados en `--peers` (y bajo mTLS, el CN del certificado ha de ser el `server_id` anunciado); en 1.x `--peer-allowlist` opt-in y un WARN por cada peer no configurado | volteo (fleet) | OR-103 | DEP-2026-005 (orbit) | `en main` | — | `M0-R` |
+| 31 | quark | las directivas desnudas de la gramática de `pkg/model` en un tag `db` (`db:"pk"`, `db:"readonly"`…) pasan de aviso a `ErrInvalidTag`; opt-out explícito para una columna que de verdad se llame así | volteo | QK-76 | DEP-2026-011 | `publicado` | 2027-02-07 | `M0-R` |
+| 32 | orbit | el operador queda atado a su tenant (columna en la cuenta de operador): sin `tenant_switch` ni superusuario no lee ni escribe otro, venga de `?tenant=` o del resolver; en 1.x la columna es opcional y un operador sin tenant en una aplicación multi-tenant avisa | volteo (config) | OR-80 | DEP-2026-003 (orbit) | `publicado` | 2027-02-07 | `M0-R` |
+| 33 | orbit | el entorno del proceso sale del snapshot de `system_pulse` y pasa a un permiso propio (`system_env`); en 1.x el permiso existe y `system_pulse` sigue viéndolo con aviso | volteo (permisos) | OR-93 | DEP-2026-004 (orbit) | `publicado` | 2027-02-07 | `M0-R` |
+| 34 | orbit | `PeerService.Sync` sólo acepta peers configurados en `--peers` (y bajo mTLS, el CN del certificado ha de ser el `server_id` anunciado); en 1.x `--peer-allowlist` opt-in y un WARN por cada peer no configurado | volteo (fleet) | OR-103 | DEP-2026-005 (orbit) | `publicado` | 2027-02-07 | `M0-R` |
 
 Lo que esta tabla deja fuera a propósito: la migración de orbit (§2.4, es
 trabajo de 1.x, no un cambio del 2.0), la DX al 5 (§2.1, aditiva) y el
