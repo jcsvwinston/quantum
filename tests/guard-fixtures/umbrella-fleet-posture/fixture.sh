@@ -51,13 +51,16 @@ perl -0pi -e 's/(TestFleetBrowserBench.*?ORBIT_BENCH_BROWSER: )required/${1}opti
 # (D) el test del clúster cambia de nombre.
 perl -0pi -e 's/func TestFleetParityThreeAgents\(/func TestFleetParityTwoAgents(/' "$TREE/orbit/internal/fleettest/fleetbench/cluster_test.go"
 
-fx_assert_doctored "$TREE/orbit/docs/fleet-bench.md" '7 of 50 controls present'
+# El denominador es el del banco al pin (50 en A9, 51 desde orbit v1.21.0 con
+# HA-06): la fixture rompe el numerador y no fija el denominador, que crece
+# con el banco.
+fx_assert_doctored "$TREE/orbit/docs/fleet-bench.md" '7 of [0-9]+ controls present'
 fx_assert_doctored "$TREE/orbit/docs/fleet-bench.md" '\| alerts \| 2 \| 0 \| 4 \|'
 fx_assert_doctored "$TREE/orbit/.github/workflows/ci.yml" 'ORBIT_BENCH_BROWSER: optional'
 fx_assert_doctored "$TREE/orbit/internal/fleettest/fleetbench/cluster_test.go" 'func TestFleetParityTwoAgents\('
 
 echo "workdir=$TREE"
-echo "expect=la página dice 7/50 y el banco mide"
+echo "expect=la página dice 7/[0-9]+ y el banco mide"
 echo "expect=la tabla por familias dice alerts 2/0/4"
 echo "expect=TestFleetBrowserBench con ORBIT_BENCH_BROWSER=required"
 echo "expect=ya no define TestFleetParityThreeAgents"
