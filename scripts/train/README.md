@@ -699,6 +699,71 @@ release-please@17` y llamar a `parseConventionalCommits` de
 bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
 la línea y la columna.
 
+### Lo que aprendió el tren de 1.43.0 (la segunda mitad de `M0`, los tres pilares MINOR)
+
+Conducido el sábado 2026-11-07 (la semana de cadencia del 9, dos días
+antes a petición del propietario): quark#480 (suelos) → quark#478
+(v1.18.0, siete tags, con notas y snapshot en la rama del bot) ·
+nucleus#641 (suelos) → nucleus#642 (re-fechado de las notas) →
+nucleus#636 (v1.34.0, quince tags) · orbit#587 (alineación) → orbit#583
+(v1.21.0, ocho tags) → orbit#588 (pines internos) → orbit#589 (v1.21.1)
+→ quantum#299. Las fases de quark y nucleus corrieron EN PARALELO
+(dos invocaciones del driver a la vez sobre checkouts distintos; el reloj
+es un fichero que se anexa, así que no se pisan).
+
+1. **El paso «Tag The CLI Module» de `release.yml` de nucleus murió por
+   SIGPIPE.** Lee el suelo de `cmd/nucleus/go.mod` con
+   `base64 -d | awk '… {print $2; exit}'`; el `exit` cierra la tubería con
+   `base64` aún escribiendo y, bajo `pipefail`, el paso falla («base64:
+   Broken pipe»). Los activos ya estaban publicados (job anterior), pero
+   `cmd/nucleus/v1.34.0` no existía y `bump-set` lo escribe desde ese tag.
+   Receta: comprobar el suelo a mano (`gh api …/contents/cmd/nucleus/go.mod?ref=<sha>`)
+   y crear la ref `refs/tags/cmd/nucleus/vX.Y.Z` en el commit del release
+   con `gh api repos/…/git/refs`. nucleus#643 (`chore(ci)`) lee el go.mod
+   entero (`&& !seen`). v1.31.0–v1.33.0 pasaron por tiempo.
+2. **Las notas de nucleus se escribieron ANTES del tren con la fecha de
+   cadencia** (2026-11-09) y el corte fue el 7: PR `docs(release)` de
+   re-fechado (sección y copia del snapshot) ANTES de fusionar el release,
+   que en nucleus pasa por `update-branch`. Si las notas se escriben antes
+   del tren, sin fecha o con la fecha del día que se corta.
+3. **Segundo corte de orbit por tercera vez seguida** (v1.21.1): `ui`,
+   `datasource` y `proto` salieron con la raíz y agent, server,
+   quarkdatasource y la raíz los requerían un tag atrás
+   (`check_internal_pins.sh` rojo en main). La receta de 1.42.0 funcionó
+   tal cual: esperar al proxy (`@v/vX.info` → 200), `go mod edit -require`
+   + `GOWORK=off go mod tidy` en los cuatro, PR `fix(deps)`, `merge-group`,
+   Release Please, sección `## vX.Y.Z` de la patch en la rama del bot (sin
+   snapshot) y la fase. Sigue sin mecanizarse.
+4. **La receta de 1.42.0 para que el driver no fusione una minor sin
+   notas** volvió a servir: nucleus con `--solo-suelos`; quark para sola
+   (`quark-doc-debt.sh`, EXIT=2) y el snapshot se corta con su
+   `cut_docs_snapshot.sh` enlazando `website/node_modules` del checkout
+   principal; orbit con la alineación en PR propio, sección y snapshot en
+   la rama regenerada y la fase después (ve pines al día y no llama a
+   `orbit-align-notes.sh`).
+5. **El guard de voz de producto de orbit rechaza «P1»** en unas notas
+   públicas (prioridad interna): «the four most serious findings».
+6. **`quantum-app` sigue sin frenar nada** (decisión del 2026-09-20).
+7. **Dos rojos del guard-of-guards en el PR de set, los dos anunciados por
+   esta misma sección en trenes anteriores.** (a) La aserción anti-fósil
+   cazó el gate nuevo del pin de nucleus (`scripts/ci/govulncheck_gate.sh`,
+   NU-155): es una lane contra el proxy, como `check_modules_standalone`,
+   y va a `GUARD_SCAN_EXCLUDE` con su porqué. (b) La fixture de
+   `umbrella-fleet-posture` afirmaba «7 of 50» y el banco pasó a 51
+   (HA-06, orbit#577): la rotura se aplicaba pero la aserción no la
+   encontraba y la fixture «falló al prepararse». Una fixture no fija lo
+   que el banco hace crecer. Las dos cosas se ven corriendo
+   `guard-of-guards` en local ANTES de `--desde paraguas` (regla de
+   1.37.0), que esta vez no se hizo y costó una vuelta de CI.
+8. **El build local del sitio se quedó sin heap de Node** (`FATAL ERROR:
+   Reached heap limit`) dentro de `suite-integral --cierre`, y cuatro
+   guards que leen `website/build` (served-jargon, built-links,
+   built-codeblocks, retired-claims) salieron rojos con el tag ya cortado:
+   el sitio ensambla tres snapshots más por set (quark 1.18.0, nucleus
+   1.34.0, orbit 1.21.0 en este tren). `NODE_OPTIONS=--max-old-space-size=8192`
+   y `--desde cierre --hasta cierre`. El CI (Website CI, Deploy) no lo
+   sufre porque sus runners parten de otro límite.
+
 ### Lo que aprendió el tren de 1.42.0 (la primera mitad de `M0`, y un pilar que no corta)
 
 Conducido el domingo 2026-10-18 (la semana de cadencia del 19, un día

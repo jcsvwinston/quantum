@@ -64,21 +64,26 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-07, QUANTUM 1.42.0 — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R` y `M0-F` HECHAS (los `fix` de 1.x antes del major en `main` de los tres; NU-155 decidida: la lane SAML de nucleus con un gate de `govulncheck` de excepciones acotadas); siguiente: el set del 2026-11-09 (nucleus MINOR, nucleus#640 con sus notas), que publica once avisos (el 2.0 no antes de 2027-02-07) → la DX al 5 y D9…D11 → M1 → R2)
+## 3. Estado al cierre (2026-11-07, QUANTUM 1.43.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0` ENTERA PUBLICADA (las 34 filas del §3.0 del 2.0 en `publicado`; el 2.0 no antes de 2027-02-07), `R1`, `M0-R` y `M0-F` HECHAS; siguiente: en 1.x antes de `M1` la DX al 5 (NU-137), el nacimiento de `providers/tasks-asynq` y D9…D11 → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.42.0** (2026-10-18, la semana de cadencia
-  del 19 un día antes) — quark v1.17.0 (sin mover), nucleus v1.33.0 (con
-  `cmd/nucleus` v1.33.0 en lockstep y los catorce hermanos subidos por los
-  suelos) y orbit v1.20.1 (dos cortes: v1.20.0 con sus módulos y v1.20.1
-  re-pinando `ui` y `datasource`), tal como los lista `versions.yaml` (la
-  fuente; no copies números de aquí). `declared_lags` vacío.
-  `suite-integral --cierre` **60 de 60**. Publica **la primera mitad de
-  `M0` de A12**: los nueve avisos de nucleus (`M0-N`) y los dos de orbit
-  con `M0-O` completa; del §3.0 del contrato del 2.0, 23 filas `publicado`
-  y las 7 de quark `en main` (quark no cortó: sólo `docs:` desde v1.17.0).
-  Sus trampas, en la sección 1.42.0 de `scripts/train/README.md`.
+- **Set certificado: Quantum 1.43.0** (2026-11-07, la semana de cadencia
+  del 9 dos días antes, a petición del propietario) — quark v1.18.0 (CLI
+  v1.2.2, los cinco drivers v0.3.1), nucleus v1.34.0 (`cmd/nucleus`
+  v1.34.0 en lockstep —cortado A MANO, ver la sesión— y los catorce
+  hermanos subidos por los suelos) y orbit v1.21.1 (dos cortes otra vez:
+  v1.21.0 con sus siete módulos y v1.21.1 re-pinando `ui`, `datasource` y
+  `proto`), tal como los lista `versions.yaml` (la fuente; no copies
+  números de aquí). `declared_lags` vacío. `suite-integral --cierre`
+  **60 de 60**. Publica **la segunda mitad de `M0` de A12** y lo que
+  `M0-R` y `M0-F` dejaron en `main`: los once avisos que faltaban (los
+  siete de quark, `DEP-2026-011` de quark y `DEP-2026-003/004/005` de
+  orbit), así que **las 34 filas del §3.0 del contrato del 2.0 están
+  `publicado`** y el 2.0 no puede salir antes del 2027-02-07; los cuatro
+  P1 de `R1` arreglados en orbit; el registro de proveedores de `pkg/tasks`;
+  `quark:"literal_column"` y QK-70; `crewjam/saml` v0.5.2 y Go 1.26.10.
+  Sus trampas, en la sección 1.43.0 de `scripts/train/README.md`.
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
@@ -147,9 +152,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   OR-80 tiene salida en 1.x en #578 pero sigue `abierto` hasta el volteo
   de `M1`, como QK-45). Del §3.0, 23 `publicado` y **11 `en main`** (las
   siete de quark, re-fechadas al 2027-02-07 en quark#476, y las cuatro de
-  `M0-R`): ninguna `por escribir`. Siguiente: el set del 2026-11-09 (quark
-  y orbit cortan MINOR; su PR pasa las once a `publicado`), y en 1.x
-  antes de `M1`: la DX al 5, los `fix` de 1.x de `M0-E` (OR-144 entre
+  `M0-R`): ninguna `por escribir`; **las once las publicó Quantum 1.43.0
+  el 2026-11-07**. En 1.x antes de `M1`: la DX al 5, los `fix` de 1.x de `M0-E` (OR-144 entre
   ellos), el registro de proveedores de `pkg/tasks` y D9…D11). **Y
   `M0-F` hecha el 2026-11-07** (sección «`M0-F`» del plan): los `fix` de
   1.x portados desde `dry-run/2.0` — quark#479 (QK-70), orbit#584 (OR-89),
@@ -268,6 +272,61 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-11-07 (segunda) — **Quantum 1.43.0 certificado: la segunda mitad de `M0` publicada, los tres pilares MINOR, y un tren de dos horas y media con cuatro paradas que no estaban en el guion**
+
+- **Arranque**: Carlos pidió arrancar el tren del lunes 9 el sábado 7, con
+  NU-155 recién decidida y las notas de nucleus v1.34.0 ya en `main`
+  (nucleus#640). Tres release PRs esperando: quark#478 (1.18.0),
+  nucleus#636 (1.34.0 con catorce hermanos) y orbit#583 (1.21.0 con
+  siete). Las fases quark y nucleus corrieron EN PARALELO (dos
+  invocaciones del driver sobre checkouts distintos): quark#480 (suelos)
+  → esqueleto de `quark-doc-debt.sh` → prosa y snapshot 1.18.0 en la rama
+  del bot (`cut_docs_snapshot.sh` con el `node_modules` enlazado) →
+  quark#478 fusionado, siete tags y activos firmados; nucleus#641 (suelos,
+  `--solo-suelos`) → nucleus#642 (las notas decían 2026-11-09 y el corte
+  era el 7) → nucleus#636 fusionado, quince tags.
+- **La parada que no estaba en el guion**: el job «Tag The CLI Module» de
+  `release.yml` de nucleus murió por SIGPIPE (`awk … exit` cerrando la
+  tubería de `base64` bajo `pipefail`): activos publicados pero sin
+  `cmd/nucleus/v1.34.0`, que `bump-set` necesita. Se cortó a mano en el
+  commit del release tras comprobar el suelo como lo comprueba el job, y
+  nucleus#643 (`chore(ci)`, fusionado) lee el go.mod entero. v1.31.0 a
+  v1.33.0 habían pasado por tiempo.
+- **Orbit, con la receta de 1.42.0 tal cual**: orbit#587 (alineación a
+  nucleus v1.34.0 y quark v1.18.0 en PR propio), sección `## v1.21.0` y
+  snapshot en la rama regenerada (el guard de voz rechazó «P1»: «the four
+  most serious findings»), fase → v1.21.0 con sus siete módulos; después
+  `check_internal_pins.sh` rojo en `main` (ui, datasource y proto un tag
+  atrás en raíz, agent, server y quarkdatasource) → orbit#588 a mano
+  (`go mod edit` + `GOWORK=off go mod tidy` tras esperar al proxy),
+  sección `## v1.21.1` sin snapshot, fase → v1.21.1 (agent v0.16.3, server
+  v0.22.1, quarkdatasource v1.13.3). Tercer tren seguido con segundo corte.
+- **Paraguas**: `bump-set` dejó el esqueleto; se redactaron las notes, la
+  cabecera de RUMBO, el título de la entrada 1.42.0 del CHANGELOG, el
+  `go.work` a go1.26.10 y las once filas del §3.0 a `publicado`
+  (`--incluye docs/planes/quantum-2.0.md`). quantum#299 salió ROJO en
+  guard-of-guards por dos cosas que esta sección ya había anunciado:
+  el gate `govulncheck_gate.sh` del pin de nucleus sin registrar (va a
+  `GUARD_SCAN_EXCLUDE` con su porqué: es una lane contra el proxy, como
+  `check_modules_standalone`) y la fixture de `umbrella-fleet-posture`
+  afirmando «7 of 50» con el banco en 51 (HA-06). Arreglados en la misma
+  rama, fusionado, tag v1.43.0 y release del paraguas publicada.
+- **Cierre**: `suite-integral --cierre` cayó la primera vez porque el
+  build local del sitio se quedó sin heap de Node (cuatro guards sobre
+  `website/build` en rojo con el tag ya cortado); con
+  `NODE_OPTIONS=--max-old-space-size=8192` y `--desde cierre`: **60 de
+  60**, anunciado a quantum-app (quantum-app#37 en borrador con gates
+  rojos: deuda suya). Reloj: 2h29m de punta a punta, 16m de espera del
+  propietario; doce invocaciones del driver.
+- **Lo que deja escrito**: la sección 1.43.0 de `scripts/train/README.md`
+  (ocho puntos), el §5 de aquí sin la fila de «once en main», y la
+  medición del 2026-11-07 en `docs/planes/quantum-2.0.md`.
+- **Lo siguiente**: en 1.x antes de `M1`: la DX al 5 (NU-137, diseño), el
+  nacimiento de `providers/tasks-asynq` (sesión propia, nace con su tag) y
+  D9…D11 de Carlos; vigilar el 2026-12-31 (caduca la excepción de
+  GO-2026-6909 en la lane SAML de nucleus) y el lunes 9 la lane semanal
+  sobre el set recién certificado.
+
 ### Sesión 2026-11-07 — **A12 `M0-F`: los `fix` de 1.x antes de `M1`, en tres tramos paralelos; y otra vulnerabilidad el día antes del corte, esta sin versión arreglada en la base de datos**
 
 - **Arranque**: sábado, con el set del lunes 9 preparado en los tres
@@ -320,34 +379,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   PR pasa las once filas del §3.0 a `publicado` y sube el `go.work` a
   go1.26.10.
 
-### Sesión 2026-11-03 — **A12 `M0-R`: los cuatro avisos de `R1` y los P1 de orbit, en cinco tramos paralelos; y otra vulnerabilidad de Go el mismo día**
-
-- **Arranque**: el set seguía en 1.42.0 y ningún producto se había movido
-  desde el 2026-10-18, así que el lunes 2 no hubo set (nada que
-  certificar). `M0-R` se troceó en cinco tramos (quark QK-76; orbit
-  tenant, Data Studio, `system_env` y fleet), uno por agente en su
-  worktree, cada uno con su PR verde; los PRs se fusionaron en serie
-  después de integrar los seis de orbit en local (build, vet y tests de
-  todos los módulos con el workspace: sólo chocaban dos ficheros de docs).
-- **GO-2026-6809** (`crypto/x509`, en go1.26.9) ponía rojo `govulncheck`
-  en todo PR: `toolchain go1.26.10` en quark#477, nucleus#635 (con el
-  digest de la imagen del builder y la constante del scaffold) y
-  orbit#580, como con GO-2026-6617. El `go.work` del paraguas, en el set.
-- **Lo que deja**: tabla en la sección «`M0-R`» del plan; filas 31–34 del
-  §3.0 `en main`; OR-78, OR-79, OR-83, OR-87 y OR-99 `hecho`; nueve
-  hallazgos nuevos (OR-141…144, NU-152, NU-153, QK-86…88), el único P2
-  la subida de ficheros bajo tenant (OR-141, la clase de OR-79).
-- **Lo que el contrato no decía**: la salida de QK-76 no existía (un token
-  nuevo); quark se avisaba a sí mismo (la columna `pk` de su log de
-  auditoría); OR-80 sigue abierto por diseño hasta el volteo (el tenant
-  de la cuenta es opcional en 1.x); «configurado en `--peers`» se definió
-  por el `server_id` que contesta, y con sólo el token la lista no
-  autentica; y la sonda DS-03 sobre Quark no cabe en 1.x (ADR-012).
-- **Lo siguiente**: el set del 2026-11-09 (quark y orbit en minor, nucleus
-  en patch por el toolchain; once filas a `publicado`; `go.work` a
-  go1.26.10), y las decisiones que esperan a Carlos: D9…D11 y los tres
-  ítems del propietario.
-
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -386,23 +417,14 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **Once filas del §3.0 están `en main`** (las siete de quark, quark#470,
-  #471 y re-fechadas en #476; y las cuatro de `M0-R`: quark#476, orbit#576,
-  #578, #582): llegan al pin con el set del 2026-11-09 —quark corta por
-  `feat` (#476) y orbit también—, y el PR de ese set las pasa a
-  `publicado`; `umbrella-deprecations` lo exigirá en rojo. Las once dicen
-  `no earlier than 2027-02-07`: si el set se retrasa, hay que re-fecharlas
-  (la política pide 90 días desde la publicación) y el 2.0 se mueve con
-  ellas. **El `go.work` del paraguas sube a `toolchain go1.26.10`** en ese
-  mismo PR de set (GO-2026-6809; los tres productos ya lo llevan).
-  **Y nucleus corta MINOR (v1.34.0)**: nucleus#638 (el registro de
-  proveedores de `pkg/tasks`) y #639 (`crewjam/saml` v0.5.2 por
-  GO-2026-6909, con el gate de `govulncheck` de excepciones acotadas que
-  decidió NU-155) están en `main`; sus notas y el snapshot van en
-  nucleus#640, que se fusiona ANTES del tren. La excepción de
-  `scripts/ci/govulncheck_exceptions.txt` caduca el 2026-12-31: si la
-  base de Go no ha registrado la versión arreglada para entonces, la
-  lane vuelve a rojo y hay que re-argumentarla con fecha nueva.
+- **Las 34 filas del §3.0 están `publicado`** desde Quantum 1.43.0
+  (2026-11-07): la ventana más tardía abre el 2027-02-07 y el 2.0 no sale
+  antes. Lo que queda con fecha: la excepción de
+  `nucleus/scripts/ci/govulncheck_exceptions.txt` (GO-2026-6909 sobre
+  `crewjam/saml` v0.5.2) **caduca el 2026-12-31**; si la base de Go no ha
+  registrado la versión arreglada para entonces, la lane SAML vuelve a
+  rojo y hay que re-argumentarla con fecha nueva; si la registra, la lane
+  avisa de borrar la línea.
 - **Lo que el tren de 1.42.0 dejó al driver** (nace el 2026-10-18; sección
   1.42.0 de `scripts/train/README.md`): `fase_repo` sube los suelos sin
   mirar si hay commits releasables desde el tag (con quark en `docs:` habría
@@ -411,7 +433,12 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
   fija de seis); `align-orbit-pins.sh --check` no mira los pines internos,
   así que el segundo corte de orbit es a mano entero; y la plantilla de
   `orbit-align-notes.sh` es de antes de ADR-012. Ninguno frena un set;
-  cada uno cuesta una vuelta a mano.
+  cada uno cuesta una vuelta a mano. **1.43.0 añade**: el segundo corte
+  de orbit sigue a mano (tercer tren seguido); `suite-integral --cierre`
+  necesita `NODE_OPTIONS=--max-old-space-size=8192` en el Mac para
+  construir el sitio; y correr `guard-of-guards` en local ANTES de
+  `--desde paraguas` (regla de 1.37.0) ahorra la vuelta de CI que esta vez
+  se pagó.
 
 - **El plan a 5 de 5** manda el orden: ~~A1~~ … ~~A8~~ CERRADOS (1.28.0 …
   1.35.0) → **A9 (Fleet unificado y una sola SPA), EN CURSO y TROCEADO** por
