@@ -1,7 +1,7 @@
 ---
 title: "Nucleus API surface"
 sidebar_label: "Nucleus"
-description: "The exported Go API of Nucleus v1.33.0 that its CI keeps frozen, generated from the file it compares the code with, at the version Quantum 1.42.0 certifies."
+description: "The exported Go API of Nucleus v1.34.0 that its CI keeps frozen, generated from the file it compares the code with, at the version Quantum 1.43.0 certifies."
 custom_edit_url: null
 ---
 
@@ -9,7 +9,7 @@ custom_edit_url: null
 
 # Nucleus API surface
 
-The public Go API of **Nucleus v1.33.0**, the version Quantum 1.42.0 certifies: **2,499** exported symbols in **31** packages. Nucleus keeps this list in [`contracts/baseline/api_exported_symbols.txt`](https://github.com/jcsvwinston/nucleus/blob/v1.33.0/contracts/baseline/api_exported_symbols.txt). Nucleus's CI compares this file with the code on every change and fails when they differ, so adding or removing an exported symbol means changing the file in the same change. Removing an exported symbol is a breaking change, and the suite ships breaking changes only in a major version. This page is generated from that file at the pinned version, so it lists exactly what the check protects.
+The public Go API of **Nucleus v1.34.0**, the version Quantum 1.43.0 certifies: **2,524** exported symbols in **31** packages. Nucleus keeps this list in [`contracts/baseline/api_exported_symbols.txt`](https://github.com/jcsvwinston/nucleus/blob/v1.34.0/contracts/baseline/api_exported_symbols.txt). Nucleus's CI compares this file with the code on every change and fails when they differ, so adding or removing an exported symbol means changing the file in the same change. Removing an exported symbol is a breaking change, and the suite ships breaking changes only in a major version. This page is generated from that file at the pinned version, so it lists exactly what the check protects.
 
 Each package links to its documentation on pkg.go.dev at this version, where every symbol has its signature and its comment.
 
@@ -35,7 +35,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 | [`pkg/model`](#pkg-model) | 20 | 13 | 19 | 100 | 13 | 3 |
 | [`pkg/nucleus`](#pkg-nucleus) | 42 | 37 | 117 | 84 | 17 | 15 |
 | [`pkg/observability`](#pkg-observability) | 13 | 6 | 36 | 37 | 10 |  |
-| [`pkg/observability/hooks`](#pkg-observability-hooks) | 5 | 3 | 3 | 16 |  |  |
+| [`pkg/observability/hooks`](#pkg-observability-hooks) | 7 | 4 | 3 | 23 |  |  |
 | [`pkg/observe`](#pkg-observe) | 2 | 15 |  | 7 | 1 |  |
 | [`pkg/observe/exporter`](#pkg-observe-exporter) | 3 | 4 |  | 7 |  |  |
 | [`pkg/plugins`](#pkg-plugins) | 20 | 14 | 15 | 68 | 14 |  |
@@ -44,12 +44,12 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 | [`pkg/signals`](#pkg-signals) | 7 | 6 | 12 | 6 | 8 | 6 |
 | [`pkg/storage`](#pkg-storage) | 26 | 14 | 35 | 2 | 6 | 1 |
 | [`pkg/storage/provider`](#pkg-storage-provider) | 19 | 9 | 14 | 61 | 6 |  |
-| [`pkg/tasks`](#pkg-tasks) | 15 | 4 | 17 | 84 | 6 | 4 |
+| [`pkg/tasks`](#pkg-tasks) | 18 | 8 | 19 | 90 | 6 | 4 |
 | [`pkg/validate`](#pkg-validate) |  | 2 |  |  |  |  |
 
 ## `pkg/accounts` {#pkg-accounts}
 
-`github.com/jcsvwinston/nucleus/pkg/accounts` · 162 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/accounts)
+`github.com/jcsvwinston/nucleus/pkg/accounts` · 162 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/accounts)
 
 **Types**
 
@@ -76,7 +76,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/app` {#pkg-app}
 
-`github.com/jcsvwinston/nucleus/pkg/app` · 311 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/app)
+`github.com/jcsvwinston/nucleus/pkg/app` · 311 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/app)
 
 **Types**
 
@@ -117,7 +117,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/auth` {#pkg-auth}
 
-`github.com/jcsvwinston/nucleus/pkg/auth` · 229 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/auth)
+`github.com/jcsvwinston/nucleus/pkg/auth` · 229 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/auth)
 
 **Types**
 
@@ -160,7 +160,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/auth/apikeys` {#pkg-auth-apikeys}
 
-`github.com/jcsvwinston/nucleus/pkg/auth/apikeys` · 45 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/auth/apikeys)
+`github.com/jcsvwinston/nucleus/pkg/auth/apikeys` · 45 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/auth/apikeys)
 
 **Types**
 
@@ -178,7 +178,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/auth/backend` {#pkg-auth-backend}
 
-`github.com/jcsvwinston/nucleus/pkg/auth/backend` · 24 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/auth/backend)
+`github.com/jcsvwinston/nucleus/pkg/auth/backend` · 24 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/auth/backend)
 
 **Types**
 
@@ -193,7 +193,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/auth/backend/backendtest` {#pkg-auth-backend-backendtest}
 
-`github.com/jcsvwinston/nucleus/pkg/auth/backend/backendtest` · 7 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/auth/backend/backendtest)
+`github.com/jcsvwinston/nucleus/pkg/auth/backend/backendtest` · 7 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/auth/backend/backendtest)
 
 **Types**
 
@@ -203,7 +203,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/auth/federated` {#pkg-auth-federated}
 
-`github.com/jcsvwinston/nucleus/pkg/auth/federated` · 27 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/auth/federated)
+`github.com/jcsvwinston/nucleus/pkg/auth/federated` · 27 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/auth/federated)
 
 **Types**
 
@@ -222,7 +222,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/auth/federated/oidc` {#pkg-auth-federated-oidc}
 
-`github.com/jcsvwinston/nucleus/pkg/auth/federated/oidc` · 15 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/auth/federated/oidc)
+`github.com/jcsvwinston/nucleus/pkg/auth/federated/oidc` · 15 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/auth/federated/oidc)
 
 **Types**
 
@@ -235,7 +235,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/auth/sessionstore` {#pkg-auth-sessionstore}
 
-`github.com/jcsvwinston/nucleus/pkg/auth/sessionstore` · 16 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/auth/sessionstore)
+`github.com/jcsvwinston/nucleus/pkg/auth/sessionstore` · 16 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/auth/sessionstore)
 
 **Types**
 
@@ -247,7 +247,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/authz` {#pkg-authz}
 
-`github.com/jcsvwinston/nucleus/pkg/authz` · 57 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/authz)
+`github.com/jcsvwinston/nucleus/pkg/authz` · 57 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/authz)
 
 **Types**
 
@@ -266,7 +266,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/circuit` {#pkg-circuit}
 
-`github.com/jcsvwinston/nucleus/pkg/circuit` · 17 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/circuit)
+`github.com/jcsvwinston/nucleus/pkg/circuit` · 17 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/circuit)
 
 **Types**
 
@@ -282,7 +282,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/db` {#pkg-db}
 
-`github.com/jcsvwinston/nucleus/pkg/db` · 87 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/db)
+`github.com/jcsvwinston/nucleus/pkg/db` · 87 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/db)
 
 **Types**
 
@@ -308,7 +308,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/db/driver` {#pkg-db-driver}
 
-`github.com/jcsvwinston/nucleus/pkg/db/driver` · 6 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/db/driver)
+`github.com/jcsvwinston/nucleus/pkg/db/driver` · 6 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/db/driver)
 
 **Types**
 
@@ -318,7 +318,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/db/driver/drivertest` {#pkg-db-driver-drivertest}
 
-`github.com/jcsvwinston/nucleus/pkg/db/driver/drivertest` · 6 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/db/driver/drivertest)
+`github.com/jcsvwinston/nucleus/pkg/db/driver/drivertest` · 6 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/db/driver/drivertest)
 
 **Types**
 
@@ -328,7 +328,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/errors` {#pkg-errors}
 
-`github.com/jcsvwinston/nucleus/pkg/errors` · 58 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/errors)
+`github.com/jcsvwinston/nucleus/pkg/errors` · 58 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/errors)
 
 **Types**
 
@@ -350,7 +350,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/health` {#pkg-health}
 
-`github.com/jcsvwinston/nucleus/pkg/health` · 17 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/health)
+`github.com/jcsvwinston/nucleus/pkg/health` · 17 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/health)
 
 **Types**
 
@@ -362,7 +362,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/mail` {#pkg-mail}
 
-`github.com/jcsvwinston/nucleus/pkg/mail` · 60 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/mail)
+`github.com/jcsvwinston/nucleus/pkg/mail` · 60 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/mail)
 
 **Types**
 
@@ -383,7 +383,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/model` {#pkg-model}
 
-`github.com/jcsvwinston/nucleus/pkg/model` · 168 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/model)
+`github.com/jcsvwinston/nucleus/pkg/model` · 168 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/model)
 
 **Types**
 
@@ -416,7 +416,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/nucleus` {#pkg-nucleus}
 
-`github.com/jcsvwinston/nucleus/pkg/nucleus` · 312 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/nucleus)
+`github.com/jcsvwinston/nucleus/pkg/nucleus` · 312 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/nucleus)
 
 **Types**
 
@@ -471,7 +471,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/observability` {#pkg-observability}
 
-`github.com/jcsvwinston/nucleus/pkg/observability` · 102 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/observability)
+`github.com/jcsvwinston/nucleus/pkg/observability` · 102 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/observability)
 
 **Types**
 
@@ -495,21 +495,23 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/observability/hooks` {#pkg-observability-hooks}
 
-`github.com/jcsvwinston/nucleus/pkg/observability/hooks` · 27 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/observability/hooks)
+`github.com/jcsvwinston/nucleus/pkg/observability/hooks` · 37 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/observability/hooks)
 
 **Types**
 
 - `HTTPMiddlewareConfig` — fields `Bus`, `ExcludePaths`, `MaxPathBytes`, `MaxPayloadPreviewBytes`, `MaxUserAgentBytes`, `NodeID`
 - `SQLObserverConfig` — fields `Bus`, `NodeID`
+- `SQLQueryEvent` — fields `Args`, `Duration`, `Error`, `ModelName`, `Operation`, `Query`, `RowsAffected`
+- `SQLQueryObserver`
 - `SessionInfo` — fields `IP`, `LastRoute`, `TokenShort`, `TraceID`, `UserAgent`, `UserID`
 - `SessionRecorder` — methods `Created`, `Destroyed`, `Touched`
 - `SessionRecorderConfig` — fields `Bus`, `NodeID`
 
-**Functions** — `NewHTTPMiddleware`, `NewSQLObserver`, `NewSessionRecorder`
+**Functions** — `NewHTTPMiddleware`, `NewSQLObserver`, `NewSQLQueryObserver`, `NewSessionRecorder`
 
 ## `pkg/observe` {#pkg-observe}
 
-`github.com/jcsvwinston/nucleus/pkg/observe` · 25 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/observe)
+`github.com/jcsvwinston/nucleus/pkg/observe` · 25 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/observe)
 
 **Types**
 
@@ -522,7 +524,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/observe/exporter` {#pkg-observe-exporter}
 
-`github.com/jcsvwinston/nucleus/pkg/observe/exporter` · 14 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/observe/exporter)
+`github.com/jcsvwinston/nucleus/pkg/observe/exporter` · 14 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/observe/exporter)
 
 **Types**
 
@@ -534,7 +536,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/plugins` {#pkg-plugins}
 
-`github.com/jcsvwinston/nucleus/pkg/plugins` · 131 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/plugins)
+`github.com/jcsvwinston/nucleus/pkg/plugins` · 131 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/plugins)
 
 **Types**
 
@@ -565,7 +567,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/router` {#pkg-router}
 
-`github.com/jcsvwinston/nucleus/pkg/router` · 193 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/router)
+`github.com/jcsvwinston/nucleus/pkg/router` · 193 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/router)
 
 **Types**
 
@@ -593,7 +595,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/router/interceptor` {#pkg-router-interceptor}
 
-`github.com/jcsvwinston/nucleus/pkg/router/interceptor` · 13 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/router/interceptor)
+`github.com/jcsvwinston/nucleus/pkg/router/interceptor` · 13 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/router/interceptor)
 
 **Types**
 
@@ -606,7 +608,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/signals` {#pkg-signals}
 
-`github.com/jcsvwinston/nucleus/pkg/signals` · 45 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/signals)
+`github.com/jcsvwinston/nucleus/pkg/signals` · 45 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/signals)
 
 **Types**
 
@@ -626,7 +628,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/storage` {#pkg-storage}
 
-`github.com/jcsvwinston/nucleus/pkg/storage` · 84 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/storage)
+`github.com/jcsvwinston/nucleus/pkg/storage` · 84 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/storage)
 
 **Types**
 
@@ -665,7 +667,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/storage/provider` {#pkg-storage-provider}
 
-`github.com/jcsvwinston/nucleus/pkg/storage/provider` · 109 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/storage/provider)
+`github.com/jcsvwinston/nucleus/pkg/storage/provider` · 109 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/storage/provider)
 
 **Types**
 
@@ -695,7 +697,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/tasks` {#pkg-tasks}
 
-`github.com/jcsvwinston/nucleus/pkg/tasks` · 130 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/tasks)
+`github.com/jcsvwinston/nucleus/pkg/tasks` · 145 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/tasks)
 
 **Types**
 
@@ -706,6 +708,9 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `HandlerFunc`
 - `Inspector` interface — methods `InspectRuntime`, `OperateQueue`
 - `Manager` interface — methods `Close`, `EnqueueJSON`, `EnqueueJSONCtx`, `EnqueueJSONCtxWithPolicy`, `EnqueueJSONWithPolicy`, `HandleFunc`, `Run`
+- `Provider` interface — methods `Inspect`, `Open`
+- `ProviderOptions` — fields `Config`, `Logger`, `SchedulerLock`
+- `ProviderRuntime` — fields `Inspector`, `Manager`, `Scheduler`
 - `QueueActionResult` — fields `Action`, `Affected`, `Applied`, `Enabled`, `GeneratedAt`, `Message`, `Queue`
 - `RuntimeQueueSnapshot` — fields `Active`, `Aggregating`, `Archived`, `Completed`, `FailedAll`, `FailedToday`, `LatencyMS`, `Name`, `Paused`, `Pending`, `ProcessedAll`, `ProcessedToday`, `Retry`, `Scheduled`, `Size`
 - `RuntimeScheduleSnapshot` — fields `ID`, `NextEnqueueAt`, `PrevEnqueueAt`, `Spec`, `TaskType`
@@ -715,7 +720,7 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 - `Scheduler` interface — methods `Close`, `RegisterJSON`, `Start`, `Unregister`
 - `Task` interface — methods `Payload`, `Type`
 
-**Functions** — `DecodeJSONPayload`, `DefaultEnqueuePolicy`, `NormalizeQueueAction`, `SupportedQueueActions`
+**Functions** — `DecodeJSONPayload`, `DefaultEnqueuePolicy`, `LookupProvider`, `MustRegisterProvider`, `NormalizeQueueAction`, `RegisterProvider`, `RegisteredProviders`, `SupportedQueueActions`
 
 **Constants** — `QueueActionArchiveRetry`, `QueueActionPause`, `QueueActionPurgeArchived`, `QueueActionRetry`, `QueueActionRetryArchived`, `QueueActionUnpause`
 
@@ -723,13 +728,13 @@ Each package links to its documentation on pkg.go.dev at this version, where eve
 
 ## `pkg/validate` {#pkg-validate}
 
-`github.com/jcsvwinston/nucleus/pkg/validate` · 2 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.33.0/pkg/validate)
+`github.com/jcsvwinston/nucleus/pkg/validate` · 2 symbols · [pkg.go.dev](https://pkg.go.dev/github.com/jcsvwinston/nucleus@v1.34.0/pkg/validate)
 
 **Functions** — `RegisterRule`, `Validate`
 
 ## Fields an extension may rely on {#extension-surface}
 
-An `app.Extension` receives the whole `*app.App`. These are the **20** fields of `App` that Nucleus freezes for extensions, kept in [`contracts/baseline/extension_surface.txt`](https://github.com/jcsvwinston/nucleus/blob/v1.33.0/contracts/baseline/extension_surface.txt) and compared with the code by the same CI: removing one, or adding one without listing it, fails the build.
+An `app.Extension` receives the whole `*app.App`. These are the **20** fields of `App` that Nucleus freezes for extensions, kept in [`contracts/baseline/extension_surface.txt`](https://github.com/jcsvwinston/nucleus/blob/v1.34.0/contracts/baseline/extension_surface.txt) and compared with the code by the same CI: removing one, or adding one without listing it, fails the build.
 
 - `AuthChain *auth.Chain`
 - `AuthFederated *auth.FederatedSet`
