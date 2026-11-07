@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-03, QUANTUM 1.42.0 — A11 CERRADO; A12 en curso: `M0`, `R1` y `M0-R` HECHAS (los cuatro avisos que añadió la re-auditoría y los P1 de orbit en `main`, más go1.26.10 por GO-2026-6809); siguiente: el set del 2026-11-09, que publica once avisos (el 2.0 no antes de 2027-02-07), y lo que `M1` exige antes (DX al 5, `fix` de 1.x de `M0-E`, D9…D11) → M1 → R2)
+## 3. Estado al cierre (2026-11-07, QUANTUM 1.42.0 — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R` y `M0-F` HECHAS (los `fix` de 1.x antes del major en quark y orbit; el de nucleus abierto y bloqueado por el gate: GO-2026-6909 en `crewjam/saml`, NU-155, decisión del propietario); siguiente: esa decisión y el set del 2026-11-09, que publica once avisos (el 2.0 no antes de 2027-02-07) → la DX al 5 y D9…D11 → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -150,7 +150,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `M0-R`): ninguna `por escribir`. Siguiente: el set del 2026-11-09 (quark
   y orbit cortan MINOR; su PR pasa las once a `publicado`), y en 1.x
   antes de `M1`: la DX al 5, los `fix` de 1.x de `M0-E` (OR-144 entre
-  ellos), el registro de proveedores de `pkg/tasks` y D9…D11).
+  ellos), el registro de proveedores de `pkg/tasks` y D9…D11). **Y
+  `M0-F` hecha el 2026-11-07** (sección «`M0-F`» del plan): los `fix` de
+  1.x portados desde `dry-run/2.0` — quark#479 (QK-70), orbit#584 (OR-89),
+  #585 (OR-141), #586 (OR-144 y las coerciones) en `main`; nucleus#638
+  (el registro de proveedores de `pkg/tasks`) abierto y bloqueado por el
+  gate: **GO-2026-6909** en `crewjam/saml` (arreglada upstream en v0.5.2,
+  nucleus#639, pero sin versión arreglada en la base de datos de Go, así
+  que la lane SAML sigue roja; decisión del propietario, NU-155). Sin
+  esa decisión nucleus no corta el lunes. Queda delante de `M1`: la DX al
+  5 (NU-137), el módulo `providers/tasks-asynq` con su tag y D9…D11).
   Decisiones de Carlos para A11: ejemplos como fixtures probados,
   construir saml/redis-cache/sentry (Stripe se construyó y se
   retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
@@ -257,6 +266,47 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-11-07 — **A12 `M0-F`: los `fix` de 1.x antes de `M1`, en tres tramos paralelos; y otra vulnerabilidad el día antes del corte, esta sin versión arreglada en la base de datos**
+
+- **Arranque**: sábado, con el set del lunes 9 preparado en los tres
+  release PRs (quark#478 v1.18.0, nucleus#636 v1.33.1, orbit#583
+  v1.21.0). El foco fue lo que `M1` exige antes en 1.x y cabe en un
+  porte: las ramas `dry-run/2.0` ya lo tenían hecho junto a los volteos
+  del 2.0, así que tres agentes (uno por producto, cada uno en su
+  worktree) portaron sólo lo válido en 1.x. Antes, seis PRs de Dependabot
+  del paraguas fusionados en serie (quantum#179…#292; `main` verde).
+- **Lo que deja** (sección «`M0-F`» del plan): quark#479 (QK-70: la
+  columna clave por tramo en `CreateBatch`/`UpsertBatch`), orbit#584
+  (OR-89), #585 (OR-141) y #586 (OR-144, las celdas CSV y el padre de los
+  inlines en el tipo del campo, los pines de `fleettest`), fusionados en
+  serie con el CI de `main` verde tras cada uno; nucleus#638 (el registro
+  de proveedores de `pkg/tasks`, `knownproviders.RequireDBDriver`, los
+  tipos `hooks.SQLQueryEvent`/`SQLQueryObserver`) **abierto y en verde en
+  todo menos la lane SAML**. QK-70, OR-89, OR-141 y OR-144 `hecho`; doce
+  hallazgos nuevos (QK-89…91, NU-154…158, OR-145…148).
+- **GO-2026-6909** (`crewjam/saml` ≤ v0.5.1, publicada el 5): pone en
+  rojo la lane SAML de nucleus y con ella el gate obligatorio de TODO PR
+  de nucleus, incluido su release PR. Upstream lo arregla en v0.5.2
+  (nucleus#639 la pina; los tests del proveedor pasan, con `-race`), pero
+  la base de datos de Go la lista sin versión arreglada, así que
+  `govulncheck` sigue avisando contra v0.5.2. **Decisión del propietario
+  (NU-155)**: qué hace la lane mientras la base no registre la versión
+  (una excepción acotada al id y con fecha, o esperar); sin ella nucleus
+  no corta el lunes (ni el patch del toolchain, ni la minor de #638).
+- **Lo que el plan no decía**: `quarkdatasource` ya contestaba 404/400
+  desde orbit#579 y el WARN por directivas `db:` ya corre al arrancar
+  (el porte de esas dos partes era duplicado); el módulo
+  `providers/tasks-asynq` NO nace en 1.x hasta su propia sesión (nacería
+  con `nucleus add` apuntando a un módulo inexistente); el adaptador de
+  Nucleus no acepta `uint64` (OR-145), así que el stamp del inline emite
+  `int64`; y la DX al 5 (NU-137) es diseño, no porte: sigue delante de
+  `M1`.
+- **Lo siguiente**: la decisión de NU-155; con ella, fusionar nucleus#639
+  y #638 (nucleus pasa a MINOR: notas de v1.34.0 y snapshot en un PR
+  `docs(release)` ANTES del tren) y conducir el set del 2026-11-09, cuyo
+  PR pasa las once filas del §3.0 a `publicado` y sube el `go.work` a
+  go1.26.10.
+
 ### Sesión 2026-11-03 — **A12 `M0-R`: los cuatro avisos de `R1` y los P1 de orbit, en cinco tramos paralelos; y otra vulnerabilidad de Go el mismo día**
 
 - **Arranque**: el set seguía en 1.42.0 y ningún producto se había movido
@@ -284,46 +334,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   en patch por el toolchain; once filas a `publicado`; `go.work` a
   go1.26.10), y las decisiones que esperan a Carlos: D9…D11 y los tres
   ítems del propietario.
-
-### Sesión 2026-10-23 → 2026-10-27 — **A12 `R1`: la re-auditoría de madurez sobre 1.42.0 — media 2,79 → 4,12, 122 hallazgos, el gate no se cumple**
-
-- **Cómo se hizo**: con el brief de `R0` tal cual. Antes de lanzar, los
-  cuatro instrumentos que la escala citaba como «entra con el siguiente
-  pin» pasaron a `instrumento` (35 con instrumento, 1 juicio) y el prompt
-  de `orbit-ui` pasó a construir la SPA en una copia (siete auditores sobre
-  el mismo árbol y `suite-integral` exige el árbol limpio). Un workflow de
-  agentes: siete auditores en paralelo (53 min, 3,8 M de tokens; cada uno
-  corrió sus bancos, las lanes de PostgreSQL y MySQL con Docker y el starter
-  generado), después siete revisores adversariales (20 min, 1,9 M), y la
-  consolidación a mano con dos guiones en la carpeta de notas de la sesión
-  (`aplicar_revision.py`, `renumerar_y_registro.py`).
-- **Lo que pasó y vale para `R2`**: los siete revisores de la primera
-  pasada (23) cayeron por el límite de uso del modelo antes de escribir
-  nada; al reanudar el 27 el scratch había desaparecido con los siete
-  informes (`mktemp` incluido). Se recuperaron íntegros de las
-  transcripciones de los agentes (las salidas persistidas de los `cat` y
-  los `Read` de los revisores, en `~/.claude/projects/…/tool-results/` y
-  `subagents/workflows/…/agent-*.jsonl`) y la pasada adversarial se
-  relanzó con `resumeFromRunId` (los auditores cacheados). Desde este PR
-  `prompts/lanzamiento.md` manda copiar cada entregable a un sitio
-  persistente. `orbit/go.work.sum` (OR-138) y el binario
-  `cmd/nucleus/nucleus` (NU-140) se restauran antes de certificar.
-- **Lo que midió**: 36 notas confirmadas por la revisión (ninguna movida);
-  tres severidades cambiadas (OR-80 a P1, OR-103 a P2, QM-25 a P3), seis
-  duplicados fundidos, dieciséis hallazgos nuevos de los revisores. Los P1
-  están en el panel de orbit sobre `quarkdatasource` (OR-78, OR-79, OR-80)
-  y en la flota bajo mTLS (OR-99). Cuatro volteos al §3.0 del 2.0 (QK-76,
-  OR-80, OR-93, OR-103) → `M0-R`. Los criterios de rendimiento del arco:
-  el 15 % no se cumple en 5 de 9, COPY no, `N1` 26,2 MB > 25 MB (NU-150).
-- **Lo siguiente**: `M0-R` (los cuatro avisos `por escribir` con su salida
-  en 1.x y los cuatro P1 como `fix` de 1.x), los `fix` de 1.x de `M0-E` y
-  la DX al 5 (§2.1); después `M1`. Lo que espera al propietario (private vulnerability
-  reporting en tres repos, Discussions, la política de estabilidad del
-  contrato de quark, la de soporte §8 y la protección de rama) está
-  anotado como paralelo a `M0-R`, con sus decisiones pendientes, en la
-  sección «Lo del propietario» del
-  [plan de A12](../../docs/planes/A12-rendimiento-reauditoria-cierre.md)
-  (decisión de Carlos del 2026-10-27).
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -372,6 +382,13 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
   (la política pide 90 días desde la publicación) y el 2.0 se mueve con
   ellas. **El `go.work` del paraguas sube a `toolchain go1.26.10`** en ese
   mismo PR de set (GO-2026-6809; los tres productos ya lo llevan).
+  **Y GO-2026-6909 bloquea nucleus** (NU-155, 2026-11-07): la lane SAML
+  y el gate obligatorio están rojos en todo PR de nucleus, incluido el
+  release PR, porque `govulncheck` avisa de `crewjam/saml` también en
+  v0.5.2 (la base de datos no registra la versión arreglada). Esperan la
+  decisión del propietario: nucleus#639 (el bump a v0.5.2) y nucleus#638
+  (el registro de proveedores, que hace a nucleus MINOR: sus notas y
+  snapshot van en un PR `docs(release)` antes del tren).
 - **Lo que el tren de 1.42.0 dejó al driver** (nace el 2026-10-18; sección
   1.42.0 de `scripts/train/README.md`): `fase_repo` sube los suelos sin
   mirar si hay commits releasables desde el tag (con quark en `docs:` habría
