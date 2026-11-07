@@ -45,7 +45,12 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   «5 en todo salvo comunidad» NO se cumple: 32 dimensiones por debajo);
   `M0` cerrado el 2026-10-23 con el ensayo del major en ramas
   `dry-run/2.0`, y **`M0-R` hecha el 2026-11-03** (los cuatro avisos que
-  añadió `R1` y los P1 de orbit, en `main` para el set del 2026-11-09);
+  añadió `R1` y los P1 de orbit, en `main` para el set del 2026-11-09) y
+  **`M0-F` el 2026-11-07** (los `fix` de 1.x que `M0-E` listó antes del
+  major: en `main` en quark y orbit; el de nucleus —el registro de
+  proveedores de `pkg/tasks`— espera a que el propietario decida qué hace
+  la lane SAML con GO-2026-6909, arreglada upstream pero sin versión
+  arreglada en la base de datos de Go);
   quedan `M1` → `R2`, y lo que tiene que cumplir el 2.0 está en
   [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
   2027-02-07 si ese set publica los once avisos que siguen en `main`).

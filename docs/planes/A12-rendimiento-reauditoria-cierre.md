@@ -205,6 +205,7 @@ Cinco hilos en paralelo (repos o ficheros distintos) y un cierre en serie.
 | `M0` | Preparar el major: decidir cada volteo (NU-72, OR-57 sólo con mTLS, el sobre con opción de quedarse, las firmas de constructores, `pkg/model`, signals), un aviso DEP y una fila por volteo, `umbrella-deprecations` ampliado a volteos, la política corregida (QM-20); y **orbit migra antes, en una minor** | A11 cerrado | el guard ve el 100 % de lo que va al major; orbit compila contra la rama del major |
 | `R1` | La re-auditoría completa con el método del 2026-09-03 más un auditor de rendimiento, sobre el último set 1.x y la lista cerrada del major; pasada adversarial y consolidación con las notas en CSV y guard | `Q*`, `N*`, `O1`, `R0`, `M0` | informe, registro y notas con guard; lo rompiente que encuentre entra en `M1` |
 | `M0-R` | Lo que `R1` dejó para antes del major: los cuatro avisos `por escribir` del §3.0 (filas 31–34: QK-76, OR-80, OR-93, OR-103) con su salida en 1.x, y los cuatro P1 de la re-auditoría (OR-78, OR-79, OR-80, OR-99) como `fix` de 1.x | `R1` | las cuatro filas `publicado` al pin; los cuatro P1 `hecho` en un set 1.x; `umbrella-deprecations` sin `por escribir` |
+| `M0-F` | Los `fix` de 1.x que `M0-E` listó y `R1` amplió, antes del major: el registro de proveedores de `pkg/tasks` (prerrequisito de DEP-2026-020), las coerciones del importador y los inlines (OR-144), la clave lógica de la subida (OR-141), OR-89 y QK-70 | `M0-R` | fusionados en un set 1.x; el módulo `providers/tasks-asynq` nace después, con su tag |
 | `M1` | El 2.0: retirar los doce símbolos, voltear los defaults, asynq a módulo propio (decisión 4), guía de migración generada; tren de cuatro repos | `R1`, `M0-R` | set 2.0.0 certificado; ninguna marca viva que prometa 2.0.0 |
 | `R2` | Confirmación ligera sobre el 2.0: bancos, guards y re-puntuar sólo lo que `M1` tocó; A12 cerrado | `M1` | todas las dimensiones a 5 salvo comunidad, o A13 abierto con lo que falte |
 
@@ -588,6 +589,45 @@ estar en sets 1.x antes de que `M1` empiece.
 - **Hallazgos nuevos** (registro, A12): OR-141 a OR-144, NU-152, NU-153 y
   QK-86 a QK-88.
 
+## `M0-F` — los `fix` de 1.x antes de `M1` (2026-11-07)
+
+> Lo que `M0-E` listó como «va a 1.x ANTES del major» y `R1` amplió, hecho
+> en tres tramos paralelos (uno por producto, cada agente en su worktree)
+> dos días antes del set del 2026-11-09, para que suban en él. La fuente
+> fue la rama `dry-run/2.0` de cada hermano: se portó sólo lo válido en
+> 1.x (nada que asuma un volteo del 2.0). Del listado de `M0-E` quedó
+> fuera **el nacimiento del módulo `providers/tasks-asynq`** (nace con su
+> tag en una sesión propia: `nucleus add tasks-asynq` apuntaría a un
+> módulo que no existe) y lo que ya estaba en `main` por `M0-R`
+> (`quarkdatasource` ya contestaba 404/400 desde orbit#579; el WARN por
+> directivas `db:` desconocidas ya corre al arrancar, `pkg/app/app.go`).
+
+| Tramo | PR | Qué deja |
+|---|---|---|
+| QK-70 (P2) | quark#479 | `CreateBatch` y `UpsertBatch` deciden la columna clave **por tramo** de entidades consecutivas que coinciden en llevar clave (`batchKeyRuns`), no por la primera: un lote mixto emite un juego de sentencias por tramo y ninguna clave se pierde ni se inserta `id=0`; sin cambio de firma; las guías de lotes corregidas |
+| Registro de proveedores de `pkg/tasks` (prerrequisito de DEP-2026-020) | nucleus#638 (abierto; ver NU-155) | `tasks.Provider`, `ProviderOptions`, `ProviderRuntime`, `RegisterProvider`, `MustRegisterProvider`, `LookupProvider`, `RegisteredProviders`; el proveedor asynq del árbol se registra en su `init` y `jobs.go` y `doctor --check tasks` resuelven por el registro (comportamiento idéntico en 1.x, con el import en blanco); `knownproviders.RequireDBDriver` compartido por `pkg/db` y `nucleustest.Transactional`; `hooks.SQLQueryEvent`, `hooks.SQLQueryObserver` y `hooks.NewSQLQueryObserver` sin tocar la firma de `NewSQLObserver`; la prosa de `pkg/tasks` en README, SPEC y el manual |
+| OR-89 (P3) | orbit#584 | DEP-2026-002 remite al README del adaptador y al paso 4 del quick-start, que enseña el camino de Quark junto al del registro (el texto anterior citaba opciones del adaptador que no existen) |
+| OR-141 (P2) | orbit#585 | la subida de un widget de fichero contesta y audita la clave lógica bajo un tenant, como import/export/fixtures desde orbit#581 |
+| OR-144 (P3) y las coerciones | orbit#586 | `(IsReadOnly && !IsPK)` en la validación de importación con el invariante del fuzz al día; las celdas CSV llegan al store en el tipo declarado; el padre de un inline se escribe en el tipo de su campo (`int64` también para `uint`: el adaptador de Nucleus no acepta `uint64`, OR-145); los pines de `internal/fleettest/go.mod` al set vigente; las sondas de identidad del fleet con el CN igual al `node_id` donde no miden el enlace |
+
+**Lo que la sesión encontró y el plan no decía**:
+
+- **Otra vulnerabilidad el día antes del corte, y esta sin arreglo en la
+  base de datos**: GO-2026-6909 (`crewjam/saml` ≤ v0.5.1, publicada el
+  2026-11-05) pone en rojo la lane SAML de nucleus y con ella el gate
+  obligatorio de todo PR. Upstream la arregla en v0.5.2 (nucleus#639 la
+  pina; los tests del proveedor pasan), pero la base de datos de Go la
+  lista sin versión arreglada, así que `govulncheck` sigue avisando
+  contra v0.5.2. Qué hace la lane mientras tanto es decisión del
+  propietario (NU-155); hasta entonces nucleus no fusiona nada (ni #638,
+  ni #639, ni su release PR).
+- **La DX al 5 no empezó**: NU-137 (los generadores sobre `pkg/model`)
+  es trabajo de diseño (Quark como capa de datos del starter y los
+  generadores) que no cabe en un tramo de porte; sigue como precondición
+  de `M1`.
+- **Hallazgos nuevos** (registro, A12): QK-89 a QK-91, NU-154 a NU-158 y
+  OR-145 a OR-148.
+
 ## Lo del propietario — en paralelo a `M0-R` (2026-10-27)
 
 > Decisión de Carlos del 2026-10-27, al fusionar `R1`: lo que la
@@ -627,5 +667,6 @@ estar en sets 1.x antes de que `M1` empiece.
 | M0-E | **hecha** 2026-10-23 (arrancada el 2026-10-18) | ramas `dry-run/2.0` en origin: quark `a2b4558d`, nucleus `2dd5b82f`, orbit `f584a53`; quantum (este PR) | el ensayo del major: treinta avisos aplicados por doce grupos en worktrees con un refutador cada uno, un integrador y un auditor por producto (workflows de agentes); orbit `dry-run/2.0` compila y pasa sus tests contra quark y nucleus `dry-run/2.0` por el `go.work` del paraguas (el criterio); el §3.0 sin filas `por escribir`. Lo que el §3 no preveía: la ruta `/v2` (§3.5 del contrato), el §2.1 como prerrequisito de DEP-024, quark en el grafo de la raíz de orbit (D11), y las decisiones D9 (starter `api` contra `generate module`) y D10 (metadatos por campo en `quarkdatasource`); los rojos y los `fix` de 1.x en la sección «`M0-E` — el ensayo del major, medido». Borrador del generador de la guía: `scripts/lib/migration-guide.py` + `docs/planes/guia-migracion-2.0.md` (23 entradas al pin) |
 | R1 | **hecha** 2026-10-27 (auditores el 2026-10-23, revisión adversarial el 2026-10-27) | quantum#294 | la re-auditoría completa sobre el pin de 1.42.0 con el método de `R0`: siete auditores en paralelo, siete revisores adversariales (ninguna nota movida; tres severidades cambiadas, seis duplicados fundidos, dieciséis hallazgos nuevos de los revisores), consolidación en `docs/auditoria/reauditoria/2026-10-23/` (informes, `adversarial.md`, `notas.csv`, README) y en el registro (122 filas: 0 P0, 4 P1, 24 P2, 94 P3). Media 2,79 → 4,12; tres dimensiones en 5; **el gate de A12 no se cumple** (32 dimensiones por debajo, lista en el README). Cuatro volteos al §3.0 del 2.0 (filas 31–34, `por escribir` → `M0-R`). La escala con los cuatro instrumentos que estaban «en main» movidos a `instrumento` (35 con instrumento, 1 juicio). Los criterios de rendimiento del arco: 15 % no cumplido en 5 de 9, COPY no, `N1` 26,2 MB > 25 MB. Sección «`R1` — la re-auditoría, medida» |
 | M0-R | **hecha** 2026-11-03 — tres de los cuatro P1 `hecho` (OR-78, OR-79, OR-99); OR-80 tiene la salida en 1.x y se cierra con el volteo de `M1` | quark#476, orbit#576…#579, orbit#581, orbit#582 (y el toolchain go1.26.10: quark#477, nucleus#635, orbit#580) | las cuatro filas 31–34 `en main` con su salida en 1.x; los siete avisos de quark re-fechados al 2027-02-07; la salida de QK-76 era un token nuevo; «configurado en `--peers`» definido por el `server_id` que contesta; nueve hallazgos nuevos (sección «`M0-R`») |
+| M0-F | **hecha** 2026-11-07 en quark y orbit; nucleus con el PR abierto y bloqueado por el gate (NU-155) | quark#479, orbit#584, orbit#585, orbit#586; nucleus#638 (abierto) y nucleus#639 (el bump de `crewjam/saml`, abierto) | tres tramos paralelos sobre las ramas `dry-run/2.0`, sólo lo válido en 1.x; el módulo `providers/tasks-asynq` nace en una sesión propia con su tag; la DX al 5 (NU-137) sigue como precondición de `M1`; doce hallazgos nuevos |
 | M1 | pendiente — precondición ampliada por `M0-E` y `R1`: `R1` hecha (lo está), `M0-R` hecha, D9…D11 decididas, la DX al 5 (§2.1) y los `fix` de 1.x publicados, el registro de proveedores de `pkg/tasks` en una minor, y las siete filas de quark `publicado` | — | |
 | R2 | pendiente | — | |
