@@ -113,6 +113,31 @@ del listón de [`criterios-5.csv`](../auditoria/criterios-5.csv) y lo mide `R1`.
 - `pkg/model` fuera del camino: generadores, starter y `nucleustest` sobre
   quark en 1.x, porque en el 2.0 se retira como capa pública (D5, fila 26).
 
+**Medido el 2026-11-08** (sesión `DX-0`; el detalle, la tabla punto a punto
+y el troceado están en la sección «La DX al 5 — medida y troceada» del
+[plan de A12](A12-rendimiento-reauditoria-cierre.md)). De los trece puntos
+de arriba, cuatro están hechos y medidos en `R1` (`nucleus dev`,
+completions, `routes`/`migrate` sobre el binario, tutoriales y referencia
+en CI); uno es del 2.0 y no de 1.x (las 60 consultas tipadas: 58 de 60, y
+las dos que quedan voltean con DEP-2026-008); y lo que de verdad
+desbloquea `M1` es el **bloque A**: los generadores y `nucleustest.Make`
+sobre quark (`DX-N1`, NU-137), el sitio de nucleus enseñando quark
+(`DX-N2`, nueve páginas) y el panel montado con `DataSource` desde
+`nucleus new --with orbit` (`DX-S1`, NU-159). El resto —receta en los
+`Err*` y la deriva de quark (`DX-Q1`), migraciones desde modelos y
+generadores tipados (`DX-N3`), guías por caso de uso (`DX-Q3`) y el
+playground (`DX-Q4`)— sube la nota de `R2` sin bloquear nada. Dos
+decisiones que el §2.1 no preveía:
+
+<!-- INICIO BLOQUE DE DECISIÓN DX -->
+
+| id | Qué decide | Propuesto | Decisión de Carlos |
+|---|---|---|---|
+| **D12** | `nucleustest.Make` «sobre quark» cuando nucleus no depende de quark (`go.mod` raíz sin él, a propósito desde el arco D3) | **Doble gramática sin dependencia nueva**: un struct que embebe `model.BaseModel` sigue su camino de hoy; cualquier otro struct lo lee el propio kit por sus etiquetas con la gramática de quark (`db:"columna"`, `pk:"true"`, `TableName()`) y lo escribe por el CRUD interno del framework. Es lo que la rama `dry-run/2.0` ya hace (`internal/model.ExtractMeta` sin registro) más la gramática de quark. La alternativa —un módulo hermano `nucleus/quarktest` que requiera quark— es un 16.º módulo en el tren y otro `go get` para el lector. `DX-N1` hace lo propuesto | |
+| **D13** | El playground de consultas de quark (criterio del 5 de docs/DX) | **Un constructor por formulario con quark compilado a WebAssembly**: el lector elige un modelo de ejemplo, filtros, orden, límite y motor, y la página enseña el SQL que quark emite en los seis dialectos; no ejecuta nada contra una base. Primero una sesión mide el peso del `.wasm` en la página y si pasa el presupuesto del sitio. Alternativas: **(b)** una galería estática «consulta tipada → SQL por motor» generada en CI desde las 60 del banco (sin interactividad: no es un playground, pero no miente), o **(c)** retirar el punto del criterio (`criterios-5.csv` es del propietario). Recomendación: (a) con la medición delante; si el peso no pasa, (b) | |
+
+<!-- FIN BLOQUE DE DECISIÓN DX -->
+
 ## 3. Lo que entra en el 2.0
 
 ### 3.0 La lista cerrada, con el estado de cada aviso (medida el 2026-10-16)
