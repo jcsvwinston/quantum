@@ -415,6 +415,12 @@ GUARD_SCAN_EXCLUDE=(
   # de todos los bloques del mismo fichero, más sus dos self-checks (cada
   # ruta emitida tiene go.mod en el submódulo; una línea por versión).
   "scripts/print-requires.sh"
+  # Utillaje de CONSTRUCCIÓN del sitio (DX-Q4 de A12): compila el playground
+  # de quark a WebAssembly al pin, delegando en quark/scripts/ci/build_playground.sh,
+  # para que Docusaurus lo sirva. No tiene veredicto propio: el presupuesto de
+  # peso lo aplica el script de quark (falla si el gzip pasa de 3,5 MB) y la
+  # lane de quark lo corre en cada PR; aquí sólo produce ficheros.
+  "scripts/build_quark_playground.sh"
   # Utillaje de LECTURA del go.work: imprime los patrones `./modulo/...` para
   # `go build`/`go vet` desde la raíz. Emite texto, no tiene veredicto; lo que
   # sí certifica la cobertura del go.work es check_gowork_covers_manifest.sh.

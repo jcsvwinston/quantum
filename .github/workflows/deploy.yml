@@ -45,6 +45,18 @@ jobs:
         working-directory: website
         run: npm ci
 
+      - name: Setup Go (el playground de quark se compila a WebAssembly al pin)
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.work
+          cache: false
+
+      # El .wasm y su wasm_exec.js van a website/static/quark-playground/
+      # (gitignored) ANTES del build de Docusaurus, que los sirve tal cual.
+      # Si el pin de quark aún no trae el script, no construye nada (sale 0).
+      - name: Build quark playground (wasm)
+        run: bash scripts/build_quark_playground.sh
+
       - name: Build
         working-directory: website
         run: npm run build
