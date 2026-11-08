@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-08, QUANTUM 1.43.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0` ENTERA PUBLICADA (las 34 filas del §3.0 del 2.0 en `publicado`; el 2.0 no antes de 2027-02-07), `R1`, `M0-R` y `M0-F` HECHAS; **la DX al 5 (§2.1) EN CURSO**: `DX-0` la contó y troceó, y el bloque A entero (`DX-N1`, `DX-S1`, `DX-N2`) más `DX-Q1` y `DX-Q3` están en `main` de nucleus y quark (nucleus#644/#646/#647, quark#481/#482/#484), y el mismo día Carlos decidió D12 (opción 2 → `DX-N1b`, nucleus#648: `quarkmake`) y D13 ((a) → `DX-Q4`, quark#485: el playground en wasm, medido); siguiente: el set del 2026-11-16 que lo publica todo (con el módulo nuevo de nucleus), `DX-N3`, el nacimiento de `providers/tasks-asynq` y D9…D11 → M1 → R2)
+## 3. Estado al cierre (2026-11-08, QUANTUM 1.43.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0` ENTERA PUBLICADA (las 34 filas del §3.0 del 2.0 en `publicado`; el 2.0 no antes de 2027-02-07), `R1`, `M0-R` y `M0-F` HECHAS; **la DX al 5 (§2.1) EN CURSO**: `DX-0` la contó y troceó, y el bloque A entero (`DX-N1`, `DX-S1`, `DX-N2`) más `DX-Q1` y `DX-Q3` están en `main` de nucleus y quark (nucleus#644/#646/#647, quark#481/#482/#484), y el mismo día Carlos decidió D12 (opción 2 → `DX-N1b`, nucleus#648: `quarkmake`) y D13 ((a) → `DX-Q4`, quark#485: el playground en wasm, medido), y `DX-N3` quedó partida en tres con `DX-N3q` (quark#486) y `DX-N3n1` (nucleus#650) hechas; siguiente: el set del 2026-11-16 que lo publica todo (con el módulo nuevo de nucleus), `DX-N3`, el nacimiento de `providers/tasks-asynq` y D9…D11 → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -361,9 +361,27 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `scripts/ci/check_modules_standalone.sh` hasta que su suelo de nucleus
   sea la release que lleva la costura (sus tests llaman a `UseFactory`,
   que v1.34.0 no tiene): añadirlo a la lista del script en el PR de suelos.
+- **`DX-N3` arranca el mismo día y queda medida y partida en tres** (fila
+  `DX-N3` del plan): el CLI de quark escribía la migración derivada de
+  modelos como fichero Go, y nucleus la quiere como par `.up.sql`/`.down.sql`.
+  `DX-N3q` (quark#486): `migrate create --from-models --emit json` imprime
+  `{schema:1, tool, version, dialect, models, up, down}` sin escribir nada
+  (hallazgo de paso QK-100: `--from-models` se resuelve contra el cwd).
+  `DX-N3n1` (nucleus#650): `generate module` sobre `nucleus.Handle` tipado
+  con esquemas en `/openapi.json` y errores por el sobre (problem+json
+  negociado); `doctor`/`health`/`config print` leen los imports
+  `providers/*` de `main.go`; NU-132/136/145 `hecho`; nuevos NU-165…167
+  (la doc a mano del quickstart enseña `{"error": …}` fuera del sobre y
+  afirma que es «la misma forma» que el generador; `resource`/`startapp`
+  siguen sin tipar; un test con interceptor de relleno). **`DX-N3n2`**
+  (`nucleus makemigrations` llamando al CLI de quark con `--emit json`)
+  espera a que el set del 2026-11-16 publique `cmd/quark`: la lane
+  `suite-starter` monta los hermanos a su última release, así que antes
+  no puede estar verde.
 - **Lo siguiente**: el set del 2026-11-16 (publica el bloque A, `DX-Q1` y
   `DX-Q3`); `DX-N3` (`makemigrations` delegando en el CLI de quark,
-  NU-145/136/132) en 1.x en paralelo a `M1`; el nacimiento de
+  NU-145/136/132: sólo queda `DX-N3n2`, `makemigrations`, tras la release
+  de `cmd/quark` del set) en 1.x en paralelo a `M1`; el nacimiento de
   `providers/tasks-asynq`; D9…D11 de Carlos (D12 y D13 ya decididas).
 
 ### Sesión 2026-11-07 (segunda) — **Quantum 1.43.0 certificado: la segunda mitad de `M0` publicada, los tres pilares MINOR, y un tren de dos horas y media con cuatro paradas que no estaban en el guion**
