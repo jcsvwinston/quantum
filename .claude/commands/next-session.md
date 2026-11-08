@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-07, QUANTUM 1.43.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0` ENTERA PUBLICADA (las 34 filas del §3.0 del 2.0 en `publicado`; el 2.0 no antes de 2027-02-07), `R1`, `M0-R` y `M0-F` HECHAS; siguiente: en 1.x antes de `M1` la DX al 5 (NU-137), el nacimiento de `providers/tasks-asynq` y D9…D11 → M1 → R2)
+## 3. Estado al cierre (2026-11-08, QUANTUM 1.43.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0` ENTERA PUBLICADA (las 34 filas del §3.0 del 2.0 en `publicado`; el 2.0 no antes de 2027-02-07), `R1`, `M0-R` y `M0-F` HECHAS; **la DX al 5 (§2.1) EN CURSO**: `DX-0` la contó y troceó, `DX-N1` (nucleus, NU-137) y `DX-Q1` (quark, QK-78) en PR; siguiente: `DX-N2` y `DX-S1` tras fusionar `DX-N1`, el nacimiento de `providers/tasks-asynq` y D9…D13 → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -164,8 +164,20 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   fecha, que se retiran solas cuando la base de Go registre la versión
   arreglada) y nucleus#638 (el registro de proveedores de `pkg/tasks`,
   que hace a nucleus MINOR) en `main`; las notas de v1.34.0 y el snapshot
-  en nucleus#640 (abierto, antes del tren). Queda delante de `M1`: la DX
-  al 5 (NU-137), el módulo `providers/tasks-asynq` con su tag y D9…D11).
+  en nucleus#640 (publicado en 1.43.0). **Y la DX al 5 (§2.1) EN CURSO
+  desde el 2026-11-08**: `DX-0` la contó punto a punto al pin de 1.43.0 y
+  la troceó (sección «La DX al 5 — medida y troceada» del plan): sólo el
+  **bloque A** desbloquea `M1` —`DX-N1` (los generadores y
+  `nucleustest.Make` sobre quark, NU-137), `DX-N2` (las nueve páginas del
+  sitio de nucleus que enseñan `pkg/model`) y `DX-S1` (`nucleus new --with
+  orbit` monta el panel sin `DataSource`, NU-159)—; `DX-Q1` (receta en los
+  `Err*` de quark y su deriva), `DX-N3`, `DX-Q3` y `DX-Q4` suben la nota de
+  `R2` sin bloquear nada; las dos consultas del banco que faltan (58 de
+  60) son del 2.0 (DEP-2026-008). Dos decisiones nuevas al propietario en
+  el contrato: D12 (`Make` con doble gramática, hecha como propuesta
+  porque nucleus no depende de quark) y D13 (la forma del playground).
+  Queda delante de `M1`: el bloque A publicado en un set, el módulo
+  `providers/tasks-asynq` con su tag y D9…D13).
   Decisiones de Carlos para A11: ejemplos como fixtures probados,
   construir saml/redis-cache/sentry (Stripe se construyó y se
   retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
@@ -326,58 +338,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   D9…D11 de Carlos; vigilar el 2026-12-31 (caduca la excepción de
   GO-2026-6909 en la lane SAML de nucleus) y el lunes 9 la lane semanal
   sobre el set recién certificado.
-
-### Sesión 2026-11-07 — **A12 `M0-F`: los `fix` de 1.x antes de `M1`, en tres tramos paralelos; y otra vulnerabilidad el día antes del corte, esta sin versión arreglada en la base de datos**
-
-- **Arranque**: sábado, con el set del lunes 9 preparado en los tres
-  release PRs (quark#478 v1.18.0, nucleus#636 v1.33.1, orbit#583
-  v1.21.0). El foco fue lo que `M1` exige antes en 1.x y cabe en un
-  porte: las ramas `dry-run/2.0` ya lo tenían hecho junto a los volteos
-  del 2.0, así que tres agentes (uno por producto, cada uno en su
-  worktree) portaron sólo lo válido en 1.x. Antes, seis PRs de Dependabot
-  del paraguas fusionados en serie (quantum#179…#292; `main` verde).
-- **Lo que deja** (sección «`M0-F`» del plan): quark#479 (QK-70: la
-  columna clave por tramo en `CreateBatch`/`UpsertBatch`), orbit#584
-  (OR-89), #585 (OR-141) y #586 (OR-144, las celdas CSV y el padre de los
-  inlines en el tipo del campo, los pines de `fleettest`), fusionados en
-  serie con el CI de `main` verde tras cada uno; nucleus#638 (el registro
-  de proveedores de `pkg/tasks`, `knownproviders.RequireDBDriver`, los
-  tipos `hooks.SQLQueryEvent`/`SQLQueryObserver`) **abierto y en verde en
-  todo menos la lane SAML**. QK-70, OR-89, OR-141 y OR-144 `hecho`; doce
-  hallazgos nuevos (QK-89…91, NU-154…158, OR-145…148).
-- **GO-2026-6909** (`crewjam/saml` ≤ v0.5.1, publicada el 5): pone en
-  rojo la lane SAML de nucleus y con ella el gate obligatorio de TODO PR
-  de nucleus, incluido su release PR. Upstream lo arregla en v0.5.2
-  (nucleus#639 la pina; los tests del proveedor pasan, con `-race`), pero
-  la base de datos de Go la lista sin versión arreglada, así que
-  `govulncheck` sigue avisando contra v0.5.2. **Decisión del propietario
-  (NU-155), tomada el mismo día: la opción 1**, una excepción acotada al
-  id y con fecha en vez de esperar. La lane SAML corre
-  `scripts/ci/govulncheck_gate.sh` (mismo veredicto que el binario: falla
-  lo que el código LLAMA) con `scripts/ci/govulncheck_exceptions.txt`:
-  una línea por id+módulo+versión, con caducidad (2026-12-31) y válida
-  sólo mientras la base no registre versión arreglada; cuando la
-  registre, la línea queda rancia (aviso) o el hallazgo vuelve a fallar
-  porque el pin se quedó corto. Seis comprobaciones en local contra un
-  escaneo grabado. Con ella, nucleus#639 y #638 fusionados en serie (CI
-  de `main` verde entre medias) y nucleus#640 abierto con las notas de
-  v1.34.0 y el snapshot.
-- **Lo que el plan no decía**: `quarkdatasource` ya contestaba 404/400
-  desde orbit#579 y el WARN por directivas `db:` ya corre al arrancar
-  (el porte de esas dos partes era duplicado); el módulo
-  `providers/tasks-asynq` NO nace en 1.x hasta su propia sesión (nacería
-  con `nucleus add` apuntando a un módulo inexistente); el adaptador de
-  Nucleus no acepta `uint64` (OR-145), así que el stamp del inline emite
-  `int64`; y la DX al 5 (NU-137) es diseño, no porte: sigue delante de
-  `M1`.
-- **Trampa nueva**: el `go.work` local (ignorado) del checkout de nucleus
-  aún listaba `providers/tasks-asynq` del ensayo `dry-run/2.0`, y
-  `check-coverage.sh --strict` fallaba en local por él (el CI no lo ve);
-  quitar la línea al volver de un ensayo.
-- **Lo siguiente**: fusionar nucleus#640 cuando esté verde y conducir el
-  set del 2026-11-09 (quark y orbit MINOR, nucleus MINOR v1.34.0), cuyo
-  PR pasa las once filas del §3.0 a `publicado` y sube el `go.work` a
-  go1.26.10.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
