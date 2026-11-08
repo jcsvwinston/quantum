@@ -284,6 +284,58 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-11-08 — **La DX al 5 arranca: `DX-0` la cuenta y la trocea, y el bloque A entero más `DX-Q1` y `DX-Q3` entran en `main` el mismo día (seis PRs en dos productos, cinco agentes en paralelo)**
+
+- **Arranque**: Carlos dijo «adelante con la DX al 5» sobre el set 1.43.0
+  recién certificado. El §2.1 del contrato lista trece puntos; antes de
+  tocar nada, `DX-0` midió cada uno al pin (tabla «Lo que hay, contado» en
+  la sección «La DX al 5 — medida y troceada» del plan de A12) y troceó:
+  sólo el **bloque A** (`DX-N1`, `DX-N2`, `DX-S1`) desbloquea `M1`; lo
+  demás sube la nota de `R2`.
+- **Tres cosas que el §2.1 no decía**: nucleus NO depende de quark, así
+  que `nucleustest.Make` «sobre quark» no podía importarlo (D12: doble
+  gramática sin dependencia, hecha como propuesta); las dos consultas del
+  banco que faltan (58 de 60) son `GROUP BY` sin proyección con aviso
+  DEP-2026-008, del 2.0 y no de 1.x; y `nucleus new --with orbit` en
+  `mvc`/`api` montaba el panel sin `DataSource`, que el 2.0 rehúsa
+  (NU-159, fuera de la lista de `M0-E`).
+- **Lo que deja en `main`** (todo fusionado en serie con `merge-group.sh`
+  y el CI de `main` verde detrás de cada uno): nucleus#644 (`DX-N1`:
+  `generate model|resource` y `startapp` escriben modelos quark con
+  `--data quark|sql`, `Make` con doble gramática, `bodycheck` entiende la
+  gramática de quark), nucleus#646 (`DX-S1`: `--with orbit` implica quark
+  y `quarkdatasource`, el panel monta con `DataSource` sobre el pool del
+  framework y el scaffold arranca contra orbit 1.x y `dry-run/2.0`),
+  nucleus#647 (`DX-N2`: el quickstart y ocho páginas más enseñan Quark,
+  `pkg/model` como sustrato que se va; NU-133/135/144 cerrados: README 43
+  comandos con test, FED-03 `present` → `auth-bench.md` **41 de 43**,
+  `bodycheck -strict` sin avisos), quark#481 (`DX-Q1`: receta «What to
+  do:» en **30 de 30** centinelas —la auditoría contó 25— y en 165 de 185
+  wraps, contada por `TestEveryExportedSentinelNamesWhatToDo`), quark#482
+  (la deriva QK-73/74/77/82 y el drift guard estricto bajo
+  `docs/deprecations/`) y quark#484 (`DX-Q3`: guías de producción de
+  caché, réplicas y sharding, copia byte a byte de fixtures que corren en
+  CI, y dos afirmaciones falsas de la doc existente corregidas).
+- **Registro**: `hecho` NU-137, NU-159, NU-133, NU-135, NU-144, QK-73,
+  QK-74, QK-77, QK-78, QK-82; nuevos NU-160…NU-163 y QK-92…QK-97.
+- **Decisiones al propietario** (bloque DX del contrato): **D12** (`Make`
+  doble gramática: confirmar o cambiar) y **D13** (la forma del
+  playground de quark: constructor por formulario con quark en
+  WebAssembly midiendo el peso antes, galería estática desde las 60 del
+  banco, o retirar el punto del criterio).
+- **Trampas para el próximo tren**: `website/docs/why-quantum.md` cita
+  «40 of 43» del banco de auth y `umbrella-why-quantum` lo cruza con la
+  fuente al pin (41 de 43 con el nucleus nuevo): se corrige en el PR de
+  set; los textos de `ErrNotFound`, `ErrTimeout` y `ErrConstraintViolation`
+  de quark crecen tras el prefijo (un test de orbit que compare
+  `err.Error()` exacto se rompería al subir el pin); el bloque A es la
+  precondición de `M1` y tiene que salir en un set (quark y nucleus MINOR:
+  notas y snapshot antes del tren, receta de 1.42.0).
+- **Lo siguiente**: el set del 2026-11-16 (publica el bloque A, `DX-Q1` y
+  `DX-Q3`); `DX-N3` (`makemigrations` delegando en el CLI de quark,
+  NU-145/136/132) en 1.x en paralelo a `M1`; `DX-Q4` cuando D13; el
+  nacimiento de `providers/tasks-asynq`; D9…D13 de Carlos.
+
 ### Sesión 2026-11-07 (segunda) — **Quantum 1.43.0 certificado: la segunda mitad de `M0` publicada, los tres pilares MINOR, y un tren de dos horas y media con cuatro paradas que no estaban en el guion**
 
 - **Arranque**: Carlos pidió arrancar el tren del lunes 9 el sábado 7, con
@@ -377,6 +429,12 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 
 **Trabajo con destinatario (por orden de arranque):**
 
+- **El próximo PR de set corrige «40 of 43» en `website/docs/why-quantum.md`**:
+  nucleus#647 (`DX-N2`, 2026-11-08) re-verdictó FED-03 y `docs/auth-bench.md`
+  publica 41 de 43; `umbrella-why-quantum` cruza la cifra con la fuente al
+  pin y pondrá rojo el PR de set hasta que la página diga 41. Y orbit, al
+  subir el pin de quark: los textos de `ErrNotFound`, `ErrTimeout` y
+  `ErrConstraintViolation` crecen tras el prefijo (quark#481).
 - **Las 34 filas del §3.0 están `publicado`** desde Quantum 1.43.0
   (2026-11-07): la ventana más tardía abre el 2027-02-07 y el 2.0 no sale
   antes. Lo que queda con fecha: la excepción de
