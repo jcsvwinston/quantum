@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-08, QUANTUM 1.43.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0` ENTERA PUBLICADA (las 34 filas del §3.0 del 2.0 en `publicado`; el 2.0 no antes de 2027-02-07), `R1`, `M0-R` y `M0-F` HECHAS; **la DX al 5 (§2.1) EN CURSO**: `DX-0` la contó y troceó, `DX-N1` (nucleus, NU-137) y `DX-Q1` (quark, QK-78) en PR; siguiente: `DX-N2` y `DX-S1` tras fusionar `DX-N1`, el nacimiento de `providers/tasks-asynq` y D9…D13 → M1 → R2)
+## 3. Estado al cierre (2026-11-08, QUANTUM 1.43.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0` ENTERA PUBLICADA (las 34 filas del §3.0 del 2.0 en `publicado`; el 2.0 no antes de 2027-02-07), `R1`, `M0-R` y `M0-F` HECHAS; **la DX al 5 (§2.1) EN CURSO**: `DX-0` la contó y troceó, y el bloque A entero (`DX-N1`, `DX-S1`, `DX-N2`) más `DX-Q1` y `DX-Q3` están en `main` de nucleus y quark (nucleus#644/#646/#647, quark#481/#482/#484); siguiente: el set del 2026-11-16 que lo publica, `DX-N3`, el nacimiento de `providers/tasks-asynq` y D9…D13 → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -176,8 +176,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   60) son del 2.0 (DEP-2026-008). Dos decisiones nuevas al propietario en
   el contrato: D12 (`Make` con doble gramática, hecha como propuesta
   porque nucleus no depende de quark) y D13 (la forma del playground).
-  Queda delante de `M1`: el bloque A publicado en un set, el módulo
-  `providers/tasks-asynq` con su tag y D9…D13).
+  **El bloque A entero, `DX-Q1` y `DX-Q3` entraron en `main` el mismo
+  2026-11-08** (nucleus#644, #646, #647; quark#481, #482, #484; sesión de
+  abajo). Queda delante de `M1`: el bloque A publicado en un set (el del
+  2026-11-16), el módulo `providers/tasks-asynq` con su tag y D9…D13).
   Decisiones de Carlos para A11: ejemplos como fixtures probados,
   construir saml/redis-cache/sentry (Stripe se construyó y se
   retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
