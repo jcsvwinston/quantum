@@ -43,3 +43,6 @@ website/versions.json
 
 # Config local del preview de Claude Code (artefacto de sesión)
 .claude/launch.json
+
+# Salida de scripts/build_quark_playground.sh (el .wasm de quark + wasm_exec.js)
+website/static/quark-playground/

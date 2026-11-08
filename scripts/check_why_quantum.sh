@@ -196,7 +196,7 @@ E_QUICKSTART=$(qs_commands "$QUICKSTART" | grep -c .)
 # su NOMBRE, no por su clase: la página nombra a Sentry y a SAML, así que otro
 # `providers/errors-*` o `providers/auth-*` cae en «una clase que la página no
 # nombra» en vez de contarse en silencio bajo un nombre que no es el suyo.
-n_mod=0; n_drv=0; n_exp=0; n_sto=0; n_ldap=0; n_sec=0; n_err=0; n_fed=0
+n_mod=0; n_drv=0; n_exp=0; n_sto=0; n_ldap=0; n_sec=0; n_err=0; n_fed=0; n_kit=0
 set_dirs=""
 for key in $(mm_keys nucleus_modules); do
   dir=$(mm_path_for_key nucleus "$key") || { report "[catalog] la clave $key de nucleus_modules es ambigua en el árbol"; continue; }
@@ -206,6 +206,13 @@ for key in $(mm_keys nucleus_modules); do
   # ejecuta `nucleus add`, no algo que `add` instale. Sólo esa ruta: otro
   # módulo bajo cmd/ cae en «una clase que la página no nombra».
   [[ "$dir" == "cmd/nucleus" ]] && continue
+  # Un kit de pruebas (`pkg/nucleustest/*`, desde la sesión DX-N1b de A12:
+  # `quarkmake`, el que persiste modelos quark por quark) es un módulo del
+  # set que `nucleus add` NO instala —va en el go.mod de los tests con `go
+  # get`—, así que no cuenta entre los «módulos opcionales» de la frase ni
+  # tiene que estar en la tabla de `add`; pero la página tiene que nombrarlo
+  # como lo que es, o diría que el set son sólo drivers y providers.
+  if [[ "$dir" == pkg/nucleustest/* ]]; then n_kit=$((n_kit + 1)); continue; fi
   n_mod=$((n_mod + 1)); set_dirs+="$dir"$'\n'
   case "$dir" in
     drivers/*)               n_drv=$((n_drv + 1)) ;;
@@ -240,6 +247,9 @@ if [[ "$(grep -c . <<<"$core_names")" -ne "${n_core:-0}" ]]; then
 fi
 if [[ $n_ldap -ne 1 || $n_sec -ne 1 || $n_err -ne 1 || $n_fed -ne 1 ]]; then
   report "[catalog] la página nombra UN backend LDAP, UN resolvedor de secretos, UN reportero de errores (Sentry) y UN proveedor SAML; el set certifica $n_ldap, $n_sec, $n_err y $n_fed"
+fi
+if [[ $n_kit -gt 0 ]] && ! grep -qiE "test kit" "$PAGE"; then
+  report "[catalog] el set certifica $n_kit módulo(s) de kit de pruebas bajo pkg/nucleustest/ y la página no dice «test kit»: nómbralo junto al catálogo (no lo instala \`nucleus add\`)"
 fi
 
 # ---- las afirmaciones: id | página | patrón (perl, una captura por cifra) | esperado | cita

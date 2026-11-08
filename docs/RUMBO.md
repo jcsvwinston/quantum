@@ -51,9 +51,9 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   GO-2026-6909 —arreglada upstream pero sin versión arreglada en la base de
   datos de Go— con una excepción acotada, con fecha y que se retira sola);
   **la DX al 5 (§2.1 del contrato) en curso desde el 2026-11-08**: `DX-0`
-  la contó y troceó, y sólo su bloque A (los generadores, el sitio de
-  nucleus y el panel montado con `DataSource` sobre quark) está delante
-  de `M1`; quedan `M1` → `R2`, y lo que tiene que cumplir el 2.0 está en
+  la contó y troceó, D12 y D13 están decididas, y sólo su bloque A (los
+  generadores, `Make` por quark desde su módulo, el sitio de nucleus y el
+  panel montado con `DataSource` sobre quark) está delante de `M1`; quedan `M1` → `R2`, y lo que tiene que cumplir el 2.0 está en
   [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
   2027-02-07: este set publicó los once avisos que faltaban).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de

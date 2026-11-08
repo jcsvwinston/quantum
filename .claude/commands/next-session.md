@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-08, QUANTUM 1.43.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0` ENTERA PUBLICADA (las 34 filas del §3.0 del 2.0 en `publicado`; el 2.0 no antes de 2027-02-07), `R1`, `M0-R` y `M0-F` HECHAS; **la DX al 5 (§2.1) EN CURSO**: `DX-0` la contó y troceó, y el bloque A entero (`DX-N1`, `DX-S1`, `DX-N2`) más `DX-Q1` y `DX-Q3` están en `main` de nucleus y quark (nucleus#644/#646/#647, quark#481/#482/#484); siguiente: el set del 2026-11-16 que lo publica, `DX-N3`, el nacimiento de `providers/tasks-asynq` y D9…D13 → M1 → R2)
+## 3. Estado al cierre (2026-11-08, QUANTUM 1.43.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0` ENTERA PUBLICADA (las 34 filas del §3.0 del 2.0 en `publicado`; el 2.0 no antes de 2027-02-07), `R1`, `M0-R` y `M0-F` HECHAS; **la DX al 5 (§2.1) EN CURSO**: `DX-0` la contó y troceó, y el bloque A entero (`DX-N1`, `DX-S1`, `DX-N2`) más `DX-Q1` y `DX-Q3` están en `main` de nucleus y quark (nucleus#644/#646/#647, quark#481/#482/#484), y el mismo día Carlos decidió D12 (opción 2 → `DX-N1b`, nucleus#648: `quarkmake`) y D13 ((a) → `DX-Q4`, quark#485: el playground en wasm, medido); siguiente: el set del 2026-11-16 que lo publica todo (con el módulo nuevo de nucleus), `DX-N3`, el nacimiento de `providers/tasks-asynq` y D9…D11 → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -318,13 +318,30 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `docs/deprecations/`) y quark#484 (`DX-Q3`: guías de producción de
   caché, réplicas y sharding, copia byte a byte de fixtures que corren en
   CI, y dos afirmaciones falsas de la doc existente corregidas).
-- **Registro**: `hecho` NU-137, NU-159, NU-133, NU-135, NU-144, QK-73,
-  QK-74, QK-77, QK-78, QK-82; nuevos NU-160…NU-163 y QK-92…QK-97.
-- **Decisiones al propietario** (bloque DX del contrato): **D12** (`Make`
-  doble gramática: confirmar o cambiar) y **D13** (la forma del
-  playground de quark: constructor por formulario con quark en
-  WebAssembly midiendo el peso antes, galería estática desde las 60 del
-  banco, o retirar el punto del criterio).
+- **Registro**: `hecho` NU-137 (re-evidenciado con nucleus#648), NU-159,
+  NU-133, NU-135, NU-144, QK-73, QK-74, QK-77, QK-78, QK-82; nuevos
+  NU-160…NU-164 y QK-92…QK-99 (QK-98: doble espacio tras `IS NULL` en el
+  SQL emitido; QK-99: enlace roto en `reference/api/index.mdx` que rompe
+  el `npm run build` del sitio propio de quark; NU-164: nucleus dice
+  `postgresql` y quark no lo acepta como nombre de motor).
+- **Decisiones del propietario, el mismo día** (bloque DX del contrato):
+  **D12 → opción 2** («lo más sensato es la 2, ¿no?», y lo era: al releer
+  nucleus#644 la doble gramática persistía por el CRUD de `pkg/model`, la
+  capa que `M1` retira, y duplicaba la gramática de quark en nucleus);
+  `DX-N1b` la sustituye antes del set: costura en `nucleustest` y módulo
+  `pkg/nucleustest/quarkmake` (nucleus#648, fusionado; el root sigue sin quark por `contracts/quark_out_of_root_test.go`; `nucleus add` no lo instala, por lista en `catalog_test.go`). **D13 → (a) adelante** con la
+  medición hecha: quark raíz compila a `js/wasm` sin cambios y el `.wasm`
+  pesa 13,1 MB crudo / 3,09 MB gzip / 2,19 MB brotli (suelo de Go 3,4 /
+  0,95 / 0,71; el chunk más grande del sitio 0,75 / 0,18 / 0,14); el sitio
+  no tenía presupuesto escrito, así que `DX-Q4` publica bajo tres
+  condiciones —carga sólo a petición con el peso en el botón, ejemplo
+  estático sin JavaScript que CI compara con el render, y
+  `check_playground_weight.sh` con gzip ≤ 3,5 MB y el peso escrito a
+  ±10 %— (quark#485, fusionado: 14,0 MB crudo / 3,26 MB gzip medidos por el script con los siete presets; cada instanciación genérica de `Query[T]` cuesta ~130 KB gzip, así que cuatro de los cinco modelos renderizan por una forma común con `FromTable` y dos tests prueban SQL idéntico byte a byte). El paraguas lo compila al pin en `deploy`/`website-ci`
+  (setup-go + `scripts/build_quark_playground.sh`, que sale 0 mientras el
+  pin no traiga el script de quark) y `umbrella-why-quantum` aprende la
+  clase «kit de pruebas» (`pkg/nucleustest/*`: módulo del set que
+  `nucleus add` no instala; la página tiene que decir «test kit»).
 - **Trampas para el próximo tren**: `website/docs/why-quantum.md` cita
   «40 of 43» del banco de auth y `umbrella-why-quantum` lo cruza con la
   fuente al pin (41 de 43 con el nucleus nuevo): se corrige en el PR de
@@ -332,11 +349,22 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   de quark crecen tras el prefijo (un test de orbit que compare
   `err.Error()` exacto se rompería al subir el pin); el bloque A es la
   precondición de `M1` y tiene que salir en un set (quark y nucleus MINOR:
-  notas y snapshot antes del tren, receta de 1.42.0).
+  notas y snapshot antes del tren, receta de 1.42.0). Y con `DX-N1b`, el
+  set estrena un módulo de nucleus que NO instala `nucleus add`
+  (`quarkmake`): fila en `versions.yaml` `nucleus_modules`, `use` en el
+  `go.work` EN el PR de re-pin (1.26.2), la frase «test kit» en
+  `why-quantum.md`, y es el primer módulo de nucleus que pina quark, así
+  que la alineación tras cortar quark también le toca a nucleus.
+  Dos más de `DX-N1b`: `quarkmake` nace con `0.0.0` en el manifiesto de
+  release-please (receta de errors-sentry; si el tag sale con otro número,
+  la trampa de 1.41.0: release-as y quitarlo), y queda FUERA de
+  `scripts/ci/check_modules_standalone.sh` hasta que su suelo de nucleus
+  sea la release que lleva la costura (sus tests llaman a `UseFactory`,
+  que v1.34.0 no tiene): añadirlo a la lista del script en el PR de suelos.
 - **Lo siguiente**: el set del 2026-11-16 (publica el bloque A, `DX-Q1` y
   `DX-Q3`); `DX-N3` (`makemigrations` delegando en el CLI de quark,
-  NU-145/136/132) en 1.x en paralelo a `M1`; `DX-Q4` cuando D13; el
-  nacimiento de `providers/tasks-asynq`; D9…D13 de Carlos.
+  NU-145/136/132) en 1.x en paralelo a `M1`; el nacimiento de
+  `providers/tasks-asynq`; D9…D11 de Carlos (D12 y D13 ya decididas).
 
 ### Sesión 2026-11-07 (segunda) — **Quantum 1.43.0 certificado: la segunda mitad de `M0` publicada, los tres pilares MINOR, y un tren de dos horas y media con cuatro paradas que no estaban en el guion**
 
