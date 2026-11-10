@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-08, QUANTUM 1.43.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0` ENTERA PUBLICADA (las 34 filas del §3.0 del 2.0 en `publicado`; el 2.0 no antes de 2027-02-07), `R1`, `M0-R` y `M0-F` HECHAS; **la DX al 5 (§2.1) EN CURSO**: `DX-0` la contó y troceó, y el bloque A entero (`DX-N1`, `DX-S1`, `DX-N2`) más `DX-Q1` y `DX-Q3` están en `main` de nucleus y quark (nucleus#644/#646/#647, quark#481/#482/#484), y el mismo día Carlos decidió D12 (opción 2 → `DX-N1b`, nucleus#648: `quarkmake`) y D13 ((a) → `DX-Q4`, quark#485: el playground en wasm, medido), y `DX-N3` quedó partida en tres con `DX-N3q` (quark#486) y `DX-N3n1` (nucleus#650) hechas; siguiente: el set del 2026-11-16 que lo publica todo (con el módulo nuevo de nucleus), `DX-N3`, el nacimiento de `providers/tasks-asynq` y D9…D11 → M1 → R2)
+## 3. Estado al cierre (2026-11-08, QUANTUM 1.43.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0` ENTERA PUBLICADA (las 34 filas del §3.0 del 2.0 en `publicado`; el 2.0 no antes de 2027-02-07), `R1`, `M0-R` y `M0-F` HECHAS; **la DX al 5 (§2.1) EN CURSO**: `DX-0` la contó y troceó, y el bloque A entero (`DX-N1`, `DX-S1`, `DX-N2`) más `DX-Q1` y `DX-Q3` están en `main` de nucleus y quark (nucleus#644/#646/#647, quark#481/#482/#484), y el mismo día Carlos decidió D12 (opción 2 → `DX-N1b`, nucleus#648: `quarkmake`) y D13 ((a) → `DX-Q4`, quark#485: el playground en wasm, medido), y `DX-N3` quedó partida en tres con `DX-N3q` (quark#486) y `DX-N3n1` (nucleus#650) hechas; **el 2026-11-10 QK-100 quedó `hecho` (quark#487) y nació `providers/tasks-asynq` (nucleus#651: módulo de reenvío hasta el 2.0)**; siguiente: el set del 2026-11-16 que lo publica todo (con los DOS módulos nuevos de nucleus), `DX-N3n2`, D9…D11 → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -384,60 +384,47 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   de `cmd/quark` del set) en 1.x en paralelo a `M1`; el nacimiento de
   `providers/tasks-asynq`; D9…D11 de Carlos (D12 y D13 ya decididas).
 
-### Sesión 2026-11-07 (segunda) — **Quantum 1.43.0 certificado: la segunda mitad de `M0` publicada, los tres pilares MINOR, y un tren de dos horas y media con cuatro paradas que no estaban en el guion**
+### Sesión 2026-11-10 — **QK-100 resuelto y el nacimiento de `providers/tasks-asynq`: el módulo existe en 1.x reenviando al paquete del árbol, y `nucleus add tasks-asynq` deja de apuntar al vacío**
 
-- **Arranque**: Carlos pidió arrancar el tren del lunes 9 el sábado 7, con
-  NU-155 recién decidida y las notas de nucleus v1.34.0 ya en `main`
-  (nucleus#640). Tres release PRs esperando: quark#478 (1.18.0),
-  nucleus#636 (1.34.0 con catorce hermanos) y orbit#583 (1.21.0 con
-  siete). Las fases quark y nucleus corrieron EN PARALELO (dos
-  invocaciones del driver sobre checkouts distintos): quark#480 (suelos)
-  → esqueleto de `quark-doc-debt.sh` → prosa y snapshot 1.18.0 en la rama
-  del bot (`cut_docs_snapshot.sh` con el `node_modules` enlazado) →
-  quark#478 fusionado, siete tags y activos firmados; nucleus#641 (suelos,
-  `--solo-suelos`) → nucleus#642 (las notas decían 2026-11-09 y el corte
-  era el 7) → nucleus#636 fusionado, quince tags.
-- **La parada que no estaba en el guion**: el job «Tag The CLI Module» de
-  `release.yml` de nucleus murió por SIGPIPE (`awk … exit` cerrando la
-  tubería de `base64` bajo `pipefail`): activos publicados pero sin
-  `cmd/nucleus/v1.34.0`, que `bump-set` necesita. Se cortó a mano en el
-  commit del release tras comprobar el suelo como lo comprueba el job, y
-  nucleus#643 (`chore(ci)`, fusionado) lee el go.mod entero. v1.31.0 a
-  v1.33.0 habían pasado por tiempo.
-- **Orbit, con la receta de 1.42.0 tal cual**: orbit#587 (alineación a
-  nucleus v1.34.0 y quark v1.18.0 en PR propio), sección `## v1.21.0` y
-  snapshot en la rama regenerada (el guard de voz rechazó «P1»: «the four
-  most serious findings»), fase → v1.21.0 con sus siete módulos; después
-  `check_internal_pins.sh` rojo en `main` (ui, datasource y proto un tag
-  atrás en raíz, agent, server y quarkdatasource) → orbit#588 a mano
-  (`go mod edit` + `GOWORK=off go mod tidy` tras esperar al proxy),
-  sección `## v1.21.1` sin snapshot, fase → v1.21.1 (agent v0.16.3, server
-  v0.22.1, quarkdatasource v1.13.3). Tercer tren seguido con segundo corte.
-- **Paraguas**: `bump-set` dejó el esqueleto; se redactaron las notes, la
-  cabecera de RUMBO, el título de la entrada 1.42.0 del CHANGELOG, el
-  `go.work` a go1.26.10 y las once filas del §3.0 a `publicado`
-  (`--incluye docs/planes/quantum-2.0.md`). quantum#299 salió ROJO en
-  guard-of-guards por dos cosas que esta sección ya había anunciado:
-  el gate `govulncheck_gate.sh` del pin de nucleus sin registrar (va a
-  `GUARD_SCAN_EXCLUDE` con su porqué: es una lane contra el proxy, como
-  `check_modules_standalone`) y la fixture de `umbrella-fleet-posture`
-  afirmando «7 of 50» con el banco en 51 (HA-06). Arreglados en la misma
-  rama, fusionado, tag v1.43.0 y release del paraguas publicada.
-- **Cierre**: `suite-integral --cierre` cayó la primera vez porque el
-  build local del sitio se quedó sin heap de Node (cuatro guards sobre
-  `website/build` en rojo con el tag ya cortado); con
-  `NODE_OPTIONS=--max-old-space-size=8192` y `--desde cierre`: **60 de
-  60**, anunciado a quantum-app (quantum-app#37 en borrador con gates
-  rojos: deuda suya). Reloj: 2h29m de punta a punta, 16m de espera del
-  propietario; doce invocaciones del driver.
-- **Lo que deja escrito**: la sección 1.43.0 de `scripts/train/README.md`
-  (ocho puntos), el §5 de aquí sin la fila de «once en main», y la
-  medición del 2026-11-07 en `docs/planes/quantum-2.0.md`.
-- **Lo siguiente**: en 1.x antes de `M1`: la DX al 5 (NU-137, diseño), el
-  nacimiento de `providers/tasks-asynq` (sesión propia, nace con su tag) y
-  D9…D11 de Carlos; vigilar el 2026-12-31 (caduca la excepción de
-  GO-2026-6909 en la lane SAML de nucleus) y el lunes 9 la lane semanal
-  sobre el set recién certificado.
+- **Arranque**: Carlos preguntó por QK-100 (el `--from-models` del CLI de
+  quark que nucleus necesita para `DX-N3n2`) y dijo «resuélvelo ya»; después,
+  «adelante con tasks-asynq», la sesión propia que `M0-E` y `M0-F` dejaron
+  anunciada.
+- **QK-100 (quark#487, fusionado; registro en quantum#305)**: la causa real
+  no era la que la fila decía (ninguna de las dos rutas sigue a `--config`):
+  el cargador de paquetes corría en el cwd y un paquete de OTRO módulo —el
+  caso de `nucleus makemigrations`— salía como «no Go package found» aunque
+  la ruta fuese absoluta. Ahora carga dentro del directorio de los modelos;
+  test que carga la fixture por ruta absoluta desde fuera de su módulo.
+- **`providers/tasks-asynq` (nucleus#651)**: DEP-2026-020 mueve el
+  proveedor asynq a módulo propio EN el major (decisión 4), pero
+  `nucleus add tasks-asynq` apuntaba a un módulo inexistente. La forma que
+  cabe en 1.x: el módulo nace **reenviando** —`package asynqprovider` con
+  import en blanco del paquete del árbol (que es quien registra el
+  proveedor), aliases de tipo y funciones envoltorio de la superficie entera
+  (`Name`, las dos constantes del lock, los siete `Err*`, siete tipos, seis
+  constructores)—, pina nucleus v1.34.0 (ya trae el registro de
+  proveedores, nucleus#638) y pasa `check_modules_standalone.sh` desde el
+  primer día. Un test en `contracts/` compara por `go/parser` los
+  identificadores exportados de los dos paquetes, para que el reenvío no
+  derive en silencio hasta el 2.0. Entrada `tasks-asynq` en el catálogo de
+  `nucleus add` (grupo nuevo «jobs providers», receta con
+  `jobs_provider: asynq` y `jobs_redis_url`), alta en
+  release-please/manifest/modules.json con `0.0.0` (la release corta el
+  primer tag), dependabot, codeql, SECURITY, README, SPEC, CLAUDE.md
+  (dieciséis hermanos: ocho providers), la lane de providers de `ci.yml`,
+  CI_MATRIX e inventario; DEP-2026-020 y MA-2026-020 dicen que el módulo
+  existe desde la minor siguiente a v1.34.0 y que el import ya puede
+  escribirse (la retirada del paquete del árbol y la salida de asynq/redis
+  del `go.mod` raíz siguen siendo del 2.0: `M1` mueve el código, que ya
+  está ensayado en `dry-run/2.0`). Nada cambia en el módulo raíz.
+- **Paraguas (este PR)**: `umbrella-why-quantum` aprende la clase
+  «jobs provider» en los dos sentidos (si el set certifica un
+  `providers/tasks-*` la página tiene que nombrarlo, y al revés), la sesión
+  en el plan de A12 y la fila de DEP-2026-020 en la política.
+- **Lo siguiente**: el set del 2026-11-16 publica los dos módulos nuevos de
+  nucleus (`quarkmake` y `tasks-asynq`) además del bloque A; sus trampas en
+  el §5. Después `DX-N3n2` y D9…D11.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -477,6 +464,20 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 
 **Trabajo con destinatario (por orden de arranque):**
 
+- **El PR de set del 2026-11-16 lleva DOS módulos nuevos de nucleus**
+  (`pkg/nucleustest/quarkmake`, nucleus#648, y `providers/tasks-asynq`,
+  nucleus#651): `versions.yaml` `nucleus_modules.quarkmake` y
+  `nucleus_modules.tasks-asynq` (la clave es el último segmento de la ruta)
+  y sus dos `use` en el `go.work` EN el PR de re-pin, o
+  `check_gowork_covers_manifest` y manifest-guard §3b lo paran; los dos
+  nacen con `0.0.0` en el manifest de nucleus, así que si release-please
+  les da un número raro, `Release-As` y quitarlo (receta de 1.41.0);
+  `website/docs/why-quantum.md` pasa de **14** a **15** módulos y tiene que
+  decir «a Redis jobs provider» en la frase del catálogo (el guard lo exige
+  en cuanto el pin trae `providers/tasks-*`) y «test kit» por `quarkmake`;
+  y en nucleus, `pkg/nucleustest/quarkmake` entra en
+  `check_modules_standalone.sh` en el PR de suelos (`tasks-asynq` ya está:
+  el glob `providers/*/` lo coge solo).
 - **El próximo PR de set corrige «40 of 43» en `website/docs/why-quantum.md`**:
   nucleus#647 (`DX-N2`, 2026-11-08) re-verdictó FED-03 y `docs/auth-bench.md`
   publica 41 de 43; `umbrella-why-quantum` cruza la cifra con la fuente al

@@ -196,7 +196,7 @@ E_QUICKSTART=$(qs_commands "$QUICKSTART" | grep -c .)
 # su NOMBRE, no por su clase: la página nombra a Sentry y a SAML, así que otro
 # `providers/errors-*` o `providers/auth-*` cae en «una clase que la página no
 # nombra» en vez de contarse en silencio bajo un nombre que no es el suyo.
-n_mod=0; n_drv=0; n_exp=0; n_sto=0; n_ldap=0; n_sec=0; n_err=0; n_fed=0; n_kit=0
+n_mod=0; n_drv=0; n_exp=0; n_sto=0; n_ldap=0; n_sec=0; n_err=0; n_fed=0; n_kit=0; n_jobs=0
 set_dirs=""
 for key in $(mm_keys nucleus_modules); do
   dir=$(mm_path_for_key nucleus "$key") || { report "[catalog] la clave $key de nucleus_modules es ambigua en el árbol"; continue; }
@@ -222,6 +222,11 @@ for key in $(mm_keys nucleus_modules); do
     providers/secrets-*)     n_sec=$((n_sec + 1)) ;;
     providers/errors-sentry) n_err=$((n_err + 1)) ;;
     providers/auth-saml)     n_fed=$((n_fed + 1)) ;;
+    # El proveedor de jobs sobre Redis nace como módulo en 1.x (A12, sesión
+    # tasks-asynq del 2026-11-10: reenvía al paquete del árbol hasta el 2.0,
+    # DEP-2026-020); la página lo nombra como «jobs provider» y el guard lo
+    # cuenta en los dos sentidos (abajo), como al backend LDAP.
+    providers/tasks-*)       n_jobs=$((n_jobs + 1)) ;;
     *) report "[catalog] nucleus_modules.$key vive en $dir, una clase de módulo que la página no nombra: añádela a la frase y aquí" ;;
   esac
   # shellcheck disable=SC2086
@@ -247,6 +252,12 @@ if [[ "$(grep -c . <<<"$core_names")" -ne "${n_core:-0}" ]]; then
 fi
 if [[ $n_ldap -ne 1 || $n_sec -ne 1 || $n_err -ne 1 || $n_fed -ne 1 ]]; then
   report "[catalog] la página nombra UN backend LDAP, UN resolvedor de secretos, UN reportero de errores (Sentry) y UN proveedor SAML; el set certifica $n_ldap, $n_sec, $n_err y $n_fed"
+fi
+if [[ $n_jobs -gt 0 ]] && ! grep -qiE "jobs provider" "$PAGE"; then
+  report "[catalog] el set certifica $n_jobs proveedor(es) de jobs bajo providers/tasks-* y la página no dice «jobs provider»: nómbralo en la frase del catálogo"
+fi
+if [[ $n_jobs -eq 0 ]] && grep -qiE "jobs provider" "$PAGE"; then
+  report "[catalog] la página nombra un «jobs provider» entre los módulos y el set no certifica ninguno bajo providers/tasks-* (versions.yaml nucleus_modules)"
 fi
 if [[ $n_kit -gt 0 ]] && ! grep -qiE "test kit" "$PAGE"; then
   report "[catalog] el set certifica $n_kit módulo(s) de kit de pruebas bajo pkg/nucleustest/ y la página no dice «test kit»: nómbralo junto al catálogo (no lo instala \`nucleus add\`)"
