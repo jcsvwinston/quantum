@@ -238,7 +238,7 @@ escribir incluidos— vive en `docs/planes/quantum-2.0.md` §3.0.
 |---|---|---|---|---|---|
 | `DEP-2026-003` | nucleus | la lectura de filas de política Casbin de 3 columnas (casbin v2.135.0 ya las rechaza al cargar; `authz.New` nombra el migrador) | `authz.MigrateCSVPolicyFile` a 4 columnas | `active` (fechado por D2) | 2027-01-17, retirada en v2.0.0 |
 | `DEP-2026-019` | nucleus | **volteo**: `nucleustest` deja de enlazar SQLite siempre (NU-121) | importar `drivers/sqlite` en un `_test.go` del paquete | `active` (sin marca) | 2027-01-17, en v2.0.0 |
-| `DEP-2026-020` | nucleus | **empaquetado**: el proveedor asynq sale a `providers/tasks-asynq` | `nucleus add tasks-asynq` / import del módulo | `active` (sin marca) | 2027-01-17, en v2.0.0 |
+| `DEP-2026-020` | nucleus | **empaquetado**: el proveedor asynq sale a `providers/tasks-asynq` | `nucleus add tasks-asynq` / import del módulo (existe desde la minor siguiente a nucleus v1.34.0, reenviando al paquete del árbol; el código se mueve en el 2.0) | `active` (sin marca) | 2027-01-17, en v2.0.0 |
 | `DEP-2026-021` | nucleus | **volteo**: `session_idle_timeout` con valor de fábrica 30m (NU-72) | `session_idle_timeout: 0` explícito | `active` (sin marca) | 2027-01-17, en v2.0.0 |
 | `DEP-2026-022` | nucleus | **volteo**: problem+json como forma de error por defecto | `WithErrorEnvelope()` | `active` (sin marca) | 2027-01-17, en v2.0.0 |
 | `DEP-2026-023` | nucleus | `router.NewWrapResponseWriter(w, _ int)` | `router.Wrap(w)` | `active` | 2027-01-17, retirada en v2.0.0 |
