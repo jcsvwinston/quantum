@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-12, QUANTUM 1.44.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R` y `M0-F` HECHAS, **la DX al 5 (§2.1) PUBLICADA en su mayor parte**: el bloque A, `DX-N1b` (D12, `quarkmake`), `DX-Q1`, `DX-Q3`, `DX-Q4` (D13, el playground), `DX-N3q`, `DX-N3n1`, QK-100 y el nacimiento de `providers/tasks-asynq` van en el set (quark v1.19.0, nucleus v1.35.0, orbit v1.21.3), cortado el 2026-11-11/12 por adelanto del set del 16; siguiente: `DX-N3n2`, D9…D11 → M1 → R2)
+## 3. Estado al cierre (2026-11-12, QUANTUM 1.44.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R` y `M0-F` HECHAS, **la DX al 5 (§2.1) COMPLETA: publicada en 1.44.0 salvo `DX-N3n2`, que está en `main` de nucleus (nucleus#656) y sale con la próxima minor**; el bloque A, `DX-N1b` (D12, `quarkmake`), `DX-Q1`, `DX-Q3`, `DX-Q4` (D13, el playground), `DX-N3q`, `DX-N3n1`, QK-100 y el nacimiento de `providers/tasks-asynq` van en el set (quark v1.19.0, nucleus v1.35.0, orbit v1.21.3), cortado el 2026-11-11/12 por adelanto del set del 16; siguiente: D9…D11 (decisiones del propietario) → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -291,48 +291,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-11-10 — **QK-100 resuelto y el nacimiento de `providers/tasks-asynq`: el módulo existe en 1.x reenviando al paquete del árbol, y `nucleus add tasks-asynq` deja de apuntar al vacío**
-
-- **Arranque**: Carlos preguntó por QK-100 (el `--from-models` del CLI de
-  quark que nucleus necesita para `DX-N3n2`) y dijo «resuélvelo ya»; después,
-  «adelante con tasks-asynq», la sesión propia que `M0-E` y `M0-F` dejaron
-  anunciada.
-- **QK-100 (quark#487, fusionado; registro en quantum#305)**: la causa real
-  no era la que la fila decía (ninguna de las dos rutas sigue a `--config`):
-  el cargador de paquetes corría en el cwd y un paquete de OTRO módulo —el
-  caso de `nucleus makemigrations`— salía como «no Go package found» aunque
-  la ruta fuese absoluta. Ahora carga dentro del directorio de los modelos;
-  test que carga la fixture por ruta absoluta desde fuera de su módulo.
-- **`providers/tasks-asynq` (nucleus#651)**: DEP-2026-020 mueve el
-  proveedor asynq a módulo propio EN el major (decisión 4), pero
-  `nucleus add tasks-asynq` apuntaba a un módulo inexistente. La forma que
-  cabe en 1.x: el módulo nace **reenviando** —`package asynqprovider` con
-  import en blanco del paquete del árbol (que es quien registra el
-  proveedor), aliases de tipo y funciones envoltorio de la superficie entera
-  (`Name`, las dos constantes del lock, los siete `Err*`, siete tipos, seis
-  constructores)—, pina nucleus v1.34.0 (ya trae el registro de
-  proveedores, nucleus#638) y pasa `check_modules_standalone.sh` desde el
-  primer día. Un test en `contracts/` compara por `go/parser` los
-  identificadores exportados de los dos paquetes, para que el reenvío no
-  derive en silencio hasta el 2.0. Entrada `tasks-asynq` en el catálogo de
-  `nucleus add` (grupo nuevo «jobs providers», receta con
-  `jobs_provider: asynq` y `jobs_redis_url`), alta en
-  release-please/manifest/modules.json con `0.0.0` (la release corta el
-  primer tag), dependabot, codeql, SECURITY, README, SPEC, CLAUDE.md
-  (dieciséis hermanos: ocho providers), la lane de providers de `ci.yml`,
-  CI_MATRIX e inventario; DEP-2026-020 y MA-2026-020 dicen que el módulo
-  existe desde la minor siguiente a v1.34.0 y que el import ya puede
-  escribirse (la retirada del paquete del árbol y la salida de asynq/redis
-  del `go.mod` raíz siguen siendo del 2.0: `M1` mueve el código, que ya
-  está ensayado en `dry-run/2.0`). Nada cambia en el módulo raíz.
-- **Paraguas (este PR)**: `umbrella-why-quantum` aprende la clase
-  «jobs provider» en los dos sentidos (si el set certifica un
-  `providers/tasks-*` la página tiene que nombrarlo, y al revés), la sesión
-  en el plan de A12 y la fila de DEP-2026-020 en la política.
-- **Lo siguiente**: el set del 2026-11-16 publica los dos módulos nuevos de
-  nucleus (`quarkmake` y `tasks-asynq`) además del bloque A; sus trampas en
-  el §5. Después `DX-N3n2` y D9…D11.
-
 ### Sesión 2026-11-11/12 — **el set del 2026-11-16 adelantado al 11: Quantum 1.44.0 (quark v1.19.0, nucleus v1.35.0, orbit v1.21.3)**
 
 - **Arranque**: a petición del propietario («adelanta el trabajo del día
@@ -367,6 +325,61 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   excepción de govulncheck caduca el 2026-12-31; y en el PR de suelos del
   próximo tren, `pkg/nucleustest/quarkmake` en
   `check_modules_standalone.sh` (su suelo debe ser v1.35.0).
+
+### Sesión 2026-11-12 — **A12 `DX-N3n2`: `nucleus makemigrations` deriva el par de los modelos quark a través del CLI de quark (nucleus#656)**
+
+- **Arranque**: Carlos, tras el cierre del tren de 1.44.0: «adelante con
+  DX-N3n2», la sesión que esperaba a que `cmd/quark` v1.3.0 (con `--emit
+  json`, `DX-N3q`) estuviera publicado, porque la lane `suite-starter` de
+  nucleus monta a los hermanos a su ÚLTIMA release.
+- **Lo hecho (nucleus#656, fusionado)**: nucleus NO lee los structs:
+  `makemigrations <n>` reescribe a `migrate create --from-models
+  internal/models` cuando el proyecto tiene ese paquete, y `migrate
+  create --from-models <dir>` lanza el CLI de quark —`quark` en el PATH,
+  si no `go run …/cmd/quark@latest` (anunciado en stderr: descarga),
+  `NUCLEUS_QUARK_CLI` lo fija— con `--emit json`, la ruta ABSOLUTA de los
+  modelos (QK-100) y el motor que nucleus ya resuelve de la URL de la base
+  (`postgresql`, que quark acepta; `--dialect` lo fuerza, `--database`
+  elige el alias). Escribe el par con cabecera (modelos, versión de quark,
+  dialecto) y cada sentencia terminada como la parte `pkg/db.ExecScript`:
+  `;`, o una línea `/` en Oracle. Tres negativas explícitas: un CLI sin
+  `--emit json` se reporta con la receta (`go install …/cmd/quark@latest`
+  o `NUCLEUS_QUARK_CLI`), nunca se degrada al par vacío; un documento con
+  otro `schema` se rechaza nombrando las dos versiones; stdout que no es
+  el documento se enseña. Dos vacíos legítimos: un `internal/models` sin
+  struct con `db:` (decidido con go/parser, sin lanzar nada) da el par
+  vacío y lo dice; un proyecto sin el paquete es el alias de siempre.
+  `pkg/db` gana `Migrator.CreateWithSQL` (API nueva en el baseline).
+  Tests con un CLI de pega bajo `NUCLEUS_QUARK_CLI` (argumentos pedidos,
+  par escrito, terminador de Oracle, CLI viejo, schema desconocido, stdout
+  sin JSON, los dos pares vacíos, la reescritura del alias desde
+  `--config`, el orden de resolución) y
+  `TestMakeMigrationsRendersThroughTheSiblingQuarkCLI`: construye
+  `cmd/quark` del hermano por un workspace VERSIONADO (lo que hace
+  `link_workspace.sh` de quark: el `require` del CLI nombra un suelo que
+  puede no existir en el proxy), scaffolda un proyecto, escribe un modelo
+  con `generate model` y lo rinde en los cinco dialectos; la lane
+  `suite-starter` lo corre contra la última release de quark con el skip
+  convertido en fallo. Goldens de ayuda y completion regenerados; doc en
+  `models-and-database.md` (qué rinde y qué sigue vacío), matriz de
+  contratos, manual y `migrate --help`.
+- **Lo que midió**: los cinco dialectos rinden desde un paquete sin `go.sum`
+  y sin quark en su `go.mod` (el modelo generado sólo importa `time`), y
+  el `go run …@latest` resuelve `cmd/quark` v1.3.0 del proxy. Y el CLI de
+  quark escribe `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX IF NOT
+  EXISTS` literales para TODOS los dialectos (`buildDDLStatements`), sin
+  pasar por `migrate.CreateTableIfNotExists` ni por el `IdempotentDDL` del
+  driver: SQL Server no lo admite, Oracle sólo desde 23ai y MySQL no en
+  índices, así que el par que `makemigrations` escribe para mssql/oracle
+  falla al aplicarse tal cual → **QK-101 (P2, quark)**. Y el nombre
+  promete más que el diff: `makemigrations` rinde la foto completa, no un
+  `ALTER` → NU-170 (P3, límite dicho en la guía).
+- **Paraguas (este PR)**: fila `DX-N3n2` en el plan de A12, QK-101 y
+  NU-170 en el registro, esta sesión y la del 2026-11-10 al archivo.
+- **Lo siguiente**: D9…D11 (decisiones del propietario, §3.3 del contrato
+  del 2.0) → `M1`; `DX-N3n2` sale en la próxima minor de nucleus (el tren
+  paga su sección de release notes); QK-101 antes de que alguien aplique
+  un par en SQL Server; la excepción de govulncheck caduca el 2026-12-31.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
