@@ -24,6 +24,9 @@ const sidebars: SidebarsConfig = {
         'guides/cli',
         'guides/codegen',
         'guides/writing-a-driver',
+        'guides/caching-in-production',
+        'guides/read-replicas-in-production',
+        'guides/sharding-in-production',
       ],
     },
     {
@@ -109,6 +112,7 @@ const sidebars: SidebarsConfig = {
         'reference/comparison',
         'reference/configuration',
         'reference/dialects',
+        'playground',
         'reference/extension-contract',
         'reference/type-matrix',
         'reference/benchmarks',
