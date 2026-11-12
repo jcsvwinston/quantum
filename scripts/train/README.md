@@ -699,6 +699,69 @@ release-please@17` y llamar a `parseConventionalCommits` de
 bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
 la línea y la columna.
 
+### Lo que aprendió el tren de 1.44.0 (dos módulos nuevos de nucleus, una vuln de Go el día del corte y dos cortes de orbit)
+
+Conducido el 2026-11-11 (la semana de cadencia del 16, cinco días antes a
+petición del propietario): quark#491 (toolchain) → quark#490 (suelos) →
+quark#483 (v1.19.0, siete tags, con notas y snapshot en la rama del bot) ·
+nucleus#653 (toolchain) → nucleus#652 (suelos, con `release-as` para los
+dos módulos nuevos) → nucleus#654 (notas y snapshot) → nucleus#645
+(v1.35.0, diecisiete tags) → nucleus#655 (quita el `release-as`) ·
+orbit#591 (toolchain) → orbit#593 (alineación) → orbit#592 (v1.21.2, ocho
+tags) → orbit#594 (pines internos) → orbit#595 (v1.21.3) → quantum#307 (set) → quantum#308 (heap del build del sitio).
+
+1. **Otra vulnerabilidad de la biblioteca estándar el día del corte**
+   (GO-2026-6859, `net/http`, corregida en go1.26.11): `govulncheck` puso en
+   rojo los PRs de suelos de quark y nucleus al nacer. Como en 1.41.0 y
+   1.43.0: PR `chore(deps)` de toolchain por repo ANTES de los suelos
+   (`toolchain` en todos los go.mod, `go-version` de los workflows, el
+   `scaffoldToolchain` del scaffold de nucleus y el digest de
+   `golang:1.26-alpine` del Dockerfile), `update-branch` de los PRs de
+   suelos y a fusionar. Es la tercera vez: conviene que el preflight del
+   tren corra `govulncheck` sobre los tres `main` antes de nada.
+2. **Dos módulos que nacen en el mismo corte salen como «1.9.2».**
+   release-please propone para un paquete nuevo la versión que hereda de
+   la raíz en su primer commit convencional (`pkg/nucleustest/quarkmake` y
+   `providers/tasks-asynq` iban a nacer como v1.9.2). Receta: en el PR de
+   suelos, `"release-as": "0.1.0"` por paquete en
+   `release-please-config.json`; el release PR regenerado lo respeta; y un
+   `chore(release)` que lo QUITE justo después del corte, o la siguiente
+   release del módulo vuelve a ser 0.1.0.
+3. **release-please regenera la rama del bot cuando se fusionan los
+   suelos y se lleva el esqueleto de notas de quark** (ya visto en 1.31.0):
+   esperar a que su run termine y volver a correr `quark-doc-debt.sh`
+   antes de redactar; redactar sobre la rama vieja es escribir en un
+   commit que el bot va a pisar.
+4. **Tres flakes de orbit en un tren** y un job zombi: `src/App.test.tsx`
+   (dos tests de la UI) en orbit#591; `TestAdminBench/EXT-04` («sign in as
+   admin answered 405») en la lane standalone de orbit#594 y
+   `TestAdminBench/EXT-10` en los Go tests del `main` tras orbit#593.
+   `gh run rerun <run> --failed` los pasa, pero en #594 el `CI Required
+   Gate` se quedó una hora en «queued» con el run ya cerrado en failure:
+   `gh run rerun <run>` entero (no `--failed`) lo desatasca. Registrado
+   como OR-149 (el banco admin responde 405 al iniciar sesión bajo carga
+   de la lane).
+5. **Segundo corte de orbit por cuarta vez seguida** (v1.21.3): la receta
+   de 1.42.0 tal cual. Sigue sin mecanizarse; a estas alturas es el paso
+   más caro del tren en tiempo de reloj.
+6. **Dos rojos del paraguas anunciados por el pin nuevo de quark.** (a) La
+   aserción anti-fósil cazó `quark/scripts/ci/build_playground.sh` y
+   `check_playground_weight.sh` (DX-Q4): compilan a wasm y miden, son
+   lane del producto y van a `GUARD_SCAN_EXCLUDE` con su porqué. Se vio
+   corriendo `guard-of-guards` en local ANTES de `--desde paraguas`
+   (regla de 1.37.0, esta vez cumplida) y no costó vuelta. (b)
+   `check_sidebar_sync` puso rojo el PR de set: quark v1.19.0 añadió
+   cuatro páginas a su sidebar (tres guías de producción y el playground)
+   y el espejo `website/sidebarsQuark.ts` no las tenía. Costó una vuelta
+   de CI: correrlo también en local antes del paraguas, y la ruta del
+   espejo va en `--incluye` al relanzar.
+7. **El tren deja el checkout de orbit en la rama del segundo corte** si
+   el PR de pines internos se abrió a mano: `align-orbit-pins.sh --check`
+   falla por «no está en main limpio», el driver pasa a la escritura,
+   no encuentra nada que alinear y aun así empuja una rama vacía e intenta
+   un PR sin commits (PARADA EN SECO). Volver a main, borrar la rama y
+   relanzar; el driver debería hacer `checkout main` antes del `--check`.
+
 ### Lo que aprendió el tren de 1.43.0 (la segunda mitad de `M0`, los tres pilares MINOR)
 
 Conducido el sábado 2026-11-07 (la semana de cadencia del 9, dos días
