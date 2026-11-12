@@ -374,12 +374,30 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   falla al aplicarse tal cual → **QK-101 (P2, quark)**. Y el nombre
   promete más que el diff: `makemigrations` rinde la foto completa, no un
   `ALTER` → NU-170 (P3, límite dicho en la guía).
-- **Paraguas (este PR)**: fila `DX-N3n2` en el plan de A12, QK-101 y
+- **Paraguas (quantum#310)**: fila `DX-N3n2` en el plan de A12, QK-101 y
   NU-170 en el registro, esta sesión y la del 2026-11-10 al archivo.
+- **Los dos hallazgos, reparados el mismo día** (Carlos: «repara los
+  hallazgos registrados»): **QK-101 (quark#492)**: `buildDDLStatements`
+  resuelve el dialecto por nombre y rinde por el mismo `IdempotentDDL`
+  que el runtime (guard de `sys.tables`/`sys.indexes` en SQL Server,
+  `CREATE` a secas en Oracle, `CREATE INDEX` a secas en MySQL),
+  entrecomilla tablas, columnas e índices como el runtime —Oracle en
+  MAYÚSCULAS, así que el DDL del CLI y el de `client.Migrate` coinciden
+  por fin—, `DROP TABLE` sin `IF EXISTS` en Oracle, y los backticks de
+  MySQL ya no rompen el fichero Go de `--emit go` (literal interpretado);
+  el contrato `schema` 1 de `--emit json` no cambia; llega a
+  `makemigrations` cuando quark corte (la lane `suite-starter` monta la
+  ÚLTIMA release). **NU-170 (nucleus#658)**: `makemigrations` lee los
+  `.up.sql` del directorio y deja fuera los modelos cuya tabla ya crea
+  alguno (nombre desnudo o entrecomillado como cada motor, tras `IF NOT
+  EXISTS` o tras el guard de SQL Server), dice cuáles y qué fichero, y sin
+  nada nuevo no escribe par: «No changes detected», con el recordatorio
+  de que la columna nueva es un `ALTER` a mano. Ambos `hecho` en el
+  registro.
 - **Lo siguiente**: D9…D11 (decisiones del propietario, §3.3 del contrato
-  del 2.0) → `M1`; `DX-N3n2` sale en la próxima minor de nucleus (el tren
-  paga su sección de release notes); QK-101 antes de que alguien aplique
-  un par en SQL Server; la excepción de govulncheck caduca el 2026-12-31.
+  del 2.0) → `M1`; `DX-N3n2` y NU-170 salen en la próxima minor de
+  nucleus y QK-101 en la próxima patch de `cmd/quark` (el tren paga sus
+  notas); la excepción de govulncheck caduca el 2026-12-31.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
