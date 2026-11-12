@@ -101,8 +101,14 @@ jobs:
       - name: Build quark playground (wasm)
         run: bash scripts/build_quark_playground.sh
 
+      # Docusaurus ensambla tres snapshots más por set y el 2026-11-12 el build
+      # del deploy de 1.44.0 murió con «JavaScript heap out of memory» en el
+      # runner (el cierre local lo sufría desde 1.43.0): 8 GB de heap, como en
+      # suite-integral.sh. El runner ubuntu-latest tiene 16 GB.
       - name: Build
         working-directory: website
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: npm run build
 
       # El gate de docs se pasa sobre lo que el lector VE (HTML emitido), no
