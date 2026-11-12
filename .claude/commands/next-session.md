@@ -64,26 +64,31 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-08, QUANTUM 1.43.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0` ENTERA PUBLICADA (las 34 filas del §3.0 del 2.0 en `publicado`; el 2.0 no antes de 2027-02-07), `R1`, `M0-R` y `M0-F` HECHAS; **la DX al 5 (§2.1) EN CURSO**: `DX-0` la contó y troceó, y el bloque A entero (`DX-N1`, `DX-S1`, `DX-N2`) más `DX-Q1` y `DX-Q3` están en `main` de nucleus y quark (nucleus#644/#646/#647, quark#481/#482/#484), y el mismo día Carlos decidió D12 (opción 2 → `DX-N1b`, nucleus#648: `quarkmake`) y D13 ((a) → `DX-Q4`, quark#485: el playground en wasm, medido), y `DX-N3` quedó partida en tres con `DX-N3q` (quark#486) y `DX-N3n1` (nucleus#650) hechas; **el 2026-11-10 QK-100 quedó `hecho` (quark#487) y nació `providers/tasks-asynq` (nucleus#651: módulo de reenvío hasta el 2.0)**; siguiente: el set del 2026-11-16 que lo publica todo (con los DOS módulos nuevos de nucleus), `DX-N3n2`, D9…D11 → M1 → R2)
+## 3. Estado al cierre (2026-11-12, QUANTUM 1.44.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R` y `M0-F` HECHAS, **la DX al 5 (§2.1) PUBLICADA en su mayor parte**: el bloque A, `DX-N1b` (D12, `quarkmake`), `DX-Q1`, `DX-Q3`, `DX-Q4` (D13, el playground), `DX-N3q`, `DX-N3n1`, QK-100 y el nacimiento de `providers/tasks-asynq` van en el set (quark v1.19.0, nucleus v1.35.0, orbit v1.21.3), cortado el 2026-11-11/12 por adelanto del set del 16; siguiente: `DX-N3n2`, D9…D11 → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.43.0** (2026-11-07, la semana de cadencia
-  del 9 dos días antes, a petición del propietario) — quark v1.18.0 (CLI
-  v1.2.2, los cinco drivers v0.3.1), nucleus v1.34.0 (`cmd/nucleus`
-  v1.34.0 en lockstep —cortado A MANO, ver la sesión— y los catorce
-  hermanos subidos por los suelos) y orbit v1.21.1 (dos cortes otra vez:
-  v1.21.0 con sus siete módulos y v1.21.1 re-pinando `ui`, `datasource` y
-  `proto`), tal como los lista `versions.yaml` (la fuente; no copies
-  números de aquí). `declared_lags` vacío. `suite-integral --cierre`
-  **60 de 60**. Publica **la segunda mitad de `M0` de A12** y lo que
-  `M0-R` y `M0-F` dejaron en `main`: los once avisos que faltaban (los
-  siete de quark, `DEP-2026-011` de quark y `DEP-2026-003/004/005` de
-  orbit), así que **las 34 filas del §3.0 del contrato del 2.0 están
-  `publicado`** y el 2.0 no puede salir antes del 2027-02-07; los cuatro
-  P1 de `R1` arreglados en orbit; el registro de proveedores de `pkg/tasks`;
-  `quark:"literal_column"` y QK-70; `crewjam/saml` v0.5.2 y Go 1.26.10.
-  Sus trampas, en la sección 1.43.0 de `scripts/train/README.md`.
+- **Set certificado: Quantum 1.44.0** (2026-11-11/12, la semana de
+  cadencia del 16 adelantada a petición del propietario; razón escrita en
+  `status:`) — quark v1.19.0 (CLI v1.3.0, los cinco drivers v0.3.2),
+  nucleus v1.35.0 (`cmd/nucleus` v1.35.0 en lockstep, los catorce
+  hermanos subidos por los suelos y DOS módulos nuevos:
+  `pkg/nucleustest/quarkmake` v0.1.0 y `providers/tasks-asynq` v0.1.0) y
+  orbit v1.21.3 (dos cortes por cuarta vez: v1.21.2 con sus siete módulos
+  y v1.21.3 re-pinando `ui`, `datasource` y `proto`), tal como los lista
+  `versions.yaml` (la fuente; no copies números de aquí). `declared_lags`
+  vacío. `suite-integral --cierre` **60 de 60**. Publica **la DX al 5 de
+  A12** en nucleus y quark (los generadores escriben modelos Quark y
+  endpoints tipados, `nucleus new --with orbit` con fuente de datos,
+  `doctor`/`health`/`config print` leen los imports del proyecto,
+  `nucleustest.Make` persiste por `quarkmake`, `tasks-asynq` instalable;
+  los 30 centinelas `Err*` de quark dicen qué hacer, `--emit json`, el
+  playground wasm, tres guías de producción, QK-100) y Go 1.26.11 en los
+  tres (GO-2026-6859). **El deploy del sitio unificado de main falló por
+  el heap de Node** y quantum#308 le da 8 GB en los dos workflows y en
+  `suite-integral.sh`: comprobar en el arranque que la doc pública sirve
+  1.44.0 (`https://jcsvwinston.github.io/quantum/`). Sus trampas, en la
+  sección 1.44.0 de `scripts/train/README.md`.
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
@@ -286,104 +291,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-11-08 — **La DX al 5 arranca: `DX-0` la cuenta y la trocea, y el bloque A entero más `DX-Q1` y `DX-Q3` entran en `main` el mismo día (seis PRs en dos productos, cinco agentes en paralelo)**
-
-- **Arranque**: Carlos dijo «adelante con la DX al 5» sobre el set 1.43.0
-  recién certificado. El §2.1 del contrato lista trece puntos; antes de
-  tocar nada, `DX-0` midió cada uno al pin (tabla «Lo que hay, contado» en
-  la sección «La DX al 5 — medida y troceada» del plan de A12) y troceó:
-  sólo el **bloque A** (`DX-N1`, `DX-N2`, `DX-S1`) desbloquea `M1`; lo
-  demás sube la nota de `R2`.
-- **Tres cosas que el §2.1 no decía**: nucleus NO depende de quark, así
-  que `nucleustest.Make` «sobre quark» no podía importarlo (D12: doble
-  gramática sin dependencia, hecha como propuesta); las dos consultas del
-  banco que faltan (58 de 60) son `GROUP BY` sin proyección con aviso
-  DEP-2026-008, del 2.0 y no de 1.x; y `nucleus new --with orbit` en
-  `mvc`/`api` montaba el panel sin `DataSource`, que el 2.0 rehúsa
-  (NU-159, fuera de la lista de `M0-E`).
-- **Lo que deja en `main`** (todo fusionado en serie con `merge-group.sh`
-  y el CI de `main` verde detrás de cada uno): nucleus#644 (`DX-N1`:
-  `generate model|resource` y `startapp` escriben modelos quark con
-  `--data quark|sql`, `Make` con doble gramática, `bodycheck` entiende la
-  gramática de quark), nucleus#646 (`DX-S1`: `--with orbit` implica quark
-  y `quarkdatasource`, el panel monta con `DataSource` sobre el pool del
-  framework y el scaffold arranca contra orbit 1.x y `dry-run/2.0`),
-  nucleus#647 (`DX-N2`: el quickstart y ocho páginas más enseñan Quark,
-  `pkg/model` como sustrato que se va; NU-133/135/144 cerrados: README 43
-  comandos con test, FED-03 `present` → `auth-bench.md` **41 de 43**,
-  `bodycheck -strict` sin avisos), quark#481 (`DX-Q1`: receta «What to
-  do:» en **30 de 30** centinelas —la auditoría contó 25— y en 165 de 185
-  wraps, contada por `TestEveryExportedSentinelNamesWhatToDo`), quark#482
-  (la deriva QK-73/74/77/82 y el drift guard estricto bajo
-  `docs/deprecations/`) y quark#484 (`DX-Q3`: guías de producción de
-  caché, réplicas y sharding, copia byte a byte de fixtures que corren en
-  CI, y dos afirmaciones falsas de la doc existente corregidas).
-- **Registro**: `hecho` NU-137 (re-evidenciado con nucleus#648), NU-159,
-  NU-133, NU-135, NU-144, QK-73, QK-74, QK-77, QK-78, QK-82; nuevos
-  NU-160…NU-164 y QK-92…QK-99 (QK-98: doble espacio tras `IS NULL` en el
-  SQL emitido; QK-99: enlace roto en `reference/api/index.mdx` que rompe
-  el `npm run build` del sitio propio de quark; NU-164: nucleus dice
-  `postgresql` y quark no lo acepta como nombre de motor).
-- **Decisiones del propietario, el mismo día** (bloque DX del contrato):
-  **D12 → opción 2** («lo más sensato es la 2, ¿no?», y lo era: al releer
-  nucleus#644 la doble gramática persistía por el CRUD de `pkg/model`, la
-  capa que `M1` retira, y duplicaba la gramática de quark en nucleus);
-  `DX-N1b` la sustituye antes del set: costura en `nucleustest` y módulo
-  `pkg/nucleustest/quarkmake` (nucleus#648, fusionado; el root sigue sin quark por `contracts/quark_out_of_root_test.go`; `nucleus add` no lo instala, por lista en `catalog_test.go`). **D13 → (a) adelante** con la
-  medición hecha: quark raíz compila a `js/wasm` sin cambios y el `.wasm`
-  pesa 13,1 MB crudo / 3,09 MB gzip / 2,19 MB brotli (suelo de Go 3,4 /
-  0,95 / 0,71; el chunk más grande del sitio 0,75 / 0,18 / 0,14); el sitio
-  no tenía presupuesto escrito, así que `DX-Q4` publica bajo tres
-  condiciones —carga sólo a petición con el peso en el botón, ejemplo
-  estático sin JavaScript que CI compara con el render, y
-  `check_playground_weight.sh` con gzip ≤ 3,5 MB y el peso escrito a
-  ±10 %— (quark#485, fusionado: 14,0 MB crudo / 3,26 MB gzip medidos por el script con los siete presets; cada instanciación genérica de `Query[T]` cuesta ~130 KB gzip, así que cuatro de los cinco modelos renderizan por una forma común con `FromTable` y dos tests prueban SQL idéntico byte a byte). El paraguas lo compila al pin en `deploy`/`website-ci`
-  (setup-go + `scripts/build_quark_playground.sh`, que sale 0 mientras el
-  pin no traiga el script de quark) y `umbrella-why-quantum` aprende la
-  clase «kit de pruebas» (`pkg/nucleustest/*`: módulo del set que
-  `nucleus add` no instala; la página tiene que decir «test kit»).
-- **Trampas para el próximo tren**: `website/docs/why-quantum.md` cita
-  «40 of 43» del banco de auth y `umbrella-why-quantum` lo cruza con la
-  fuente al pin (41 de 43 con el nucleus nuevo): se corrige en el PR de
-  set; los textos de `ErrNotFound`, `ErrTimeout` y `ErrConstraintViolation`
-  de quark crecen tras el prefijo (un test de orbit que compare
-  `err.Error()` exacto se rompería al subir el pin); el bloque A es la
-  precondición de `M1` y tiene que salir en un set (quark y nucleus MINOR:
-  notas y snapshot antes del tren, receta de 1.42.0). Y con `DX-N1b`, el
-  set estrena un módulo de nucleus que NO instala `nucleus add`
-  (`quarkmake`): fila en `versions.yaml` `nucleus_modules`, `use` en el
-  `go.work` EN el PR de re-pin (1.26.2), la frase «test kit» en
-  `why-quantum.md`, y es el primer módulo de nucleus que pina quark, así
-  que la alineación tras cortar quark también le toca a nucleus.
-  Dos más de `DX-N1b`: `quarkmake` nace con `0.0.0` en el manifiesto de
-  release-please (receta de errors-sentry; si el tag sale con otro número,
-  la trampa de 1.41.0: release-as y quitarlo), y queda FUERA de
-  `scripts/ci/check_modules_standalone.sh` hasta que su suelo de nucleus
-  sea la release que lleva la costura (sus tests llaman a `UseFactory`,
-  que v1.34.0 no tiene): añadirlo a la lista del script en el PR de suelos.
-- **`DX-N3` arranca el mismo día y queda medida y partida en tres** (fila
-  `DX-N3` del plan): el CLI de quark escribía la migración derivada de
-  modelos como fichero Go, y nucleus la quiere como par `.up.sql`/`.down.sql`.
-  `DX-N3q` (quark#486): `migrate create --from-models --emit json` imprime
-  `{schema:1, tool, version, dialect, models, up, down}` sin escribir nada
-  (hallazgo de paso QK-100: `--from-models` se resuelve contra el cwd).
-  `DX-N3n1` (nucleus#650): `generate module` sobre `nucleus.Handle` tipado
-  con esquemas en `/openapi.json` y errores por el sobre (problem+json
-  negociado); `doctor`/`health`/`config print` leen los imports
-  `providers/*` de `main.go`; NU-132/136/145 `hecho`; nuevos NU-165…167
-  (la doc a mano del quickstart enseña `{"error": …}` fuera del sobre y
-  afirma que es «la misma forma» que el generador; `resource`/`startapp`
-  siguen sin tipar; un test con interceptor de relleno). **`DX-N3n2`**
-  (`nucleus makemigrations` llamando al CLI de quark con `--emit json`)
-  espera a que el set del 2026-11-16 publique `cmd/quark`: la lane
-  `suite-starter` monta los hermanos a su última release, así que antes
-  no puede estar verde.
-- **Lo siguiente**: el set del 2026-11-16 (publica el bloque A, `DX-Q1` y
-  `DX-Q3`); `DX-N3` (`makemigrations` delegando en el CLI de quark,
-  NU-145/136/132: sólo queda `DX-N3n2`, `makemigrations`, tras la release
-  de `cmd/quark` del set) en 1.x en paralelo a `M1`; el nacimiento de
-  `providers/tasks-asynq`; D9…D11 de Carlos (D12 y D13 ya decididas).
-
 ### Sesión 2026-11-10 — **QK-100 resuelto y el nacimiento de `providers/tasks-asynq`: el módulo existe en 1.x reenviando al paquete del árbol, y `nucleus add tasks-asynq` deja de apuntar al vacío**
 
 - **Arranque**: Carlos preguntó por QK-100 (el `--from-models` del CLI de
@@ -426,6 +333,41 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   nucleus (`quarkmake` y `tasks-asynq`) además del bloque A; sus trampas en
   el §5. Después `DX-N3n2` y D9…D11.
 
+### Sesión 2026-11-11/12 — **el set del 2026-11-16 adelantado al 11: Quantum 1.44.0 (quark v1.19.0, nucleus v1.35.0, orbit v1.21.3)**
+
+- **Arranque**: a petición del propietario («adelanta el trabajo del día
+  16») se condujo el tren del set de la semana de cadencia del 16 el
+  2026-11-11 (orbit cerró el 12). Lo que publica: en nucleus, los dos
+  módulos que nacieron en 1.x —`pkg/nucleustest/quarkmake` (DX-N1b, D12)
+  y `providers/tasks-asynq` (módulo de reenvío hasta el 2.0)—, el bloque
+  A de la DX al 5, DX-N3n1 y el gate de govulncheck con excepciones
+  fechadas (NU-155); en quark, DX-Q1/DX-Q3/DX-Q4 (el playground wasm) y
+  DX-N3q (`--emit json`), QK-100 y la primera release de `cmd/quark`
+  posterior a v1.2.2 (v1.3.0); en orbit, sólo alineación y toolchain. Y
+  Go 1.26.11 en los tres por GO-2026-6859.
+- **Orden real**: quark#491 (toolchain) → quark#490 (suelos) → quark#483
+  (v1.19.0) · nucleus#653 (toolchain) → nucleus#652 (suelos +
+  `release-as` 0.1.0 para los dos módulos nuevos) → nucleus#654 (notas y
+  snapshot) → nucleus#645 (v1.35.0, diecisiete tags) → nucleus#655 (quita
+  el `release-as`) · orbit#591 (toolchain) → orbit#593 (alineación) →
+  orbit#592 (v1.21.2) → orbit#594 (pines internos) → orbit#595 (v1.21.3)
+  → quantum#307 (set; una vuelta por el espejo de la sidebar de quark) →
+  quantum#308 (8 GB de heap de Node para el build del sitio, porque el
+  deploy de main murió con el set ya certificado) → este PR.
+- **Lo que enseñó**: está en «Lo que aprendió el tren de 1.44.0» de
+  `scripts/train/README.md`: la tercera vulnerabilidad de Go el día del
+  corte (el preflight debería correr `govulncheck` sobre los tres
+  `main`), los módulos nuevos que release-please propone como «1.9.2»
+  (`release-as` y quitarlo), el esqueleto de quark que la regeneración
+  del bot se lleva, tres flakes del banco admin de orbit más un gate
+  zombi (OR-149 abierto, con la causa probable), y el segundo corte de
+  orbit por cuarta vez seguida, y el deploy del sitio sin heap.
+- **Siguiente**: `DX-N3n2` (`nucleus makemigrations` vía la CLI de quark,
+  desbloqueada por `cmd/quark` v1.3.0); D9…D11 del propietario; la
+  excepción de govulncheck caduca el 2026-12-31; y en el PR de suelos del
+  próximo tren, `pkg/nucleustest/quarkmake` en
+  `check_modules_standalone.sh` (su suelo debe ser v1.35.0).
+
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -464,26 +406,20 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **El PR de set del 2026-11-16 lleva DOS módulos nuevos de nucleus**
-  (`pkg/nucleustest/quarkmake`, nucleus#648, y `providers/tasks-asynq`,
-  nucleus#651): `versions.yaml` `nucleus_modules.quarkmake` y
-  `nucleus_modules.tasks-asynq` (la clave es el último segmento de la ruta)
-  y sus dos `use` en el `go.work` EN el PR de re-pin, o
-  `check_gowork_covers_manifest` y manifest-guard §3b lo paran; los dos
-  nacen con `0.0.0` en el manifest de nucleus, así que si release-please
-  les da un número raro, `Release-As` y quitarlo (receta de 1.41.0);
-  `website/docs/why-quantum.md` pasa de **14** a **15** módulos y tiene que
-  decir «a Redis jobs provider» en la frase del catálogo (el guard lo exige
-  en cuanto el pin trae `providers/tasks-*`) y «test kit» por `quarkmake`;
-  y en nucleus, `pkg/nucleustest/quarkmake` entra en
-  `check_modules_standalone.sh` en el PR de suelos (`tasks-asynq` ya está:
-  el glob `providers/*/` lo coge solo).
-- **El próximo PR de set corrige «40 of 43» en `website/docs/why-quantum.md`**:
-  nucleus#647 (`DX-N2`, 2026-11-08) re-verdictó FED-03 y `docs/auth-bench.md`
-  publica 41 de 43; `umbrella-why-quantum` cruza la cifra con la fuente al
-  pin y pondrá rojo el PR de set hasta que la página diga 41. Y orbit, al
-  subir el pin de quark: los textos de `ErrNotFound`, `ErrTimeout` y
-  `ErrConstraintViolation` crecen tras el prefijo (quark#481).
+- **En el PR de suelos del próximo tren de nucleus**:
+  `pkg/nucleustest/quarkmake` entra en `scripts/ci/check_modules_standalone.sh`
+  (su suelo debe ser v1.35.0 para que el proxy lo resuelva; `tasks-asynq`
+  ya lo coge el glob `providers/*/`). Y el preflight del tren debería
+  correr `govulncheck` sobre los tres `main` antes de nada: tres trenes
+  seguidos con una vulnerabilidad de Go el día del corte.
+- **OR-149 (P3, orbit)**: el banco admin flakea en CI (EXT-04 con 405 al
+  iniciar sesión, EXT-10 «partial») por el puerto que `tryStart` reserva
+  y suelta; tres relanzamientos en el tren de 1.44.0. Arreglo propuesto
+  en `docs/auditoria/madurez-2026-09-03/orbit.md`.
+- **El deploy del sitio unificado**: comprobar que el run de
+  `deploy.yml` tras quantum#308 está verde y que la portada sirve 1.44.0;
+  si el sitio sigue creciendo, el siguiente tope es la memoria del runner
+  (16 GB), no el heap.
 - **Las 34 filas del §3.0 están `publicado`** desde Quantum 1.43.0
   (2026-11-07): la ventana más tardía abre el 2027-02-07 y el 2.0 no sale
   antes. Lo que queda con fecha: la excepción de
