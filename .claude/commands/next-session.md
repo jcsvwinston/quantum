@@ -393,7 +393,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   EXISTS` o tras el guard de SQL Server), dice cuáles y qué fichero, y sin
   nada nuevo no escribe par: «No changes detected», con el recordatorio
   de que la columna nueva es un `ALTER` a mano. Ambos `hecho` en el
-  registro.
+  registro. De paso, **NU-171 (nucleus#659)**: el CI de main tras
+  nucleus#658 cayó por `TestDevRunsAScaffoldedProject` —`/healthz`
+  contestó a los 2,7 s, antes de que el scaffold pudiera compilar: el
+  puerto de `freeLoopbackPort` lo había ocupado el servidor de otro
+  paquete, la misma clase que OR-149—; las esperas exigen ahora la línea
+  `build #N ok` del propio bucle; relanzado el run.
 - **Lo siguiente**: D9…D11 (decisiones del propietario, §3.3 del contrato
   del 2.0) → `M1`; `DX-N3n2` y NU-170 salen en la próxima minor de
   nucleus y QK-101 en la próxima patch de `cmd/quark` (el tren paga sus
