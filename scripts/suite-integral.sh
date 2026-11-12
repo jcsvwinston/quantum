@@ -165,6 +165,10 @@ echo
 # así que el build es parte de la certificación: si no construye, el set
 # tampoco certifica.
 # ---------------------------------------------------------------------------
+# El build del sitio se queda sin heap de Node con el tamaño del sitio desde
+# 1.43.0 (tres snapshots más por set); si quien llama no fija NODE_OPTIONS,
+# 8 GB, lo mismo que deploy.yml y website-ci.yml dan al runner.
+export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
 echo "-- precondición: build del sitio (website/)"
 if [[ "${QUANTUM_SKIP_BUILD:-0}" == "1" && -d website/build ]]; then
   echo "AVISO: QUANTUM_SKIP_BUILD=1 — se reutiliza website/build existente (solo iteración local)"
