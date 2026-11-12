@@ -93,10 +93,11 @@ Honest boundaries save everyone time:
 - **You need NoSQL.** Quark is relational only, and Nucleus's data layer is
   `database/sql`. Six SQL engines, zero document stores.
 - **You need a large ecosystem of third-party packages.** These are three
-  products from a small project. Beyond them, `nucleus add` installs the 14
+  products from a small project. Beyond them, `nucleus add` installs the 15
   optional modules the project publishes itself — database drivers,
   telemetry exporters, object storage, an LDAP backend, a secrets resolver,
-  an error reporter and a SAML sign-in provider, each certified with the set
+  an error reporter, a SAML sign-in provider and a Redis jobs provider,
+  each certified with the set
   — and wires 6 capabilities that are part of the framework itself; there is
   no registry of third-party plugins. [Why Quantum](why-quantum.md) compares
   the suite with frameworks that have one, and says where they are ahead.

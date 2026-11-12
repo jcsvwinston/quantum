@@ -4,9 +4,9 @@
 # Los sets 0.1.0–0.5.0 se certificaron solo como commits de este manifiesto
 # (sin tag git); hay tag de suite en quantum desde v1.0.0.
 # Ver docs/adr/QADR-0004-versions-yaml-manifiesto.md.
-quantum: "1.43.0"           # versión de la SUITE (semver propio, != versiones de módulos)
-released: 2026-11-07
-status: certified           # Minor de suite por la minor de quark, nucleus y orbit (QADR-0002); escrito por bump-set, revisar al certificar
+quantum: "1.44.0"           # versión de la SUITE (semver propio, != versiones de módulos)
+released: 2026-11-12
+status: certified           # Corte fuera de cadencia (QADR-0008; razón: el propietario pidió adelantar al 2026-11-11 el set de la semana de cadencia del 16, con los dos módulos nuevos de nucleus y Go 1.26.11 por GO-2026-6859 ya en main; orbit cerró el 12). Minor de suite por la minor de quark y nucleus (QADR-0002)
 
 # Versiones REALES publicadas de cada módulo (lo que la gente instala con
 # `go get`). Los tres pilares en el bloque «modules»; los módulos hermanos de
@@ -18,9 +18,9 @@ status: certified           # Minor de suite por la minor de quark, nucleus y or
 # minor topológicamente forzado, tolerado por el guard extendido, ceñido al
 # único borde root↔quarkdatasource por MAQ-3.
 modules:
-  quark:   "v1.18.0"
-  nucleus: "v1.34.0"
-  orbit:   "v1.21.1"
+  quark:   "v1.19.0"
+  nucleus: "v1.35.0"
+  orbit:   "v1.21.3"
 
 # Módulos del repo nucleus que se publican aparte. Nucleus pasa a multi-módulo
 # en v1.15.0: el backend LDAP vive en su propio módulo para que el framework
@@ -35,21 +35,23 @@ modules:
 # es paquete de release-please, release.yml le corta `cmd/nucleus/vX.Y.Z` en el
 # commit de cada `vX.Y.Z`, y bump-set la escribe desde ese tag.
 nucleus_modules:
-  nucleus:       "v1.34.0"
-  mssql:         "v0.1.11"
-  mysql:         "v0.1.11"
-  oracle:        "v0.1.11"
-  postgres:      "v0.1.11"
-  sqlite:        "v0.2.1"
-  otlp:          "v0.1.11"
-  prometheus:    "v0.1.11"
-  auth-saml:     "v0.1.2"
-  errors-sentry: "v0.1.2"
-  ldap:          "v0.2.15"
-  secrets-aws:   "v0.1.11"
-  storage-azure: "v0.1.11"
-  storage-gcs:   "v0.1.11"
-  storage-s3:    "v0.1.11"
+  nucleus:       "v1.35.0"
+  mssql:         "v0.1.12"
+  mysql:         "v0.1.12"
+  oracle:        "v0.1.12"
+  postgres:      "v0.1.12"
+  sqlite:        "v0.2.2"
+  otlp:          "v0.1.12"
+  prometheus:    "v0.1.12"
+  quarkmake:     "v0.1.0"
+  auth-saml:     "v0.1.3"
+  errors-sentry: "v0.1.3"
+  ldap:          "v0.2.16"
+  secrets-aws:   "v0.1.12"
+  storage-azure: "v0.1.12"
+  storage-gcs:   "v0.1.12"
+  storage-s3:    "v0.1.12"
+  tasks-asynq:   "v0.1.0"
 
 # La clave de cada módulo es el ÚLTIMO segmento de su ruta, que es como la
 # deriva manifest-guard. Para `cmd/quark` eso da `quark`: la entrada `quark`
@@ -62,30 +64,30 @@ nucleus_modules:
 # biblioteca no cargue los tipos de error de cinco motores. Verificados por
 # manifest-guard §3b igual que los de nucleus y orbit.
 quark_modules:
-  quark:    "v1.2.2"
-  mssql:    "v0.3.1"
-  mysql:    "v0.3.1"
-  oracle:   "v0.3.1"
-  postgres: "v0.3.1"
-  sqlite:   "v0.3.1"
+  quark:    "v1.3.0"
+  mssql:    "v0.3.2"
+  mysql:    "v0.3.2"
+  oracle:   "v0.3.2"
+  postgres: "v0.3.2"
+  sqlite:   "v0.3.2"
 
 # Submódulos del repo orbit en el set certificado (una clave por módulo;
 # antes vivían en un comentario en prosa que nada obligaba a mantener).
 orbit_modules:
-  agent:           "v0.16.3"
-  datasource:      "v1.1.1"
-  proto:           "v0.8.2"
-  quarkbridge:     "v1.9.7"
-  quarkdatasource: "v1.13.3"
-  server:          "v0.22.1"
-  ui:              "v1.2.1"
+  agent:           "v0.16.5"
+  datasource:      "v1.1.2"
+  proto:           "v0.8.3"
+  quarkbridge:     "v1.9.8"
+  quarkdatasource: "v1.13.5"
+  server:          "v0.22.3"
+  ui:              "v1.2.2"
 
 # Commits exactos a los que se fijan los submódulos para que el `go.work`
 # compile el set. Los tres pines EN TAG exacto.
 workspace_pins:
-  quark:   "77e9b8a1"                                # = v1.18.0 exacto (contiene cmd/quark/v1.2.2, drivers/mssql/v0.3.1, drivers/mysql/v0.3.1, drivers/oracle/v0.3.1, drivers/postgres/v0.3.1, drivers/sqlite/v0.3.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  nucleus: "5dd2884c"                                # = v1.34.0 exacto (contiene drivers/mssql/v0.1.11, drivers/mysql/v0.1.11, drivers/oracle/v0.1.11, drivers/postgres/v0.1.11, drivers/sqlite/v0.2.1, exporters/otlp/v0.1.11, exporters/prometheus/v0.1.11, providers/auth-saml/v0.1.2, providers/errors-sentry/v0.1.2, providers/ldap/v0.2.15, providers/secrets-aws/v0.1.11, providers/storage-azure/v0.1.11, providers/storage-gcs/v0.1.11, providers/storage-s3/v0.1.11 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
-  orbit:   "1d6035fa"                                # = v1.21.1 exacto (contiene agent/v0.16.3, datasource/v1.1.1, proto/v0.8.2, quarkbridge/v1.9.7, quarkdatasource/v1.13.3, server/v0.22.1, ui/v1.2.1 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  quark:   "06a210a3"                                # = v1.19.0 exacto (contiene cmd/quark/v1.3.0, drivers/mssql/v0.3.2, drivers/mysql/v0.3.2, drivers/oracle/v0.3.2, drivers/postgres/v0.3.2, drivers/sqlite/v0.3.2 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  nucleus: "4703e546"                                # = v1.35.0 exacto (contiene drivers/mssql/v0.1.12, drivers/mysql/v0.1.12, drivers/oracle/v0.1.12, drivers/postgres/v0.1.12, drivers/sqlite/v0.2.2, exporters/otlp/v0.1.12, exporters/prometheus/v0.1.12, pkg/nucleustest/quarkmake/v0.1.0, providers/auth-saml/v0.1.3, providers/errors-sentry/v0.1.3, providers/ldap/v0.2.16, providers/secrets-aws/v0.1.12, providers/storage-azure/v0.1.12, providers/storage-gcs/v0.1.12, providers/storage-s3/v0.1.12, providers/tasks-asynq/v0.1.0 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
+  orbit:   "db2789b2"                                # = v1.21.3 exacto (contiene agent/v0.16.5, datasource/v1.1.2, proto/v0.8.3, quarkbridge/v1.9.8, quarkdatasource/v1.13.5, server/v0.22.3, ui/v1.2.2 como ancestros — tags cortados en el MISMO commit o antes, que es lo que permite certificar cada módulo: manifest-guard §3/§3b lo verifica en cada corrida de CI)
 
 # Lags cross-repo DECLARADOS (QM6-1): requires de quark/nucleus en los módulos
 # de orbit que van por detrás de la versión certificada de arriba. La regla del
@@ -99,76 +101,74 @@ workspace_pins:
 declared_lags: {}
 
 notes: >
-  Quantum 1.43.0 publica la segunda mitad de M0 de A12 y lo que M0-R y
-  M0-F dejaron en main: los once avisos del 2.0 que seguían sin set (los
-  siete de quark, DEP-2026-004…010, y los cuatro de M0-R: DEP-2026-011 de
-  quark y DEP-2026-003, 004 y 005 de orbit), con lo que las 34 filas del
-  §3.0 del contrato del 2.0 están publicadas y el 2.0 no puede salir antes
-  del 2027-02-07; los cuatro P1 de la re-auditoría arreglados en orbit
-  (OR-78, OR-79, OR-80, OR-99); el registro de proveedores de pkg/tasks en
-  nucleus; el token quark:"literal_column" y el fix de la columna clave
-  por tramos en CreateBatch/UpsertBatch (QK-70) en quark; crewjam/saml
-  v0.5.2 y Go 1.26.10 (GO-2026-6809) en los tres. Se mueven quark (v1.17.0
-  → v1.18.0), nucleus (v1.33.0 → v1.34.0) y orbit (v1.20.1 → v1.21.1).
-  Módulos hermanos que cambian: quark mssql (v0.3.0 → v0.3.1), quark mysql
-  (v0.3.0 → v0.3.1), quark oracle (v0.3.0 → v0.3.1), quark postgres
-  (v0.3.0 → v0.3.1), quark quark (v1.2.1 → v1.2.2), quark sqlite (v0.3.0 →
-  v0.3.1), nucleus auth-saml (v0.1.1 → v0.1.2), nucleus errors-sentry
-  (v0.1.1 → v0.1.2), nucleus ldap (v0.2.14 → v0.2.15), nucleus mssql
-  (v0.1.10 → v0.1.11), nucleus mysql (v0.1.10 → v0.1.11), nucleus nucleus
-  (v1.33.0 → v1.34.0), nucleus oracle (v0.1.10 → v0.1.11), nucleus otlp
-  (v0.1.10 → v0.1.11), nucleus postgres (v0.1.10 → v0.1.11), nucleus
-  prometheus (v0.1.10 → v0.1.11), nucleus secrets-aws (v0.1.10 → v0.1.11),
-  nucleus sqlite (v0.2.0 → v0.2.1), nucleus storage-azure (v0.1.10 →
-  v0.1.11), nucleus storage-gcs (v0.1.10 → v0.1.11), nucleus storage-s3
-  (v0.1.10 → v0.1.11), orbit agent (v0.16.1 → v0.16.3), orbit datasource
-  (v1.1.0 → v1.1.1), orbit proto (v0.8.1 → v0.8.2), orbit quarkbridge
-  (v1.9.6 → v1.9.7), orbit quarkdatasource (v1.13.1 → v1.13.3), orbit
-  server (v0.21.1 → v0.22.1) y orbit ui (v1.2.0 → v1.2.1); el resto sin
-  cambio. Minor de suite porque lo es la de los tres pilares (QADR-0002).
-  Corte de la semana de cadencia del lunes 9 adelantado al sábado 7 a
-  petición del propietario; la lane semanal del lunes lo vigila igual.
+  Quantum 1.44.0 publica la DX al 5 de A12 en nucleus y quark, y dos
+  módulos nuevos de nucleus: en nucleus, los generadores escriben modelos
+  Quark y endpoints tipados que el documento OpenAPI describe, nucleus new
+  --with orbit monta el panel con una fuente de datos, doctor/health/config
+  print aceptan la configuración de los proveedores que el proyecto
+  importa, y nacen pkg/nucleustest/quarkmake (la factoría con la que
+  nucleustest.Make persiste modelos Quark, D12) y providers/tasks-asynq (la
+  ruta del proveedor de jobs en el 2.0, ya instalable, DEP-2026-020); en
+  quark, los 30 centinelas Err* dicen qué hacer, la CLI emite el DDL como
+  JSON (--emit json, el primer consumidor es nucleus), el sitio estrena un
+  playground de consultas en WebAssembly (D13), tres guías de producción y
+  el arreglo de QK-100; orbit sólo alinea pines y toolchain. Go 1.26.11 en
+  los tres (GO-2026-6859). Se mueven
+  quark (v1.18.0 → v1.19.0), nucleus (v1.34.0 → v1.35.0) y orbit (v1.21.1 →
+  v1.21.3). Módulos hermanos que cambian: quark mssql (v0.3.1 → v0.3.2),
+  quark mysql (v0.3.1 → v0.3.2), quark oracle (v0.3.1 → v0.3.2), quark
+  postgres (v0.3.1 → v0.3.2), quark quark (v1.2.2 → v1.3.0), quark sqlite
+  (v0.3.1 → v0.3.2), nucleus auth-saml (v0.1.2 → v0.1.3), nucleus errors-
+  sentry (v0.1.2 → v0.1.3), nucleus ldap (v0.2.15 → v0.2.16), nucleus mssql
+  (v0.1.11 → v0.1.12), nucleus mysql (v0.1.11 → v0.1.12), nucleus nucleus
+  (v1.34.0 → v1.35.0), nucleus oracle (v0.1.11 → v0.1.12), nucleus otlp
+  (v0.1.11 → v0.1.12), nucleus postgres (v0.1.11 → v0.1.12), nucleus
+  prometheus (v0.1.11 → v0.1.12), nucleus quarkmake (nuevo, v0.1.0), nucleus
+  secrets-aws (v0.1.11 → v0.1.12), nucleus sqlite (v0.2.1 → v0.2.2), nucleus
+  storage-azure (v0.1.11 → v0.1.12), nucleus storage-gcs (v0.1.11 →
+  v0.1.12), nucleus storage-s3 (v0.1.11 → v0.1.12), nucleus tasks-asynq
+  (nuevo, v0.1.0), orbit agent (v0.16.3 → v0.16.5), orbit datasource (v1.1.1
+  → v1.1.2), orbit proto (v0.8.2 → v0.8.3), orbit quarkbridge (v1.9.7 →
+  v1.9.8), orbit quarkdatasource (v1.13.3 → v1.13.5), orbit server (v0.22.1
+  → v0.22.3) y orbit ui (v1.2.1 → v1.2.2); el resto sin cambio. Minor de
+  suite porque lo es la de quark y nucleus (QADR-0002). Corte fuera de
+  cadencia: el propietario pidió adelantar al martes 11 el set de la
+  semana de cadencia del lunes 16 (orbit cerró el 12); la lane semanal del
+  lunes lo vigila igual.
 
-  Qué cambia para quien instala. Nada se retira ni cambia de valor por
-  defecto en este set: los avisos anuncian y las salidas se entregan. En
-  quark: CreateBatch y UpsertBatch deciden la columna clave por tramo de
-  entidades y no por la primera (una entidad con clave tras una sin ella
-  ya no la pierde; una sin clave tras una con ella ya no inserta id=0);
-  quark:"literal_column" mantiene sin aviso una columna que de verdad se
-  llama como una directiva de pkg/model, y la auditoría de EnableAuditLog
-  deja de avisar de su propia columna pk. En nucleus:
-  tasks.RegisterProvider y LookupProvider resuelven jobs_provider por
-  nombre, el proveedor asynq se registra solo y nucleus doctor --check
-  tasks lo lista; hooks.SQLQueryEvent y SQLQueryObserver observan cada
-  consulta; db.New y nucleustest.Transactional rehúsan un driver
-  compartido entre clientes; la lane SAML tolera GO-2026-6909 sobre
-  crewjam/saml v0.5.2 —arreglada upstream, sin versión arreglada en la
-  base de datos de Go— con una excepción de un id, un módulo y una versión
-  que caduca el 2026-12-31. En orbit: un operador puede quedar atado a un
-  tenant (tenant_id en la cuenta y en la API de operadores) y, sin
-  tenant_switch ni superusuario, una petición que resuelve otro tenant por
-  el resolver se rechaza con 403 como ya se rechazaba por ?tenant=; el
-  permiso system_env acompaña a system_pulse para leer el entorno; --peer-
-  ca/--peer-cert/--peer-key y server.PeerTLSFromFiles forman el mesh de
-  admin-server bajo mTLS; --peer-allowlist (opt-in) rechaza los peers que
-  el servidor no marca; import, fixtures, exports y el widget de fichero
-  bajo tenant usan la clave lógica del panel; Data Studio sobre
-  quarkdatasource valida (422), clasifica (409, 404) y el panel comprueba
-  el registro antes de llamar a la fuente; un fichero importado con su
-  clave de sólo lectura ya no se rechaza y las celdas CSV llegan tipadas.
-  La raíz, agent, server, quarkbridge y quarkdatasource de orbit requieren
-  nucleus v1.34.0 y quark v1.18.0.
+  Qué cambia para quien instala. Nada se retira, ningún valor por defecto
+  cambia y ninguna firma exportada se mueve. En quark: el texto de los
+  centinelas que se devuelven a pelo (ErrNotFound, ErrTimeout,
+  ErrConstraintViolation, los de listener y lock, ErrNoRegisteredModels)
+  crece con la pista tras dos puntos —errors.Is sigue igual; un test que
+  compare err.Error() con el texto exacto se entera—; migrate create
+  --from-models carga el paquete de modelos dentro de su propio módulo
+  (QK-100), con lo que una ruta absoluta funciona desde cualquier
+  directorio; cmd/quark sale como v1.3.0. En nucleus: generate model,
+  generate resource y startapp escriben modelos Quark y repositorios sobre
+  quark.For[T] (ningún fichero generado importa pkg/model); generate
+  module escribe cinco endpoints nucleus.Handle con 201/204 y errores por
+  el sobre o problem+json; nucleus new --with orbit implica quark y
+  quarkdatasource; doctor, health y config print leen los imports en
+  blanco de main.go y aceptan las claves de cada proveedor enlazado;
+  nucleustest.Make persiste un struct no registrado a través de la
+  factoría instalada (quarkmake) y sin factoría falla con la receta; el
+  proveedor asynq sigue enlazado por el framework, así que el import de
+  providers/tasks-asynq es opcional hasta el 2.0. En orbit: la raíz,
+  agent, server, quarkbridge y quarkdatasource requieren nucleus v1.35.0 y
+  quark v1.19.0; nada en los binarios ni en el panel cambia. Los binarios
+  y la imagen de los tres se construyen con Go 1.26.11; la directiva go no
+  se mueve.
 
-  Qué aprendió el tren. El paso «Tag The CLI Module» del release de
-  nucleus murió por SIGPIPE (un awk con exit cerraba la tubería mientras
-  base64 escribía, bajo pipefail): los activos se publicaron pero
-  cmd/nucleus/v1.34.0 se cortó a mano en el commit del release tras
-  comprobar su suelo, y nucleus#643 lee el go.mod entero. Las notas de
-  nucleus iban fechadas al lunes de cadencia y se re-fecharon al día del
-  corte (nucleus#642) antes de fusionar el release. Orbit volvió a
-  necesitar segundo corte (v1.21.1): ui, datasource y proto salieron con
-  la raíz y agent, server, quarkdatasource y la raíz los requerían un tag
-  atrás. La receta de 1.42.0 —nucleus con --solo-suelos, orbit con la
-  alineación en PR propio, notas y snapshot en la rama del bot y la fase
-  después— volvió a funcionar; el guard de voz de producto rechaza «P1» en
-  unas notas públicas.
+  Qué aprendió el tren. Tercera vulnerabilidad de la biblioteca estándar
+  de Go el día del corte (GO-2026-6859): PR de toolchain por repo antes de
+  los suelos. release-please proponía los dos módulos nuevos de nucleus
+  como v1.9.2 (la versión que heredan de la raíz): release-as 0.1.0 por
+  paquete en el PR de suelos y un chore que lo quita tras el corte
+  (nucleus#652, #655). La regeneración de la rama del bot de quark se
+  llevó el esqueleto de notas: quark-doc-debt.sh otra vez tras su run.
+  Orbit flakeó tres veces en el banco admin (EXT-04, EXT-10 y dos tests de
+  la UI) y un gate se quedó una hora en cola con el run cerrado: relanzar
+  el run entero; registrado como OR-149 con la causa probable (el puerto
+  que tryStart reserva y suelta). Y segundo corte de orbit (v1.21.3) por
+  cuarta vez seguida.

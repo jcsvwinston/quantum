@@ -11,26 +11,29 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-11-07)
+## Estado real (2026-11-12)
 
-- **Set certificado: Quantum 1.43.0** (2026-11-07, la semana de cadencia del
-  9 adelantada dos días) — quark v1.18.0 (CLI v1.2.2, los cinco drivers
-  v0.3.1) · nucleus v1.34.0 (cmd/nucleus v1.34.0 en lockstep;
-  drivers/sqlite v0.2.1, providers/ldap v0.2.15, providers/auth-saml y
-  providers/errors-sentry v0.1.2, los diez hermanos restantes v0.1.11) ·
-  orbit v1.21.1 (proto v0.8.2, datasource v1.1.1, ui v1.2.1, agent v0.16.3,
-  server v0.22.1, quarkbridge v1.9.7, quarkdatasource v1.13.3). Publica la
-  **segunda mitad de `M0` de A12** y lo que `M0-R` y `M0-F` dejaron en
-  `main`: los once avisos del 2.0 que seguían sin set —los siete de quark
-  (`DEP-2026-004…010`), `DEP-2026-011` de quark y `DEP-2026-003`, `004` y
-  `005` de orbit—, con lo que **las 34 filas del §3.0 del contrato del 2.0
-  están `publicado`** y el 2.0 no puede salir antes del 2027-02-07; los
-  cuatro P1 de la re-auditoría arreglados en orbit (OR-78, OR-79, OR-80,
-  OR-99); el registro de proveedores de `pkg/tasks` en nucleus;
-  `quark:"literal_column"` y la columna clave por tramos en
-  `CreateBatch`/`UpsertBatch` (QK-70) en quark; `crewjam/saml` v0.5.2 (con la
-  excepción acotada de NU-155 en la lane SAML, que caduca el 2026-12-31) y
-  Go 1.26.10 en los tres.
+- **Set certificado: Quantum 1.44.0** (2026-11-11/12, la semana de cadencia
+  del 16 adelantada a petición del propietario) — quark v1.19.0 (CLI
+  v1.3.0, los cinco drivers v0.3.2) · nucleus v1.35.0 (cmd/nucleus v1.35.0
+  en lockstep; drivers/sqlite v0.2.2, providers/ldap v0.2.16,
+  providers/auth-saml y providers/errors-sentry v0.1.3, los diez hermanos
+  restantes v0.1.12, y dos módulos NUEVOS: pkg/nucleustest/quarkmake v0.1.0
+  y providers/tasks-asynq v0.1.0) · orbit v1.21.3 (proto v0.8.3,
+  datasource v1.1.2, ui v1.2.2, agent v0.16.5, server v0.22.3, quarkbridge
+  v1.9.8, quarkdatasource v1.13.5). Publica **la DX al 5 de A12** en
+  nucleus y quark: los generadores de nucleus escriben modelos Quark y
+  endpoints tipados, `nucleus new --with orbit` monta el panel con fuente
+  de datos, `doctor`/`health`/`config print` aceptan la configuración de
+  los proveedores que el proyecto importa, `nucleustest.Make` persiste
+  modelos Quark a través de `quarkmake` (D12) y `providers/tasks-asynq`
+  nace como módulo de reenvío (DEP-2026-020); en quark, los 30 centinelas
+  `Err*` dicen qué hacer, `--emit json` en la CLI, el playground wasm del
+  sitio (D13), tres guías de producción y QK-100. Orbit sólo alinea. Go
+  1.26.11 en los tres (GO-2026-6859).
+  1.43.0 publicó la segunda mitad de `M0` (los once avisos del 2.0 que
+  faltaban: las 34 filas del §3.0 están `publicado` y el 2.0 no puede
+  salir antes del 2027-02-07) y los P1 de la re-auditoría en orbit;
   1.42.0 publicó la primera mitad de `M0` (los nueve avisos de nucleus y los
   dos de orbit); 1.41.0 cerró **A11** (extensibilidad y catálogo); 1.40.0
   publicó los P0 de tenants de quark; 1.39.0 cerró **A10** (Testing y
