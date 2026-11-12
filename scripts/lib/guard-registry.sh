@@ -508,6 +508,17 @@ GUARD_SCAN_EXCLUDE=(
   # (GOVULNCHECK_GATE_SCAN, su modo de autocomprobación) juzgaría el fichero
   # grabado, no el árbol. Las lanes root y CLI siguen con el binario a secas.
   "nucleus/scripts/ci/govulncheck_gate.sh"
+  # El playground de quark (DX-Q4 de A12, D13, quark#485, al pin desde
+  # 1.44.0): build_playground.sh COMPILA internal/playground a WebAssembly y
+  # copia wasm_exec.js del toolchain —produce ficheros, no tiene veredicto— y
+  # check_playground_weight.sh es la lane que lo construye y mide (gzip -9
+  # contra el tope de 3,5 MB y contra la cifra que la página publica). Las
+  # dos necesitan el toolchain de Go compilando a wasm y la lane de quark las
+  # corre en cada PR; el paraguas ya delega en la primera desde
+  # scripts/build_quark_playground.sh. Una fixture tendría que compilar el
+  # módulo para romperlo: la misma familia que la lane de govulncheck.
+  "quark/scripts/ci/build_playground.sh"
+  "quark/scripts/ci/check_playground_weight.sh"
   # Lane hello-world-size del CI de nucleus (A12 N1, NU-106): construye con
   # GOWORK=off dos programas fuera del árbol (pkg/app solo y con
   # drivers/sqlite), resuelve su grafo contra el proxy con `go mod tidy` y

@@ -73,11 +73,12 @@ stripped ([installation](/nucleus/getting-started/installation/)). A Gin or
 Echo binary that carries only a router is smaller, and has fewer
 dependencies to keep up to date.
 
-Beyond Nucleus, Quark and Orbit, `nucleus add` installs the **14** optional
+Beyond Nucleus, Quark and Orbit, `nucleus add` installs the **15** optional
 modules the project publishes itself — **5** database drivers, **2**
 telemetry exporters, **3** object-storage providers, an LDAP backend, an AWS
-Secrets Manager resolver, a Sentry error reporter and a SAML sign-in
-provider — fetching each one and writing the import that registers it
+Secrets Manager resolver, a Sentry error reporter, a SAML sign-in provider
+and a Redis jobs provider — fetching each one and writing the import that
+registers it
 ([the certified set](https://github.com/jcsvwinston/quantum/blob/main/versions.yaml)).
 It also wires **6** capabilities that are part of the framework itself, with
 nothing to fetch: OIDC sign-in (`oidc`), a Redis cache backend
@@ -198,7 +199,7 @@ use a generator that reads the document.
 Nucleus serves sign-in, registration with email verification, password reset,
 magic links, TOTP with recovery codes, step-up re-authentication, API keys
 with scopes, OIDC sign-in and role-based access control with explicit deny
-and per-object permissions. Its auth bench: **40 of 43** controls present
+and per-object permissions. Its auth bench: **41 of 43** controls present
 ([auth bench](https://github.com/jcsvwinston/nucleus/blob/main/docs/auth-bench.md)).
 
 Django ships authentication, with OIDC and MFA from packages; Rails has a

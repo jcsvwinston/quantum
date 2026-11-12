@@ -36,6 +36,7 @@ use (
 	./nucleus/exporters/otlp
 	./nucleus/exporters/prometheus
 	./nucleus/internal/testdeps
+	./nucleus/pkg/nucleustest/quarkmake
 	./nucleus/providers/auth-saml
 	./nucleus/providers/errors-sentry
 	./nucleus/providers/ldap
@@ -43,6 +44,7 @@ use (
 	./nucleus/providers/storage-azure
 	./nucleus/providers/storage-gcs
 	./nucleus/providers/storage-s3
+	./nucleus/providers/tasks-asynq
 	./orbit
 	./orbit/agent
 	./orbit/datasource
