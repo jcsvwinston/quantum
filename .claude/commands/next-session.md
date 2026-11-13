@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-12, QUANTUM 1.44.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R` y `M0-F` HECHAS, **la DX al 5 (§2.1) COMPLETA: publicada en 1.44.0 salvo `DX-N3n2`, que está en `main` de nucleus (nucleus#656) y sale con la próxima minor**; el bloque A, `DX-N1b` (D12, `quarkmake`), `DX-Q1`, `DX-Q3`, `DX-Q4` (D13, el playground), `DX-N3q`, `DX-N3n1`, QK-100 y el nacimiento de `providers/tasks-asynq` van en el set (quark v1.19.0, nucleus v1.35.0, orbit v1.21.3), cortado el 2026-11-11/12 por adelanto del set del 16; siguiente: D9…D11 (decisiones del propietario) → M1 → R2)
+## 3. Estado al cierre (2026-11-12, QUANTUM 1.44.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R` y `M0-F` HECHAS, **la DX al 5 (§2.1) COMPLETA: publicada en 1.44.0 salvo `DX-N3n2`, que está en `main` de nucleus (nucleus#656) y sale con la próxima minor**; el bloque A, `DX-N1b` (D12, `quarkmake`), `DX-Q1`, `DX-Q3`, `DX-Q4` (D13, el playground), `DX-N3q`, `DX-N3n1`, QK-100 y el nacimiento de `providers/tasks-asynq` van en el set (quark v1.19.0, nucleus v1.35.0, orbit v1.21.3), cortado el 2026-11-11/12 por adelanto del set del 16; D9…D11 DECIDIDAS el 2026-11-13 (las tres en A); siguiente: `D9-N` ∥ `D10-O` en 1.x → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -399,10 +399,21 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   puerto de `freeLoopbackPort` lo había ocupado el servidor de otro
   paquete, la misma clase que OR-149—; las esperas exigen ahora la línea
   `build #N ok` del propio bucle; relanzado el run.
-- **Lo siguiente**: D9…D11 (decisiones del propietario, §3.3 del contrato
-  del 2.0) → `M1`; `DX-N3n2` y NU-170 salen en la próxima minor de
-  nucleus y QK-101 en la próxima patch de `cmd/quark` (el tren paga sus
-  notas); la excepción de govulncheck caduca el 2026-12-31.
+- **2026-11-13, D9…D11 decididas** (Carlos, decisión a decisión con pros,
+  contras, recomendación e impacto; las tres en la opción recomendada,
+  escritas en la columna «decisión» del §3.3 del contrato): **D9 = A**,
+  `generate module` escribe las filas comentadas y lo dice cuando el root
+  es `WithoutDefaults()` sin `WithAuthz()` (sesión `D9-N`, nucleus, 1.x);
+  **D10 = A**, opciones tipadas en `quarkdatasource.Register` paralelas a
+  `ModelConfig`, con exclusión por defecto de columnas sensibles y sin
+  etiqueta `admin:` en quark (sesión `D10-O`, orbit, minor antes del
+  major); **D11 = A**, la raíz de orbit requiere quark y `quarkdatasource`
+  en el 2.0 con enmienda a ADR-012 (C, devolver el módulo a la raíz,
+  anotada para un 2.x). Las dos sesiones de 1.x están en el plan de A12.
+- **Lo siguiente**: `D9-N` ∥ `D10-O` (1.x) → `M1`; `DX-N3n2` y NU-170
+  salen en la próxima minor de nucleus y QK-101 en la próxima patch de
+  `cmd/quark` (el tren paga sus notas); la excepción de govulncheck
+  caduca el 2026-12-31.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -441,6 +452,12 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 `scripts/train/README.md`, en la sección del anuncio.
 
 **Trabajo con destinatario (por orden de arranque):**
+
+- **`D9-N` (nucleus, 1.x) y `D10-O` (orbit, minor de `quarkdatasource`
+  antes del major)**: las dos sesiones que abren las decisiones del
+  2026-11-13; su criterio de hecho está en el plan de A12. `D10-O` es
+  precondición de `M1` porque sin ella el panel del 2.0 lista y busca
+  todas las columnas.
 
 - **En el PR de suelos del próximo tren de nucleus**:
   `pkg/nucleustest/quarkmake` entra en `scripts/ci/check_modules_standalone.sh`
