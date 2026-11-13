@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-12, QUANTUM 1.44.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R` y `M0-F` HECHAS, **la DX al 5 (§2.1) COMPLETA: publicada en 1.44.0 salvo `DX-N3n2`, que está en `main` de nucleus (nucleus#656) y sale con la próxima minor**; el bloque A, `DX-N1b` (D12, `quarkmake`), `DX-Q1`, `DX-Q3`, `DX-Q4` (D13, el playground), `DX-N3q`, `DX-N3n1`, QK-100 y el nacimiento de `providers/tasks-asynq` van en el set (quark v1.19.0, nucleus v1.35.0, orbit v1.21.3), cortado el 2026-11-11/12 por adelanto del set del 16; D9…D11 DECIDIDAS el 2026-11-13 (las tres en A); siguiente: `D9-N` ∥ `D10-O` en 1.x → M1 → R2)
+## 3. Estado al cierre (2026-11-13, QUANTUM 1.44.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R`, `M0-F` y la DX al 5 (§2.1) HECHAS (`DX-N3n2` en `main` de nucleus, nucleus#656, sale con la próxima minor); D9…D11 DECIDIDAS el 2026-11-13 (las tres en A) y **`D10-O` HECHA el mismo día** (orbit#596/#597 en `main` de orbit, nucleus#661): opciones de `quarkdatasource.Register`, `DS-18` (73 de 73) y OR-150 reparado; siguiente: `D9-N` (nucleus, 1.x) → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -291,41 +291,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-11-11/12 — **el set del 2026-11-16 adelantado al 11: Quantum 1.44.0 (quark v1.19.0, nucleus v1.35.0, orbit v1.21.3)**
-
-- **Arranque**: a petición del propietario («adelanta el trabajo del día
-  16») se condujo el tren del set de la semana de cadencia del 16 el
-  2026-11-11 (orbit cerró el 12). Lo que publica: en nucleus, los dos
-  módulos que nacieron en 1.x —`pkg/nucleustest/quarkmake` (DX-N1b, D12)
-  y `providers/tasks-asynq` (módulo de reenvío hasta el 2.0)—, el bloque
-  A de la DX al 5, DX-N3n1 y el gate de govulncheck con excepciones
-  fechadas (NU-155); en quark, DX-Q1/DX-Q3/DX-Q4 (el playground wasm) y
-  DX-N3q (`--emit json`), QK-100 y la primera release de `cmd/quark`
-  posterior a v1.2.2 (v1.3.0); en orbit, sólo alineación y toolchain. Y
-  Go 1.26.11 en los tres por GO-2026-6859.
-- **Orden real**: quark#491 (toolchain) → quark#490 (suelos) → quark#483
-  (v1.19.0) · nucleus#653 (toolchain) → nucleus#652 (suelos +
-  `release-as` 0.1.0 para los dos módulos nuevos) → nucleus#654 (notas y
-  snapshot) → nucleus#645 (v1.35.0, diecisiete tags) → nucleus#655 (quita
-  el `release-as`) · orbit#591 (toolchain) → orbit#593 (alineación) →
-  orbit#592 (v1.21.2) → orbit#594 (pines internos) → orbit#595 (v1.21.3)
-  → quantum#307 (set; una vuelta por el espejo de la sidebar de quark) →
-  quantum#308 (8 GB de heap de Node para el build del sitio, porque el
-  deploy de main murió con el set ya certificado) → este PR.
-- **Lo que enseñó**: está en «Lo que aprendió el tren de 1.44.0» de
-  `scripts/train/README.md`: la tercera vulnerabilidad de Go el día del
-  corte (el preflight debería correr `govulncheck` sobre los tres
-  `main`), los módulos nuevos que release-please propone como «1.9.2»
-  (`release-as` y quitarlo), el esqueleto de quark que la regeneración
-  del bot se lleva, tres flakes del banco admin de orbit más un gate
-  zombi (OR-149 abierto, con la causa probable), y el segundo corte de
-  orbit por cuarta vez seguida, y el deploy del sitio sin heap.
-- **Siguiente**: `DX-N3n2` (`nucleus makemigrations` vía la CLI de quark,
-  desbloqueada por `cmd/quark` v1.3.0); D9…D11 del propietario; la
-  excepción de govulncheck caduca el 2026-12-31; y en el PR de suelos del
-  próximo tren, `pkg/nucleustest/quarkmake` en
-  `check_modules_standalone.sh` (su suelo debe ser v1.35.0).
-
 ### Sesión 2026-11-12 — **A12 `DX-N3n2`: `nucleus makemigrations` deriva el par de los modelos quark a través del CLI de quark (nucleus#656)**
 
 - **Arranque**: Carlos, tras el cierre del tren de 1.44.0: «adelante con
@@ -415,6 +380,71 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `cmd/quark` (el tren paga sus notas); la excepción de govulncheck
   caduca el 2026-12-31.
 
+### Sesión 2026-11-13 — **A12 `D10-O`: `quarkdatasource.Register` declara lo que el panel lista, busca, filtra y esconde (orbit#596, orbit#597, nucleus#661)**
+
+- **Arranque**: Carlos, con D9…D11 recién decididas: «adelante con
+  D10-O». Es la precondición de `M1` que más cambia lo que un usuario ve
+  en el panel: sin ella el 2.0 (sólo `quarkdatasource`, D5b) lista y busca
+  todas las columnas de cada modelo.
+- **Lo hecho en `quarkdatasource` (orbit#597, `feat` → v1.14.0 en la
+  próxima minor)**: `Register[T](a, opts...)` toma las mismas
+  declaraciones que un modelo de `pkg/model` lleva en `ModelConfig` y en
+  la etiqueta `admin` —`ListFields`, `SearchFields`, `Filters`,
+  `Exclude`, `ReadOnly`, `ReadOnlyFields`, `Label`, `Choices`, `Icon`,
+  `OrderBy`, `PageSize`— sobre los defaults de hoy (sin nombrar nada,
+  todo listado y filtrable, las cadenas buscables). Quark no lee nada de
+  esto (D10 = A: sin etiqueta `admin:` en el ORM). Una opción que no
+  nombra campo, nombra uno del tipo equivocado (`SearchFields` sobre un
+  número), contradice a otra (`Exclude` y `ListFields` sobre la misma
+  columna, `OrderBy` sobre una oculta) o anularía un default en silencio
+  es ERROR de `Register` y el modelo no se registra: un `ListFields` con
+  la columna mal escrita listaría todas y parecería el default. La clave
+  y la columna de tenant no se pueden excluir. **Exclusión por defecto de
+  las columnas cuyo nombre parece credencial** (`IsSensitiveColumnName`:
+  `password`, `secret`, `token`, `credential`, `api_key`, `private_key`,
+  `*hash`, `*salt` — la misma regla con la que el panel redacta la
+  auditoría), dicha en el log del adaptador (`WithLogger`;
+  `slog.Default` si no) nombrando la opción que la levanta
+  (`ShowSensitive`); nombrar una de esas columnas en otra opción sin
+  `ShowSensitive` es error. El store aplica página y orden del modelo
+  cuando la consulta no trae (el panel manda 0 y «» si la petición no
+  dijo), deja las columnas ocultas fuera de cada registro, no las busca
+  (el panel rechaza una búsqueda que alcanzaría un campo excluido, para
+  todo operador: una oculta que siguiera `IsSearch` haría el modelo
+  entero inbuscable) y rechaza una escritura que las nombre como columna
+  que el modelo no tiene; un campo de sólo lectura nombrado se deja a la
+  base, como la clave (paridad con el adaptador de nucleus). Test de
+  paridad contra el registro de `pkg/model` (los flags que
+  `datasource/nucleus` copia campo a campo; la raíz no entra en el grafo
+  del módulo, ADR-012): misma declaración → mismos flags, y la única
+  diferencia deliberada (credenciales ocultas por nombre) fijada. README
+  con la tabla opción ↔ `ModelConfig`/`admin` y el «Status» rancio
+  reescrito (**OR-147 hecho**); `features.md`.
+- **Lo que midió el control nuevo (orbit#596, `fix` de la raíz)**: el
+  banco admin gana **`DS-18`** —lo que el panel lista, busca, filtra y
+  esconde es lo que el modelo declara—, medido por efecto sobre el
+  adaptador de nucleus (la parte quark la fijan los tests del módulo,
+  como `DS-03`): el esquema lleva la declaración, un filtro por un campo
+  no ofrecido se rechaza por nombre, una búsqueda no mira donde el modelo
+  no dijo, y un campo oculto no está ni en el esquema ni en las filas. La
+  última fila midió `partial` al nacer: **el panel sólo enmascaraba un
+  registro cuando una política por campo aplicaba al operador**, así que
+  una columna `admin:"exclude"` estaba fuera del grid y dentro de cada
+  fila del API (lista, registro, respuesta del `POST`) para cualquier
+  operador con `list` → **OR-150 (P2), reparado en el mismo PR**:
+  `mask`/`maskAll`/`maskValues` quitan un campo excluido para todo
+  operador (la clave se queda) y un modelo sin campos ocultos no paga la
+  pasada. Banco 72 → **73 de 73**; el guard `umbrella-admin-posture`
+  (suelo 72) no se pone rojo con 73, y sube su suelo en el PR de set.
+- **Nucleus (nucleus#661, sólo docs)**: MA-2026-024 gana la fila y la
+  tabla `ModelConfig`/`admin` → opciones de `quarkdatasource`.
+- **Paraguas (este PR)**: fila `D10-O` hecha en el plan de A12, OR-150 y
+  OR-147 en el registro, esta sesión y la del tren de 1.44.0 al archivo.
+- **Lo siguiente**: `D9-N` (nucleus, 1.x) → `M1`; orbit corta MINOR en
+  el próximo set (raíz con el `fix` y el control; `quarkdatasource`
+  v1.14.0) y el tren paga las notas de los dos; con el pin nuevo,
+  `umbrella-admin-posture` a 73 de 73 en el PR de set.
+
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -453,11 +483,13 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **`D9-N` (nucleus, 1.x) y `D10-O` (orbit, minor de `quarkdatasource`
-  antes del major)**: las dos sesiones que abren las decisiones del
-  2026-11-13; su criterio de hecho está en el plan de A12. `D10-O` es
-  precondición de `M1` porque sin ella el panel del 2.0 lista y busca
-  todas las columnas.
+- **`D9-N` (nucleus, 1.x)**: la sesión que queda de las decisiones del
+  2026-11-13 (`D10-O` está hecha, en `main` de orbit); su criterio de
+  hecho está en el plan de A12. Después, `M1`.
+- **En el PR de set del próximo tren**: `umbrella-admin-posture` sube
+  `EXPECTED_CONTROLS` y `PRESENT_FLOOR` de 72 a 73 (`DS-18`, orbit#596);
+  con el pin de orbit de hoy el guard sigue verde porque 73 ≥ 72, y con
+  el nuevo el suelo viejo dejaría de morder.
 
 - **En el PR de suelos del próximo tren de nucleus**:
   `pkg/nucleustest/quarkmake` entra en `scripts/ci/check_modules_standalone.sh`
