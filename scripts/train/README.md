@@ -68,6 +68,17 @@ mismo tren — cortar nucleus después de orbit obligó a DOS roots extra
     el snapshot sale correcto por construcción.
   - **orbit** (root): sección `## vX.Y.Z` en sus release notes.
 
+- **`govulncheck ./...` sobre el checkout hermano de cada pilar**, con la
+  toolchain que declara su `go.mod` (`GOTOOLCHAIN=go1.x.y`), desde el
+  2026-11-13: tres trenes seguidos (1.41.0, 1.43.0, 1.44.0) nacieron con
+  una vulnerabilidad de la biblioteca estándar el día del corte y la cazó
+  el PR de suelos en rojo. Es un AVISO: con hallazgos, el PR `chore(deps)`
+  de toolchain va ANTES de los suelos (receta en la sección 1.44.0). La
+  toolchain se fija porque la stdlib que se escanea es la del `go` que
+  ejecuta govulncheck: un `go` local más viejo que el `toolchain` del repo
+  reporta lo que ese go lleva y el tag no (catorce falsas en nucleus el
+  2026-11-13, con go 1.26.6 local y `toolchain go1.26.11`).
+
 ### 1. quark (`train.sh --desde quark --hasta quark`)
 
 Un solo módulo: fusionar su release PR con `merge-bot-pr.sh quark <n>` y
