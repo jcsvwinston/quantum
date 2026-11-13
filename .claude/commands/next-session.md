@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-13, QUANTUM 1.44.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R`, `M0-F` y la DX al 5 (§2.1) HECHAS (`DX-N3n2` en `main` de nucleus, nucleus#656, sale con la próxima minor); D9…D11 DECIDIDAS el 2026-11-13 (las tres en A) y **`D10-O` HECHA el mismo día** (orbit#596/#597 en `main` de orbit, nucleus#661): opciones de `quarkdatasource.Register`, `DS-18` (73 de 73) y OR-150 reparado; siguiente: `D9-N` (nucleus, 1.x) → M1 → R2)
+## 3. Estado al cierre (2026-11-13, QUANTUM 1.44.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R`, `M0-F` y la DX al 5 (§2.1) HECHAS (`DX-N3n2` en `main` de nucleus, nucleus#656, sale con la próxima minor); D9…D11 DECIDIDAS el 2026-11-13 (las tres en A) y **sus dos sesiones de 1.x HECHAS el mismo día**: `D10-O` (orbit#596/#597 en `main` de orbit, nucleus#661: opciones de `quarkdatasource.Register`, `DS-18` 73 de 73, OR-150 reparado) y `D9-N` (nucleus#662 en `main` de nucleus: `generate module` escribe las filas comentadas sobre un root sin enforcer, NU-127 hecho); siguiente: el set que las publique (nucleus y orbit cortan MINOR) → M1 → R2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -159,7 +159,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   siete de quark, re-fechadas al 2027-02-07 en quark#476, y las cuatro de
   `M0-R`): ninguna `por escribir`; **las once las publicó Quantum 1.43.0
   el 2026-11-07**. En 1.x antes de `M1`: la DX al 5, los `fix` de 1.x de `M0-E` (OR-144 entre
-  ellos), el registro de proveedores de `pkg/tasks` y D9…D11). **Y
+  ellos), el registro de proveedores de `pkg/tasks` y las sesiones de 1.x
+  de D9 y D10 —`D9-N` y `D10-O`, hechas el 2026-11-13 y por publicar—). **Y
   `M0-F` hecha el 2026-11-07** (sección «`M0-F`» del plan): los `fix` de
   1.x portados desde `dry-run/2.0` — quark#479 (QK-70), orbit#584 (OR-89),
   #585 (OR-141), #586 (OR-144 y las coerciones), nucleus#639 (el bump de
@@ -182,9 +183,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   el contrato: D12 (`Make` con doble gramática, hecha como propuesta
   porque nucleus no depende de quark) y D13 (la forma del playground).
   **El bloque A entero, `DX-Q1` y `DX-Q3` entraron en `main` el mismo
-  2026-11-08** (nucleus#644, #646, #647; quark#481, #482, #484; sesión de
-  abajo). Queda delante de `M1`: el bloque A publicado en un set (el del
-  2026-11-16), el módulo `providers/tasks-asynq` con su tag y D9…D13).
+  2026-11-08** (nucleus#644, #646, #647; quark#481, #482, #484; sesión del
+  2026-11-08, archivada) y **Quantum 1.44.0 los publicó el 2026-11-11**
+  con `tasks-asynq` v0.1.0 y D12/D13. Queda delante de `M1`: el set que
+  publique `D9-N` (nucleus#662, minor) y `D10-O` (orbit, minor); D11 es
+  del 2.0 y la ejecuta `M1`.
   Decisiones de Carlos para A11: ejemplos como fixtures probados,
   construir saml/redis-cache/sentry (Stripe se construyó y se
   retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
@@ -291,95 +294,6 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-11-12 — **A12 `DX-N3n2`: `nucleus makemigrations` deriva el par de los modelos quark a través del CLI de quark (nucleus#656)**
-
-- **Arranque**: Carlos, tras el cierre del tren de 1.44.0: «adelante con
-  DX-N3n2», la sesión que esperaba a que `cmd/quark` v1.3.0 (con `--emit
-  json`, `DX-N3q`) estuviera publicado, porque la lane `suite-starter` de
-  nucleus monta a los hermanos a su ÚLTIMA release.
-- **Lo hecho (nucleus#656, fusionado)**: nucleus NO lee los structs:
-  `makemigrations <n>` reescribe a `migrate create --from-models
-  internal/models` cuando el proyecto tiene ese paquete, y `migrate
-  create --from-models <dir>` lanza el CLI de quark —`quark` en el PATH,
-  si no `go run …/cmd/quark@latest` (anunciado en stderr: descarga),
-  `NUCLEUS_QUARK_CLI` lo fija— con `--emit json`, la ruta ABSOLUTA de los
-  modelos (QK-100) y el motor que nucleus ya resuelve de la URL de la base
-  (`postgresql`, que quark acepta; `--dialect` lo fuerza, `--database`
-  elige el alias). Escribe el par con cabecera (modelos, versión de quark,
-  dialecto) y cada sentencia terminada como la parte `pkg/db.ExecScript`:
-  `;`, o una línea `/` en Oracle. Tres negativas explícitas: un CLI sin
-  `--emit json` se reporta con la receta (`go install …/cmd/quark@latest`
-  o `NUCLEUS_QUARK_CLI`), nunca se degrada al par vacío; un documento con
-  otro `schema` se rechaza nombrando las dos versiones; stdout que no es
-  el documento se enseña. Dos vacíos legítimos: un `internal/models` sin
-  struct con `db:` (decidido con go/parser, sin lanzar nada) da el par
-  vacío y lo dice; un proyecto sin el paquete es el alias de siempre.
-  `pkg/db` gana `Migrator.CreateWithSQL` (API nueva en el baseline).
-  Tests con un CLI de pega bajo `NUCLEUS_QUARK_CLI` (argumentos pedidos,
-  par escrito, terminador de Oracle, CLI viejo, schema desconocido, stdout
-  sin JSON, los dos pares vacíos, la reescritura del alias desde
-  `--config`, el orden de resolución) y
-  `TestMakeMigrationsRendersThroughTheSiblingQuarkCLI`: construye
-  `cmd/quark` del hermano por un workspace VERSIONADO (lo que hace
-  `link_workspace.sh` de quark: el `require` del CLI nombra un suelo que
-  puede no existir en el proxy), scaffolda un proyecto, escribe un modelo
-  con `generate model` y lo rinde en los cinco dialectos; la lane
-  `suite-starter` lo corre contra la última release de quark con el skip
-  convertido en fallo. Goldens de ayuda y completion regenerados; doc en
-  `models-and-database.md` (qué rinde y qué sigue vacío), matriz de
-  contratos, manual y `migrate --help`.
-- **Lo que midió**: los cinco dialectos rinden desde un paquete sin `go.sum`
-  y sin quark en su `go.mod` (el modelo generado sólo importa `time`), y
-  el `go run …@latest` resuelve `cmd/quark` v1.3.0 del proxy. Y el CLI de
-  quark escribe `CREATE TABLE IF NOT EXISTS` / `CREATE INDEX IF NOT
-  EXISTS` literales para TODOS los dialectos (`buildDDLStatements`), sin
-  pasar por `migrate.CreateTableIfNotExists` ni por el `IdempotentDDL` del
-  driver: SQL Server no lo admite, Oracle sólo desde 23ai y MySQL no en
-  índices, así que el par que `makemigrations` escribe para mssql/oracle
-  falla al aplicarse tal cual → **QK-101 (P2, quark)**. Y el nombre
-  promete más que el diff: `makemigrations` rinde la foto completa, no un
-  `ALTER` → NU-170 (P3, límite dicho en la guía).
-- **Paraguas (quantum#310)**: fila `DX-N3n2` en el plan de A12, QK-101 y
-  NU-170 en el registro, esta sesión y la del 2026-11-10 al archivo.
-- **Los dos hallazgos, reparados el mismo día** (Carlos: «repara los
-  hallazgos registrados»): **QK-101 (quark#492)**: `buildDDLStatements`
-  resuelve el dialecto por nombre y rinde por el mismo `IdempotentDDL`
-  que el runtime (guard de `sys.tables`/`sys.indexes` en SQL Server,
-  `CREATE` a secas en Oracle, `CREATE INDEX` a secas en MySQL),
-  entrecomilla tablas, columnas e índices como el runtime —Oracle en
-  MAYÚSCULAS, así que el DDL del CLI y el de `client.Migrate` coinciden
-  por fin—, `DROP TABLE` sin `IF EXISTS` en Oracle, y los backticks de
-  MySQL ya no rompen el fichero Go de `--emit go` (literal interpretado);
-  el contrato `schema` 1 de `--emit json` no cambia; llega a
-  `makemigrations` cuando quark corte (la lane `suite-starter` monta la
-  ÚLTIMA release). **NU-170 (nucleus#658)**: `makemigrations` lee los
-  `.up.sql` del directorio y deja fuera los modelos cuya tabla ya crea
-  alguno (nombre desnudo o entrecomillado como cada motor, tras `IF NOT
-  EXISTS` o tras el guard de SQL Server), dice cuáles y qué fichero, y sin
-  nada nuevo no escribe par: «No changes detected», con el recordatorio
-  de que la columna nueva es un `ALTER` a mano. Ambos `hecho` en el
-  registro. De paso, **NU-171 (nucleus#659)**: el CI de main tras
-  nucleus#658 cayó por `TestDevRunsAScaffoldedProject` —`/healthz`
-  contestó a los 2,7 s, antes de que el scaffold pudiera compilar: el
-  puerto de `freeLoopbackPort` lo había ocupado el servidor de otro
-  paquete, la misma clase que OR-149—; las esperas exigen ahora la línea
-  `build #N ok` del propio bucle; relanzado el run.
-- **2026-11-13, D9…D11 decididas** (Carlos, decisión a decisión con pros,
-  contras, recomendación e impacto; las tres en la opción recomendada,
-  escritas en la columna «decisión» del §3.3 del contrato): **D9 = A**,
-  `generate module` escribe las filas comentadas y lo dice cuando el root
-  es `WithoutDefaults()` sin `WithAuthz()` (sesión `D9-N`, nucleus, 1.x);
-  **D10 = A**, opciones tipadas en `quarkdatasource.Register` paralelas a
-  `ModelConfig`, con exclusión por defecto de columnas sensibles y sin
-  etiqueta `admin:` en quark (sesión `D10-O`, orbit, minor antes del
-  major); **D11 = A**, la raíz de orbit requiere quark y `quarkdatasource`
-  en el 2.0 con enmienda a ADR-012 (C, devolver el módulo a la raíz,
-  anotada para un 2.x). Las dos sesiones de 1.x están en el plan de A12.
-- **Lo siguiente**: `D9-N` ∥ `D10-O` (1.x) → `M1`; `DX-N3n2` y NU-170
-  salen en la próxima minor de nucleus y QK-101 en la próxima patch de
-  `cmd/quark` (el tren paga sus notas); la excepción de govulncheck
-  caduca el 2026-12-31.
-
 ### Sesión 2026-11-13 — **A12 `D10-O`: `quarkdatasource.Register` declara lo que el panel lista, busca, filtra y esconde (orbit#596, orbit#597, nucleus#661)**
 
 - **Arranque**: Carlos, con D9…D11 recién decididas: «adelante con
@@ -445,6 +359,68 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   v1.14.0) y el tren paga las notas de los dos; con el pin nuevo,
   `umbrella-admin-posture` a 73 de 73 en el PR de set.
 
+### Sesión 2026-11-13 — **A12 `D9-N`: `generate module` lee el root de composición y, sin enforcer, escribe las filas comentadas (nucleus#662)**
+
+- **Arranque**: Carlos, con `D10-O` fusionada: «adelante con D9-N», la
+  otra sesión de 1.x de las decisiones del 2026-11-13 (D9 = A) y la
+  reparación de NU-127, abierto desde la auditoría de madurez: el
+  starter `api` con un módulo generado prometía escrituras autenticadas
+  que nadie aplicaba.
+- **Lo hecho (nucleus#662, `feat(cli)` → nucleus corta MINOR en el
+  próximo set)**: `generate module` lee el root de composición del
+  proyecto —el paquete main de `--out`, el fichero que `--mount` edita,
+  con el lector de `doctor`— y, sobre uno `WithoutDefaults()` sin
+  `WithAuthz()`, escribe las filas de `Module.Policies` COMENTADAS con
+  la pista, lo dice en su salida (`policy: NONE`, DEP-2026-017; la línea
+  de cierre ya no afirma que el módulo lleva sus filas) y el test
+  generado arranca `WithoutDefaults()` como `main.go` y afirma el 201
+  anónimo con lectura. Con `--with-policy` las comentadas son las
+  abiertas, con su aviso de acotarlas, y el test dice que la escritura
+  sigue aterrizando al descomentarlas. Sobre un root con enforcer (stack
+  por defecto o `WithoutDefaults()` con `WithAuthz()`, en cualquiera de
+  las dos grafías), o uno que no puede leer, lo de siempre. El starter
+  `api` conserva «sin authz» (decisión del 2026-10-06); su README y el
+  epílogo de `nucleus new` lo dicen. `generate resource` y `startapp`
+  dicen sobre ese root que nada carga `rbac_policy.csv`, en vez de
+  describir un autorizador que la aplicación no construye.
+- **Lo que midió la revisión adversarial** (workflow: cinco barridos,
+  cuatro lentes y tres verificadores por hallazgo; 38 confirmados de 74,
+  con 52 verificadores caídos por el límite del modelo, así que varios
+  pasaron con dos votos): el lector de `doctor` leía UN fichero —un
+  `WithAuthz()` llamado desde un auxiliar del paquete main era
+  invisible, y el generador decía «responde a cualquiera» sobre una
+  aplicación que rechaza a todos—, y un `tools.go` con build tag en la
+  raíz escondía `cmd/<app>/main.go`; ahora lee todos los ficheros del
+  paquete que compila el contexto por defecto y mira bajo `cmd/` cuando
+  ningún fichero raíz es main (`doctor --check security/storage` leen
+  igual). El test generado afirmaba una exención CSRF que ningún
+  arranque aplica (`csrf_enabled` va apagado sin configuración). El test
+  de arranque del starter reservaba y soltaba un puerto para tres
+  arranques (la clase OR-149/NU-171): ahora `port: 0` y el puerto se lee
+  de la línea `nucleus: server listening`, y cada sub-prueba escribe los
+  ficheros que mide. Y la doc prometía de menos: «añadir `WithAuthz()` y
+  descomentar es todo el cambio» omitía el test generado, el aviso decía
+  «ya no produce la combinación» sin acotar al root que puede leer, y la
+  fila de MA-2026-017 dejaba el test en rojo (sin quitar la lectura; 403
+  también para las filas abiertas).
+- **Lo medido**: `TestRunNewAPIWithGeneratedModuleBoots` arranca el
+  starter de tres maneras —con el módulo generado nada se descarta (GET
+  200, POST 201, su test verde); con `WithAuthz()` y las filas
+  descomentadas, 403; con filas y sin `WithAuthz()`, en 1.x arranca, la
+  escritura aterriza y el log lleva UNA línea `module policies
+  DISCARDED` con módulo, ruta y aviso—; el generador en los dos roots y
+  las dos políticas; el lector sobre auxiliares, segundos ficheros,
+  `cmd/` y excluidos; `generate resource` en los dos roots. Goldens de
+  completion regenerados (sólo la ayuda de `--with-policy`).
+- **Paraguas (este PR)**: fila `D9-N` hecha en el plan de A12 y en la
+  precondición de `M1`, NU-127 `hecho` en el registro, D9 anotada hecha
+  en el §3.3 del contrato, RUMBO y §5 al día, la sesión del 2026-11-12
+  al archivo.
+- **Lo siguiente**: el set que publique `D9-N` (nucleus MINOR: lleva
+  además `DX-N3n2`, NU-170 y NU-171; el tren paga sus notas) y `D10-O`
+  (orbit MINOR); `umbrella-admin-posture` a 73 en el PR de set; después
+  `M1` → `R2`. La excepción de govulncheck caduca el 2026-12-31.
+
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -483,9 +459,11 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **`D9-N` (nucleus, 1.x)**: la sesión que queda de las decisiones del
-  2026-11-13 (`D10-O` está hecha, en `main` de orbit); su criterio de
-  hecho está en el plan de A12. Después, `M1`.
+- **El próximo tren**: nucleus corta MINOR (`DX-N3n2`, NU-170, NU-171 y
+  `D9-N`, nucleus#662; sus notas y el snapshot van en un PR
+  `docs(release)` antes del tren) y orbit MINOR (`D10-O`: raíz con el
+  `fix` y `DS-18`, `quarkdatasource` v1.14.0; `orbit-align-notes`). Su PR
+  de set pasa a `publicado` lo que `M1` espera. Después, `M1`.
 - **En el PR de set del próximo tren**: `umbrella-admin-posture` sube
   `EXPECTED_CONTROLS` y `PRESENT_FLOOR` de 72 a 73 (`DS-18`, orbit#596);
   con el pin de orbit de hoy el guard sigue verde porque 73 ≥ 72, y con
@@ -658,13 +636,13 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
   contra el pin. Cualquiera de las dos es un cambio pequeño, pero elegir
   cuál no lo decide una sesión de arco sola — y hacerlo ANTES del tren
   ahorra un rojo a mitad de corte.
-- **Decisiones D9…D11 de `M0-E`** (nacen el 2026-10-23; bloque en
-  `docs/planes/quantum-2.0.md` §3.3): D9 el starter `api` contra
-  `generate module` en el 2.0 (la rama hace que el generador no escriba
-  filas de política en un proyecto sin `WithAuthz()`), D10 metadatos por
-  campo en `quarkdatasource` en una minor 1.x, D11 suceder el ADR-012 de
-  orbit (quark en el grafo de la raíz). Ninguna fila del §3.0 depende de
-  ellas; `M1` sí.
+- **Decisiones D9…D11 de `M0-E`** (nacidas el 2026-10-23, **decididas el
+  2026-11-13, las tres en A**; bloque en `docs/planes/quantum-2.0.md`
+  §3.3): D9 hecha en 1.x por `D9-N` (nucleus#662: `generate module`
+  escribe las filas comentadas en un root `WithoutDefaults()` sin
+  `WithAuthz()`), D10 por `D10-O` (orbit#596/#597), D11 la ejecuta `M1`
+  (en 1.x nada cambia). Ninguna fila del §3.0 depende de ellas; `M1`
+  espera al set que publique `D9-N` y `D10-O`.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
   cerrar los issues automáticos quantum#262 y quantum#263 (lanes del
   2026-10-05; la corrida del 12/10 pasó);

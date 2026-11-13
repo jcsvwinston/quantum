@@ -53,10 +53,12 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   nucleus entró el mismo día, tras decidir que la lane SAML tolere
   GO-2026-6909 —arreglada upstream pero sin versión arreglada en la base de
   datos de Go— con una excepción acotada, con fecha y que se retira sola);
-  **la DX al 5 (§2.1 del contrato) en curso desde el 2026-11-08**: `DX-0`
-  la contó y troceó, D12 y D13 están decididas, y sólo su bloque A (los
-  generadores, `Make` por quark desde su módulo, el sitio de nucleus y el
-  panel montado con `DataSource` sobre quark) está delante de `M1`; quedan `M1` → `R2`, y lo que tiene que cumplir el 2.0 está en
+  **la DX al 5 (§2.1 del contrato) HECHA** (`DX-0` la contó y troceó; D12
+  y D13 decididas; publicada en 1.44.0 salvo `DX-N3n2`, en `main` de
+  nucleus hasta su próxima minor); **D9…D11 decididas el 2026-11-13 (las
+  tres en A) y sus dos sesiones de 1.x hechas el mismo día** (`D10-O`,
+  orbit#596/#597; `D9-N`, nucleus#662): delante de `M1` sólo queda el set
+  que las publique; quedan `M1` → `R2`, y lo que tiene que cumplir el 2.0 está en
   [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
   2027-02-07: este set publicó los once avisos que faltaban).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
