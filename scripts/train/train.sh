@@ -691,6 +691,43 @@ EOF
   say "OK: fase $repo completa."
 }
 
+# preflight_govulncheck — govulncheck ./... en el checkout hermano de cada
+# pilar, con la toolchain que declara su go.mod. Tres trenes seguidos (1.41.0,
+# 1.43.0, 1.44.0) nacieron con una vulnerabilidad de la biblioteca estándar
+# el día del corte, y la cazó el PR de suelos en rojo: saberlo aquí cuesta un
+# minuto y ahorra la vuelta (el PR chore(deps) de toolchain va ANTES de los
+# suelos; receta en la sección 1.44.0 del README). Es un AVISO, no una
+# parada: lo que hay que hacer está escrito, y el tren sigue por donde va.
+#
+# La stdlib que se escanea es la del `go` que EJECUTA govulncheck: con un go
+# local más viejo que el `toolchain` del repo, el informe lista lo que ese go
+# viejo lleva y el tag no (catorce falsas en nucleus el 2026-11-13, con go
+# 1.26.6 local y toolchain go1.26.11). Por eso se fija GOTOOLCHAIN a la
+# toolchain declarada: lo que se mide es lo que el tag compila.
+preflight_govulncheck() {
+  local m dir tc out
+  if ! command -v govulncheck >/dev/null 2>&1; then
+    say "  AVISO: govulncheck no está instalado (go install golang.org/x/vuln/cmd/govulncheck@latest): no se escanea"
+    return 0
+  fi
+  for m in quark nucleus orbit; do
+    dir="../$m"
+    if [ ! -e "$dir/.git" ]; then say "  sin checkout hermano en $dir: no se escanea"; continue; fi
+    tc=$(awk '$1 == "toolchain" {print $2; exit}' "$dir/go.mod")
+    if [ "$DRY" -eq 1 ]; then
+      say "  → (dry-run) GOTOOLCHAIN=${tc:-auto} govulncheck ./... en $dir ($(git -C "$dir" rev-parse --abbrev-ref HEAD))"
+      continue
+    fi
+    if out=$(cd "$dir" && GOTOOLCHAIN="${tc:-auto}" govulncheck ./... 2>&1); then
+      say "  → $m ($(git -C "$dir" rev-parse --abbrev-ref HEAD), ${tc:-toolchain del go local}): $(printf '%s\n' "$out" | grep -m1 'affected by' || echo 'sin hallazgos')"
+    else
+      say "  AVISO: $m ($(git -C "$dir" rev-parse --abbrev-ref HEAD), ${tc:-toolchain del go local}) tiene hallazgos de govulncheck:"
+      printf '%s\n' "$out" | grep -E '^Vulnerability|affected by|Fixed in|Found in' | sed 's/^/    /' | head -20
+      say "  El PR chore(deps) de toolchain va ANTES de los suelos de $m (sección 1.44.0 del README)."
+    fi
+  done
+}
+
 fase_preflight() {
   banner "preflight"
   say "PASO: gh autenticado"
@@ -721,6 +758,8 @@ fase_preflight() {
   else
     say "  AVISO: declared_lags NO está vacío — el tren debe alinearlos y vaciarlo."
   fi
+  say "PASO: govulncheck sobre el checkout hermano de cada pilar (1.41.0, 1.43.0 y 1.44.0 nacieron con una vuln de Go el día del corte)"
+  preflight_govulncheck
   say "PASO: reloj del tren (el desglose se imprime en la fase de cierre)"
   if [ -s "$RELOJ" ]; then
     say "  AVISO: el reloj ya lleva $(grep -c . "$RELOJ" || true) marcas de un tren sin cerrar."
