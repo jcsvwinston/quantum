@@ -54,7 +54,7 @@ fi
 head_ref=$(gh pr view "$PRNUM" -R "$REPO" --json headRefName --jq .headRefName)
 head_oid=$(gh pr view "$PRNUM" -R "$REPO" --json headRefOid --jq .headRefOid)
 title=$(gh pr view "$PRNUM" -R "$REPO" --json title --jq .title)
-say "  PR del root: #$PRNUM «$title» (rama: $head_ref, head: ${head_oid:0:8})"
+say "  PR del root: #$PRNUM «${title}» (rama: $head_ref, head: ${head_oid:0:8})"
 
 # --- 2. Clon temporal con tags + head del PR --------------------------------
 tmp=$(mktemp -d)

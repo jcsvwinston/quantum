@@ -738,7 +738,7 @@ fase_preflight() {
   if [ "$rama" = "main" ]; then
     say "  → main"
   else
-    say "  AVISO: estás en «$rama». A las fases de repo les da igual; la fase paraguas"
+    say "  AVISO: estás en «${rama}». A las fases de repo les da igual; la fase paraguas"
     say "  PARARÁ EN SECO ahí nada más entrar —antes de escribir el re-pin— salvo que sea"
     say "  la rama chore/set-* del camino de recuperación: desde una rama de trabajo, el PR"
     say "  del set arrastraría a main lo que esa rama traiga, y se fusiona sin que nadie lo mire."
@@ -965,7 +965,7 @@ exige_main_al_dia() {
   local rama local_sha remoto_sha
   rama=$(git rev-parse --abbrev-ref HEAD)
   [ "$rama" = "main" ] ||
-    die "el PR de re-pin sale de main y estás en «$rama»: desde aquí el PR llevaría a main lo que traiga esta rama. Ponte en main (git checkout main) y relanza --desde paraguas"
+    die "el PR de re-pin sale de main y estás en «${rama}»: desde aquí el PR llevaría a main lo que traiga esta rama. Ponte en main (git checkout main) y relanza --desde paraguas"
   git fetch -q origin main || die "no pude traer origin/main: sin eso no sé si main está al día"
   local_sha=$(git rev-parse HEAD)
   remoto_sha=$(git rev-parse origin/main)
@@ -990,7 +990,7 @@ exige_punto_de_partida() {
   rama=$(git rev-parse --abbrev-ref HEAD)
   case "$rama" in
     chore/set-*)
-      say "  → «$rama»: la rama del re-pin (camino de recuperación). Lo que lleve se revisa antes de empujarla."
+      say "  → «${rama}»: la rama del re-pin (camino de recuperación). Lo que lleve se revisa antes de empujarla."
       ;;
     *)
       exige_main_al_dia
@@ -1269,7 +1269,7 @@ fase_paraguas() {
   # (con sufijo de fecha) sobre el mismo re-pin.
   pend=$(repin_pr_abierto) ||
     die "no pude preguntar a GitHub por los PRs chore/set-* (el error de gh, justo arriba): sin esa respuesta no sé si el re-pin de $ver ya tiene un PR abierto, y abrir otro dejaría dos PRs de set. Relanza --desde paraguas cuando gh conteste"
-  say "  origin/main declara Quantum ${ver_main:-<no lo pude leer>} · rama actual «$rama» · PR de set abierto: ${pend:-ninguno}"
+  say "  origin/main declara Quantum ${ver_main:-<no lo pude leer>} · rama actual «${rama}» · PR de set abierto: ${pend:-ninguno}"
 
   if [ -n "$pend" ]; then
     [ "$(printf '%s\n' "$pend" | grep -c .)" -eq 1 ] ||
@@ -1301,7 +1301,7 @@ fase_paraguas() {
   else
     case "$rama" in
       chore/set-*)
-        say "PASO: el re-pin está commiteado en «$rama» y NO ha llegado a main — retomo esa rama"
+        say "PASO: el re-pin está commiteado en «${rama}» y NO ha llegado a main — retomo esa rama"
         reanuda_rama_repin "$ver"
         ;;
       *)

@@ -109,14 +109,14 @@ for f in "$DIR"/*.yml "$DIR"/*.yaml; do
   fi
 
   if ! printf '%s\n' "$all_jobs" | grep -qxF "$NOTIFY_JOB"; then
-    echo "FAIL: $f dispara por «schedule:» y no tiene el job «$NOTIFY_JOB» — el cron rojo degradaría al email por defecto de Actions, que QM8-1 declaró insuficiente (docs/AUDITORIA_CONTINUA.md §7; copia el job de suite-integral.yml)" >&2
+    echo "FAIL: $f dispara por «schedule:» y no tiene el job «${NOTIFY_JOB}» — el cron rojo degradaría al email por defecto de Actions, que QM8-1 declaró insuficiente (docs/AUDITORIA_CONTINUA.md §7; copia el job de suite-integral.yml)" >&2
     status=1
     continue
   fi
 
   block=$(job_block "$f" "$NOTIFY_JOB")
   if [ -z "$block" ]; then
-    echo "FAIL: $f — el job «$NOTIFY_JOB» existe pero su cuerpo sale vacío al leerlo; ¿sangría no estándar?" >&2
+    echo "FAIL: $f — el job «${NOTIFY_JOB}» existe pero su cuerpo sale vacío al leerlo; ¿sangría no estándar?" >&2
     status=1
     continue
   fi
@@ -124,7 +124,7 @@ for f in "$DIR"/*.yml "$DIR"/*.yaml; do
   cond=$(printf '%s\n' "$block" | grep -E '^[[:space:]]*if:' | head -1)
   for token in 'failure()' 'cancelled()' "github.event_name == 'schedule'"; do
     if ! printf '%s\n' "$cond" | grep -qF "$token"; then
-      echo "FAIL: $f — el «if:» de $NOTIFY_JOB no nombra «$token»; el aviso debe cubrir el rojo Y la cancelación por concurrency (MAQ-4/(c)) y sólo en corridas programadas. Esperado: if: (failure() || cancelled()) && github.event_name == 'schedule'" >&2
+      echo "FAIL: $f — el «if:» de $NOTIFY_JOB no nombra «${token}»; el aviso debe cubrir el rojo Y la cancelación por concurrency (MAQ-4/(c)) y sólo en corridas programadas. Esperado: if: (failure() || cancelled()) && github.event_name == 'schedule'" >&2
       status=1
     fi
   done
@@ -161,7 +161,7 @@ for f in "$DIR"/*.yml "$DIR"/*.yaml; do
       [ "$dep" = "$job" ] && found=1
     done
     if [ "$found" -eq 0 ]; then
-      echo "FAIL: $f — el «needs:» de $NOTIFY_JOB no incluye el job «$job»: failure() sólo mira la cadena de dependencias, así que ese job puede enrojecer el lunes sin que se abra issue (RT-8, le pasó a showcase-smoke)" >&2
+      echo "FAIL: $f — el «needs:» de $NOTIFY_JOB no incluye el job «${job}»: failure() sólo mira la cadena de dependencias, así que ese job puede enrojecer el lunes sin que se abra issue (RT-8, le pasó a showcase-smoke)" >&2
       status=1
     fi
   done
@@ -171,7 +171,7 @@ for f in "$DIR"/*.yml "$DIR"/*.yaml; do
       [ "$dep" = "$job" ] && found=1
     done
     if [ "$found" -eq 0 ]; then
-      echo "FAIL: $f — el «needs:» de $NOTIFY_JOB nombra «$dep», que no es un job de este workflow (¿renombrado o retirado?)" >&2
+      echo "FAIL: $f — el «needs:» de $NOTIFY_JOB nombra «${dep}», que no es un job de este workflow (¿renombrado o retirado?)" >&2
       status=1
     fi
   done
@@ -182,5 +182,5 @@ if [ "$scheduled" -eq 0 ]; then
   exit 2
 fi
 
-[ "$status" -eq 0 ] && echo "OK: $scheduled/$files workflows disparan por «schedule:»; todos con su job «$NOTIFY_JOB» (failure+cancelled, sólo en schedule, issues: write, canal común y needs completo)"
+[ "$status" -eq 0 ] && echo "OK: $scheduled/$files workflows disparan por «schedule:»; todos con su job «${NOTIFY_JOB}» (failure+cancelled, sólo en schedule, issues: write, canal común y needs completo)"
 exit $status

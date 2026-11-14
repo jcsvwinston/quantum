@@ -119,7 +119,7 @@ else
     fi
     got_f=$(printf '%s' "$heading" | grep -oE '[0-9]+' | tr '\n' ' ' | sed 's/ $//')
     if [[ "$got_f" != "$want_p $want_pa $want_a" ]]; then
-      report "la cabecera de $fam en $BENCH_DOC dice «$got_f» (present partial absent) y el banco mide «$want_p $want_pa $want_a»"
+      report "la cabecera de $fam en $BENCH_DOC dice «${got_f}» (present partial absent) y el banco mide «$want_p $want_pa ${want_a}»"
     fi
   done
 fi

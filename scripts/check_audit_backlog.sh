@@ -39,7 +39,7 @@ arco_valido() { [[ "$1" =~ ^A[1-9][0-9]*$ ]]; }
 
 closed=$(sed -nE '1s/^# arcos_cerrados:[[:space:]]*//p' "$REG")
 for c in $closed; do
-  arco_valido "$c" || { echo "FAIL: «$c» en arcos_cerrados no es un arco (A<n>)" >&2; status=1; }
+  arco_valido "$c" || { echo "FAIL: «${c}» en arcos_cerrados no es un arco (A<n>)" >&2; status=1; }
 done
 
 # Los informes: los seis del 2026-09-03 y los de cada re-auditoría.
@@ -77,7 +77,7 @@ if [[ -n "$dup_registro" ]]; then
 fi
 dup_informes=$(printf '%s\n' "$filas_informes" | awk 'NF {n[$1]++; donde[$1]=donde[$1] " " $2} END {for (i in n) if (n[i]>1) printf "%s (%s ) ", i, donde[i]}')
 if [[ -n "$dup_informes" ]]; then
-  echo "FAIL: id repetido en las tablas de los informes: $dup_informes— renumera el posterior con el siguiente libre de su prefijo" >&2; status=1
+  echo "FAIL: id repetido en las tablas de los informes: ${dup_informes}— renumera el posterior con el siguiente libre de su prefijo" >&2; status=1
 fi
 
 # 3 y 4. Por fila: arco presente si está abierta; arco cerrado ⇒ hecho.
@@ -87,7 +87,7 @@ while IFS=, read -r id sev repo arco estado rest; do
   case "$estado" in
     hecho) continue ;;
     abierto) ;;
-    *) echo "FAIL: $id — estado «$estado» no es hecho|abierto" >&2; status=1; continue ;;
+    *) echo "FAIL: $id — estado «${estado}» no es hecho|abierto" >&2; status=1; continue ;;
   esac
   n_open=$((n_open+1))
   if ! arco_valido "$arco"; then
