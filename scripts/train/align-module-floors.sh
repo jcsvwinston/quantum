@@ -82,7 +82,11 @@ behind=""; ahead=""; total=0
 while IFS= read -r gm; do
   [ -n "$gm" ] || continue
   rel=${gm#$DIR/}; [ "$rel" = "go.mod" ] && continue
-  ver=$(awk -v p="$ROOT_MOD" '$1 == p && $NF != "indirect" {print $2}' "$gm")
+  # Both forms of a direct require: a line inside `require (...)` and the
+  # one-line `require <path> <version>` that `go mod tidy` writes for a
+  # module's only direct require (providers/tasks-asynq stayed at v1.34.0
+  # through the nucleus v1.35.0 cut because this read only the block form).
+  ver=$(awk -v p="$ROOT_MOD" '($1 == p || ($1 == "require" && $2 == p)) && $NF != "indirect" { print ($1 == "require") ? $3 : $2 }' "$gm")
   [ -n "$ver" ] || continue
   total=$((total+1))
   if [ "$ver" = "$TARGET" ]; then

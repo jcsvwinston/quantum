@@ -22,6 +22,17 @@ cd "$(dirname "$0")/.."
 manifest=versions.yaml
 status=0
 
+# REQUIRE_OF — the awk program that reads the version a go.mod requires of
+# the module `p`, in BOTH forms go.mod writes a direct require: a line inside
+# a `require (...)` block (`<path> <version>`) and a one-line
+# `require <path> <version>`, which is how `go mod tidy` writes a module's
+# ONLY direct require. The §5b floors read only the block form until
+# Quantum 1.45.0: providers/tasks-asynq, born with a single direct require,
+# kept requiring nucleus v1.34.0 through the v1.35.0 cut and this guard read
+# it as "does not require its own root" — no aviso, and the train's floors
+# script (same awk) raised "16 of 16" modules when there were 17.
+REQUIRE_OF='($1 == p || ($1 == "require" && $2 == p)) && $NF != "indirect" { print ($1 == "require") ? $3 : $2 }'
+
 # --- §0. Las claves de primer nivel existen ---------------------------------
 # El manifiesto de Quantum 1.26.1 salió sin `declared_lags` (y sin el final
 # del comentario que la precede): un recorte calculado con un offset rancio
@@ -237,7 +248,7 @@ for mod in . proto agent server quarkbridge quarkdatasource; do
   gomod="orbit/$mod/go.mod"
   [[ "$mod" == "." ]] && gomod="orbit/go.mod"
   for dep in quark nucleus; do
-    ver=$(awk -v p="github.com/jcsvwinston/$dep" '$1 == p && $NF != "indirect" {print $2}' "$gomod")
+    ver=$(awk -v p="github.com/jcsvwinston/$dep" "$REQUIRE_OF" "$gomod")
     [[ -z "$ver" ]] && continue
     want=$(yaml_value modules "$dep")
     lag=$(yaml_value declared_lags "$dep")
@@ -285,7 +296,7 @@ for gomod in $(find nucleus quark orbit -name go.mod -not -path '*/examples/*' -
     quark)   parent="github.com/jcsvwinston/quark" ;;
     orbit)   parent="github.com/jcsvwinston/orbit" ;;
   esac
-  ver=$(awk -v p="$parent" '$1 == p && $NF != "indirect" {print $2}' "$gomod")
+  ver=$(awk -v p="$parent" "$REQUIRE_OF" "$gomod")
   # A module that does not require its own root is not a gap: drivers that
   # only register a database/sql driver need nothing from the framework.
   [[ -z "$ver" ]] && continue
