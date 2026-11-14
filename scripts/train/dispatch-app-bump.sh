@@ -123,7 +123,7 @@ fi
 
 # ---- 3. esperar el run y EXIGIR el PR -------------------------------------
 # El dispatch se acepta con 204 aunque el workflow vaya a fallar; el único
-# veredicto real es «hay PR en chore/set-$VER». Se localiza el run creado
+# veredicto real es «hay PR en chore/set-${VER}». Se localiza el run creado
 # después del dispatch, se espera (gh run watch), y se decide por el PR:
 #   - PR abierto                 → OK (si el run salió rojo, el PR está en
 #                                  borrador con gates en rojo: deuda de

@@ -114,7 +114,7 @@ else
     fi
     got=$(printf '%s' "$row" | awk -F'|' '{gsub(/ /,"",$3); gsub(/ /,"",$4); gsub(/ /,"",$5); print $3" "$4" "$5}')
     if [[ "$got" != "$want_p $want_pa $want_a" ]]; then
-      report "la fila de $fam en $BENCH_DOC dice «$got» (present partial absent) y el banco mide «$want_p $want_pa $want_a»"
+      report "la fila de $fam en $BENCH_DOC dice «${got}» (present partial absent) y el banco mide «$want_p $want_pa ${want_a}»"
     fi
   done
 fi

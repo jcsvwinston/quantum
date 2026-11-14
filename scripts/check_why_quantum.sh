@@ -183,7 +183,7 @@ E_ENGINE=$(engine_present)
 # fila y diría otra cosa.
 for pk in PG-01 PG-02; do
   against=$(engine_cell "$pk" 'judged against')
-  [[ "$against" == 'database/sql;pgx' ]] || report "[engine] $pk se juzga contra «$against» en $ENGINE_BENCH y la página dice «\`database/sql\` … pgx» en ese orden: reescribe la frase"
+  [[ "$against" == 'database/sql;pgx' ]] || report "[engine] $pk se juzga contra «${against}» en $ENGINE_BENCH y la página dice «\`database/sql\` … pgx» en ese orden: reescribe la frase"
 done
 E_INSTALL=$(install_figures)
 E_QUICKSTART=$(qs_commands "$QUICKSTART" | grep -c .)
@@ -349,10 +349,10 @@ out=$(CLAIMS="$CLAIMS" WHY_TXT="$WHY_PROSE" INTRO_TXT="$INTRO_PROSE" WHY_PAGE="$
         }
         my $got = join(";", @got);
         if ($got ne $want) {
-          print "FAIL [$id] $label{$page} dice «$got» y su fuente dice «$want»\n";
+          print "FAIL [$id] $label{$page} dice «${got}» y su fuente dice «${want}»\n";
         }
         if (index($line, $link) < 0) {
-          print "FAIL [$id] la cifra «$got» de $label{$page} no cita su fuente ($link) en el mismo párrafo\n";
+          print "FAIL [$id] la cifra «${got}» de $label{$page} no cita su fuente ($link) en el mismo párrafo\n";
         }
       }
     }
@@ -371,11 +371,11 @@ out=$(CLAIMS="$CLAIMS" WHY_TXT="$WHY_PROSE" INTRO_TXT="$INTRO_PROSE" WHY_PAGE="$
     (my $t = $line) =~ s/\]\([^)]*\)/]/g;   # los destinos de los enlaces no son prosa
     while ($t =~ /(?<![\w.\x{a7}])(\d[\d,]*(?:\.\d+)?)(?![\w\x{a7}])/g) {
       my $ctx = substr($t, ($-[0] > 40 ? $-[0] - 40 : 0), 80);
-      print "FAIL [sin-fuente] $label{why}: cifra sin fuente «$1» en «…$ctx…» — cítala y añade su afirmación al guard, o quítala\n";
+      print "FAIL [sin-fuente] $label{why}: cifra sin fuente «$1» en «…${ctx}…» — cítala y añade su afirmación al guard, o quítala\n";
     }
     while ($t =~ /$words/g) {
       my $ctx = substr($t, ($-[0] > 40 ? $-[0] - 40 : 0), 80);
-      print "FAIL [sin-fuente] $label{why}: cifra en palabras «$1» en «…$ctx…» — una cuenta en palabras también es una cifra: escríbela con su fuente, o quítala\n";
+      print "FAIL [sin-fuente] $label{why}: cifra en palabras «$1» en «…${ctx}…» — una cuenta en palabras también es una cifra: escríbela con su fuente, o quítala\n";
     }
   }
 ')

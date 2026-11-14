@@ -67,7 +67,7 @@ state=$(gh pr view "$PR" -R "$REPO" --json state --jq .state)
 title=$(gh pr view "$PR" -R "$REPO" --json title --jq .title)
 head_ref=$(gh pr view "$PR" -R "$REPO" --json headRefName --jq .headRefName)
 author=$(gh pr view "$PR" -R "$REPO" --json author --jq .author.login)
-say "  PR: «$title» (autor: $author, rama: $head_ref, estado: $state)"
+say "  PR: «${title}» (autor: $author, rama: $head_ref, estado: $state)"
 [ "$state" = "OPEN" ] || die "el PR no está abierto (estado: $state)"
 
 # --- 2. Push humano de commit vacío (dispara el CI del PR del bot) ----------
@@ -184,7 +184,7 @@ if [ -n "$expected_tags" ] && [ "$DRY" -eq 0 ]; then
   done
   if [ "$found" -eq 0 ] && [ "$rp_done" -eq 1 ] && [ "$RECIPE" -eq 1 ]; then
     if [ -n "$diag" ]; then
-      say "  DIAGNÓSTICO: «Release Please» descartó el PR («$diag»): release PR de UNA sola"
+      say "  DIAGNÓSTICO: «Release Please» descartó el PR («${diag}»): release PR de UNA sola"
       say "  release (la raíz); release-please 17.x compara el componente de la rama del merge plugin"
       say "  (ninguno) con el package-name de la raíz. La causa se quita en la config del repo (sin"
       say "  package-name en la raíz — orbit#426, nucleus#467, quark#347); mientras, la receta:"

@@ -94,7 +94,7 @@ for f in "$DIR"/*.yml "$DIR"/*.yaml; do
           # ajena declara dentro de su propio action.yaml (ver la excepción de
           # la cabecera): eso vive en otro repositorio y sólo se sabe leyéndolo.
           if ! printf '%s\n' "$target" | grep -qE '@sha256:[0-9a-f]{64}$'; then
-            echo "FAIL: $f:$lineno — «$target» es una imagen sin digest; fíjala con @sha256:<64 hex>" >&2
+            echo "FAIL: $f:$lineno — «${target}» es una imagen sin digest; fíjala con @sha256:<64 hex>" >&2
             status=1
           fi
           continue
@@ -102,12 +102,12 @@ for f in "$DIR"/*.yml "$DIR"/*.yaml; do
       esac
 
       if ! printf '%s\n' "$target" | grep -qE '@[0-9a-f]{40}$'; then
-        echo "FAIL: $f:$lineno — «$target» no está fijada por SHA de commit; usa owner/accion@<40 hex> # <tag> (resuelve el tag con: gh api repos/<owner>/<accion>/commits/<tag> --jq .sha)" >&2
+        echo "FAIL: $f:$lineno — «${target}» no está fijada por SHA de commit; usa owner/accion@<40 hex> # <tag> (resuelve el tag con: gh api repos/<owner>/<accion>/commits/<tag> --jq .sha)" >&2
         status=1
         continue
       fi
       if ! printf '%s\n' "$comment" | grep -qE '^#[[:space:]]*v?[0-9][A-Za-z0-9._+-]*'; then
-        echo "FAIL: $f:$lineno — «$target» está fijada por SHA pero sin el comentario «# <tag>»; Dependabot lo lee para mantener el pin, y sin él nadie sabe qué versión corre" >&2
+        echo "FAIL: $f:$lineno — «${target}» está fijada por SHA pero sin el comentario «# <tag>»; Dependabot lo lee para mantener el pin, y sin él nadie sabe qué versión corre" >&2
         status=1
       fi
     done <<EOF2

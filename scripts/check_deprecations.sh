@@ -426,7 +426,7 @@ while IFS='|' read -r n prod id est hal ses; do
   case "$prod" in
     quark|nucleus|orbit) ;;
     *)
-      echo "FAIL: §3.0 fila $n — el producto es «$prod» y tiene que ser quark, nucleus u orbit." >&2
+      echo "FAIL: §3.0 fila $n — el producto es «${prod}» y tiene que ser quark, nucleus u orbit." >&2
       filas_malas=$((filas_malas + 1)); status=1; continue ;;
   esac
   if [ -n "$id" ]; then
@@ -465,7 +465,7 @@ $prod|$id"
       filas_descartado=$((filas_descartado + 1))
       echo "  --  §3.0 fila $n — $etiqueta descartado (el número no se reutiliza)" ;;
     *)
-      echo "FAIL: §3.0 fila $n — estado «$est» desconocido; vale \`publicado\`, \`en main\`, \`por escribir\`, \`decisión\` o \`descartado\`." >&2
+      echo "FAIL: §3.0 fila $n — estado «${est}» desconocido; vale \`publicado\`, \`en main\`, \`por escribir\`, \`decisión\` o \`descartado\`." >&2
       filas_malas=$((filas_malas + 1)); status=1 ;;
   esac
 done <<EOF
