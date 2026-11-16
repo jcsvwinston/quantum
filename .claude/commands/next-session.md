@@ -348,8 +348,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   por anclada una rama que no lo estaba) y quantum#318 (el `require` de
   UNA línea, invisible para los suelos y manifest-guard: `tasks-asynq`
   llevaba dos minors de retraso sin aviso; fusionado tras el set). La lane
-  de integración de `main` cayó por el flake OR-149 (`EXT-10`) tras
-  fusionar el set y pasó al relanzar.
+  de integración de `main` cayó dos veces ese día y pasó al relanzar: por
+  el flake OR-149 (`EXT-10`) tras fusionar el set, y tras quantum#318 por
+  uno nuevo de `orbit/server`, registrado como **OR-151** (el servidor
+  rehúsa al peer y el cliente ve `write envelope: EOF` en vez de
+  PermissionDenied).
 - **La medición del arco** («¿qué nos queda para el 5 de 5 y para empezar
   el 2.0?»): respondida desde el plan de A12, el contrato, el informe de
   `R1` y el registro, con un verificador cruzándola contra los ficheros.
@@ -451,6 +454,13 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
   y suelta; tres relanzamientos en el tren de 1.44.0 y uno en el de 1.45.0
   (la lane de integración del paraguas tras fusionar el set). Arreglo
   propuesto en `docs/auditoria/madurez-2026-09-03/orbit.md`.
+- **OR-151 (P3, orbit)**: `TestServer_PeerAllowlist_RefusesAPeerItDoesNotDial`
+  flakea en CI (visto en la lane de integración del paraguas tras
+  quantum#318, con orbit al pin v1.22.0): el servidor rehúsa al peer y el
+  cliente recibe `unknown: write envelope: EOF` en vez de PermissionDenied,
+  porque la conexión se cierra antes de que el estado llegue; pasa al
+  relanzar. Salida propuesta en el mismo informe de orbit: escribir el
+  estado antes de cerrar, no una espera en el test.
 - **El deploy del sitio unificado**: el run de `deploy.yml` tras
   quantum#319 salió verde; comprobar que la portada sirve 1.45.0; si el
   sitio sigue creciendo, el siguiente tope es la memoria del runner (16
