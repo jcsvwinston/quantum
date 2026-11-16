@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-16, QUANTUM 1.45.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R`, `M0-F`, la DX al 5, `D9-N`, `D10-O` y **`M1-S0`** HECHAS; `M1` troceada; D26…D38 decididas; siguiente: **`V-N-AM`** —el aviso DEP-2026-027 de nucleus, ANTES del set del 2026-11-23— y después **`M1-G-P`** —el generador de la guía por versión de ventana, antes del set posterior al 2026-12-08— y, en paralelo por repo, `M1-V2-P`(a), `M1-T-N`, `M1-T-Q`, `V-S2b` → `M1-T-O` y las diez cortas de D15)
+## 3. Estado al cierre (2026-11-16, QUANTUM 1.45.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R`, `M0-F`, la DX al 5, `D9-N`, `D10-O` y **`M1-S0`** HECHAS; `M1` troceada; D26…D38 decididas; siguiente: **`V-N-AM`** —el aviso DEP-2026-027 de nucleus, ANTES del set del 2026-11-23— y después **`M1-G-P`** —el generador de la guía por versión de ventana, antes del set posterior al 2026-12-08— y, en paralelo por repo, `M1-V2-P`(a), `M1-T-N`, `M1-T-Q`, `V-S2b` → `M1-T-O` y las nueve cortas de D15 que quedan)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 

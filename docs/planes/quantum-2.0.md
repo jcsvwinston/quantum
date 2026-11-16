@@ -78,7 +78,8 @@
    publicado (NU-106). **Estado el 2026-11-16**: el arreglo del panel
    (OR-67) y N1 (NU-106, en 1.41.0) hechos; de las doce sesiones cortas,
    NU-127 y OR-70 hechas y las diez restantes se cierran en sets 1.x antes
-   de `M1` (D15; el plan de A12 las nombra ya en la precondición de `M1`).
+   de `M1` (D15; el plan de A12 las nombra ya en la precondición de `M1`;
+   nueve desde el 2026-11-16: QK-54 pasa a A13 por D38 i).
 3. **`M0` hecho**: la lista del §3 cerrada, **un aviso `DEP` publicado por
    cada cambio** con su ventana corriendo, y el guard de deprecaciones viendo
    también los cambios de comportamiento (QM-20).
@@ -381,7 +382,7 @@ planteado a Carlos una decisión cada vez. Las ejecuta lo que dice la columna
 | id | Qué decide | Propuesto | Decisión de Carlos |
 |---|---|---|---|
 | **D14** | La guía de migración (`docs/planes/guia-migracion-2.0.md`) estaba rancia: 23 entradas con 34 avisos activos al pin y ningún guard corriendo su `--check` | Regenerarla en el PR de set de 1.45.0 y registrar un guard que corra su `--check` | **Regenerar en el set y guard después** (2026-11-16): la guía fue en quantum#319; el guard, `umbrella-migration-guide`, en un PR propio del paraguas (quantum#321: registro, fixture, `bump-set` lo regenera y `train.sh` lo cuenta en `RUTAS_REPIN`). |
-| **D15** | Las diez «sesiones cortas» del §2.2 que siguen abiertas (NU-129, NU-131, OR-71, OR-74, OR-75, OR-76, NU-108, QK-54, QK-68, QK-69; todas P3); el plan de A12 no las nombraba en la precondición de `M1` | Cerrarlas en sets 1.x antes de `M1`, por producto, y que el plan las nombre | **Cerrarlas en 1.x antes de `M1`** (2026-11-16). |
+| **D15** | Las diez «sesiones cortas» del §2.2 que siguen abiertas (NU-129, NU-131, OR-71, OR-74, OR-75, OR-76, NU-108, QK-54, QK-68, QK-69; todas P3); el plan de A12 no las nombraba en la precondición de `M1` | Cerrarlas en sets 1.x antes de `M1`, por producto, y que el plan las nombre | **Cerrarlas en 1.x antes de `M1`** (2026-11-16). QK-54 sale a A13 el 2026-11-16 (D38 i): quedan nueve. |
 | **D16** | Qué sesión sigue a 1.45.0: `M1` no tiene troceado (su fila decía «retirar los doce símbolos», la cifra de `S0`) y el contrato de sesión exige medir antes de trocear | Una sesión de medición `M1-S0` que trocee `M1` (ruta `/v2`, retiradas, `pkg/model` y el adaptador, asynq, D11, guía, tren del 2.0.0), fije el alcance de `R2` y deje el rediseño como carril paralelo a la espera de las maquetas (el alcance de `R2` lo fijó D18 el mismo día; lo que entra en la ventana, D17) | **La medición primero** (2026-11-16); las diez cortas, después o en paralelo. |
 | **D17** | Las doce semanas hasta el suelo del 2.0 (2027-02-07): el plan cerraba A12 con el 2.0 certificado y dejaba las 32 dimensiones por debajo del 5 para A13 | Adelantar en sets 1.x lo aditivo de las 32 que `M1-S0` marque como corto y seguro (QADR-0010: nada rompiente); `M1` arranca en enero de 2027, lo más tarde posible para no rebasar el major | **Adelantar en 1.x lo aditivo** (2026-11-16). |
 | **D18** | El alcance de `R2`: el plan decía «re-puntuar sólo lo que `M1` tocó», pero con D17 casi todas las dimensiones se mueven desde `R1` | Re-auditoría completa como `R1` (36 dimensiones, mismo método e instrumentos): notas comparables y la lista exacta para A13 | **Re-auditoría completa** (2026-11-16). |
