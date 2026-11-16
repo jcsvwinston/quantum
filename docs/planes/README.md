@@ -139,13 +139,15 @@ lo que una sesión necesita para orientarse.
 | A9 | Fleet unificado y una sola SPA | A6 | [`A9-fleet-unificado-una-sola-spa.md`](A9-fleet-unificado-una-sola-spa.md) (cerrado en 1.38.0) |
 | A10 | Testing y OpenAPI de primera clase | A5 para el cliente de test con sesión | [`A10-testing-y-openapi.md`](A10-testing-y-openapi.md) (cerrado en 1.39.0) |
 | A11 | Extensibilidad y catálogo | A5, A7 (los módulos que cataloga) | [`A11-extensibilidad-y-catalogo.md`](A11-extensibilidad-y-catalogo.md) (cerrado en 1.41.0) |
-| A12 | Rendimiento, re-auditoría y cierre a 5 | todos | [`A12-rendimiento-reauditoria-cierre.md`](A12-rendimiento-reauditoria-cierre.md) (en curso desde 2026-10-04; la secuencia hasta el 2.0 decidida el 2026-11-16) |
+| A12 | Rendimiento, re-auditoría y cierre a 5 | todos | [`A12-rendimiento-reauditoria-cierre.md`](A12-rendimiento-reauditoria-cierre.md) (en curso desde 2026-10-04; la secuencia hasta el 2.0 decidida el 2026-11-16; `M1` troceada por `M1-S0` ese mismo día) |
 | A13 | Lo que `R2` deje por debajo del 5 | A12 (el 2.0 certificado y `R2`) | se trocea desde `R2`, con una sesión de medición |
 
 **El 2.0** tiene su propio contrato en [`quantum-2.0.md`](quantum-2.0.md): lo
-ejecuta A12 (`M0` → `M1-S0` → `M1` → `R2`) y no se empieza hasta cumplir su
-§2; las decisiones del 2026-11-16 (D14…D25) fijan qué entra en 1.x hasta
-entonces.
+ejecuta A12 (`M0` → `M1-S0` → el tramo 1.x del troceado → `M1` → `R2`; `M1`
+troceada el 2026-11-16 por `M1-S0`, con precondición y criterio como comando
+por sesión) y no se empieza hasta cumplir su §2; las decisiones del 2026-11-16
+(D14…D25) fijan qué entra en 1.x hasta entonces, y las D26…D38 de `M1-S0` las
+toma Carlos delante de la sesión que las cita.
 
 ## 7. Cómo se cierra un arco
 

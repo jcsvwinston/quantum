@@ -37,6 +37,24 @@
   de medición `M1-S0` del plan de A12 (D16). Las doce decisiones de ese
   día (D14…D25) están en el §3.3; la secuencia hasta el 2.0, en la sección
   «La ventana hasta el 2.0» del plan de A12.
+- **Medido el 2026-11-16 (`M1-S0`)**: el major está troceado en 23 sesiones
+  más el tren, con un tramo 1.x de 18 sesiones como precondición (plan de A12,
+  sección «`M1-S0` — el major, medido y troceado»). Lo que mueve este
+  documento: el §3.5 se corrige abajo (41 `go.mod`, 2 156 líneas de import,
+  `cmd/nucleus` a `…/nucleus/cmd/nucleus/v2`, 122 ficheros rastreados de
+  quark, 48 scripts y páginas del paraguas; el workspace compila contra `/v2`
+  sin `replace`); el primer commit del major de cada repo es la ruta `/v2` en
+  el orden quark → nucleus → orbit, con pseudo-versiones entre repos; y dos
+  decisiones del propietario van antes de ese commit (D26, el número 2.0.0 en
+  los 24 módulos v0.x; D27, cómo aterriza el major en `main`), con once más en
+  el bloque `M1-S0` del §3.3 (D28…D38: el lint del `!` de ADR-032, las tres
+  correcciones que amplían avisos publicados, `App.AutoMigrate`, DEP-2026-014,
+  la arista raíz → `quarkdatasource`, el último tag v1, dónde se publica la
+  guía, los suelos de los drivers del CLI, `nucleus add`, el rediseño y la
+  ventana), cada una delante de la sesión que la cita; la regla D2 de
+  `POLITICA_DEPRECACION.md` §4 se aplica tal como está aprobada (no es
+  decisión). La fecha sigue siendo un suelo: no antes del 2027-02-07; desde el
+  primer merge de un `!` en `main` no sale ningún set 1.x.
 - **El orden lo decidió Carlos: primero se termina lo pendiente**, después el
   2.0. Nada de este documento se empieza antes de que se cumpla el §2.
 
@@ -328,6 +346,14 @@ tuvo que resolver de la forma menos sorprendente; Carlos confirma o cambia.
 | **D11** | ADR-012 de orbit (quark fuera del grafo de la raíz) frente a D5b | **Sucederlo en el 2.0**: la raíz de orbit requiere quark y `quarkdatasource` (el panel sólo se monta sobre ellos; sus tests y el banco los necesitan). En 1.x nada cambia | **A, el 2026-11-13**: en el 2.0 la raíz de orbit requiere quark, su driver SQLite (tests) y `quarkdatasource`, como ya hace `dry-run/2.0`; enmienda a ADR-012 (siguen vigentes `datasource` hoja y el agente sobre el contrato; cae la consecuencia «quark fuera de la raíz»); `check_internal_pins.sh`, `align_set` y `bump-set` aprenden el tercer pin interno; OR-88 (sonda DS-03 sobre quark) se cierra en `M1`. En 1.x nada cambia. C (devolver `quarkdatasource` a la raíz) queda anotada para un 2.x si el segundo corte sigue costando |
 <!-- FIN BLOQUE DE DECISIÓN M0-E -->
 
+Medido por `M1-S0` (2026-11-16): `bump-set.sh` sólo descubre módulos por la
+presencia de `go.mod` (`:143`) y no compara pines; la cláusula de D11
+«`check_internal_pins.sh`, `align_set` y `bump-set` aprenden el tercer pin
+interno» la cumplen `M1-T-O` (`check_internal_pins.sh`, `align_set.sh`),
+`M1-V2-P`(a) (`align-orbit-pins.sh` con lookup por `module`, `manifest-guard`
+§5) y `M1-T-P` (`train.sh`, `orbit-converge.sh`); la columna «Decisión de
+Carlos» de D11 queda para su «**Hecha**», como en D10.
+
 **Decisiones del 2026-11-16**, al certificar Quantum 1.45.0: lo que la
 sesión midió al preguntarse qué falta para el 5 de 5 y para empezar el 2.0,
 planteado a Carlos una decisión cada vez. Las ejecuta lo que dice la columna
@@ -353,6 +379,34 @@ planteado a Carlos una decisión cada vez. Las ejecuta lo que dice la columna
 
 <!-- FIN BLOQUE DE DECISIÓN 2026-11-16 -->
 
+**Las trece preguntas de `M1-S0`** (2026-11-16; plan de A12, sección «`M1-S0`
+— el major, medido y troceado», «Lo que espera al propietario», con la
+recomendación y la razón medida de cada una). D26 y D27 van antes del primer
+commit del major (`M1-V2-Q`(1)); las demás, delante de la sesión que las cita.
+La columna «Decisión de Carlos» la rellena Carlos con su fecha; las
+precondiciones de las sesiones la comprueban con `grep` sobre este fichero (la
+forma de D1…D25).
+
+<!-- INICIO BLOQUE DE DECISIÓN M1-S0 -->
+
+| id | Qué decide | Propuesto | Decisión de Carlos |
+|---|---|---|---|
+| **D26** | El número 2.0.0 en los 24 módulos v0.x (con `bump-minor-pre-major` un `!` los deja en v0.(x+1).0, y un tag `v0.*` sobre `/v2` es inválido para Go) | (a) footer `Release-As: 2.0.0` en el squash del commit `!` de cada repo (ADR-032 veta `Release-As` para suplir un `!`, no para fijar el número junto a él); (b) `release-as` en los 24 paquetes + un `chore` que lo quite; (c) plugin `linked-versions`. **(a)**, con el manifiesto del release PR revisado antes de fusionarlo | |
+| **D27** | Cómo aterriza el major en `main` y cómo se llama la rama (desde el primer merge de un `!` en `main` no sale ningún set 1.x) | (a) rama `major/2.0` por repo con merge final; (b) sin rama. **(a) con merge commit**, los tres `!` seguidos tras el último set 1.x certificado, sin rama `release/1.x` | |
+| **D28** | El lint del `!` que ADR-032 regla 2 promete y no existe en ningún repo | construirlo (`M1-T-LINT-Q/N/O/P`, con excepción por rama del major) o corregir ADR-032:53-54. **Construirlo** | |
+| **D29** | Tres correcciones de avisos publicados amplían lo que dicen que rompe (DEP-2026-025 l.54, DEP-2026-024 `hooks.NewSQLObserver`, orbit DEP-2026-002 `agent.Config.Registry`/`Databases`); `POLITICA_DEPRECACION.md` §3 no las exime de ventana | (a) comparten la ventana del aviso que retira sus tipos (la regla, como enmienda del §3 de la política); (b) aviso propio con ventana nueva (mueve el 2.0 ≥ 90 días desde el set que lo publique, o capa de adaptación hasta el 3.0). **(a)** | |
+| **D30** | `App.AutoMigrate(models ...any)` en el 2.0 (sigue leyendo la gramática `db:` desde `internal/model`) | queda como la rama, anotado como deuda del 3.0. **Queda** | |
+| **D31** | DEP-2026-014 promete «ni siquiera se le preguntan sus capacidades» y `DiscoverExternal`/`Host.CollectInventory` siguen sondeando | parámetro de política aditivo en 1.x, o rebajar la promesa a «denegado, aunque sondeado». **Rebajar la promesa** (`M1-G-N`) | |
+| **D32** | La arista nueva raíz → `quarkdatasource` (D11) frente a ADR-006 l.97 | tolerancia en `check_internal_pins.sh`, corte de convergencia (7 extra medidos), o el experimento con `extra-files` de release-please sobre raíz → `ui` en 1.x. **El experimento primero** | |
+| **D33** | Un último tag v1 con `// Deprecated: use …/v2` en el `go.mod` (lo único que avisa a `go get @latest`; contradice `POLITICA_SOPORTE.md:62,240`) | **descartarlo por escrito**; la sección fija de la guía lo dice | |
+| **D34** | Dónde se publica la guía de migración y si `quark/README.md:24` cumple su promesa literal | una página en `/start/migrating-to-2.0` + `docs/MIGRATION_v2.0.0.md` como puntero, o una por producto. **Una página en `start` + el puntero** | |
+| **D35** | Los suelos de los drivers en `cmd/quark` y `cmd/nucleus` (QK-72/NU-147) | segunda pasada de suelos y segundo tag del CLI por tren (`M1-T-P`), o declarar el lag. **La segunda pasada** | |
+| **D36** | `nucleus add\|new` y la versión de orbit del set (NU-143; el CLI se taggea antes que orbit) | `versions.yaml` por red con caída a la tabla embebida, o «el set anterior». **Red con caída a la tabla** | |
+| **D37** | El rediseño (§3.4): (a) si un defecto visual que cambia es un volteo con aviso (`RD-2` al 2.1 si sí); (b) §4.4/§4.5 sin maquetas antes del corte; (c) partir de «el estado fijado» o reabrir la marca; (d) `RD-0` con las diez cortas abiertas; (e) AA en el sitio; (f) el look del fleet en el `server` o en el build (sin medir) | (a) sin aviso; (b)…(f) como «Lo que espera al propietario» 12 | |
+| **D38** | La ventana (D17): (a) QK-71 decimal; (b) MIG-05 sólo opt-in; (c) QM-37; (d) OR-94/ADR-007 y EXPLAIN desde el feed; (e) QM-34 «decir L2» o L3; (f) lo largo que la ventana no cubre; (g) PG-01…04/MY-01; (h) OR-71 sin tocar `datasource.Query`; (i) alcance de COPY; (j) NU-150 | como «Lo que espera al propietario» 13 | |
+
+<!-- FIN BLOQUE DE DECISIÓN M1-S0 -->
+
 ### 3.4 Rediseño estético (decisión de Carlos, 2026-10-06)
 
 Que el salto de versión **se note**:
@@ -376,7 +430,7 @@ Que el salto de versión **se note**:
   Quantum», jerga, enlaces). Los specs del banco de navegador se rehacen a la
   vez.
 
-### 3.5 La ruta de módulo `/v2` (medido por `M0-E`, 2026-10-18)
+### 3.5 La ruta de módulo `/v2` (medido por `M0-E` el 2026-10-18 y vuelto a medir por `M1-S0` el 2026-11-16)
 
 Ningún aviso ni fila del §3.0 lo dice, y Go lo exige: **un tag `v2.0.0`
 sobre un módulo con `go.mod` sólo se resuelve si la ruta del módulo lleva
@@ -385,31 +439,44 @@ lo rechazan, y `+incompatible` sólo vale para módulos sin `go.mod`). Así
 que el primer commit del major de cada pilar renombra la ruta de TODOS sus
 módulos (`github.com/jcsvwinston/quark/v2`, `…/quark/drivers/postgres/v2`…)
 y reescribe cada import, y los consumidores (orbit de nucleus y quark; el
-paraguas de los tres) cambian con ellos. Medido sobre el `main` del
-2026-10-18:
+paraguas de los tres) cambian con ellos. Medido sobre el `main` del 2026-11-16
+(pin de 1.45.0) por `M1-S0`, sobre `git ls-files`: las cifras son de ficheros
+rastreados (la tabla de `M0-E` del 2026-10-18 decía 13/397/808/764,
+17/479/1 020/115, 9/152/267/37, 151 y «21 scripts y páginas»; el 764 salía de
+un `grep -r` sobre ficheros ignorados y no es reproducible):
 
-| Repo | `go.mod` | ficheros `.go` que importan la ruta propia | líneas de import | otros ficheros que la nombran (docs, plantillas, json, yml, sh; sin `versioned_docs`) |
-|---|---:|---:|---:|---:|
-| quark | 13 | 397 | 808 | 764 (casi todos `acceptance/apisurface.json` y `allowlist.json`, generados) |
-| nucleus | 17 | 479 | 1 020 | 115 (las plantillas del starter y los generadores incluidos: lo que escriben a una aplicación cambia de ruta) |
-| orbit | 9 | 152 | 267 | 37 |
-| orbit → nucleus/quark | — | 151 | — | — |
-| paraguas | `go.work` con rutas relativas: no cambia | — | — | 21 scripts y páginas nombran rutas |
+| Repo | `go.mod` | ficheros `.go` que importan la ruta propia | líneas de import | otros ficheros rastreados que la nombran (sin `versioned_docs`/`node_modules`) |
+|---|---:|---:|---:|---|
+| quark | 13 | 408 | 800 (559 a la raíz) | 122 (2 577 líneas; 1 537 se regeneran: `acceptance/apisurface.json` y `allowlist.json`) |
+| nucleus | 19 (`pkg/nucleustest/quarkmake` y `providers/tasks-asynq` nacieron después del 2026-10-18) | 495 | 1 073 (989 a la raíz) | 161 (3 705 líneas; 2 525 son el baseline de contratos; las 9 plantillas del starter que nombran la ruta de nucleus (11 contando las que sólo nombran quark/orbit) y los generadores incluidos) |
+| orbit | 9 | 164 | 283 (14 a la raíz) | 54 (1 256 líneas; 931 son `CHANGELOG`s) |
+| orbit → nucleus/quark | 20 `require` en 7 `go.mod` (10 raíces + 10 drivers) | 164 | 363 | 28 |
+| nucleus → quark | 2 `require` (`pkg/nucleustest/quarkmake`) | 13 | 27 | 17 |
+| paraguas | `go.work` con rutas relativas y 0 `replace`: no cambia (el workspace compila contra `/v2` sin `replace`) | — | — | 16 scripts, workflows y fixtures + 32 docs y páginas; 2 scripts más componen la ruta sin nombrarla |
 
-Lo que implica, además del `sed`: los tags no cambian de forma
-(`v2.0.0`, `drivers/postgres/v2.0.0`…: release-please usa el directorio,
-no la ruta de módulo); `go install github.com/jcsvwinston/nucleus/v2/cmd/nucleus@v2.0.0`
-y `…/quark/v2/cmd/quark` cambian de ruta en toda la documentación y en el
-catálogo de `nucleus add`; los `go.work` de cada repo (`make workspace`) y
+Lo que implica, además del `sed`: los tags no cambian de forma (`v2.0.0`,
+`drivers/postgres/v2.0.0`…: release-please usa el directorio, no la ruta de
+módulo); `go install github.com/jcsvwinston/nucleus/cmd/nucleus/v2@v2.0.0`
+(`cmd/nucleus` es módulo propio en lockstep por `release.yml`, ADR-038) y
+`…/quark/cmd/quark/v2` (`cmd/quark` es paquete de release-please y necesita la
+anotación `x-release-please-version` para requerir `quark/v2 v2.0.0` desde su
+primer tag) cambian de ruta en toda la documentación y en el catálogo de
+`nucleus add`; los `go.work` de cada repo (`make workspace`) y
 `link_workspace.sh` de quark leen la ruta del `go.mod` y no se tocan;
 `manifest-guard` §5, `align_set.sh` de orbit y `print-requires.sh` del
-paraguas comparan rutas literales y necesitan el sufijo. Es trabajo
-mecánico de `M1`, pero de un tamaño que no cabe «dentro» del PR que retira
-símbolos: va como el primer commit del major de cada repo, con el
-workspace de cada uno probando que compila antes de cambiar nada más. En
-el ensayo de `M0-E` NO se aplicó (las ramas `dry-run/2.0` conservan la
-ruta v1 para que orbit compile contra ellas por `go.work`); queda medido
-aquí para que `M1` lo presupueste.
+paraguas comparan rutas literales y necesitan el sufijo; los 24 módulos v0.x
+de los 33 publicables (los cinco drivers de quark, 16 de nucleus, `proto`,
+`agent` y `server` de orbit) no llegan a 2.0.0 con un `!`
+(`bump-minor-pre-major`): el número lo pone el mecanismo que decida el
+propietario (`M1-S0`, pregunta 1 = D26); las lanes `GOWORK=off` de cada repo
+no están verdes hasta el tag o una pseudo-versión `v2.0.0-<ts>-<sha>`
+fusionada, que es también lo que une los tres repos entre el primer commit y
+el corte. Es trabajo mecánico de `M1`, pero de un tamaño que no cabe «dentro»
+del PR que retira símbolos: va como el primer commit del major de cada repo,
+con el workspace de cada uno probando que compila antes de cambiar nada más.
+En el ensayo de `M0-E` NO se aplicó (las ramas `dry-run/2.0` conservan la ruta
+v1 para que orbit compile contra ellas por `go.work`); queda medido aquí para
+que `M1` lo presupueste.
 
 ## 4. Cuándo está terminado el 2.0
 
