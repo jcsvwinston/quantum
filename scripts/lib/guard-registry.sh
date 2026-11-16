@@ -63,9 +63,12 @@ GUARDS=(
   # propio árbol, con AVISO — ver cabecera del script y AUDITORIA_CONTINUA.md.
   "umbrella-suite-tag|.|bash scripts/check_suite_tag.sh"
   # Los enlaces del sitio CONSTRUIDO resuelven: los `<a href>` a nuestros repos
-  # se verifican contra el checkout local (sin red, sin 429) y los internos
-  # contra el HTML generado. Docusaurus no mira los externos — así vivieron
-  # meses los «Edit this page» rotos de las tres instancias.
+  # se verifican contra el checkout local (sin red, sin 429), los internos
+  # contra el HTML generado, y el JS compilado no lleva ningún `href` RELATIVO
+  # (el router lo resuelve contra la URL actual y desde la forma con barra de
+  # GitHub Pages cae en Page Not Found; el HTML lo oculta: QM-45). Docusaurus
+  # no mira los externos — así vivieron meses los «Edit this page» rotos de las
+  # tres instancias.
   "umbrella-built-links|.|bash scripts/check_built_links.sh website/build"
   # Bloques de código VACÍOS en el HTML servido (SD-01, 9ª ronda): una fence
   # ```lang file=…``` sin resolver (remark-code-import descableado en el

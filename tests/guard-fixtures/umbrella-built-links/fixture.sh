@@ -5,9 +5,11 @@
 # comprueba:
 #   - probe-edit:     un «Edit this page» a una ruta que NO existe en el repo
 #                     nucleus (la clase exacta que vivió meses en producción),
-#   - probe-internal: un enlace interno /quantum/… a una página no construida.
-# El expect exige AMBAS líneas: si alguien rompiera solo una de las dos
-# comprobaciones, el harness lo cazaría.
+#   - probe-internal: un enlace interno /quantum/… a una página no construida,
+#   - probe.js:       un bundle con un `href:"guides/frameworks"` RELATIVO (la
+#                     clase que el HTML no enseña: QM-45, 2026-11-16).
+# El expect exige las TRES: si alguien rompiera solo una de las comprobaciones,
+# el harness lo cazaría.
 set -euo pipefail
 source tests/guard-fixtures/lib.sh
 
@@ -32,6 +34,12 @@ HTML
 cat > "$TREE/website/build/probe-internal/index.html" <<'HTML'
 <html><body><a href="/quantum/pagina-que-no-existe/">interno</a></body></html>
 HTML
+# El bundle sonda lleva un href absoluto, uno con esquema y uno con ancla (que
+# NO cuentan) y un relativo (que SÍ): sólo el relativo tiene que aparecer.
+mkdir -p "$TREE/website/build/assets/js"
+cat > "$TREE/website/build/assets/js/probe.js" <<'JS'
+e("a",{href:"/quantum/quark/intro"}),e("a",{href:"https://example.invalid/x"}),e("a",{href:"#top"}),e("a",{href:"guides/frameworks"})
+JS
 
 # Tercera sonda: el MISMO enlace roto, pero emitido desde una página de
 # documentación ARCHIVADA. Ésa no se reescribe —la copia es de cuando la ruta
@@ -44,9 +52,11 @@ cat > "$TREE/website/build/nucleus/1.15.0/getting-started/index.html" <<'HTML'
 HTML
 
 echo "workdir=$TREE"
-# El recuento prueba que AMBAS clases se cazaron (1 enlace a repo + 1 interno):
-# si alguien rompiera una de las dos comprobaciones, el guard vería 1 y el
-# harness moriría aquí. Mismo patrón que la fixture de jerga servida.
-echo "expect=2 enlace\(s\) rotos en el sitio construido"
+# El recuento prueba que las TRES clases se cazaron (1 enlace a repo + 1
+# interno + 1 relativo en el bundle): si alguien rompiera una de las
+# comprobaciones, el guard vería 2 y el harness moriría aquí. Mismo patrón que
+# la fixture de jerga servida.
+echo "expect=3 enlace\(s\) rotos en el sitio construido"
+echo "expect=relativo en el MDX compilado: href 'guides/frameworks'"
 # Y la archivada se ve, como aviso, en la misma corrida.
 echo "expect=doc ARCHIVADA"

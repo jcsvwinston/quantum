@@ -14,7 +14,18 @@
 #   2. resuelve <ruta> contra el CHECKOUT LOCAL de ese repo (el submódulo al
 #      pin) y falla si el fichero o directorio no existe,
 #   3. comprueba también los enlaces internos absolutos (/quantum/...) contra
-#      los ficheros generados, por si una ruta se escapa del router.
+#      los ficheros generados, por si una ruta se escapa del router,
+#   4. y busca en los chunks de contenido compilados (assets/js/*.js menos los
+#      bundles de runtime main.* y runtime~main.*) cualquier `href:"…"` RELATIVO
+#      (sin `/`, `#` ni esquema): un enlace de MDX que Docusaurus no resolvió a
+#      su ruta final queda relativo en el bundle y el router lo resuelve contra
+#      la URL ACTUAL — desde la forma con barra con la que GitHub Pages sirve
+#      toda entrada directa cae en Page Not Found, mientras el HTML estático
+#      lleva el href correcto (el servidor lo resolvió sin barra). Así vivieron
+#      los 129 enlaces `guides/x` de la doc de quark y los 2 085 de sus
+#      snapshots hasta el 2026-11-16 (QM-45); el ensamblaje los resuelve ahora
+#      (remarkResolveRelativeDocLinks en website/docusaurus.config.ts) y esta
+#      comprobación es la que ve la clase, porque ningún lector del HTML puede.
 #
 # La verificación es contra el árbol, NO por red: es determinista, funciona sin
 # credenciales y no dispara el rate-limit de GitHub (429), que es exactamente lo
@@ -107,6 +118,32 @@ for (repo, target), page in sorted(repo_links.items()):
         else:
             broken_repo.append((repo, target, page))
 
+# 4. href relativos en el MDX compilado. Se leen los bundles, no el HTML: el
+# HTML lleva el href absoluto que el servidor resolvió (sin barra) y oculta la
+# clase; el bundle lleva la cadena que el router usará en el cliente.
+href_js_re = re.compile(r'href:"([^"\\]*)"')
+scheme_re = re.compile(r'^[a-z][a-z0-9+.\-]*:', re.IGNORECASE)
+compiled_relative = {}   # href relativo -> bundle que lo emite
+# Sólo los chunks de contenido: `main.*.js` y `runtime~main.*.js` son React,
+# el router y el runtime de webpack, y llevan literales como el
+# `href:"image"` de la precarga de imágenes de React DOM, que no es un enlace.
+js_dir = os.path.join(build, "assets", "js")
+if os.path.isdir(js_dir):
+    for filename in sorted(os.listdir(js_dir)):
+        if not filename.endswith(".js"):
+            continue
+        if filename.startswith(("main.", "runtime~main.")):
+            continue
+        try:
+            content = open(os.path.join(js_dir, filename), encoding="utf-8", errors="ignore").read()
+        except OSError as exc:
+            print(f"FAIL: no se pudo leer {filename}: {exc}")
+            sys.exit(1)
+        for href in href_js_re.findall(content):
+            if not href or href.startswith(("/", "#", "?")) or scheme_re.match(href):
+                continue
+            compiled_relative.setdefault(href, filename)
+
 broken_internal = []
 for link, page in sorted(internal.items()):
     rel = link[len("/quantum/"):].rstrip("/")
@@ -124,13 +161,16 @@ for repo, target, page in archived_broken:
     print(f"AVISO: {repo}: la ruta {target!r} ya no existe — enlazada desde la doc ARCHIVADA {page}, "
           f"que no se reescribe (la copia es de cuando la ruta existía)")
 
-if broken_repo or broken_internal:
-    total = len(broken_repo) + len(broken_internal)
+if broken_repo or broken_internal or compiled_relative:
+    total = len(broken_repo) + len(broken_internal) + len(compiled_relative)
     print(f"FAIL: {total} enlace(s) rotos en el sitio construido ({pages} páginas escaneadas):")
     for repo, target, page in broken_repo:
         print(f"  {repo}: la ruta {target!r} no existe en el repo — enlazada desde {page}")
     for link, page in broken_internal:
         print(f"  interno: {link} no resuelve a ninguna página construida — enlazado desde {page}")
+    for href, bundle in sorted(compiled_relative.items()):
+        print(f"  relativo en el MDX compilado: href {href!r} en assets/js/{bundle} — el router lo "
+              f"resuelve contra la URL actual y desde la forma con barra cae en Page Not Found")
     print("")
     print("Los enlaces a nuestros propios repos se verifican contra el checkout local,")
     print("así que una ruta rota aquí lo está también en github.com.")
