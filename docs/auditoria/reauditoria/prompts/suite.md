@@ -47,8 +47,9 @@ shellcheck scripts/*.sh scripts/*/*.sh tests/*/*.sh
 - **La cadena de suministro desde fuera**: sobre los binarios y el paquete
   del set de la última release, `cosign verify-blob` y `gh attestation
   verify`, como lo haría un consumidor (la receta está en el sitio). La nota
-  de Scorecard de cada repo se lee de su última corrida
-  (`docs/AUDITORIA_CONTINUA.md` §8: `publish_results` está en false).
+  de Scorecard del paraguas se lee del dataset público de OpenSSF
+  (`publish_results` en true desde el 2026-11-16, D25; `docs/AUDITORIA_CONTINUA.md`
+  §8) y la de los productos, de su última corrida.
 - **La comunidad**: `gh api` sobre los cuatro repos —estrellas, forks,
   Discussions, autores de los commits de los últimos 90 días—.
 

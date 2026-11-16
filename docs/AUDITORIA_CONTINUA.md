@@ -388,7 +388,7 @@ invocan:
 | `integration.yml` | `contents: read` | `notify-schedule-failure`: `issues: write` | `scripts/notify_schedule_failure.sh` crea la etiqueta `lane-schedule-failure` (`gh label create`, bajo el ámbito de issues) y abre o comenta el issue del schedule rojo. Sin ese permiso, el aviso del cron falla en silencio y el schedule rojo degrada al email por defecto, que es justo lo que QM8-1 declaró insuficiente. |
 | `suite-integral.yml` | `contents: read` | `notify-schedule-failure`: `issues: write` | El mismo script y el mismo motivo, para el cron del lunes 06:00 UTC. |
 | `website-ci.yml` | `contents: read` | ninguno | Construye el sitio y corre los guards sobre lo servido; no toca la API. |
-| `scorecard.yml` | `read-all` | `analysis`: `security-events: write` + `id-token: write`; `notify-schedule-failure`: `issues: write` | La escritura de `security-events` es lo que exige subir el SARIF al panel de code scanning; va en el job, no arriba. `id-token` hoy **no se ejerce** —con `publish_results: false` la acción no acuña OIDC—: queda declarado porque es lo que la acción documenta como requisito y porque publicar sería una línea, no un permiso nuevo. El job vuelve a nombrar `contents: read` y `actions: read` porque un bloque de job sustituye al del workflow. El `issues: write` del job de aviso es el mismo de las otras dos lanes y por el mismo motivo (abajo). |
+| `scorecard.yml` | `read-all` | `analysis`: `security-events: write` + `id-token: write`; `notify-schedule-failure`: `issues: write` | La escritura de `security-events` es lo que exige subir el SARIF al panel de code scanning; va en el job, no arriba. `id-token` se ejerce desde el 2026-11-16 (`publish_results: true`, D25): es con lo que la acción acuña el OIDC para publicar la nota en el dataset de OpenSSF; estaba declarado desde A3 para que publicar fuera una línea, no un permiso nuevo. El job vuelve a nombrar `contents: read` y `actions: read` porque un bloque de job sustituye al del workflow. El `issues: write` del job de aviso es el mismo de las otras dos lanes y por el mismo motivo (abajo). |
 
 El barrido es el paso que hace la regla comprobable, y hay que repetirlo
 cuando un job gana un paso nuevo: el permiso se justifica por lo que el job
@@ -581,13 +581,15 @@ guard que lea la nota llega en un PR posterior del arco, y hasta entonces no
 tendría contra qué comparar — no existe ninguna medida previa, en ninguno de
 los cinco repos.
 
-`publish_results` está en **false**. Publicar la nota en el dataset público de
-OpenSSF (y con ella el badge) es una decisión del propietario que no está
-tomada; mientras no lo esté, la nota se lee de la propia corrida: el log del
-paso la imprime por comprobación, y `gh run download <run-id> -n
-scorecard-results` deja el SARIF. La elección tiene consecuencia de diseño
-para el guard posterior: leyendo del dataset público bastaría un `curl` sin
-token; leyendo del artefacto hay que descargarlo de la corrida.
+`publish_results` está en **true** desde el 2026-11-16 (decisión del
+propietario D25, en el contrato del 2.0; QM-33 de la re-auditoría: la nota
+agregada no existía en ningún sitio): la corrida publica la nota en el
+dataset público de OpenSSF
+(`https://api.securityscorecards.dev/projects/github.com/jcsvwinston/quantum`)
+y con ella el badge. La nota sigue leyéndose también de la propia corrida:
+el log del paso la imprime por comprobación, y `gh run download <run-id> -n
+scorecard-results` deja el SARIF. Para el guard posterior, la consecuencia
+de diseño queda decidida: leer del dataset público con un `curl` sin token.
 
 ### Qué se espera de la primera nota
 

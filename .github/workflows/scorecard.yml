@@ -35,10 +35,9 @@ jobs:
       # Subir el SARIF al panel de code scanning.
       security-events: write
       # Acuñar el OIDC con el que la acción publica en el dataset público de
-      # OpenSSF. Hoy NO se ejerce: `publish_results` está en false y sin
-      # publicación la acción no pide token. Queda declarado porque es lo que
-      # la acción documenta como requisito y porque el día que el propietario
-      # decida publicar, el cambio es una línea y no un permiso nuevo.
+      # OpenSSF: se ejerce desde el 2026-11-16, cuando el propietario decidió
+      # publicar la nota (D25 del contrato del 2.0; QM-33). Estaba declarado
+      # desde A3 para que ese día el cambio fuera una línea y no un permiso.
       id-token: write
       # Lecturas que el job usa de verdad: el checkout y la lectura de los
       # workflows y de las corridas de Actions que hacen varias
@@ -64,10 +63,11 @@ jobs:
           results_file: results.sarif
           results_format: sarif
           # Publicar la nota en el dataset público de OpenSSF (y con ella el
-          # badge) es una decisión del propietario que no está tomada. Hasta
-          # que lo esté, la primera nota se lee de la propia corrida: del log
-          # del paso y del artefacto `scorecard-results` de abajo.
-          publish_results: false
+          # badge): decisión del propietario del 2026-11-16 (D25; QM-33: la
+          # nota agregada no existía en ningún sitio). La nota sigue
+          # leyéndose también de la propia corrida: del log del paso y del
+          # artefacto `scorecard-results` de abajo.
+          publish_results: true
 
       # El artefacto es la vía de lectura que no depende de la interfaz de
       # code scanning: `gh run download <run-id> -n scorecard-results` deja el
