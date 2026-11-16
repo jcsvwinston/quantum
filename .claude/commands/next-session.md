@@ -68,6 +68,32 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
+- **REORIENTACIÓN DEL 2026-11-16 (tarde), ANTES QUE NADA**: Carlos dijo que
+  Quantum es un proyecto experimental que nadie ha usado y que el 2.0 lo
+  presentará en un REPO NUEVO sin histórico. Eso deja sin objeto casi todo
+  el aparato de `M0`/`M1` (avisos con ventana, ruta `/v2`, guía de
+  migración, Release-As, lag declarado, tren de cuatro repos) y las
+  decisiones D26…D38 de esa tarde (escritas en la rama
+  `docs/a12-decisiones-m1-s0`, SIN PR: no se fusionan hasta decidir el
+  corte limpio). La propuesta entregada: un QADR de corte limpio (los 34
+  avisos pasan a lista de decisiones de diseño; los repos actuales se
+  congelan como generación 1), monorepo Go con un `go.mod` por módulo
+  instalable (Quark en solitario sigue siendo un `go get` sin nada de
+  orbit: Go resuelve por módulo y poda el grafo), un solo número de
+  versión, diseñar y medir la primera hora antes de escribir código, y
+  una documentación con eje narrativo («construye una aplicación», ocho
+  capítulos), guías por tarea, referencia generada aparte, playgrounds y
+  versiones fuera de la navegación. Lienzo de la propuesta:
+  https://claude.ai/artifact/TguDkK4rqR4vhRQBGxDyB9 (privado; fuentes
+  en el stash de la sesión). **La siguiente sesión empieza por esto**:
+  confirmar con Carlos monorepo sí/no, Quark como paquete con nombre
+  propio, y nombre del repo nuevo y archivo de la generación 1
+  (recomendado: sí, sí, `quantum` nuevo y `quantum-gen1` archivado);
+  escribir el QADR; y una S0 del 2.0 de verdad (inventario hereda/tira,
+  objetivos medibles de la primera hora, arquitectura de la información,
+  tres direcciones visuales para elegir). Lo que sigue de este §3 describe
+  el estado del plan ANTERIOR a esa decisión.
+
 - **Set certificado: Quantum 1.45.0** (2026-11-13/16, fuera de cadencia:
   el propietario pidió seguir avanzando el viernes 13 y el set adelanta la
   cadencia del lunes 2026-11-23; razón escrita en `status:`) — quark
@@ -440,53 +466,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   deprecación no es pregunta: se aplica tal como está aprobada (`completed` al
   vencer: `M1-G-F1…F5`, con `M1-G-P`(a) antes del set posterior al
   2026-12-08).
-- **Lo siguiente**: primero las trece decisiones D26…D38 del contrato (bloque
-  `M1-S0` del §3.3 de `quantum-2.0.md`), planteadas al propietario UNA A UNA
-  con su recomendación, como quiso el 2026-11-16; después `M1-G-P` (quantum;
-  la única con fecha) y, en paralelo por
-  repo, `M1-V2-P`(a), `M1-T-N`, `M1-T-Q`, `V-S2b` (y tras ella `M1-T-O` →
-  `M1-V2-P`(b)) y los diez hallazgos de D15 en nueve sesiones (`V-Q7/Q8/Q9`,
-  `V-N3/N4/N5`, `V-O4/O14/O15`; `V-O15` lleva OR-75 y OR-76); `M1-G-F1`
-  (quark) el 2026-12-08; las sesiones de SPA de orbit agrupadas en un set.
-
-## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
-
-> **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
-> pilares en major 1 bajo un manifiesto de suite, con régimen de majors en
-> lockstep (QADR-0002). La tabla queda como referencia histórica; el trabajo
-> nuevo entra por arcos (§5) bajo el régimen de auditoría continua.
-
-| Fase | Objetivo | Hecho cuando |
-|---|---|---|
-| 1 | **Identidad/marca Quantum**, portada de la suite | Front page que nombra y enlaza los tres pilares y aclara el uso standalone de Quark |
-| 2 | **Docs unificadas**: Docusaurus multi-instancia en `website/`, product switcher, doble selector de versión, un solo deploy en `/quantum/` | Un sitio sirve las tres docs bajo una marca, sin sacar la fuente de cada repo |
-| 3 | **Convenciones + primera release**: `release-please` a Nucleus/Orbit, instancia de docs de Orbit, **Quantum 0.1.0** con CI de integración | Set Quantum reproducible y verificado por CI |
-| 4 | **Integración demostrada**: ejemplo Nucleus+Quark+Orbit + CI que ejerce los tres | Hay un ejemplo ejecutable y CI del set |
-| 5 | **Convergencia Quantum 1.0**: Nucleus y Orbit a v1.0, régimen de majors en lockstep | Los tres en major 1 bajo un manifiesto Quantum 1.0 |
-
-## 5. Pendientes técnicos anotados (revísalos cuando apliquen)
-
-> Puesto al día el 2026-09-05. Lo que esta sección listaba antes (integración
-> Quark↔Orbit de QADR-0005/0006, pin de nucleus en `8714882c`, `status:
-> pre-fusion`, retirada de los Pages standalone de los productos, y el plan de
-> extensibilidad A–H, cerrado en Quantum 1.22.0) está **todo hecho y publicado**: los tres pilares llevan desde Quantum 1.0.0 (2026-07-11)
-> en major 1 con los pines EN TAG, `quarkbridge`/`quarkdatasource` van en el
-> set (v0.4.0 / v0.2.14) y `jcsvwinston.github.io/{quark,nucleus,orbit}` ya
-> sirven el redirector al sitio unificado. El histórico de cómo se llegó ahí
-> vive en el §3 y en `docs/auditoria/`.
-
-**`quantum-app` NO frena nada (decisión de Carlos, 2026-09-20).** Mientras el
-plan 5 de 5 siga abierto, nada de lo que le ocurra a `jcsvwinston/quantum-app`
-bloquea un arco, un corte ni una certificación: se **rehará entero** al
-terminar el plan, así que arreglarlo set a set es trabajo que se tira. Sus
-gates en rojo y sus PRs de bump sin fusionar —cuatro abiertos desde 1.30.0— se
-anotan y se sigue. Lo único que hay que distinguir es «deuda suya» de «el set
-recién cortado rompió al consumidor»: lo segundo SÍ es hallazgo del release.
-No se abren sesiones ni arcos para ponerlo al día. El detalle está en
-`scripts/train/README.md`, en la sección del anuncio.
-
-**Trabajo con destinatario (por orden de arranque):**
-
+- **Lo siguiente**: ver la REORIENTACIÓN al principio del «Estado vigente»:
+  la siguiente sesión no es `V-N-AM` ni `M1-G-P`, es el QADR del corte
+  limpio y la S0 del 2.0 como segunda generación. Las trece decisiones
+  D26…D38 se respondieron esa tarde (transcripción en el stash de la
+  sesión) y están escritas en la rama `docs/a12-decisiones-m1-s0`, sin PR.
 - **El próximo tren** (el set del lunes 2026-11-23, o el siguiente que
   tenga algo que publicar): quark, nucleus y orbit no se han movido desde
   1.45.0 salvo lo que las sesiones de la ventana fusionen; los suelos
