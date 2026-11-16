@@ -722,6 +722,118 @@ release-please@17` y llamar a `parseConventionalCommits` de
 bisecar el cuerpo por líneas hasta la que rompe. El mensaje del error nombra
 la línea y la columna.
 
+### Lo que aprendió el tren de 1.45.0 (el primero conducido por el propietario, un locale UTF-8 y un `require` de una línea)
+
+Conducido del 2026-11-13 al 2026-11-16 (pausado el 14 y retomado el 15; fuera
+de cadencia: el propietario pidió seguir avanzando y el set adelanta la
+cadencia del lunes 23 para publicar `D9-N` y `D10-O`, precondición de `M1`),
+con el propietario lanzando desde su terminal las cuatro fases que publican y
+la sesión preparando lo demás: quark#494 (suelos) → quark#493 (v1.19.1, siete
+tags, prosa repuesta en la rama del bot) · nucleus#665 (suelos) → nucleus#663
+y #664 (notas y snapshot) → nucleus#667 (el test de la lane suite-starter) →
+nucleus#668 (el suelo de `tasks-asynq`) → nucleus#669 (las notas re-fechadas
+al día del corte) → nucleus#657 (v1.36.0, dieciocho tags con `cmd/nucleus`) ·
+orbit#599 (alineación, hecha a mano por la sesión calcando
+`alinea_pines_orbit`, con las notas y el snapshot de v1.22.0 escritos en la
+rama del bot por `orbit-notes-apply.sh`) → orbit#598 (v1.22.0, cinco tags
+nuevos; SIN segundo corte: `datasource`, `ui` y `proto` no se movieron) →
+quantum#319 (set) → cierre (`suite-integral --cierre` 60 de 60) · quantum#316
+(govulncheck en el preflight), quantum#317 (`${var}` ante bytes no ASCII) y
+quantum#318 (el `require` de una línea, fusionado después del set). Reloj:
+1h33m39s conducido en once invocaciones (dos paradas de prosa; nucleus 49m59s
+en tres, quark 16m06s en tres, paraguas 14m48s en dos, cierre 7m53s, orbit
+4m43s), 62h54m18s de espera del propietario entre invocaciones y 64h27m57s de
+punta a punta — el primer tren que vive tres días porque las fases que
+publican esperan a que el propietario esté al teclado.
+
+1. **La sesión no puede publicar; el propietario conduce.** El clasificador de
+permisos denegó `train.sh --desde quark --hasta quark` («Create Public
+Surface»: la fase fusiona el release PR y release-please etiqueta y publica)
+con el propietario habiendo dicho sólo «vamos a ir avanzando». Lo que sí pasa:
+`merge-group.sh` de PRs normales, `quark-doc-debt.sh`, `--solo-suelos`, los
+PRs de notas. Receta: la sesión prepara TODO lo que no publica (suelos, notas,
+snapshots, alineación, guards en local) y para antes de cada corte diciendo el
+comando exacto; el propietario lo lanza. Cada parada del tren cuesta un
+relanzamiento suyo, así que las paradas evitables (la prosa de quark, lección
+3) se evitan de verdad. 2. **El primer tren desde un terminal con locale
+UTF-8** (es_ES.UTF-8): bash 3.2 de macOS lee los bytes de «»/— pegados a
+`$var` como parte del nombre → `title: unbound variable` en
+`check-anchored-release-branch.sh` y el tren reportó una «rama anclada» FALSA
+en quark#493. Todos los trenes anteriores corrieron desde la sesión (locale C)
+y nunca lo tocaron. Arreglo: `${var}` en las 31 líneas que lo tenían
+(quantum#317). La lección de fondo: hoy cualquier EXIT≠0 del check se lee como
+veredicto; un fallo del propio script debería distinguirse. 3. **La prosa de
+quark escrita antes del tren se pierde** (1.35.0, repetida): los suelos
+(quark#494) regeneran la rama del bot. Guardar el commit de prosa como parche
+(`git format-patch`) y reponerlo sobre el esqueleto nuevo, con el párrafo
+«Module floors» leído del manifest de la rama. La alternativa que evita la
+parada: PR `docs(release)` a `main` ANTES del tren, como hace nucleus (el
+generador del esqueleto es idempotente y dice «ya existe»). 4. **«Suelos al
+día» no existe al empezar un corte**: suben al ÚLTIMO tag de raíz al principio
+de CADA corte (QM-19), así que todo corte lleva PR de suelos salvo que la raíz
+no se haya movido desde el tren anterior. No es trampa; es el diseño
+(quark#494: 7 de 7 a v1.19.0). 5. **El preflight corre `govulncheck` con la
+toolchain declarada** (quantum#316): con el go1.26.6 local salían 14
+vulnerabilidades de stdlib falsas en nucleus; con `GOTOOLCHAIN=go1.26.11`, 0
+en los tres. 6. **Un corte de quark puede poner rojo el corte de nucleus de la
+misma tarde.** La lane «Suite starter» de nucleus construye `cmd/quark` al
+ÚLTIMO tag de quark (`git ls-remote --tags`), no al suelo: quark v1.19.1
+(QK-101, Oracle en mayúsculas) rompió
+`TestMakeMigrationsRendersThroughTheSiblingQuarkCLI/oracle` en el release PR
+nucleus#657 en cuanto existió el tag; el test esperaba `"name"` en minúsculas.
+Era el test rancio, no el producto (nucleus#667). El mensaje del tren («¿deuda
+de doc del minor?») despista. Antes de lanzar el tren, correr esa lane de
+nucleus contra el `main` de quark; y un PR abierto antes del arreglo
+(nucleus#668) hereda el rojo hasta `update-branch`. 7. **Un `require` de UNA
+línea era invisible** para `align-module-floors.sh`, `manifest-guard` §5/§5b y
+el orden topológico de `train.sh` (awk `$1 == p`): `go mod tidy` escribe así
+el único require directo de un módulo, y el formato no se puede forzar (pliega
+de vuelta un bloque de un elemento). `providers/tasks-asynq` quedó en v1.34.0
+en el corte de v1.35.0 (nucleus#665 subió «16 de 16» y eran 17) y 1.44.0
+certificó con `declared_lags: {}` sin aviso. Arreglo: nucleus#668 (el suelo,
+antes de fusionar nucleus#657 para que el módulo salga en la misma release) y
+el awk de los tres scripts con la fixture del guard ampliada (quantum#318). 8.
+**Un PR del paraguas abierto entre el corte de un pilar y el PR de set sale
+rojo** en `manifest-guard` §3b («latest tag cmd/quark/v1.3.1 is not an
+ancestor of the pinned root»): los tags nuevos no son ancestros del pin viejo.
+Es el diseño: sólo el PR de set, que re-pina, tolera el mid-tren. Los
+`fix(train)` van ANTES del primer corte o DESPUÉS del set (quantum#318 esperó:
+`gh pr update-branch` → CI verde → merge). 9. **Las notas de nucleus escritas
+antes del tren llevan la fecha del día en que se escribieron** (repite 1.43.0
+§2): el corte cayó el 15 y las notas decían 13 → nucleus#669 re-fechó sección
+y snapshot ANTES de fusionar nucleus#657 (Release Please regenera el release
+PR tras el merge). Escribir la fecha al redactar es escribir una suposición.
+10. **Las cifras que el paraguas cita de los bancos cambian con el pin**:
+`website/docs/why-quantum.md` decía «72 of 72» y orbit v1.22.0 publica «73 of
+73» (`DS-18`); `umbrella-why-quantum`, su fixture y el suelo de
+`check_admin_posture.sh` (72 → 73) ponen rojo el PR de set hasta editarlos y
+llevarlos con `--incluye`. Esta vez lo cazó `guard-of-guards` en local ANTES
+del paraguas (regla de 1.37.0) y no costó vuelta de CI: tres `--incluye` en el
+relanzamiento (los dos anteriores y la guía de migración). 11. **Pausar un
+tren a medias** (2026-11-14/15): el estado y el runbook van a la memoria de la
+sesión y el material preparado (notas, scripts de aplicación, borradores) a un
+stash DURABLE fuera del scratchpad, que muere entre días; los worktrees del
+scratchpad se retiran antes. Tres revisores (comandos contra scripts, hechos
+contra GitHub, completitud) corrigieron el runbook antes de retomar:
+`cmd/nucleus` no está en el manifest (lo corta `release.yml`),
+`align-orbit-pins` espera hasta 30 minutos y no 10, Dependabot no tiene
+auto-merge en ningún repo, y la SEGUNDA invocación de la fase paraguas PUBLICA
+(rama, PR y merge). 12. **El flake OR-149 también muerde en el paraguas**: la
+lane de integración de `main` cayó en `TestAdminBench/EXT-10` («measures
+partial») justo tras fusionar el set, con los mismos pines que habían pasado
+en el PR quince minutos antes. `gh run rerun <run> --failed` la pasó. El
+cierre no mira esa lane, pero certificar con `main` en rojo confunde: relanzar
+antes del cierre. 13. **Orbit sin segundo corte por primera vez en cinco
+trenes**, y no por la receta: `datasource`, `ui` y `proto` no tuvieron
+commits, así que el `--check` de pines internos pasó con los tags que ya
+existían. La receta del segundo corte sigue sin mecanizarse; cuando esos tres
+se muevan volverá. 14. **La guía de migración al 2.0 llevaba nueve días
+rancia** (23 entradas con los 34 avisos activos que 1.43.0 llevó al pin; tres
+semanas sin regenerar) porque nadie corría su `--check`: salió al medir el
+estado del arco, no por un guard. Regenerada en el PR de set (D14) y, desde
+quantum#321, `umbrella-migration-guide` la vigila y `bump-set` la regenera en
+cada re-pin (`RUTAS_REPIN` la cuenta).
+
 ### Lo que aprendió el tren de 1.44.0 (dos módulos nuevos de nucleus, una vuln de Go el día del corte y dos cortes de orbit)
 
 Conducido el 2026-11-11 (la semana de cadencia del 16, cinco días antes a

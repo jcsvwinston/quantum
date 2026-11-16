@@ -122,29 +122,30 @@ Por eso cada fichero de arco abre con una sesión `S0` cuyo producto es
 **reescribir las demás**. Un troceado escrito antes de medir es una hipótesis
 con formato de plan.
 
-## 6. Los nueve arcos que quedan
+## 6. Los arcos del plan 5/5
 
 El detalle de cada uno —qué entrega, qué gate lo cierra, qué hallazgos
-descuenta— está en el artefacto «Los nueve arcos que quedan». Aquí sólo lo
-que una sesión necesita para orientarse.
+descuenta— está en el artefacto «Los nueve arcos que quedan», escrito cuando
+quedaban nueve; a 2026-11-16, A1…A11 están cerrados y A12 en curso. Aquí sólo
+lo que una sesión necesita para orientarse.
 
 | Arco | Qué entrega | Depende de | Troceado |
 |---|---|---|---|
-| A4 | Quark como capa de datos de nucleus | decisión de ruptura controlada | [`A4-capa-de-datos.md`](A4-capa-de-datos.md) |
-| A5 | Auth de producto (OIDC, API keys, accounts, MFA) | — (puede solaparse con A4: repos distintos) | [`A5-auth-de-producto.md`](A5-auth-de-producto.md) |
-| A6 | Orbit como admin de producto | decisión del contrato datasource | [`A6-orbit-admin-de-producto.md`](A6-orbit-admin-de-producto.md) |
-| **A7** | Jobs, eventos y tiempo real | A6 para el panel de colas | [`A7-jobs-eventos-tiempo-real.md`](A7-jobs-eventos-tiempo-real.md) |
+| A4 | Quark como capa de datos de nucleus | decisión de ruptura controlada | [`A4-capa-de-datos.md`](A4-capa-de-datos.md) (cerrado en 1.31.0) |
+| A5 | Auth de producto (OIDC, API keys, accounts, MFA) | — | [`A5-auth-de-producto.md`](A5-auth-de-producto.md) (cerrado en 1.32.0) |
+| A6 | Orbit como admin de producto | decisión del contrato datasource | [`A6-orbit-admin-de-producto.md`](A6-orbit-admin-de-producto.md) (cerrado en 1.33.0) |
+| A7 | Jobs, eventos y tiempo real | A6 para el panel de colas | [`A7-jobs-eventos-tiempo-real.md`](A7-jobs-eventos-tiempo-real.md) (cerrado en 1.34.0) |
 | A8 | Quark enterprise | A4 | [`A8-quark-enterprise.md`](A8-quark-enterprise.md) (cerrado en 1.35.0) |
 | A9 | Fleet unificado y una sola SPA | A6 | [`A9-fleet-unificado-una-sola-spa.md`](A9-fleet-unificado-una-sola-spa.md) (cerrado en 1.38.0) |
 | A10 | Testing y OpenAPI de primera clase | A5 para el cliente de test con sesión | [`A10-testing-y-openapi.md`](A10-testing-y-openapi.md) (cerrado en 1.39.0) |
 | A11 | Extensibilidad y catálogo | A5, A7 (los módulos que cataloga) | [`A11-extensibilidad-y-catalogo.md`](A11-extensibilidad-y-catalogo.md) (cerrado en 1.41.0) |
-| A12 | Rendimiento, re-auditoría y cierre a 5 | todos | [`A12-rendimiento-reauditoria-cierre.md`](A12-rendimiento-reauditoria-cierre.md) (en curso desde 2026-10-04) |
+| A12 | Rendimiento, re-auditoría y cierre a 5 | todos | [`A12-rendimiento-reauditoria-cierre.md`](A12-rendimiento-reauditoria-cierre.md) (en curso desde 2026-10-04; la secuencia hasta el 2.0 decidida el 2026-11-16) |
+| A13 | Lo que `R2` deje por debajo del 5 | A12 (el 2.0 certificado y `R2`) | se trocea desde `R2`, con una sesión de medición |
 
 **El 2.0** tiene su propio contrato en [`quantum-2.0.md`](quantum-2.0.md): lo
-ejecuta A12 (`M0` → `M1` → `R2`) y no se empieza hasta terminar lo pendiente.
-
-**A4 y A5 pueden ir en paralelo** (tocan repos distintos), igual que A8 y A9.
-Lo demás respeta las dependencias de la tabla.
+ejecuta A12 (`M0` → `M1-S0` → `M1` → `R2`) y no se empieza hasta cumplir su
+§2; las decisiones del 2026-11-16 (D14…D25) fijan qué entra en 1.x hasta
+entonces.
 
 ## 7. Cómo se cierra un arco
 

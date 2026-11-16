@@ -14,54 +14,53 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 ## Estado real (2026-11-16)
 
 - **Set certificado: Quantum 1.45.0** (2026-11-13/16, fuera de cadencia: el
-  propietario pidió seguir avanzando y el set adelanta la cadencia del 23
-  para publicar lo que `M1` espera) — quark v1.19.1 (CLI v1.3.1, los cinco
-  drivers v0.3.3) · nucleus v1.36.0 (cmd/nucleus v1.36.0 en lockstep;
-  drivers/sqlite v0.2.3, providers/ldap v0.2.17, providers/auth-saml y
+  propietario pidió seguir avanzando y el set adelanta la cadencia del 23 para
+  publicar lo que `M1` espera) — quark v1.19.1 (CLI v1.3.1, los cinco drivers
+  v0.3.3) · nucleus v1.36.0 (cmd/nucleus v1.36.0 en lockstep; drivers/sqlite
+  v0.2.3, providers/ldap v0.2.17, providers/auth-saml y
   providers/errors-sentry v0.1.4, pkg/nucleustest/quarkmake v0.1.1,
   providers/tasks-asynq v0.1.1 y los diez hermanos restantes v0.1.13) ·
-  orbit v1.22.0 (proto v0.8.3, datasource v1.1.2, ui v1.2.2 sin mover;
-  agent v0.16.6, server v0.22.4, quarkbridge v1.9.9, quarkdatasource
-  v1.14.0). Publica **D9-N y D10-O de A12, precondición de `M1`**: en
-  nucleus, `generate module` escribe las filas de política comentadas sobre
-  un root `WithoutDefaults()` sin `WithAuthz()` y lo dice (D9, NU-127), el
-  lector de `doctor` lee todo el paquete `main` y `cmd/`, `makemigrations`
-  deriva el par de los modelos Quark a través de la CLI de quark (DX-N3n2,
-  NU-170); en orbit, `quarkdatasource.Register` toma opciones tipadas (D10)
-  y un campo excluido sale de todas las filas (OR-150, DS-18: 73 de 73); en
-  quark, `migrate create --from-models` rinde el DDL idempotente de cada
-  motor (QK-101). Go 1.26.11 en los tres, sin mover.
-  1.44.0 publicó la DX al 5 de A12 y dos módulos nuevos de nucleus; 1.43.0
-  la segunda mitad de `M0` (las 34 filas del §3.0 `publicado`, el 2.0 no
-  antes del 2027-02-07) y los P1 de la re-auditoría en orbit; 1.42.0 la
-  primera mitad de `M0`; 1.41.0 cerró **A11**; 1.40.0 publicó los P0 de
-  tenants de quark; 1.39.0 cerró **A10** (46 de 46) y 1.38.0 **A9** (50 de
-  50). El detalle de cada arco cerrado, en su plan de
-  [`planes/`](planes/README.md). **A12** (Rendimiento, re-auditoría y
+  orbit v1.22.0 (proto v0.8.3, datasource v1.1.2, ui v1.2.2 sin mover; agent
+  v0.16.6, server v0.22.4, quarkbridge v1.9.9, quarkdatasource v1.14.0).
+  Publica **D9-N y D10-O de A12, precondición de `M1`**: en nucleus, `generate
+  module` escribe las filas de política comentadas sobre un root
+  `WithoutDefaults()` sin `WithAuthz()` y lo dice (D9, NU-127), el lector de
+  `doctor` lee todo el paquete `main` y `cmd/`, `makemigrations` deriva el par
+  de los modelos Quark a través de la CLI de quark (DX-N3n2, NU-170); en
+  orbit, `quarkdatasource.Register` toma opciones tipadas (D10) y un campo
+  excluido sale de todas las filas (OR-150, DS-18: 73 de 73); en quark,
+  `migrate create --from-models` rinde el DDL idempotente de cada motor
+  (QK-101). Go 1.26.11 en los tres, sin mover. 1.44.0 publicó la DX al 5 de
+  A12 y dos módulos nuevos de nucleus; 1.43.0 la segunda mitad de `M0` (las 34
+  filas del §3.0 `publicado`, el 2.0 no antes del 2027-02-07) y los P1 de la
+  re-auditoría en orbit; 1.42.0 la primera mitad de `M0`; 1.41.0 cerró
+  **A11**; 1.40.0 publicó los P0 de tenants de quark; 1.39.0 cerró **A10** (46
+  de 46) y 1.38.0 **A9** (50 de 50). El detalle de cada arco cerrado, en su
+  plan de [`planes/`](planes/README.md). **A12** (Rendimiento, re-auditoría y
   cierre a 5) sigue EN CURSO en
   [`planes/A12-rendimiento-reauditoria-cierre.md`](planes/A12-rendimiento-reauditoria-cierre.md):
   **`R1` hecha el 2026-10-27** (la re-auditoría de madurez sobre 1.42.0,
   [`auditoria/reauditoria/2026-10-23/`](auditoria/reauditoria/2026-10-23/README.md):
   media de las 36 dimensiones 2,79 → 4,12, ninguna baja, tres en 5; 122
-  hallazgos nuevos —0 P0, 4 P1— y cuatro volteos más para el 2.0; el gate
-  «5 en todo salvo comunidad» NO se cumple: 32 dimensiones por debajo);
-  `M0` cerrado el 2026-10-23 con el ensayo del major en ramas
-  `dry-run/2.0`, **`M0-R` hecha el 2026-11-03** (los cuatro avisos que
-  añadió `R1` y los P1 de orbit) y **`M0-F` el 2026-11-07** (los `fix` de
-  1.x que `M0-E` listó antes del major; el de nucleus entró tras decidir
-  que la lane SAML tolere GO-2026-6909 —arreglada upstream pero sin versión
-  arreglada en la base de datos de Go— con una excepción acotada, con fecha
-  y que se retira sola); **la DX al 5 (§2.1 del contrato) HECHA y
-  publicada** (1.44.0, y `DX-N3n2` en este set); **D9…D11 decididas el
-  2026-11-13 (las tres en A) y sus dos sesiones de 1.x publicadas en este
-  set** (`D10-O`, orbit#596/#597; `D9-N`, nucleus#662). Delante de `M1`
-  quedan la sesión de medición que la trocee (su fila del plan aún dice
-  «retirar los doce símbolos», la cifra de `S0`, y el contrato de sesión
-  exige medir antes de trocear) y las diez «sesiones cortas» del §2.2 del
-  contrato que siguen abiertas (decidido el 2026-11-16: se cierran en 1.x
-  antes de `M1`); después `M1` → `R2`, y lo que tiene que cumplir el 2.0
-  está en [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
-  2027-02-07: 1.43.0 publicó los once avisos que faltaban).
+  hallazgos nuevos —0 P0, 4 P1— y cuatro volteos más para el 2.0; el gate «5
+  en todo salvo comunidad» NO se cumple: 32 dimensiones por debajo); `M0`
+  cerrado el 2026-10-23 con el ensayo del major en ramas `dry-run/2.0`,
+  **`M0-R` hecha el 2026-11-03** (los cuatro avisos que añadió `R1` y los P1
+  de orbit) y **`M0-F` el 2026-11-07** (los `fix` de 1.x que `M0-E` listó
+  antes del major; el de nucleus entró tras decidir que la lane SAML tolere
+  GO-2026-6909 —arreglada upstream pero sin versión arreglada en la base de
+  datos de Go— con una excepción acotada, con fecha y que se retira sola);
+  **la DX al 5 (§2.1 del contrato) HECHA y publicada** (1.44.0, y `DX-N3n2` en
+  este set); **D9…D11 decididas el 2026-11-13 (las tres en A) y sus dos
+  sesiones de 1.x publicadas en este set** (`D10-O`, orbit#596/#597; `D9-N`,
+  nucleus#662). Delante de `M1` quedan `M1-S0`, la sesión de medición que la
+  trocea (D16), las diez «sesiones cortas» del §2.2 del contrato en sets 1.x
+  (D15) y lo aditivo de las 32 dimensiones que `M1-S0` marque como corto y
+  seguro, también en 1.x (D17); `M1` en enero de 2027, `R2` completa como `R1`
+  (D18) y A13 con lo que quede (las doce decisiones del 2026-11-16, D14…D25,
+  en el §3.3 del contrato); lo que tiene que cumplir el 2.0 está en
+  [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de 2027-02-07:
+  1.43.0 publicó los once avisos que faltaban).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
   TIPADO con el outbox como transporte opcional, CANALES sobre WebSocket y
@@ -74,47 +73,49 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   desde esta cabecera lo vigila `check_rumbo_estado.sh`. El troceado de cada
   arco en sesiones, y el contrato que permite trabajarlo sin recordar la
   anterior, están en [`planes/`](planes/README.md).
-- **Certificación mecánica:** 60 guards en el registro — el 60º,
-  `umbrella-catalog-posture`, cierra A11 (S-fin, segunda mitad, con el pin
-  de 1.41.0): la cifra y la tabla por familias de
+- **Certificación mecánica:** 61 guards en el registro — el 61º,
+  `umbrella-migration-guide` (D14, 2026-11-16; quantum#321), exige que la guía
+  de migración al 2.0 sea lo que generan los avisos activos de los tres
+  productos al pin (llevaba nueve días rancia, desde 1.43.0, y tres semanas
+  sin regenerar, sin que nada la mirara); `bump-set` la regenera en cada
+  re-pin. El 60º, `umbrella-catalog-posture`, cierra A11 (S-fin, segunda
+  mitad, con el pin de 1.41.0): la cifra y la tabla por familias de
   `nucleus/docs/catalog-bench.md` son las que cuenta
-  `nucleus/internal/catalogbench`, todo lo que no está present lleva nota y
-  el suelo es de 36 de 38. El 58º, `umbrella-site-posture`, y el 59º,
+  `nucleus/internal/catalogbench`, todo lo que no está present lleva nota y el
+  suelo es de 36 de 38. El 58º, `umbrella-site-posture`, y el 59º,
   `umbrella-quark-extension-posture`, son los de la primera mitad: el banco
-  del sitio (`tests/sitebench/sitebench.sh`) corre en la certificación con
-  lo medido igual a lo registrado y un suelo de 12 de 12; y la cifra y las
-  cabeceras por familia de `quark/docs/extension-bench.md` son las que
-  cuenta `quark/internal/extbench`, con un suelo de 22 de 22 desde el pin de
-  1.41.0 (14 al de 1.40.0). Con ellos `umbrella-admin-posture` subió su
-  suelo de 59 a los 72 controles del panel (y la mitad de navegador de 7 a
-  13). El 57º, `umbrella-generated-pages`, es el gate W4 de A11: la API congelada de
-  cada producto, el catálogo de `nucleus add` y un post por set certificado
-  se GENERAN del árbol al pin (`scripts/lib/site-pages.py`, que corre
+  del sitio (`tests/sitebench/sitebench.sh`) corre en la certificación con lo
+  medido igual a lo registrado y un suelo de 12 de 12; y la cifra y las
+  cabeceras por familia de `quark/docs/extension-bench.md` son las que cuenta
+  `quark/internal/extbench`, con un suelo de 22 de 22 desde el pin de 1.41.0
+  (14 al de 1.40.0). Con ellos `umbrella-admin-posture` subió su suelo de 59 a
+  los 72 controles del panel (y la mitad de navegador de 7 a 13). El 57º,
+  `umbrella-generated-pages`, es el gate W4 de A11: la API congelada de cada
+  producto, el catálogo de `nucleus add` y un post por set certificado se
+  GENERAN del árbol al pin (`scripts/lib/site-pages.py`, que corre
   `bump-set`), y el guard falla si el sitio publica otra cosa o si el set
-  vigente no tiene su post; el 56º,
-  `umbrella-audit-criteria` (A12 `R0`), vigila la escala con la que se
-  repite la auditoría de madurez (`docs/auditoria/criterios-5.csv`: las 36
-  dimensiones del 2026-09-03, qué es un 1, un 3 y un 5, y con qué se mide
-  cada una); el 55º,
+  vigente no tiene su post; el 56º, `umbrella-audit-criteria` (A12 `R0`),
+  vigila la escala con la que se repite la auditoría de madurez
+  (`docs/auditoria/criterios-5.csv`: las 36 dimensiones del 2026-09-03, qué es
+  un 1, un 3 y un 5, y con qué se mide cada una); el 55º,
   `umbrella-why-quantum`, es el gate W1 de A11: cada cifra de la página «Why
-  Quantum» contra su fuente al pin, ningún número sin fuente en su prosa, y
-  la frase de `what-is-quantum.md` sobre lo que instala `nucleus add`
-  (registrado sin esperar a un set: sus fuentes ya están en el pin de
-  1.39.0); el 54º,
+  Quantum» contra su fuente al pin, ningún número sin fuente en su prosa, y la
+  frase de `what-is-quantum.md` sobre lo que instala `nucleus add` (registrado
+  sin esperar a un set: sus fuentes ya están en el pin de 1.39.0); el 54º,
   `umbrella-api-posture`, es el gate de A10 (la cifra de
   `nucleus/docs/api-bench.md` y su tabla, el starter con el documento y los
-  endpoints tipados, el test del gate y la lane que lo corre con node y
-  `tsc`, y la línea base del documento del starter); el 53º,
+  endpoints tipados, el test del gate y la lane que lo corre con node y `tsc`,
+  y la línea base del documento del starter); el 53º,
   `umbrella-fleet-posture`, el de A9; y el 52º, `umbrella-quark-posture`, el
-  de A8: comprueba en el árbol pinado que
-  el banco de quark tiene sus 69 controles y ningún ausente sin nota, que la
-  cifra que publica `quark/docs/enterprise-bench.md` es la que cuenta la
-  tabla, y que las seis pruebas que el arco añadió a `SharedSuite` siguen
-  corriendo en la lane de cada motor — lo único del arco que se mide contra
-  un motor real. El 51º, `umbrella-jobs-posture`, es el gate de A7 (la cifra
-  de `nucleus/docs/jobs-bench.md`, ningún ausente sin razón, y el CI de
-  nucleus corriendo DE VERDAD la prueba de durabilidad). El set se certifica
-  con `suite-integral --cierre` sobre el árbol pinado.
+  de A8: comprueba en el árbol pinado que el banco de quark tiene sus 69
+  controles y ningún ausente sin nota, que la cifra que publica
+  `quark/docs/enterprise-bench.md` es la que cuenta la tabla, y que las seis
+  pruebas que el arco añadió a `SharedSuite` siguen corriendo en la lane de
+  cada motor — lo único del arco que se mide contra un motor real. El 51º,
+  `umbrella-jobs-posture`, es el gate de A7 (la cifra de
+  `nucleus/docs/jobs-bench.md`, ningún ausente sin razón, y el CI de nucleus
+  corriendo DE VERDAD la prueba de durabilidad). El set se certifica con
+  `suite-integral --cierre` sobre el árbol pinado.
 - **Auditoría de madurez 2026-09-03 sobre 1.26.0: ejecutada, corregida y
   PUBLICADA en 1.26.1.** Cuatro auditores midieron cada pilar contra el
   mercado (147 defectos, 4 P0, todos en la primera hora del evaluador). Los
@@ -124,7 +125,8 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   Plan de trabajo a 5/5 (doce arcos, cada uno con gate mecánico):
   <https://claude.ai/code/artifact/cbd9d082-7404-4989-bd79-7408f9dbaf38>.
   El orden de los frentes de abajo se subordina a ese plan desde este set.
-  La 8ª pasada fue la última auditoría manual completa; rige el régimen del §6.
+  La 8ª pasada fue la última auditoría manual completa; rige el régimen del §6 de
+  [`AUDITORIA_CONTINUA.md`](AUDITORIA_CONTINUA.md).
 - **Auditoría integral 2026-08-30 sobre 1.24.0: ejecutada y PUBLICADA.** 147
   hallazgos, 52 graves, 3 P0 — los tres en el embudo de entrada, no en el
   runtime. 20 PRs fusionados y el set 1.25.0 los lleva al público (verificado
