@@ -11,35 +11,34 @@ en el PR de re-pin de cada set, si el arco cambió lo que aquí se afirma). Un
 frente cerrado se borra o se mueve a su acta; no se acumula prosa. Si la fecha
 de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
 
-## Estado real (2026-11-12)
+## Estado real (2026-11-16)
 
-- **Set certificado: Quantum 1.44.0** (2026-11-11/12, la semana de cadencia
-  del 16 adelantada a petición del propietario) — quark v1.19.0 (CLI
-  v1.3.0, los cinco drivers v0.3.2) · nucleus v1.35.0 (cmd/nucleus v1.35.0
-  en lockstep; drivers/sqlite v0.2.2, providers/ldap v0.2.16,
-  providers/auth-saml y providers/errors-sentry v0.1.3, los diez hermanos
-  restantes v0.1.12, y dos módulos NUEVOS: pkg/nucleustest/quarkmake v0.1.0
-  y providers/tasks-asynq v0.1.0) · orbit v1.21.3 (proto v0.8.3,
-  datasource v1.1.2, ui v1.2.2, agent v0.16.5, server v0.22.3, quarkbridge
-  v1.9.8, quarkdatasource v1.13.5). Publica **la DX al 5 de A12** en
-  nucleus y quark: los generadores de nucleus escriben modelos Quark y
-  endpoints tipados, `nucleus new --with orbit` monta el panel con fuente
-  de datos, `doctor`/`health`/`config print` aceptan la configuración de
-  los proveedores que el proyecto importa, `nucleustest.Make` persiste
-  modelos Quark a través de `quarkmake` (D12) y `providers/tasks-asynq`
-  nace como módulo de reenvío (DEP-2026-020); en quark, los 30 centinelas
-  `Err*` dicen qué hacer, `--emit json` en la CLI, el playground wasm del
-  sitio (D13), tres guías de producción y QK-100. Orbit sólo alinea. Go
-  1.26.11 en los tres (GO-2026-6859).
-  1.43.0 publicó la segunda mitad de `M0` (los once avisos del 2.0 que
-  faltaban: las 34 filas del §3.0 están `publicado` y el 2.0 no puede
-  salir antes del 2027-02-07) y los P1 de la re-auditoría en orbit;
-  1.42.0 publicó la primera mitad de `M0` (los nueve avisos de nucleus y los
-  dos de orbit); 1.41.0 cerró **A11** (extensibilidad y catálogo); 1.40.0
-  publicó los P0 de tenants de quark; 1.39.0 cerró **A10** (Testing y
-  OpenAPI, 46 de 46) y 1.38.0 **A9** (Fleet unificado, 50 de 50). El detalle
-  de cada arco cerrado, en su plan de [`planes/`](planes/README.md). **A12**
-  (Rendimiento, re-auditoría y cierre a 5) sigue EN CURSO en
+- **Set certificado: Quantum 1.45.0** (2026-11-13/16, fuera de cadencia: el
+  propietario pidió seguir avanzando y el set adelanta la cadencia del 23
+  para publicar lo que `M1` espera) — quark v1.19.1 (CLI v1.3.1, los cinco
+  drivers v0.3.3) · nucleus v1.36.0 (cmd/nucleus v1.36.0 en lockstep;
+  drivers/sqlite v0.2.3, providers/ldap v0.2.17, providers/auth-saml y
+  providers/errors-sentry v0.1.4, pkg/nucleustest/quarkmake v0.1.1,
+  providers/tasks-asynq v0.1.1 y los diez hermanos restantes v0.1.13) ·
+  orbit v1.22.0 (proto v0.8.3, datasource v1.1.2, ui v1.2.2 sin mover;
+  agent v0.16.6, server v0.22.4, quarkbridge v1.9.9, quarkdatasource
+  v1.14.0). Publica **D9-N y D10-O de A12, precondición de `M1`**: en
+  nucleus, `generate module` escribe las filas de política comentadas sobre
+  un root `WithoutDefaults()` sin `WithAuthz()` y lo dice (D9, NU-127), el
+  lector de `doctor` lee todo el paquete `main` y `cmd/`, `makemigrations`
+  deriva el par de los modelos Quark a través de la CLI de quark (DX-N3n2,
+  NU-170); en orbit, `quarkdatasource.Register` toma opciones tipadas (D10)
+  y un campo excluido sale de todas las filas (OR-150, DS-18: 73 de 73); en
+  quark, `migrate create --from-models` rinde el DDL idempotente de cada
+  motor (QK-101). Go 1.26.11 en los tres, sin mover.
+  1.44.0 publicó la DX al 5 de A12 y dos módulos nuevos de nucleus; 1.43.0
+  la segunda mitad de `M0` (las 34 filas del §3.0 `publicado`, el 2.0 no
+  antes del 2027-02-07) y los P1 de la re-auditoría en orbit; 1.42.0 la
+  primera mitad de `M0`; 1.41.0 cerró **A11**; 1.40.0 publicó los P0 de
+  tenants de quark; 1.39.0 cerró **A10** (46 de 46) y 1.38.0 **A9** (50 de
+  50). El detalle de cada arco cerrado, en su plan de
+  [`planes/`](planes/README.md). **A12** (Rendimiento, re-auditoría y
+  cierre a 5) sigue EN CURSO en
   [`planes/A12-rendimiento-reauditoria-cierre.md`](planes/A12-rendimiento-reauditoria-cierre.md):
   **`R1` hecha el 2026-10-27** (la re-auditoría de madurez sobre 1.42.0,
   [`auditoria/reauditoria/2026-10-23/`](auditoria/reauditoria/2026-10-23/README.md):
@@ -49,18 +48,20 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   `M0` cerrado el 2026-10-23 con el ensayo del major en ramas
   `dry-run/2.0`, **`M0-R` hecha el 2026-11-03** (los cuatro avisos que
   añadió `R1` y los P1 de orbit) y **`M0-F` el 2026-11-07** (los `fix` de
-  1.x que `M0-E` listó antes del major, en `main` de los tres; el de
-  nucleus entró el mismo día, tras decidir que la lane SAML tolere
-  GO-2026-6909 —arreglada upstream pero sin versión arreglada en la base de
-  datos de Go— con una excepción acotada, con fecha y que se retira sola);
-  **la DX al 5 (§2.1 del contrato) HECHA** (`DX-0` la contó y troceó; D12
-  y D13 decididas; publicada en 1.44.0 salvo `DX-N3n2`, en `main` de
-  nucleus hasta su próxima minor); **D9…D11 decididas el 2026-11-13 (las
-  tres en A) y sus dos sesiones de 1.x hechas el mismo día** (`D10-O`,
-  orbit#596/#597; `D9-N`, nucleus#662): delante de `M1` sólo queda el set
-  que las publique; quedan `M1` → `R2`, y lo que tiene que cumplir el 2.0 está en
-  [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
-  2027-02-07: este set publicó los once avisos que faltaban).
+  1.x que `M0-E` listó antes del major; el de nucleus entró tras decidir
+  que la lane SAML tolere GO-2026-6909 —arreglada upstream pero sin versión
+  arreglada en la base de datos de Go— con una excepción acotada, con fecha
+  y que se retira sola); **la DX al 5 (§2.1 del contrato) HECHA y
+  publicada** (1.44.0, y `DX-N3n2` en este set); **D9…D11 decididas el
+  2026-11-13 (las tres en A) y sus dos sesiones de 1.x publicadas en este
+  set** (`D10-O`, orbit#596/#597; `D9-N`, nucleus#662). Delante de `M1`
+  quedan la sesión de medición que la trocee (su fila del plan aún dice
+  «retirar los doce símbolos», la cifra de `S0`, y el contrato de sesión
+  exige medir antes de trocear) y las diez «sesiones cortas» del §2.2 del
+  contrato que siguen abiertas (decidido el 2026-11-16: se cierran en 1.x
+  antes de `M1`); después `M1` → `R2`, y lo que tiene que cumplir el 2.0
+  está en [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de
+  2027-02-07: 1.43.0 publicó los once avisos que faltaban).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
   TIPADO con el outbox como transporte opcional, CANALES sobre WebSocket y
