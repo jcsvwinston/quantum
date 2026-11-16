@@ -114,6 +114,70 @@ function remarkQuarkDocsBase() {
   };
 }
 
+// Resuelve, durante el ENSAMBLAJE, los enlaces RELATIVOS sin extensión que la
+// doc de Quark escribe entre páginas (`guides/frameworks`, `transactions`,
+// `../reference/api/errors`: 129 en la doc actual y 2 085 en sus snapshots el
+// 2026-11-16; nucleus y orbit no los usan). Docusaurus sólo resuelve a su ruta
+// final los enlaces a ficheros `.md`/`.mdx`; uno sin extensión queda tal cual
+// en el MDX compilado y el router lo resuelve contra la URL ACTUAL: desde
+// `/quantum/quark/intro/` —la forma CON barra con la que GitHub Pages sirve
+// toda entrada directa (301 desde la forma sin barra)— `guides/frameworks` va
+// a `/quantum/quark/intro/guides/frameworks` (Page Not Found), mientras que
+// la misma página alcanzada navegando desde la portada (URL sin barra)
+// funciona. El HTML estático lleva el href correcto (el servidor lo resolvió
+// sin barra), así que ningún guard que lea el HTML lo ve; lo ve el lector
+// (QM-45). Aquí cada enlace relativo se reescribe a la ruta de FICHERO con
+// extensión cuando ese fichero existe junto a la fuente, y el resolutor de
+// Docusaurus (que conoce slugs y versiones) calcula la ruta final; si no hay
+// fichero, no se toca nada. Opera sobre el AST en memoria: ni la fuente ni los
+// snapshots se reescriben (QADR-0003). `check_built_links.sh` vigila que el JS
+// compilado no lleve ningún `href` relativo.
+//
+// Registrado SÓLO en la instancia de Quark, que es la única que escribe así
+// (y junto a remarkQuarkDocsBase, que ya existía). Medido el 2026-11-16:
+// registrado también en las instancias de nucleus, orbit y start, el build
+// compilaba pero la generación estática moría en 111 páginas —las docs
+// ACTUALES de los tres productos, las que viven fuera de website/— con
+// «Cannot read properties of undefined (reading 'id')» en DocItem: sus
+// módulos salían sin `metadata` ni `assets`, como si el cargador las tratara
+// como parciales. Con el plugin sólo aquí, o con las claves nuevas vacías en
+// las otras instancias, el build es verde. Si otro producto empieza a
+// escribir enlaces así, el guard lo dirá y habrá que mirar esa trampa antes
+// de registrarlo en su instancia.
+function remarkResolveRelativeDocLinks() {
+  const hasScheme = /^[a-z][a-z0-9+.-]*:/i;
+  const hasMarkdownExt = /\.mdx?$/i;
+  const hasAssetExt = /\.(png|svg|jpe?g|gif|webp|json|ya?ml|txt|go|css|js|pdf|zip|wasm)$/i;
+  const resolveRelative = (url: string, sourceDir: string): string => {
+    if (!url || url.startsWith('/') || url.startsWith('#') || url.startsWith('?') || hasScheme.test(url)) return url;
+    const m = url.match(/^([^?#]*)(\?[^#]*)?(#.*)?$/);
+    if (!m) return url;
+    const pathname = m[1];
+    const rest = (m[2] ?? '') + (m[3] ?? '');
+    if (!pathname || hasMarkdownExt.test(pathname) || hasAssetExt.test(pathname)) return url;
+    const base = pathname.replace(/\/+$/, '');
+    const candidates = pathname.endsWith('/')
+      ? [`${base}/index.mdx`, `${base}/index.md`]
+      : [`${base}.mdx`, `${base}.md`, `${base}/index.mdx`, `${base}/index.md`];
+    for (const candidate of candidates) {
+      if (fs.existsSync(path.resolve(sourceDir, candidate))) return candidate + rest;
+    }
+    return url;
+  };
+  return (tree: unknown, file: {path?: string}): void => {
+    if (!file.path) return;
+    const sourceDir = path.dirname(file.path);
+    const visit = (node: any): void => {
+      if (!node || typeof node !== 'object') return;
+      if ((node.type === 'link' || node.type === 'definition') && typeof node.url === 'string') {
+        node.url = resolveRelative(node.url, sourceDir);
+      }
+      if (Array.isArray(node.children)) node.children.forEach(visit);
+    };
+    visit(tree);
+  };
+}
+
 // Sitio de documentación unificado de la suite Quantum (Fase 2).
 // ENSAMBLA las docs de cada producto desde su submódulo — la fuente NO sale de
 // cada repo (QADR-0003). Cada producto es una instancia de plugin-content-docs
@@ -285,8 +349,10 @@ const config: Config = {
             ? `https://github.com/jcsvwinston/quark/edit/main/website/docs/${docPath}`
             : `https://github.com/jcsvwinston/quark/edit/main/website/${versionDocsDirPath.replace(/^quark_/, '')}/${docPath}`,
         // Reescribe los enlaces `/docs/*` heredados de Quark a `/quark/*` (ver
-        // remarkQuarkDocsBase arriba). Solo la instancia de Quark lo necesita.
-        beforeDefaultRemarkPlugins: [remarkQuarkDocsBase],
+        // remarkQuarkDocsBase arriba) y resuelve los relativos sin extensión
+        // (remarkResolveRelativeDocLinks, QM-45). Solo la instancia de Quark
+        // los necesita, y el segundo sólo puede ir aquí (ver su comentario).
+        beforeDefaultRemarkPlugins: [remarkQuarkDocsBase, remarkResolveRelativeDocLinks],
         // Raíz = doc actual con el tag real (ver la instancia default arriba).
         lastVersion: 'current',
         versions: {current: {label: suite.quark}},
