@@ -432,7 +432,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   con fila D26…D38 en el §3.3 del contrato; 2 antes del primer commit del
   major (D26, el número 2.0.0 en los 24 módulos v0.x —recomendación: footer
   `Release-As: 2.0.0` por repo—; D27, cómo aterriza el major —rama `major/2.0`
-  con merge commit—) y D28…D33 delante de la sesión que las cita (el lint del
+  con merge commit—) y D28…D38 delante de la sesión que las cita (el lint del
   `!` —construirlo—, las tres correcciones que amplían avisos publicados
   —comparten la ventana—, `AutoMigrate` —se queda—, DEP-014 —rebajar la
   promesa—, la arista raíz → quarkdatasource —el experimento con `extra-files`
@@ -440,7 +440,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   deprecación no es pregunta: se aplica tal como está aprobada (`completed` al
   vencer: `M1-G-F1…F5`, con `M1-G-P`(a) antes del set posterior al
   2026-12-08).
-- **Lo siguiente**: `M1-G-P` (quantum; la única con fecha) y, en paralelo por
+- **Lo siguiente**: primero las trece decisiones D26…D38 del contrato (bloque
+  `M1-S0` del §3.3 de `quantum-2.0.md`), planteadas al propietario UNA A UNA
+  con su recomendación, como quiso el 2026-11-16; después `M1-G-P` (quantum;
+  la única con fecha) y, en paralelo por
   repo, `M1-V2-P`(a), `M1-T-N`, `M1-T-Q`, `V-S2b` (y tras ella `M1-T-O` →
   `M1-V2-P`(b)) y los diez hallazgos de D15 en nueve sesiones (`V-Q7/Q8/Q9`,
   `V-N3/N4/N5`, `V-O4/O14/O15`; `V-O15` lleva OR-75 y OR-76); `M1-G-F1`
