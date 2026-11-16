@@ -634,7 +634,10 @@ EOF
       n=${item%%:*}; comp=${item#*:}
       deps=""
       if [ -f "$repo/$comp/go.mod" ]; then
-        deps=$(awk -v p="github.com/jcsvwinston/$repo/" 'index($1, p) == 1 && $NF != "indirect" { sub(p, "", $1); print $1 }' "$repo/$comp/go.mod")
+        # Las dos formas de un require directo: la línea dentro de `require (...)`
+        # y el `require <ruta> <versión>` de una línea que `go mod tidy` escribe
+        # para el único require directo de un módulo (1.45.0).
+        deps=$(awk -v p="github.com/jcsvwinston/$repo/" '{ m = ($1 == "require") ? $2 : $1 } index(m, p) == 1 && $NF != "indirect" { sub(p, "", m); print m }' "$repo/$comp/go.mod")
       fi
       ok=1
       for dep in $deps; do
