@@ -53,14 +53,26 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   **la DX al 5 (§2.1 del contrato) HECHA y publicada** (1.44.0, y `DX-N3n2` en
   este set); **D9…D11 decididas el 2026-11-13 (las tres en A) y sus dos
   sesiones de 1.x publicadas en este set** (`D10-O`, orbit#596/#597; `D9-N`,
-  nucleus#662). Delante de `M1` quedan `M1-S0`, la sesión de medición que la
-  trocea (D16), las diez «sesiones cortas» del §2.2 del contrato en sets 1.x
-  (D15) y lo aditivo de las 32 dimensiones que `M1-S0` marque como corto y
-  seguro, también en 1.x (D17); `M1` en enero de 2027, `R2` completa como `R1`
-  (D18) y A13 con lo que quede (las doce decisiones del 2026-11-16, D14…D25,
-  en el §3.3 del contrato); lo que tiene que cumplir el 2.0 está en
-  [`planes/quantum-2.0.md`](planes/quantum-2.0.md) (no antes de 2027-02-07:
-  1.43.0 publicó los once avisos que faltaban).
+  nucleus#662). Delante de `M1` quedan (con `M1-S0` hecha el 2026-11-16:
+  viñeta siguiente) las diez «sesiones cortas» del §2.2 del contrato en sets
+  1.x (D15) y lo aditivo de las 32 dimensiones que `M1-S0` marcó como corto
+  (64 elementos en 42 sesiones `V-*`), también en 1.x (D17); `M1` en enero de
+  2027, `R2` completa como `R1` (D18) y A13 con lo que quede (las doce
+  decisiones del 2026-11-16, D14…D25, en el §3.3 del contrato); lo que tiene
+  que cumplir el 2.0 está en [`planes/quantum-2.0.md`](planes/quantum-2.0.md)
+  (no antes de 2027-02-07: 1.43.0 publicó los once avisos que faltaban).
+- **`M1` troceada (2026-11-16, `M1-S0`)**: el major está medido al pin de
+  1.45.0 y partido en 23 sesiones más el tren, con un tramo 1.x de 18 sesiones
+  como precondición (sección «`M1-S0` — el major, medido y troceado» del plan
+  de A12), con el primer commit del major de cada repo —la ruta `/v2`, quark →
+  nucleus → orbit— y lo que el paraguas, los guards y el tren aprenden en 1.x
+  antes de escribirlo. Delante de `M1` quedan ahora las diez «sesiones cortas»
+  del §2.2 del contrato (D15), ese tramo 1.x (`M1-V2-P`, `M1-T-*`, `M1-G-*`,
+  `M1-G-F1…F5`; el primero con fecha es `M1-G-P`, antes del set posterior al
+  2026-12-08), lo aditivo de las 32 dimensiones que `M1-S0` marcó como corto
+  (64 elementos en 42 sesiones `V-*`, D17) y las decisiones D26…D38 del
+  contrato (dos antes del primer commit del major); `M1` en enero de 2027 y el
+  2.0.0 no antes del 2027-02-07, como estaba.
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
   TIPADO con el outbox como transporte opcional, CANALES sobre WebSocket y

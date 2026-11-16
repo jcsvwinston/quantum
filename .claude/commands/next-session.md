@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-16, QUANTUM 1.45.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R`, `M0-F`, la DX al 5, `D9-N` y `D10-O` HECHAS Y PUBLICADAS; las DOCE decisiones de Carlos del 2026-11-16 (D14…D25) fijan la ventana hasta el 2.0; siguiente: **`M1-S0`**, la sesión de medición que trocea `M1`)
+## 3. Estado al cierre (2026-11-16, QUANTUM 1.45.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R`, `M0-F`, la DX al 5, `D9-N`, `D10-O` y **`M1-S0`** HECHAS; `M1` troceada; siguiente: **`M1-G-P`** —el generador de la guía por versión de ventana, antes del set posterior al 2026-12-08— y, en paralelo por repo, `M1-V2-P`(a), `M1-T-N`, `M1-T-Q`, `V-S2b` → `M1-T-O` y las diez cortas de D15)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -96,32 +96,41 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
 - **La ventana hasta el 2.0, decidida el 2026-11-16 (D14…D25, §3.3 del
-  contrato; sección «La ventana hasta el 2.0» del plan de A12)**: la
-  secuencia es **`M1-S0`** (la sesión de medición que trocea `M1`: ruta
-  `/v2`, las retiradas y los volteos de las 34 filas, `pkg/model` y el
-  adaptador, asynq fuera del root, D11 en el paraguas, la guía, el tren
-  del 2.0.0; lista lo aditivo que entra en la ventana; rediseño como carril
-  paralelo a la espera de las maquetas de Carlos) → (o en paralelo, por
-  producto) las diez «sesiones cortas» del §2.2 del contrato en sets 1.x
-  (NU-129, NU-131, NU-108; OR-71, OR-74, OR-75, OR-76; QK-54, QK-68,
-  QK-69) → lo aditivo de las 32 dimensiones por debajo del 5 que `M1-S0`
-  marque como corto y seguro, en sets 1.x (QADR-0010: nada rompiente) →
-  `M1` en enero de 2027 → 2.0.0 no antes del 2027-02-07 → `R2` COMPLETA
-  como `R1` → A13. **Lo que no es código y también entra**: la política
-  de soporte publicada sin LTS y con la ventana de suite mandando sobre
-  las cuatro `SECURITY.md` (D21, D22: sesión de docs con calendario YAML,
-  guard `umbrella-release-calendar`, campos del manifiesto y un QADR
-  nuevo; cierra QM-25); la protección de `main` en los cuatro repos como
-  la de nucleus, con «Allow auto-merge» (D23; antes, el PR de orbit que
-  lleve el refresco de la matriz de módulos a un PR y un job agregador en
-  el paraguas; los ajustes los ejecuta Carlos con los comandos del §5);
-  Discussions sólo en quantum (D24, clic de Carlos); la nota de Scorecard
-  publicada (D25, quantum#320); y el guard `umbrella-migration-guide`
-  (D14, quantum#321). **Trampa de calendario**: la excepción de
-  govulncheck para GO-2026-6909 caduca el 2026-12-31; si el 2026-12-15 la
-  base de datos de Go sigue sin registrar v0.5.2 como arreglada
-  (golang/vulndb#6909, cerrada el 2026-11-15 con el cambio pendiente), un
-  chore PR en nucleus la mueve al 2027-03-31 (D19).
+  contrato; sección «La ventana hasta el 2.0» del plan de A12)**: **`M1-S0`
+  está hecha** (su PR, en el registro de sesiones del plan de A12): `M1` son
+  23 sesiones más el tren (con un tramo 1.x de 18 sesiones como precondición),
+  en la sección «`M1-S0` — el major, medido y troceado» del plan de A12, cada
+  una con precondición y criterio como comando; el primer commit del major de
+  cada repo es la ruta `/v2` (`M1-V2-Q` → `M1-V2-N` → `M1-V2-O`) y antes va un
+  tramo 1.x (`M1-V2-P`, `M1-T-P/O/N/Q`, `M1-T-LINT-Q/N/O/P`, `M1-G-P/Q/N/O`,
+  `M1-G-F1…F5`) y las decisiones D26…D38 del bloque `M1-S0` del §3.3 del
+  contrato (dos antes del primer commit: D26, el número 2.0.0 en los 24
+  módulos v0.x, y D27, cómo aterriza el major en `main`; D28, el lint del `!`,
+  antes de `M1-T-LINT-*`; D29…D33 —las tres correcciones que amplían avisos,
+  `AutoMigrate`, DEP-014, la arista raíz → `quarkdatasource`, el último tag
+  v1— delante de la sesión que las cita; la regla D2 de la política de
+  deprecación se aplica tal como está aprobada, con `M1-G-F1…F5`). La
+  secuencia es ahora: en paralelo por repo y en sets 1.x, las diez «sesiones
+  cortas» del §2.2 del contrato en sets 1.x (NU-129, NU-131, NU-108; OR-71,
+  OR-74, OR-75, OR-76; QK-54, QK-68, QK-69) → lo aditivo de las 32 dimensiones
+  por debajo del 5 que `M1-S0` marcó como corto (64 elementos en 42 sesiones
+  `V-*`), en sets 1.x (QADR-0010: nada rompiente) → `M1` en enero de 2027 →
+  2.0.0 no antes del 2027-02-07 → `R2` COMPLETA como `R1` → A13. **Lo que no
+  es código y también entra**: la política de soporte publicada sin LTS y con
+  la ventana de suite mandando sobre las cuatro `SECURITY.md` (D21, D22:
+  sesión de docs con calendario YAML, guard `umbrella-release-calendar`,
+  campos del manifiesto y un QADR nuevo; cierra QM-25); la protección de
+  `main` en los cuatro repos como la de nucleus, con «Allow auto-merge» (D23;
+  antes, el PR de orbit que lleve el refresco de la matriz de módulos a un PR
+  y un job agregador en el paraguas; los ajustes los ejecuta Carlos con los
+  comandos del §5); Discussions sólo en quantum (D24, comprobado activo el
+  2026-11-16: QM-42 hecho, quantum#324); la nota de Scorecard publicada (D25,
+  quantum#320); y el guard `umbrella-migration-guide` (D14, quantum#321).
+  **Trampa de calendario**: la excepción de govulncheck para GO-2026-6909
+  caduca el 2026-12-31; si el 2026-12-15 la base de datos de Go sigue sin
+  registrar v0.5.2 como arreglada (golang/vulndb#6909, cerrada el 2026-11-15
+  con el cambio pendiente), un chore PR en nucleus la mueve al 2027-03-31
+  (D19).
 - **Trabajo por arcos del plan 5/5**: A1…A10 CERRADOS (1.28.0 … 1.39.0).
   **A10 (Testing y OpenAPI de primera clase) se cerró el 2026-10-05 en
   Quantum 1.39.0** (nucleus v1.31.0), en once sesiones del 2026-09-25 al
@@ -381,6 +390,62 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   paralelo, lo del propietario del §5 (protección de rama, Discussions) y
   la sesión de docs de la política de soporte.
 
+### Sesión 2026-11-16 — **`M1-S0`: el major medido y troceado**
+
+- **Arranque**: Carlos, con 1.45.0 certificado: «arranca en paralelo `M1-S0`»
+  (y la pregunta de qué era «el clic de Discussions»: el ajuste de D24 en
+  GitHub → Settings → General → Features; ya estaba activo en quantum,
+  `has_discussions: true` el 2026-11-16 —la fecha del clic no sale de ningún
+  comando—, y no en los productos: QM-42 hecho, quantum#324).
+- **Método**: nueve áreas medidas en sólo lectura sobre `main` de los tres (=
+  el pin de 1.45.0) y las ramas `dry-run/2.0`, cada una con dos refutaciones
+  (reproducir cada comando; buscar lo no medido) y una síntesis; donde el
+  refutador demostró otra cifra vale la suya. Apuntes en el scratchpad de la
+  sesión (`m1s0/`); el producto es la sección «`M1-S0` — el major, medido y
+  troceado» del plan de A12 (su PR, en el registro de sesiones del plan).
+- **Lo que cambió del contrato**: el §3.5 son 41 `go.mod` y 2 156 líneas (no
+  39 y ~2 100), `cmd/nucleus` pasa a `…/nucleus/cmd/nucleus/v2`, el workspace
+  compila contra `/v2` sin `replace`; las 34 filas están `publicado`, 30
+  ensayadas y 4 sin commit (31/83/37 ficheros a rehacer); `pkg/model` son 36 +
+  13 símbolos; asynq deja 4 módulos y go-redis se queda; D11 cuesta 7 cortes
+  de convergencia y ADR-006 lo contradice; Discussions hecho.
+- **Lo que nadie había visto y bloquea**: el job `verify` de `release.yml` de
+  nucleus (informe de compatibilidad con `go test ./pkg/model` y un baseline
+  con 2 525 rutas v1) dejaría v2.0.0 sin activos; los ldflags de quark y
+  nucleus publicarían binarios «devel»/«dev»; con `bump-minor-pre-major` un
+  `!` deja 24 módulos v0.x sin el número 2.0.0; el lint del `!` de ADR-032 no
+  existe; quark y nucleus no tienen CI en PRs contra otra rama; cinco lectores
+  de ruta del paraguas callan con `/v2` (`align-module-floors` da «0 módulos»
+  en verde) y nueve mueren (`site-pages.py` tumba `bump-set`); la guía queda
+  vacía con avisos `completed` y la regla D2 de la política de deprecación lo
+  adelanta al 2026-12-08; `cmd/quark` no va en lockstep (falta la anotación de
+  release-please); la fila 30 y el `go.mod` de D11 son un solo PR; `ui` es
+  módulo con tag y cada cambio de SPA es un segundo corte de orbit.
+- **El troceado**: 23 sesiones más el tren, con un tramo 1.x de 18 sesiones
+  como precondición (`M1-V2-P`, `M1-T-P/O/N/Q`, `M1-T-LINT-Q/N/O/P`, `M1-G-P`,
+  `M1-G-Q/N/O`, `M1-G-F1…F5`); major por repo (`M1-V2-Q` → `M1-R-Q1…Q4`;
+  `M1-V2-N` → `M1-R-N1…N6`, `M1-AS-N`, `M1-PM-N`; `M1-V2-O` → `M1-AD-O`,
+  `M1-D11-O`, `M1-R-O1/O2`; `M1-D-Q/N/O`), `M1-G-S` → `M1-TREN`; 42 sesiones
+  `V-*` de la ventana (D17; las diez de D15 dentro) y el carril `RD-0 →
+  RD-1o-ui → RD-1o-root ∥ RD-1q → RD-2`.
+- **Lo que espera a Carlos**: 13 preguntas en «Lo que espera al propietario»,
+  con fila D26…D38 en el §3.3 del contrato; 2 antes del primer commit del
+  major (D26, el número 2.0.0 en los 24 módulos v0.x —recomendación: footer
+  `Release-As: 2.0.0` por repo—; D27, cómo aterriza el major —rama `major/2.0`
+  con merge commit—) y D28…D33 delante de la sesión que las cita (el lint del
+  `!` —construirlo—, las tres correcciones que amplían avisos publicados
+  —comparten la ventana—, `AutoMigrate` —se queda—, DEP-014 —rebajar la
+  promesa—, la arista raíz → quarkdatasource —el experimento con `extra-files`
+  primero—, el último tag v1 —descartar—); la regla D2 de la política de
+  deprecación no es pregunta: se aplica tal como está aprobada (`completed` al
+  vencer: `M1-G-F1…F5`, con `M1-G-P`(a) antes del set posterior al
+  2026-12-08).
+- **Lo siguiente**: `M1-G-P` (quantum; la única con fecha) y, en paralelo por
+  repo, `M1-V2-P`(a), `M1-T-N`, `M1-T-Q`, `V-S2b` (y tras ella `M1-T-O` →
+  `M1-V2-P`(b)) y los diez hallazgos de D15 en nueve sesiones (`V-Q7/Q8/Q9`,
+  `V-N3/N4/N5`, `V-O4/O14/O15`; `V-O15` lleva OR-75 y OR-76); `M1-G-F1`
+  (quark) el 2026-12-08; las sesiones de SPA de orbit agrupadas en un set.
+
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
 > **Las cinco fases están CERRADAS** desde Quantum 1.0.0 (2026-07-11): los tres
@@ -427,7 +492,8 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
   regenera ya la guía de migración (D14, quantum#321) sin `--incluye`.
 - **Lo del propietario, con los comandos preparados** (D23, D24; tabla
   «Lo del propietario» del plan de A12): (1) Discussions sólo en quantum:
-  Settings → General → Features → Discussions. (2) Protección de `main` en
+  Settings → General → Features → Discussions — HECHO (activo el
+  2026-11-16; QM-42 hecho, quantum#324). (2) Protección de `main` en
   quantum, quark y orbit como la de nucleus, y «Allow auto-merge» en los
   cuatro — DESPUÉS del PR de orbit que lleve el refresco de la matriz de
   módulos a un PR (hoy `release-please.yml` hace `git push` directo a
