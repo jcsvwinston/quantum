@@ -802,9 +802,16 @@ repin_ya_escrito() {
 # desde bump-set (arco A11, W4): la API congelada y el catálogo al pin nuevo, y
 # el post del set. Van enteros porque son SÓLO del generador —el guard
 # umbrella-generated-pages falla con cualquier fichero que él no produzca—, así
-# que dentro no puede viajar nada que no sea el re-pin.
+# que dentro no puede viajar nada que no sea el re-pin. La guía de migración
+# al 2.0 (docs/planes/guia-migracion-2.0.md) es el otro fichero que bump-set
+# escribe desde un generador (scripts/lib/migration-guide.py; D14 del
+# propietario, 2026-11-16): una entrada por aviso de deprecación `active` de
+# los tres productos al pin, y el guard umbrella-migration-guide falla si no
+# es lo que el generador produce, así que tampoco puede llevar nada que no
+# sea el re-pin. Nadie corría su --check y llevó tres sets rancia (23
+# entradas con 34 avisos activos).
 RUTAS_REPIN=(versions.yaml README.md CHANGELOG.md docs/RUMBO.md go.work go.work.sum quark nucleus orbit
-             website/docs/reference website/releases)
+             website/docs/reference website/releases docs/planes/guia-migracion-2.0.md)
 
 # ruta_del_repin <ruta> — ¿está en RUTAS_REPIN (o bajo una de ellas) o en las
 # que se pasaron con --incluye?
@@ -1251,6 +1258,8 @@ fase_paraguas() {
     || die "el go.work no cubre el manifiesto: el «use» de un módulo nuevo del pin va EN el PR de re-pin (1.26.2). Añádelo y relanza --desde paraguas"
   run bash scripts/check_generated_pages.sh \
     || die "las páginas generadas del sitio no son las del pin (la API, el catálogo o el post del set): bump-set las escribe; a mano, python3 scripts/lib/site-pages.py. Relanza --desde paraguas"
+  run bash scripts/check_migration_guide.sh \
+    || die "la guía de migración al 2.0 no es lo que generan los avisos al pin: bump-set la escribe; a mano, python3 scripts/lib/migration-guide.py --root . --out docs/planes/guia-migracion-2.0.md. Relanza --desde paraguas"
 
   # DÓNDE está el re-pin no se infiere del árbol. Un árbol limpio significaba
   # aquí «ya está en main», y es falso justo en el camino de recuperación que

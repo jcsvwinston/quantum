@@ -213,6 +213,22 @@ GUARDS=(
   # fuentes están en el pin de 1.40.0, así que entra sin esperar al set
   # (README de planes §7).
   "umbrella-generated-pages|.|bash scripts/check_generated_pages.sh"
+  # La guía de migración al 2.0 (docs/planes/guia-migracion-2.0.md) es lo que
+  # scripts/lib/migration-guide.py genera de los avisos de deprecación
+  # `active` de los tres productos AL PIN (<repo>/docs/deprecations/DEP-*.md):
+  # una entrada por aviso, en sus palabras (QADR-0003), y nadie la escribe a
+  # mano. Nació el 2026-10-23 (A12 M0-E) con `--check` y nadie lo corría —ni
+  # la certificación ni bump-set—: llevó tres sets con 23 entradas mientras
+  # los avisos activos al pin eran 34, y el PR de set de 1.45.0 (quantum#319)
+  # la regeneró a mano. Decisión D14 del propietario (2026-11-16): es una
+  # página generada más y se vigila como las de umbrella-generated-pages —el
+  # generador con --check, que la regenera en memoria y falla con la
+  # deriva— y se regenera igual: bump-set.sh la escribe en cada re-pin y
+  # train.sh la cuenta entre las rutas del PR de set (RUTAS_REPIN). Sus
+  # fuentes están en el pin de 1.45.0 (los tres productos con
+  # docs/deprecations/ desde 1.42.0), así que entra sin esperar al set
+  # (README de planes §7).
+  "umbrella-migration-guide|.|bash scripts/check_migration_guide.sh"
   # El gate del sitio en A11 (S-fin): el banco del sitio
   # (tests/sitebench/sitebench.sh, 12 controles que W1…W4 llevaron a 12 de
   # 12) corre en la certificación y lo medido es lo registrado, con 12

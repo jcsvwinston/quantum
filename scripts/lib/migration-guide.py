@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""migration-guide.py — el generador de la guía de migración al 2.0 (A12 M0-E, borrador).
+"""migration-guide.py — el generador de la guía de migración al 2.0 (A12 M0-E).
 
 Una entrada por aviso de deprecación `active` de los tres productos: lee
 `<root>/{quark,nucleus,orbit}/docs/deprecations/DEP-*.md` —la cabecera
@@ -15,13 +15,18 @@ se corrige el aviso y se regenera.
 Uso:
   python3 scripts/lib/migration-guide.py                      # los submódulos al pin
   python3 scripts/lib/migration-guide.py --root ~/GolandProjects --out docs/planes/guia-migracion-2.0.md
-  python3 scripts/lib/migration-guide.py --check              # EXIT=1 si la salida difiere del fichero
+  python3 scripts/lib/migration-guide.py --check              # EXIT=1 si la salida difiere del fichero (lo que corre el guard)
 
-Borrador: dónde vive la guía publicada (el sitio del paraguas, bajo
-/migration/2.0) y cómo la vigila un guard lo decide `M1`. Lee la rama que
-cada checkout tenga: sobre los submódulos al pin da los avisos que el set
-certifica (23 en 1.42.0: los siete de quark de `M0-Q` siguen en su `main`);
-sobre una rama `dry-run/2.0` da cero, porque allí los avisos ya están
+La guía vive en docs/planes/guia-migracion-2.0.md y la vigila el guard
+umbrella-migration-guide (scripts/check_migration_guide.sh: este generador
+con --check sobre los submódulos al pin; decisión D14 del propietario,
+2026-11-16, después de tres sets con la guía en 23 entradas y 34 avisos
+activos porque nadie corría el --check), y bump-set.sh la regenera en cada
+re-pin, así que el PR de set la lleva (train.sh la cuenta en RUTAS_REPIN).
+Dónde se publica en el sitio del paraguas (bajo /migration/2.0) sigue
+siendo decisión de `M1`. Lee la rama que cada checkout tenga: sobre los
+submódulos al pin da los avisos que el set certifica (34 en 1.45.0); sobre
+una rama `dry-run/2.0` da cero, porque allí los avisos ya están
 `completed`/`removed`.
 """
 import argparse, pathlib, re, sys
