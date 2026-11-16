@@ -154,6 +154,17 @@ se re-pinó a mano: `python3 scripts/lib/site-pages.py` y commitear. Con
 `bump-set.sh --set X.Y.Z` el generador vuelve a correr y el post del número
 anterior desaparece solo (los dos directorios son del generador).
 
+Desde D14 (2026-11-16), `bump-set` corre también `scripts/lib/migration-guide.py`,
+que reescribe la guía de migración al 2.0 (`docs/planes/guia-migracion-2.0.md`):
+una entrada por aviso de deprecación `active` de los tres productos al pin, en
+las palabras del aviso. Tampoco hay nada que redactar en ella: si una entrada
+está mal, se corrige el aviso en el producto y la guía se regenera con el
+re-pin que lo traiga. El guard `umbrella-migration-guide` la compara con lo que
+los avisos al pin generan —nació porque el generador tenía `--check` desde el
+2026-10-23 y nadie lo corría: tres sets con 23 entradas y 34 avisos activos—,
+y el driver lo corre en local antes de abrir el PR. A mano:
+`python3 scripts/lib/migration-guide.py --root . --out docs/planes/guia-migracion-2.0.md`.
+
 Desde A3 esta fase para en UN solo sitio, y por una sola razón: **la prosa**.
 Con marcadores `REDACTAR` en `versions.yaml` el driver sale con EXIT=2 y pide
 lo que no se delega — redactar las notes, revisar el título que `bump-set`
@@ -200,7 +211,8 @@ condiciones del driver:
   Ahora entran solo `versions.yaml`, `README.md`, `CHANGELOG.md`,
   `docs/RUMBO.md`, `go.work`/`go.work.sum`, los gitlinks `quark`, `nucleus` y
   `orbit` y los dos directorios que escribe el generador de páginas del sitio,
-  `website/docs/reference/` y `website/releases/` (`RUTAS_REPIN`), y lo que quede fuera **para el tren** (EXIT=2) con
+  `website/docs/reference/` y `website/releases/`, y la guía de migración al
+  2.0 que escribe el suyo, `docs/planes/guia-migracion-2.0.md` (`RUTAS_REPIN`), y lo que quede fuera **para el tren** (EXIT=2) con
   los ficheros por delante. Si alguno va de verdad en el set, se nombra:
   `--desde paraguas --incluye docs/handoff/<fichero>.md`. Nombrarlo es la
   revisión que el paso automático quitó, y la parada imprime la orden de

@@ -31,6 +31,12 @@
 #      add` y el post del set nuevo en «Releases» (guard
 #      umbrella-generated-pages).
 #
+#   7. (scripts/lib/migration-guide.py) regenera la guía de migración al 2.0
+#      (docs/planes/guia-migracion-2.0.md) de los avisos de deprecación
+#      `active` de los tres productos al pin nuevo (guard
+#      umbrella-migration-guide; D14 del propietario, 2026-11-16: llevó tres
+#      sets con 23 entradas y 34 avisos porque nadie corría su --check).
+#
 # Certificar sigue siendo una decisión humana: redactar las notes (sustituir
 # cada REDACTAR) y correr scripts/suite-integral.sh. manifest-guard sigue
 # siendo el juez.
@@ -49,7 +55,7 @@ while [ $# -gt 0 ]; do
     --set) shift; SET_OVERRIDE="${1:-}" ;;
     --set=*) SET_OVERRIDE="${1#--set=}" ;;
     --sin-notas) NOTES=0 ;;
-    -h|--help) sed -n '2,41p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,44p' "$0"; exit 0 ;;
     -*) echo "bump-set: flag desconocido: $1" >&2; exit 64 ;;
     *) POS="$POS $1" ;;
   esac
@@ -225,6 +231,20 @@ gen_site_pages() {
   }
 }
 
+# 7. La guía de migración al 2.0 (D14, 2026-11-16): una entrada por aviso de
+# deprecación `active` de los tres productos, leídos AL PIN que este script
+# acaba de escribir. El generador tenía --check desde que nació y nadie lo
+# corría: la guía llevó tres sets con 23 entradas y 34 avisos activos. El
+# guard umbrella-migration-guide pone rojo el PR de set si no va en él;
+# train.sh la cuenta entre las rutas del re-pin (RUTAS_REPIN). No nombra la
+# versión de suite: con --set no hace falta repetirla.
+gen_migration_guide() {
+  python3 scripts/lib/migration-guide.py --root . --out docs/planes/guia-migracion-2.0.md || {
+    echo "bump-set: el generador de la guía de migración falló (arriba, el aviso que no supo leer)" >&2
+    exit 1
+  }
+}
+
 echo
 if [ "$NOTES" -eq 1 ]; then
   # Versión de suite, released, status, notes anteriores al CHANGELOG y el
@@ -237,6 +257,7 @@ if [ "$NOTES" -eq 1 ]; then
   fi
   echo
   gen_site_pages
+  gen_migration_guide
   echo
   echo "Hecho. Queda lo HUMANO de la certificación:"
   echo "  1. redacta las notes de versions.yaml: sustituye cada REDACTAR (manifest-guard §0 lo"
@@ -245,6 +266,7 @@ if [ "$NOTES" -eq 1 ]; then
   echo "  3. bash scripts/manifest-guard.sh && bash scripts/suite-integral.sh"
 else
   gen_site_pages
+  gen_migration_guide
   echo
   echo "Hecho (--sin-notas). Te queda la parte HUMANA de la certificación:"
   echo "  1. quantum: sube la versión de suite (QADR-0002) + released + status"
