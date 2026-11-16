@@ -64,36 +64,64 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-13, QUANTUM 1.44.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R`, `M0-F` y la DX al 5 (§2.1) HECHAS (`DX-N3n2` en `main` de nucleus, nucleus#656, sale con la próxima minor); D9…D11 DECIDIDAS el 2026-11-13 (las tres en A) y **sus dos sesiones de 1.x HECHAS el mismo día**: `D10-O` (orbit#596/#597 en `main` de orbit, nucleus#661: opciones de `quarkdatasource.Register`, `DS-18` 73 de 73, OR-150 reparado) y `D9-N` (nucleus#662 en `main` de nucleus: `generate module` escribe las filas comentadas sobre un root sin enforcer, NU-127 hecho); siguiente: el set que las publique (nucleus y orbit cortan MINOR) → M1 → R2)
+## 3. Estado al cierre (2026-11-16, QUANTUM 1.45.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R`, `M0-F`, la DX al 5, `D9-N` y `D10-O` HECHAS Y PUBLICADAS; las DOCE decisiones de Carlos del 2026-11-16 (D14…D25) fijan la ventana hasta el 2.0; siguiente: **`M1-S0`**, la sesión de medición que trocea `M1`)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **Set certificado: Quantum 1.44.0** (2026-11-11/12, la semana de
-  cadencia del 16 adelantada a petición del propietario; razón escrita en
-  `status:`) — quark v1.19.0 (CLI v1.3.0, los cinco drivers v0.3.2),
-  nucleus v1.35.0 (`cmd/nucleus` v1.35.0 en lockstep, los catorce
-  hermanos subidos por los suelos y DOS módulos nuevos:
-  `pkg/nucleustest/quarkmake` v0.1.0 y `providers/tasks-asynq` v0.1.0) y
-  orbit v1.21.3 (dos cortes por cuarta vez: v1.21.2 con sus siete módulos
-  y v1.21.3 re-pinando `ui`, `datasource` y `proto`), tal como los lista
-  `versions.yaml` (la fuente; no copies números de aquí). `declared_lags`
-  vacío. `suite-integral --cierre` **60 de 60**. Publica **la DX al 5 de
-  A12** en nucleus y quark (los generadores escriben modelos Quark y
-  endpoints tipados, `nucleus new --with orbit` con fuente de datos,
-  `doctor`/`health`/`config print` leen los imports del proyecto,
-  `nucleustest.Make` persiste por `quarkmake`, `tasks-asynq` instalable;
-  los 30 centinelas `Err*` de quark dicen qué hacer, `--emit json`, el
-  playground wasm, tres guías de producción, QK-100) y Go 1.26.11 en los
-  tres (GO-2026-6859). **El deploy del sitio unificado de main falló por
-  el heap de Node** y quantum#308 le da 8 GB en los dos workflows y en
-  `suite-integral.sh`: comprobar en el arranque que la doc pública sirve
-  1.44.0 (`https://jcsvwinston.github.io/quantum/`). Sus trampas, en la
-  sección 1.44.0 de `scripts/train/README.md`.
+- **Set certificado: Quantum 1.45.0** (2026-11-13/16, fuera de cadencia:
+  el propietario pidió seguir avanzando el viernes 13 y el set adelanta la
+  cadencia del lunes 2026-11-23; razón escrita en `status:`) — quark
+  v1.19.1 (CLI v1.3.1, los cinco drivers v0.3.3), nucleus v1.36.0
+  (`cmd/nucleus` v1.36.0 en lockstep y los dieciséis módulos en patch,
+  `providers/tasks-asynq` v0.1.1 incluido) y orbit v1.22.0 (UN solo corte
+  por primera vez en cinco trenes: `datasource`, `ui` y `proto` no se
+  movieron), tal como los lista `versions.yaml` (la fuente; no copies
+  números de aquí). `declared_lags` vacío. `suite-integral --cierre`
+  **60 de 60**. Publica **`D9-N` y `D10-O` de A12, lo último que la
+  precondición de `M1` esperaba**: `generate module` escribe las filas de
+  política comentadas sobre un root sin enforcer (D9, NU-127), el lector
+  de `doctor` lee todo el paquete `main` y `cmd/`, `makemigrations` deriva
+  el par de los modelos Quark a través de la CLI de quark (`DX-N3n2`,
+  NU-170); `quarkdatasource.Register` toma opciones tipadas (D10) y un
+  campo excluido sale de todas las filas (OR-150, `DS-18` 73 de 73);
+  `migrate create --from-models` rinde el DDL idempotente de cada motor
+  (QK-101). El PR de set subió `umbrella-admin-posture` a 73, puso «73 of
+  73» en why-quantum y regeneró la guía de migración (34 avisos). **Es el
+  primer tren conducido por el propietario desde su terminal** (el
+  clasificador de permisos de la sesión deniega las fases que publican).
+  Sus trampas, en la sección 1.45.0 de `scripts/train/README.md`.
 - **ANTES DE NADA, abre [`docs/planes/`](../../docs/planes/README.md).** Es el
   contrato de sesión —los cinco comandos que dicen dónde estamos, qué fichero
   manda para cada pregunta, qué NO decide una sesión sola y las tres
   escrituras que deja al terminar— y lleva el troceado del arco en curso. Con
   él, una sesión no necesita reconstruir contexto con criterio propio.
+- **La ventana hasta el 2.0, decidida el 2026-11-16 (D14…D25, §3.3 del
+  contrato; sección «La ventana hasta el 2.0» del plan de A12)**: la
+  secuencia es **`M1-S0`** (la sesión de medición que trocea `M1`: ruta
+  `/v2`, las retiradas y los volteos de las 34 filas, `pkg/model` y el
+  adaptador, asynq fuera del root, D11 en el paraguas, la guía, el tren
+  del 2.0.0; lista lo aditivo que entra en la ventana; rediseño como carril
+  paralelo a la espera de las maquetas de Carlos) → (o en paralelo, por
+  producto) las diez «sesiones cortas» del §2.2 del contrato en sets 1.x
+  (NU-129, NU-131, NU-108; OR-71, OR-74, OR-75, OR-76; QK-54, QK-68,
+  QK-69) → lo aditivo de las 32 dimensiones por debajo del 5 que `M1-S0`
+  marque como corto y seguro, en sets 1.x (QADR-0010: nada rompiente) →
+  `M1` en enero de 2027 → 2.0.0 no antes del 2027-02-07 → `R2` COMPLETA
+  como `R1` → A13. **Lo que no es código y también entra**: la política
+  de soporte publicada sin LTS y con la ventana de suite mandando sobre
+  las cuatro `SECURITY.md` (D21, D22: sesión de docs con calendario YAML,
+  guard `umbrella-release-calendar`, campos del manifiesto y un QADR
+  nuevo; cierra QM-25); la protección de `main` en los cuatro repos como
+  la de nucleus, con «Allow auto-merge» (D23; antes, el PR de orbit que
+  lleve el refresco de la matriz de módulos a un PR y un job agregador en
+  el paraguas; los ajustes los ejecuta Carlos con los comandos del §5);
+  Discussions sólo en quantum (D24, clic de Carlos); la nota de Scorecard
+  publicada (D25, quantum#320); y el guard `umbrella-migration-guide`
+  (D14, quantum#321). **Trampa de calendario**: la excepción de
+  govulncheck para GO-2026-6909 caduca el 2026-12-31; si el 2026-12-15 la
+  base de datos de Go sigue sin registrar v0.5.2 como arreglada
+  (golang/vulndb#6909, cerrada el 2026-11-15 con el cambio pendiente), un
+  chore PR en nucleus la mueve al 2027-03-31 (D19).
 - **Trabajo por arcos del plan 5/5**: A1…A10 CERRADOS (1.28.0 … 1.39.0).
   **A10 (Testing y OpenAPI de primera clase) se cerró el 2026-10-05 en
   Quantum 1.39.0** (nucleus v1.31.0), en once sesiones del 2026-09-25 al
@@ -185,9 +213,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   **El bloque A entero, `DX-Q1` y `DX-Q3` entraron en `main` el mismo
   2026-11-08** (nucleus#644, #646, #647; quark#481, #482, #484; sesión del
   2026-11-08, archivada) y **Quantum 1.44.0 los publicó el 2026-11-11**
-  con `tasks-asynq` v0.1.0 y D12/D13. Queda delante de `M1`: el set que
-  publique `D9-N` (nucleus#662, minor) y `D10-O` (orbit, minor); D11 es
-  del 2.0 y la ejecuta `M1`.
+  con `tasks-asynq` v0.1.0 y D12/D13. **Quantum 1.45.0 publicó `D9-N` y `D10-O` el 2026-11-16**; D11 es del 2.0 y la ejecuta `M1`. Delante de `M1` quedan `M1-S0`, las diez cortas del §2.2 y lo aditivo de la ventana (D14…D25, el bullet de la ventana).
   Decisiones de Carlos para A11: ejemplos como fixtures probados,
   construir saml/redis-cache/sentry (Stripe se construyó y se
   retiró el 2026-10-06: los pagos quedan en la aplicación), catálogo de `nucleus add`
@@ -205,7 +231,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   OR-55. Y el corolario: **OPS-14**, el control de A6 que debía cazar OR-53,
   medía que el endpoint devolviera 200 sobre un panel ciego. Un control cuyo
   título afirma más de lo que su sonda comprueba pasa para siempre.
-- **60 guards en el registro**: los 59 de antes más **`umbrella-catalog-posture`**, la segunda mitad de A11 `S-fin` (con el pin de 1.41.0): la cifra y la tabla por familias de `nucleus/docs/catalog-bench.md` contra `internal/catalogbench`, nota en todo lo no present y un suelo de 36 de 38; y, en el PR de set, `umbrella-quark-extension-posture` sube su suelo de 14 a 22 de 22 (con 14 su fixture dejaba de morder al pin nuevo). Los 59: los 57 más **`umbrella-site-posture`** y **`umbrella-quark-extension-posture`**, la primera mitad (2026-10-06): el banco del sitio corre en la certificación (lo medido = lo registrado, suelo 12 de 12), y la cifra y las cabeceras de `quark/docs/extension-bench.md` contra `internal/extbench`; `umbrella-admin-posture` sube su suelo a 72. Los 57: los 55 más `umbrella-audit-criteria` (A12 `R0`) y `umbrella-generated-pages` (A11 W4). Los 55: los 54 de 1.39.0 más **`umbrella-why-quantum`**, el gate W1 de A11 (2026-10-05, registrado sin esperar al set porque sus fuentes ya están en el pin): cada cifra de `website/docs/why-quantum.md` contra su fuente al pin y citada en su párrafo, ningún otro número en su prosa (tampoco en palabras), y la frase de `what-is-quantum.md` que sustituyó a «not breadth of plugins». **Trampa anunciada para el próximo tren**: al re-pinar nucleus con el catálogo de N1/N4, la tabla de `nucleus add` cablea capacidades del core que no son módulos (3 en el main de hoy) y el guard pone rojo el PR de set hasta reescribir las dos frases del catálogo con lo que publica. Los 54: los 53 de 1.38.0 más **`umbrella-api-posture`**, el gate de A10 (2026-10-05, en el PR de set de 1.39.0): la cifra de `nucleus/docs/api-bench.md` y su tabla por familias contra el catálogo, el starter con `WithOpenAPIDocument` y endpoints tipados, el test del gate y la lane que lo corre con node y `tsc`, y la línea base del documento del starter. Los 53: los 52 de 1.37.0 más
+- **61 guards en el registro**: los 60 de antes más **`umbrella-migration-guide`** (D14, 2026-11-16; quantum#321): la guía de migración al 2.0 (`docs/planes/guia-migracion-2.0.md`) es lo que `scripts/lib/migration-guide.py` genera de los avisos activos de los tres productos AL PIN; nació porque la guía llevó 23 entradas con 34 avisos desde el 2026-10-23 sin que nada la mirara; `bump-set` la regenera en cada re-pin y `train.sh` la cuenta en `RUTAS_REPIN`. Los 60: los 59 de antes más **`umbrella-catalog-posture`**, la segunda mitad de A11 `S-fin` (con el pin de 1.41.0): la cifra y la tabla por familias de `nucleus/docs/catalog-bench.md` contra `internal/catalogbench`, nota en todo lo no present y un suelo de 36 de 38; y, en el PR de set, `umbrella-quark-extension-posture` sube su suelo de 14 a 22 de 22 (con 14 su fixture dejaba de morder al pin nuevo). Los 59: los 57 más **`umbrella-site-posture`** y **`umbrella-quark-extension-posture`**, la primera mitad (2026-10-06): el banco del sitio corre en la certificación (lo medido = lo registrado, suelo 12 de 12), y la cifra y las cabeceras de `quark/docs/extension-bench.md` contra `internal/extbench`; `umbrella-admin-posture` sube su suelo a 72. Los 57: los 55 más `umbrella-audit-criteria` (A12 `R0`) y `umbrella-generated-pages` (A11 W4). Los 55: los 54 de 1.39.0 más **`umbrella-why-quantum`**, el gate W1 de A11 (2026-10-05, registrado sin esperar al set porque sus fuentes ya están en el pin): cada cifra de `website/docs/why-quantum.md` contra su fuente al pin y citada en su párrafo, ningún otro número en su prosa (tampoco en palabras), y la frase de `what-is-quantum.md` que sustituyó a «not breadth of plugins». **Trampa anunciada para el próximo tren**: al re-pinar nucleus con el catálogo de N1/N4, la tabla de `nucleus add` cablea capacidades del core que no son módulos (3 en el main de hoy) y el guard pone rojo el PR de set hasta reescribir las dos frases del catálogo con lo que publica. Los 54: los 53 de 1.38.0 más **`umbrella-api-posture`**, el gate de A10 (2026-10-05, en el PR de set de 1.39.0): la cifra de `nucleus/docs/api-bench.md` y su tabla por familias contra el catálogo, el starter con `WithOpenAPIDocument` y endpoints tipados, el test del gate y la lane que lo corre con node y `tsc`, y la línea base del documento del starter. Los 53: los 52 de 1.37.0 más
   **`umbrella-fleet-posture`**, el gate de A9 (2026-09-25, en el PR de set
   de 1.38.0 porque sólo al pin nuevo hay qué vigilar): el banco del fleet
   tiene sus 50 controles y ningún hueco sin nota, la cifra que publica
@@ -294,132 +320,66 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-11-13 — **A12 `D10-O`: `quarkdatasource.Register` declara lo que el panel lista, busca, filtra y esconde (orbit#596, orbit#597, nucleus#661)**
+### Sesión 2026-11-13/16 — **el tren de Quantum 1.45.0 conducido por el propietario, y las doce decisiones de la ventana hasta el 2.0 (quantum#319, D14…D25)**
 
-- **Arranque**: Carlos, con D9…D11 recién decididas: «adelante con
-  D10-O». Es la precondición de `M1` que más cambia lo que un usuario ve
-  en el panel: sin ella el 2.0 (sólo `quarkdatasource`, D5b) lista y busca
-  todas las columnas de cada modelo.
-- **Lo hecho en `quarkdatasource` (orbit#597, `feat` → v1.14.0 en la
-  próxima minor)**: `Register[T](a, opts...)` toma las mismas
-  declaraciones que un modelo de `pkg/model` lleva en `ModelConfig` y en
-  la etiqueta `admin` —`ListFields`, `SearchFields`, `Filters`,
-  `Exclude`, `ReadOnly`, `ReadOnlyFields`, `Label`, `Choices`, `Icon`,
-  `OrderBy`, `PageSize`— sobre los defaults de hoy (sin nombrar nada,
-  todo listado y filtrable, las cadenas buscables). Quark no lee nada de
-  esto (D10 = A: sin etiqueta `admin:` en el ORM). Una opción que no
-  nombra campo, nombra uno del tipo equivocado (`SearchFields` sobre un
-  número), contradice a otra (`Exclude` y `ListFields` sobre la misma
-  columna, `OrderBy` sobre una oculta) o anularía un default en silencio
-  es ERROR de `Register` y el modelo no se registra: un `ListFields` con
-  la columna mal escrita listaría todas y parecería el default. La clave
-  y la columna de tenant no se pueden excluir. **Exclusión por defecto de
-  las columnas cuyo nombre parece credencial** (`IsSensitiveColumnName`:
-  `password`, `secret`, `token`, `credential`, `api_key`, `private_key`,
-  `*hash`, `*salt` — la misma regla con la que el panel redacta la
-  auditoría), dicha en el log del adaptador (`WithLogger`;
-  `slog.Default` si no) nombrando la opción que la levanta
-  (`ShowSensitive`); nombrar una de esas columnas en otra opción sin
-  `ShowSensitive` es error. El store aplica página y orden del modelo
-  cuando la consulta no trae (el panel manda 0 y «» si la petición no
-  dijo), deja las columnas ocultas fuera de cada registro, no las busca
-  (el panel rechaza una búsqueda que alcanzaría un campo excluido, para
-  todo operador: una oculta que siguiera `IsSearch` haría el modelo
-  entero inbuscable) y rechaza una escritura que las nombre como columna
-  que el modelo no tiene; un campo de sólo lectura nombrado se deja a la
-  base, como la clave (paridad con el adaptador de nucleus). Test de
-  paridad contra el registro de `pkg/model` (los flags que
-  `datasource/nucleus` copia campo a campo; la raíz no entra en el grafo
-  del módulo, ADR-012): misma declaración → mismos flags, y la única
-  diferencia deliberada (credenciales ocultas por nombre) fijada. README
-  con la tabla opción ↔ `ModelConfig`/`admin` y el «Status» rancio
-  reescrito (**OR-147 hecho**); `features.md`.
-- **Lo que midió el control nuevo (orbit#596, `fix` de la raíz)**: el
-  banco admin gana **`DS-18`** —lo que el panel lista, busca, filtra y
-  esconde es lo que el modelo declara—, medido por efecto sobre el
-  adaptador de nucleus (la parte quark la fijan los tests del módulo,
-  como `DS-03`): el esquema lleva la declaración, un filtro por un campo
-  no ofrecido se rechaza por nombre, una búsqueda no mira donde el modelo
-  no dijo, y un campo oculto no está ni en el esquema ni en las filas. La
-  última fila midió `partial` al nacer: **el panel sólo enmascaraba un
-  registro cuando una política por campo aplicaba al operador**, así que
-  una columna `admin:"exclude"` estaba fuera del grid y dentro de cada
-  fila del API (lista, registro, respuesta del `POST`) para cualquier
-  operador con `list` → **OR-150 (P2), reparado en el mismo PR**:
-  `mask`/`maskAll`/`maskValues` quitan un campo excluido para todo
-  operador (la clave se queda) y un modelo sin campos ocultos no paga la
-  pasada. Banco 72 → **73 de 73**; el guard `umbrella-admin-posture`
-  (suelo 72) no se pone rojo con 73, y sube su suelo en el PR de set.
-- **Nucleus (nucleus#661, sólo docs)**: MA-2026-024 gana la fila y la
-  tabla `ModelConfig`/`admin` → opciones de `quarkdatasource`.
-- **Paraguas (este PR)**: fila `D10-O` hecha en el plan de A12, OR-150 y
-  OR-147 en el registro, esta sesión y la del tren de 1.44.0 al archivo.
-- **Lo siguiente**: `D9-N` (nucleus, 1.x) → `M1`; orbit corta MINOR en
-  el próximo set (raíz con el `fix` y el control; `quarkdatasource`
-  v1.14.0) y el tren paga las notas de los dos; con el pin nuevo,
-  `umbrella-admin-posture` a 73 de 73 en el PR de set.
-
-### Sesión 2026-11-13 — **A12 `D9-N`: `generate module` lee el root de composición y, sin enforcer, escribe las filas comentadas (nucleus#662)**
-
-- **Arranque**: Carlos, con `D10-O` fusionada: «adelante con D9-N», la
-  otra sesión de 1.x de las decisiones del 2026-11-13 (D9 = A) y la
-  reparación de NU-127, abierto desde la auditoría de madurez: el
-  starter `api` con un módulo generado prometía escrituras autenticadas
-  que nadie aplicaba.
-- **Lo hecho (nucleus#662, `feat(cli)` → nucleus corta MINOR en el
-  próximo set)**: `generate module` lee el root de composición del
-  proyecto —el paquete main de `--out`, el fichero que `--mount` edita,
-  con el lector de `doctor`— y, sobre uno `WithoutDefaults()` sin
-  `WithAuthz()`, escribe las filas de `Module.Policies` COMENTADAS con
-  la pista, lo dice en su salida (`policy: NONE`, DEP-2026-017; la línea
-  de cierre ya no afirma que el módulo lleva sus filas) y el test
-  generado arranca `WithoutDefaults()` como `main.go` y afirma el 201
-  anónimo con lectura. Con `--with-policy` las comentadas son las
-  abiertas, con su aviso de acotarlas, y el test dice que la escritura
-  sigue aterrizando al descomentarlas. Sobre un root con enforcer (stack
-  por defecto o `WithoutDefaults()` con `WithAuthz()`, en cualquiera de
-  las dos grafías), o uno que no puede leer, lo de siempre. El starter
-  `api` conserva «sin authz» (decisión del 2026-10-06); su README y el
-  epílogo de `nucleus new` lo dicen. `generate resource` y `startapp`
-  dicen sobre ese root que nada carga `rbac_policy.csv`, en vez de
-  describir un autorizador que la aplicación no construye.
-- **Lo que midió la revisión adversarial** (workflow: cinco barridos,
-  cuatro lentes y tres verificadores por hallazgo; 38 confirmados de 74,
-  con 52 verificadores caídos por el límite del modelo, así que varios
-  pasaron con dos votos): el lector de `doctor` leía UN fichero —un
-  `WithAuthz()` llamado desde un auxiliar del paquete main era
-  invisible, y el generador decía «responde a cualquiera» sobre una
-  aplicación que rechaza a todos—, y un `tools.go` con build tag en la
-  raíz escondía `cmd/<app>/main.go`; ahora lee todos los ficheros del
-  paquete que compila el contexto por defecto y mira bajo `cmd/` cuando
-  ningún fichero raíz es main (`doctor --check security/storage` leen
-  igual). El test generado afirmaba una exención CSRF que ningún
-  arranque aplica (`csrf_enabled` va apagado sin configuración). El test
-  de arranque del starter reservaba y soltaba un puerto para tres
-  arranques (la clase OR-149/NU-171): ahora `port: 0` y el puerto se lee
-  de la línea `nucleus: server listening`, y cada sub-prueba escribe los
-  ficheros que mide. Y la doc prometía de menos: «añadir `WithAuthz()` y
-  descomentar es todo el cambio» omitía el test generado, el aviso decía
-  «ya no produce la combinación» sin acotar al root que puede leer, y la
-  fila de MA-2026-017 dejaba el test en rojo (sin quitar la lectura; 403
-  también para las filas abiertas).
-- **Lo medido**: `TestRunNewAPIWithGeneratedModuleBoots` arranca el
-  starter de tres maneras —con el módulo generado nada se descarta (GET
-  200, POST 201, su test verde); con `WithAuthz()` y las filas
-  descomentadas, 403; con filas y sin `WithAuthz()`, en 1.x arranca, la
-  escritura aterriza y el log lleva UNA línea `module policies
-  DISCARDED` con módulo, ruta y aviso—; el generador en los dos roots y
-  las dos políticas; el lector sobre auxiliares, segundos ficheros,
-  `cmd/` y excluidos; `generate resource` en los dos roots. Goldens de
-  completion regenerados (sólo la ayuda de `--with-policy`).
-- **Paraguas (este PR)**: fila `D9-N` hecha en el plan de A12 y en la
-  precondición de `M1`, NU-127 `hecho` en el registro, D9 anotada hecha
-  en el §3.3 del contrato, RUMBO y §5 al día, la sesión del 2026-11-12
-  al archivo.
-- **Lo siguiente**: el set que publique `D9-N` (nucleus MINOR: lleva
-  además `DX-N3n2`, NU-170 y NU-171; el tren paga sus notas) y `D10-O`
-  (orbit MINOR); `umbrella-admin-posture` a 73 en el PR de set; después
-  `M1` → `R2`. La excepción de govulncheck caduca el 2026-12-31.
+- **Arranque**: Carlos, el viernes 2026-11-13 con `D9-N` y `D10-O` en
+  `main`: «vamos a ir avanzando». El set del lunes 2026-11-23 se adelanta
+  para publicar lo que `M1` espera.
+- **El tren (2026-11-13/16, pausado el 14 y retomado el 15)**: quark
+  v1.19.1 (quark#494 suelos → quark#493; prosa repuesta en la rama del
+  bot; siete tags), nucleus v1.36.0 (nucleus#665 suelos → nucleus#663/#664
+  notas y snapshot → nucleus#667 el test rancio de la lane suite-starter
+  → nucleus#668 el suelo de `tasks-asynq` → nucleus#669 notas re-fechadas
+  → nucleus#657; dieciocho tags con `cmd/nucleus`, 15 activos firmados),
+  orbit v1.22.0 (orbit#599 alineación —hecha a mano por la sesión calcando
+  `alinea_pines_orbit`, con las notas y el snapshot en la rama del bot por
+  `orbit-notes-apply.sh`— → orbit#598; cinco tags nuevos, 15 activos; sin
+  segundo corte), quantum#319 (set) y el cierre (60 de 60; reloj
+  1h33m39s conducido en once invocaciones y 62h54m18s de espera del
+  propietario, 64h27m57s de punta a punta; anuncio a quantum-app:
+  quantum-app#39, en borrador y con sus gates en rojo, deuda suya). **El clasificador de
+  permisos denegó a la sesión la fase de quark** («Create Public
+  Surface»), así que el propietario lanzó las cuatro fases que publican
+  desde su terminal y la sesión preparó suelos, notas, snapshots,
+  alineación, cifras de guards y prosa, y paró antes de cada una diciendo
+  el comando exacto. Los tres `fix(train)` que el tren obligó:
+  quantum#316 (govulncheck en el preflight con la toolchain declarada),
+  quantum#317 (`${var}` ante bytes no ASCII: bash 3.2 con locale UTF-8 dio
+  por anclada una rama que no lo estaba) y quantum#318 (el `require` de
+  UNA línea, invisible para los suelos y manifest-guard: `tasks-asynq`
+  llevaba dos minors de retraso sin aviso; fusionado tras el set). La lane
+  de integración de `main` cayó dos veces ese día y pasó al relanzar: por
+  el flake OR-149 (`EXT-10`) tras fusionar el set, y tras quantum#318 por
+  uno nuevo de `orbit/server`, registrado como **OR-151** (el servidor
+  rehúsa al peer y el cliente ve `write envelope: EOF` en vez de
+  PermissionDenied).
+- **La medición del arco** («¿qué nos queda para el 5 de 5 y para empezar
+  el 2.0?»): respondida desde el plan de A12, el contrato, el informe de
+  `R1` y el registro, con un verificador cruzándola contra los ficheros.
+  Lo que afloró: `M1` sin troceado (su fila decía «retirar los doce
+  símbolos»), el alcance de `R2` sin cerrar, la guía de migración rancia
+  (23 de 34), diez «sesiones cortas» del §2.2 abiertas que el plan no
+  nombraba, la excepción de GO-2026-6909 caducando antes del suelo del
+  2.0, y prosa que se contradecía (topics tipados de ciclo de vida frente
+  a DEP-2026-025; `/v2` «en 1.x» frente a «primer commit del major»;
+  `pkg/model` «no se retira» frente a D5; «raíz: fix» frente al MINOR de
+  orbit; la política de estabilidad de quark «pendiente» cuando ADR 0029
+  la adoptó el 2026-10-06; el reporte privado de vulnerabilidades ya
+  activo en los cuatro repos).
+- **Las doce decisiones, una a una (D14…D25)**: guía regenerada en el set
+  y guard aparte (D14); las diez cortas en 1.x antes de `M1` (D15); `M1-S0`
+  primero (D16); lo aditivo de las 32 en la ventana (D17); `R2` completa
+  (D18); GO-2026-6909 esperar hasta el 2026-12-15 (D19); señales según el
+  aviso publicado (D20); soporte publicada sin LTS (D21); la ventana de
+  suite manda (D22); `main` protegida en los cuatro con auto-merge (D23);
+  Discussions sólo en quantum (D24); Scorecard publicada (D25).
+  Registradas en el contrato (§3.3) y en el plan (quantum#322, con las
+  correcciones de prosa verificadas por tres lentes y una confirmación);
+  quantum#320 publica la nota de Scorecard; quantum#321 registra
+  `umbrella-migration-guide` (61 guards).
+- **Lo siguiente**: **`M1-S0`** (ver el bullet de la ventana); en
+  paralelo, lo del propietario del §5 (protección de rama, Discussions) y
+  la sesión de docs de la política de soporte.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -459,38 +419,55 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
 
 **Trabajo con destinatario (por orden de arranque):**
 
-- **El próximo tren**: nucleus corta MINOR (`DX-N3n2`, NU-170, NU-171 y
-  `D9-N`, nucleus#662; sus notas y el snapshot van en un PR
-  `docs(release)` antes del tren) y orbit MINOR (`D10-O`: raíz con el
-  `fix` y `DS-18`, `quarkdatasource` v1.14.0; `orbit-align-notes`). Su PR
-  de set pasa a `publicado` lo que `M1` espera. Después, `M1`.
-- **En el PR de set del próximo tren**: `umbrella-admin-posture` sube
-  `EXPECTED_CONTROLS` y `PRESENT_FLOOR` de 72 a 73 (`DS-18`, orbit#596);
-  con el pin de orbit de hoy el guard sigue verde porque 73 ≥ 72, y con
-  el nuevo el suelo viejo dejaría de morder.
-
-- **En el PR de suelos del próximo tren de nucleus**:
-  `pkg/nucleustest/quarkmake` entra en `scripts/ci/check_modules_standalone.sh`
-  (su suelo debe ser v1.35.0 para que el proxy lo resuelva; `tasks-asynq`
-  ya lo coge el glob `providers/*/`). Y el preflight del tren debería
-  correr `govulncheck` sobre los tres `main` antes de nada: tres trenes
-  seguidos con una vulnerabilidad de Go el día del corte.
+- **El próximo tren** (el set del lunes 2026-11-23, o el siguiente que
+  tenga algo que publicar): quark, nucleus y orbit no se han movido desde
+  1.45.0 salvo lo que las sesiones de la ventana fusionen; los suelos
+  módulo→raíz de nucleus (dieciséis a v1.36.0) y de quark (seis a v1.19.1)
+  suben como primer commit de cada corte, como siempre; `bump-set`
+  regenera ya la guía de migración (D14, quantum#321) sin `--incluye`.
+- **Lo del propietario, con los comandos preparados** (D23, D24; tabla
+  «Lo del propietario» del plan de A12): (1) Discussions sólo en quantum:
+  Settings → General → Features → Discussions. (2) Protección de `main` en
+  quantum, quark y orbit como la de nucleus, y «Allow auto-merge» en los
+  cuatro — DESPUÉS del PR de orbit que lleve el refresco de la matriz de
+  módulos a un PR (hoy `release-please.yml` hace `git push` directo a
+  `main` tras cada tag y la protección lo rechazaría) y de un job agregador
+  «CI Required Gate» en las lanes del paraguas (hoy sus checks son nueve
+  nombres distintos). La forma de nucleus, leída el 2026-11-16 con
+  `gh api repos/jcsvwinston/nucleus/branches/main/protection`: checks
+  requeridos `["CI Required Gate"]` con `strict: true`, `enforce_admins`,
+  `required_approving_review_count: 0` con `dismiss_stale_reviews`, sin
+  force-push ni borrado, `required_conversation_resolution`. Se replica
+  con `gh api -X PUT repos/jcsvwinston/<repo>/branches/main/protection
+  --input protection.json` por repo y `gh api -X PATCH
+  repos/jcsvwinston/<repo> -f allow_auto_merge=true` en los cuatro. Trampa
+  conocida: exigir revisiones aprobadas bloquearía todos los merges (un
+  solo humano); «rama al día» se conduce rebasando cada PR apilado antes
+  de fusionarlo.
+- **GO-2026-6909 (D19)**: el 2026-12-15, `curl -s
+  https://vuln.go.dev/ID/GO-2026-6909.json` debe traer `fixed: 0.5.2`; si
+  no, chore PR en nucleus moviendo la fecha de
+  `scripts/ci/govulncheck_exceptions.txt` al 2027-03-31; si sí, el gate
+  marcará la línea como rancia en la siguiente corrida: borrarla.
 - **OR-149 (P3, orbit)**: el banco admin flakea en CI (EXT-04 con 405 al
   iniciar sesión, EXT-10 «partial») por el puerto que `tryStart` reserva
-  y suelta; tres relanzamientos en el tren de 1.44.0. Arreglo propuesto
-  en `docs/auditoria/madurez-2026-09-03/orbit.md`.
-- **El deploy del sitio unificado**: comprobar que el run de
-  `deploy.yml` tras quantum#308 está verde y que la portada sirve 1.44.0;
-  si el sitio sigue creciendo, el siguiente tope es la memoria del runner
-  (16 GB), no el heap.
+  y suelta; tres relanzamientos en el tren de 1.44.0 y uno en el de 1.45.0
+  (la lane de integración del paraguas tras fusionar el set). Arreglo
+  propuesto en `docs/auditoria/madurez-2026-09-03/orbit.md`.
+- **OR-151 (P3, orbit)**: `TestServer_PeerAllowlist_RefusesAPeerItDoesNotDial`
+  flakea en CI (visto en la lane de integración del paraguas tras
+  quantum#318, con orbit al pin v1.22.0): el servidor rehúsa al peer y el
+  cliente recibe `unknown: write envelope: EOF` en vez de PermissionDenied,
+  porque la conexión se cierra antes de que el estado llegue; pasa al
+  relanzar. Salida propuesta en el mismo informe de orbit: escribir el
+  estado antes de cerrar, no una espera en el test.
+- **El deploy del sitio unificado**: el run de `deploy.yml` tras
+  quantum#319 salió verde; comprobar que la portada sirve 1.45.0; si el
+  sitio sigue creciendo, el siguiente tope es la memoria del runner (16
+  GB), no el heap.
 - **Las 34 filas del §3.0 están `publicado`** desde Quantum 1.43.0
   (2026-11-07): la ventana más tardía abre el 2027-02-07 y el 2.0 no sale
-  antes. Lo que queda con fecha: la excepción de
-  `nucleus/scripts/ci/govulncheck_exceptions.txt` (GO-2026-6909 sobre
-  `crewjam/saml` v0.5.2) **caduca el 2026-12-31**; si la base de Go no ha
-  registrado la versión arreglada para entonces, la lane SAML vuelve a
-  rojo y hay que re-argumentarla con fecha nueva; si la registra, la lane
-  avisa de borrar la línea.
+  antes. Lo que queda con fecha: la excepción de `nucleus/scripts/ci/govulncheck_exceptions.txt` (GO-2026-6909 sobre `crewjam/saml` v0.5.2) **caduca el 2026-12-31**; decidido el 2026-11-16 (D19): comprobar el 2026-12-15 (bullet de arriba).
 - **Lo que el tren de 1.42.0 dejó al driver** (nace el 2026-10-18; sección
   1.42.0 de `scripts/train/README.md`): `fase_repo` sube los suelos sin
   mirar si hay commits releasables desde el tag (con quark en `docs:` habría
@@ -640,15 +617,9 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
   2026-11-13, las tres en A**; bloque en `docs/planes/quantum-2.0.md`
   §3.3): D9 hecha en 1.x por `D9-N` (nucleus#662: `generate module`
   escribe las filas comentadas en un root `WithoutDefaults()` sin
-  `WithAuthz()`), D10 por `D10-O` (orbit#596/#597), D11 la ejecuta `M1`
-  (en 1.x nada cambia). Ninguna fila del §3.0 depende de ellas; `M1`
-  espera al set que publique `D9-N` y `D10-O`.
+  `WithAuthz()`), D10 por `D10-O` (orbit#596/#597), D11 la ejecuta `M1` (en 1.x nada cambia). Ninguna fila del §3.0 depende de ellas; **`D9-N` y `D10-O` publicadas en Quantum 1.45.0 (2026-11-16)**.
 - **Lo que sigue esperando al propietario, y ninguna sesión puede cerrar**:
-  cerrar los issues automáticos quantum#262 y quantum#263 (lanes del
-  2026-10-05; la corrida del 12/10 pasó);
-  proteger `main` en quark, orbit y quantum exigiendo `CI Required Gate`
-  (sólo nucleus la tiene); activar `allow_auto_merge` en los cuatro (medido
-  en `false` el 2026-09-10, y sin él la auto-fusión de Dependabot no se arma);
+  cerrar el issue automático quantum#263 (lane de integración; quantum#262 lo cerró la sesión el 2026-11-16 con tres lunes en verde; la corrida programada del 2026-11-09 de integration.yml salió roja y la del 2026-11-23 decide); proteger `main` en quark, orbit y quantum y activar `allow_auto_merge` en los cuatro: **decidido el 2026-11-16 (D23), comandos en el bullet «Lo del propietario» de arriba**;
   hacer pública la imagen del CLI en Packages de nucleus; aprobar la corrida
   de quantum-app#21 (queda en `action_required`); y decidir quark#369, que
   sube el `go` mínimo a todos los consumidores de quark.
