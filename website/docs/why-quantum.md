@@ -102,7 +102,7 @@ line or bar chart, dashboards beyond the overview, and its own scripts and
 field renderers, served under the panel's Content Security Policy; the
 actions, cards and screens it adds answer to the panel's role-based access
 control. The theme the panel opens in and its palette are set from
-configuration. Its bench: **72 of 72** controls present
+configuration. Its bench: **73 of 73** controls present
 ([admin bench](https://github.com/jcsvwinston/orbit/blob/main/docs/admin-bench.md)).
 
 **Where the others are ahead.** Django's admin is the closest equivalent, has
