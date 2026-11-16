@@ -13,6 +13,14 @@ rely on it, and what breaks if you do nothing.
 | quark | `DEP-2026-001` | the `RowLevelSecurity` tenant-strategy alias | removal | 2026-12-08 |
 | quark | `DEP-2026-002` | the previous listener-registration shape in `quarkdriver` | removal | 2026-12-08 |
 | quark | `DEP-2026-003` | `UpdateBatch` checks versions by default in 2.0 | change | 2027-01-04 |
+| quark | `DEP-2026-004` | every write of a versioned model joins optimistic locking in 2.0 | change | 2027-02-07 |
+| quark | `DEP-2026-005` | a write that touches no row reports nothing in 2.0 | change | 2027-02-07 |
+| quark | `DEP-2026-006` | `Upsert` does the same on the six engines in 2.0 | change | 2027-02-07 |
+| quark | `DEP-2026-007` | `ON DELETE SET DEFAULT` means the same on the six engines in 2.0 | change | 2027-02-07 |
+| quark | `DEP-2026-008` | `GroupBy` without a projection is an error in 2.0 | change | 2027-02-07 |
+| quark | `DEP-2026-009` | the plain `LIKE` declares its escape character on every engine in 2.0 | change | 2027-02-07 |
+| quark | `DEP-2026-010` | on Oracle a sized string column counts characters in 2.0 | change | 2027-02-07 |
+| quark | `DEP-2026-011` | a `pkg/model` directive as a `db` tag is `ErrInvalidTag` in 2.0 | change | 2027-02-07 |
 | nucleus | `DEP-2026-003` | 3-column Casbin policy CSV files | removal | 2027-01-17 |
 | nucleus | `DEP-2026-009` | `nucleus.Context.HTML(code, html)` → `RawHTML` (raw string) and `Render` (template) | removal | 2027-01-04 |
 | nucleus | `DEP-2026-011` | `Context.Get` / `Context.Set` → typed request values | removal | 2027-01-02 |
@@ -33,6 +41,9 @@ rely on it, and what breaks if you do nothing.
 | nucleus | `DEP-2026-026` | SQLite stores `time.Time` in a format its date functions read, at v2.0.0 | change | 2027-01-17 |
 | orbit | `DEP-2026-001` | the node identity is bound to the certificate by default at v2.0.0 | change | 2027-01-17 |
 | orbit | `DEP-2026-002` | the Nucleus data-source adapter leaves at v2.0.0 | removal | 2027-01-17 |
+| orbit | `DEP-2026-003` | an operator with no tenant is refused in a multi-tenant application at v2.0.0 | change | 2027-02-07 |
+| orbit | `DEP-2026-004` | `system_pulse` stops including the process environment at v2.0.0 | change | 2027-02-07 |
+| orbit | `DEP-2026-005` | the mesh accepts only configured peers at v2.0.0 | change | 2027-02-07 |
 
 ## quark
 
@@ -303,6 +314,782 @@ error writes nothing where it used to write the fresh rows; a program that
 checks the error gets one it did not get before. Nothing changes for a batch
 whose rows are all at their loaded version, except that their in-memory
 versions now move.
+
+### DEP-2026-004 — every write of a versioned model joins optimistic locking in 2.0
+
+*change · scope `behaviour` · v2.0.0, no earlier than 2027-02-07 · source: `quark/docs/deprecations/DEP-2026-004-versioned-writes-optimistic-locking.md`*
+
+**What changes**
+
+On a model with a `quark:"version"` field, `Update`, `UpdateFields` and
+`Tracked.Save` hold the row to the version the entity was loaded with, return
+`ErrStaleEntity` when it moved, and bump the version they write. `UpdateBatch`
+joins them under `CheckVersions`, and by default in 2.0
+([`DEP-2026-003`](DEP-2026-003-updatebatch-version-check-default.md)). The
+other writes of a versioned model do neither (QK-58, found while
+investigating QK-45):
+
+- `UpdateMap` sends no version predicate and leaves the version column where
+  it was, so its write is invisible to anyone holding the row: their next
+  `Update` sees no conflict and overwrites it;
+- the update branch of `Upsert` and `UpsertBatch` writes a stale entity's
+  columns over the winner's, and the version stays where the winner left it;
+- `Delete` and `HardDelete` of an entity match on the key alone, so a stale
+  entity removes the row another writer moved — what the enterprise bench
+  records as the open half of `OPS-04`;
+- the soft delete and `Restore` write `deleted_at` without a version
+  predicate and without bumping the version.
+
+The owner decided on 2026-10-06 (QK-58), following QK-45, that in 2.0 these
+writes join optimistic locking. Nothing is deprecated and no symbol goes
+away; what changes is what an existing call does with a stale entity, which
+QADR-0010 keeps for the major.
+
+**At 2.0**
+
+- `Delete`, `HardDelete`, the soft delete and `Restore` of a versioned entity
+  carry `AND version = <loaded version>`. A statement that matches no row
+  returns `ErrStaleEntity` with the key, nothing removed or restored; under
+  conditions the same probe `Update` uses today tells a row the conditions
+  exclude — `(0, nil)` — from a conflict (QK-40). The soft delete and
+  `Restore` also bump the version they write, in the row and in memory.
+- The update branch of `Upsert` and `UpsertBatch` bumps the version it
+  writes and, when the entity carries a version, holds the row to it: a
+  conflicting row that moved is `ErrStaleEntity`, nothing written. An entity
+  with a zero version is treated as new, as today. The statement shape per
+  engine (`ON CONFLICT … DO UPDATE … WHERE`, `ON DUPLICATE KEY UPDATE` with
+  a guarded assignment, `MERGE … WHEN MATCHED AND`) is for the 2.0 PR to
+  settle; the contract is the one above.
+- `UpdateMap` has no entity and no loaded version, so it checks nothing — but
+  it bumps the version column it leaves alone today, so that a holder of the
+  row sees the write on their next `Update` (`ErrStaleEntity`) instead of
+  overwriting it. Proposed for the 2.0 PR: a map that names the version
+  column is `ErrInvalidQuery`, as `UpdateFields` refuses the primary key.
+
+**How to migrate**
+
+- **Now (v1):** the exit exists for the writes by key, because a query's
+  conditions are ANDed with the key (QK-40): hold the row to its version
+  yourself and read zero rows as the conflict.
+
+  ```go
+  // before
+  n, err := quark.For[Account](ctx, client).Delete(&acc)
+
+  // after: the 2.0 behaviour, by hand
+  n, err := quark.For[Account](ctx, client).Where("version", "=", acc.Version).Delete(&acc)
+  if err == nil && n == 0 {
+      // the row moved (or is gone): reload, decide, retry
+  }
+  ```
+
+  The same `Where` works for `HardDelete`, the soft delete and `Restore`.
+  For `UpdateMap`, name the version in both halves:
+  `Where("version", "=", v).UpdateMap(map[string]any{"balance": b, "version": v + 1})`.
+  For `Upsert` on a versioned row there is no v1 switch: use `Update` for a
+  row you hold (it checks) and `Create` for a new one.
+- **At 2.0:** the writes above check and bump on their own. A `Where` on the
+  version keeps compiling and becomes redundant.
+- **Behaviour differences, from the caller's side:** a write with a stale
+  entity returns `ErrStaleEntity` instead of `(1, nil)` or `nil`; a write
+  that goes through moves the version, in the row and in the entity.
+- **Required app changes:** none to keep compiling. A caller whose delete or
+  upsert "always wins" today has to decide what a conflict means for it.
+
+**How to tell you rely on it**
+
+- Source scan: the versioned models, then the writes on them.
+
+  ```sh
+  grep -rln 'quark:"version"' --include='*.go' .
+  grep -rnE '\.(UpdateMap|Upsert|UpsertBatch|Delete|HardDelete|Restore)\(' --include='*.go' .
+  ```
+
+  Only the hits whose model carries `quark:"version"` are affected, and
+  among those only the calls that can run with a stale entity.
+- There is no runtime or log signature in v1: a stale delete that removes
+  the winner's row says nothing. The enterprise bench (`OPS-04`,
+  `internal/enterprisebench`) records the `Delete` half as `partial`.
+
+**What breaks if ignored**
+
+At `v2.0.0` a `Delete`, `HardDelete`, soft delete or `Restore` with a stale
+entity stops returning `(1, nil)`: it removes or restores nothing and
+returns `ErrStaleEntity`. An `Upsert` with a stale entity stops overwriting
+the winner's row and returns `ErrStaleEntity`. After an `UpdateMap`, a holder
+of the row gets `ErrStaleEntity` on their next `Update` where they used to
+overwrite the map's write. A program that ignores the error deletes, restores
+or writes nothing where it used to; a program that checks it gets one it did
+not get before. Nothing changes for a write whose entity is at the row's
+version, except that the version now moves.
+
+### DEP-2026-005 — a write that touches no row reports nothing in 2.0
+
+*change · scope `behaviour` · v2.0.0, no earlier than 2027-02-07 · source: `quark/docs/deprecations/DEP-2026-005-zero-row-write-side-effects.md`*
+
+**What changes**
+
+`Update`, `UpdateFields`, `Delete` and `HardDelete` write the row the
+entity's key names. When the query carries no conditions and no row has that
+key, the statement matches nothing, the call returns `(0, nil)` — and still
+runs the `AfterUpdate` or `AfterDelete` hook, writes the audit row and
+publishes the `updated` or `deleted` event, as if it had written (QK-46,
+seen in A11 `Q11`).
+
+Under conditions the same calls already report nothing: QK-40 (quark#435)
+made a write whose conditions exclude the row return `(0, nil)` with no
+hook, audit row or event, because an audit row saying "deleted" for a row
+that was not deleted is a false record. The unconditioned case was left as
+it was, because changing it changes every call site that carries no
+conditions. The owner decided on 2026-10-06 (QK-46) that in 2.0 a write that
+touched no row reports nothing, conditions or not. QADR-0010 keeps that
+kind of change for the major.
+
+**At 2.0**
+
+A write by entity that affected zero rows runs no `After*` hook, writes no
+audit row and publishes no event, whether or not the query carries
+conditions. The return value does not change: `(0, nil)`.
+
+For the 2.0 PR: MySQL and MariaDB count changed rows, not matched ones, so
+an `Update` that matched the row and changed nothing also answers zero
+there. Under conditions the `keyPassesWhere` probe already tells the two
+apart; the unconditioned path needs the same probe (or `clientFoundRows` on
+the connection) so that a write that matched its row keeps reporting. This
+notice is about writes that matched no row.
+
+**How to migrate**
+
+- **Now (v1):** nothing to keep compiling. A program that wants the 2.0
+  behaviour today can give the query a condition the row always passes —
+  conditioned writes already report nothing when they touch no row:
+
+  ```go
+  // before: a missing key still runs AfterUpdate, audits and publishes
+  n, err := quark.For[Order](ctx, client).Update(&o)
+
+  // after: the 2.0 behaviour today, at the cost of one probe when n == 0
+  n, err := quark.For[Order](ctx, client).Where("id", "=", o.ID).Update(&o)
+  ```
+
+  Most programs need nothing: `n == 0` already says nothing was written.
+- **At 2.0:** the unconditioned write reports nothing on zero rows; the
+  `Where` above keeps compiling and becomes redundant.
+- **Behaviour differences, from the caller's side:** an `After*` hook that
+  used to run for a missing key no longer runs; an audit row and an event
+  that used to appear no longer appear.
+- **Required app changes:** none to keep compiling. A program that relied on
+  the side effects of a write that touched nothing — an audit row for a key
+  that never existed, an event a consumer acts on — has to decide what it
+  wants before the upgrade.
+
+**How to tell you rely on it**
+
+- Source scan for writes by entity without conditions:
+
+  ```sh
+  grep -rnE '\.(Update|UpdateFields|Delete|HardDelete)\(' --include='*.go' .
+  ```
+
+  Only the hits whose query carries no `Where` (nor a tenant scope) are
+  affected, and only when the key can be missing.
+- Runtime signature in v1: an `updated` or `deleted` event, or a row in
+  `quark_audit`, for a key the table does not hold and never held. Nothing
+  is logged: the silence is what this notice changes.
+
+**What breaks if ignored**
+
+At `v2.0.0` a write by entity on a key no row has stops running its
+`After*` hook, stops writing its audit row and stops publishing its event.
+A consumer that counted events against calls sees fewer; an audit table
+stops gaining rows for keys that do not exist; an `AfterDelete` that did
+cleanup for a key that was already gone no longer runs. The return value is
+the same `(0, nil)` it is today, so a program that checks it sees no change.
+
+### DEP-2026-006 — `Upsert` does the same on the six engines in 2.0
+
+*change · scope `behaviour` · v2.0.0, no earlier than 2027-02-07 · source: `quark/docs/deprecations/DEP-2026-006-upsert-one-behaviour-six-engines.md`*
+
+**What changes**
+
+`Upsert` and `UpsertBatch` lower to the engine's own upsert — `ON CONFLICT`
+on PostgreSQL and SQLite, `ON DUPLICATE KEY UPDATE` on MySQL and MariaDB,
+`MERGE` on SQL Server and Oracle — and two of their edges mean different
+things per engine. Both were measured on the six and pinned per engine in
+v1 (quark#459, quark#460), and the godoc and the CRUD reference say what
+each engine does:
+
+**An empty `updateCols` on a conflict** (QK-59, seen as QK-48):
+
+| Engine | The conflicting row |
+|---|---|
+| PostgreSQL, SQLite, MySQL, MariaDB | left as it was (insert-or-ignore) |
+| SQL Server, Oracle | every column the insert writes is overwritten, except the conflict columns, the primary key and `created_at` |
+
+**A duplicate of a unique key other than the conflict columns** (QK-65,
+seen as QK-61): the entity carries an existing row's primary key and a
+conflict-column value no row has.
+
+| Engine | What happens |
+|---|---|
+| PostgreSQL, SQLite | `ErrConstraintViolation`, nothing written — `ON CONFLICT` names its arbiter |
+| MySQL, MariaDB | `nil`; with `updateCols` the row that holds the duplicate is updated, whichever key it is — `ON DUPLICATE KEY UPDATE` has no conflict target; without them it is left as it was |
+| SQL Server, Oracle | `nil`; a new row is inserted with a key the engine assigns — the `MERGE` matches on the conflict columns only, and the identity ignores the key the entity carried |
+
+The owner decided on 2026-10-06 (QK-59, QK-65) that in 2.0 `Upsert` does
+the same on the six engines, for both edges. One decision, one notice. The
+two PRs that measured the edges left *which* behaviour to the major; this
+notice proposes it, with the reason, and the 2.0 plan (`M1`) settles it.
+Making the engines agree changes what callers observe on one side or the
+other, which QADR-0010 keeps for the major.
+
+**How to migrate**
+
+- **Now (v1):** pass `updateCols` explicitly. An upsert that names its
+  columns does the same on every engine today and does not change in 2.0.
+
+  ```go
+  // before: overwrites on SQL Server and Oracle, ignores on the other four
+  err := quark.For[User](ctx, client).Upsert(&u, []string{"email"}, nil)
+
+  // after: one behaviour, now and in 2.0
+  err := quark.For[User](ctx, client).Upsert(&u, []string{"email"}, []string{"name", "updated_at"})
+  ```
+
+  For the second edge: do not carry another row's key into an upsert. A row
+  you hold is written with `Update` (by its key); a new row carries a zero
+  key, or `Create` it.
+- **At 2.0:** an empty `updateCols` ignores the conflict everywhere; a
+  duplicate on another key is `ErrConstraintViolation` everywhere.
+- **Behaviour differences, from the caller's side:** on SQL Server and
+  Oracle an empty `updateCols` stops overwriting; on MySQL and MariaDB a
+  stale key stops updating the row it names; on SQL Server and Oracle a
+  stale key stops inserting a second row. PostgreSQL and SQLite do not
+  change.
+- **Required app changes:** none to keep compiling. A caller on SQL Server
+  or Oracle that relied on the `MERGE` overwriting names its columns before
+  the upgrade; a caller on MySQL, MariaDB, SQL Server or Oracle that relied
+  on a duplicate elsewhere being absorbed handles `ErrConstraintViolation`.
+
+**How to tell you rely on it**
+
+- Source scan for upserts with no `updateCols`:
+
+  ```sh
+  grep -rnE '\.Upsert(Batch)?\([^)]*,\s*(nil|\[\]string\{\})\s*\)' --include='*.go' .
+  ```
+
+  Every hit changes meaning on SQL Server and Oracle. The second edge has
+  no grep: it depends on what the entity carries at run time.
+- Runtime signature in v1, through a `QueryObserver`: on SQL Server and
+  Oracle an upsert with an empty `updateCols` emits a `MERGE` with a
+  `WHEN MATCHED THEN UPDATE` branch — that branch is what disappears. On
+  MySQL and MariaDB an `ON DUPLICATE KEY UPDATE` whose assignments are not
+  guarded by the conflict columns.
+
+**What breaks if ignored**
+
+At `v2.0.0`, on SQL Server and Oracle, an `Upsert` with an empty
+`updateCols` that overwrote the conflicting row leaves it as it was: data
+the caller expected written is not. On MySQL and MariaDB, an `Upsert` whose
+entity carries another row's key and a fresh conflict value stops returning
+`nil` and updating that row: it returns `ErrConstraintViolation` and writes
+nothing. On SQL Server and Oracle the same call stops inserting a second
+row, with the same error. A program that ignores the error writes nothing
+where it used to; one that checks it gets one it did not get before.
+Nothing changes on PostgreSQL and SQLite, nor on any engine for an upsert
+that names its columns and carries no foreign key.
+
+### DEP-2026-007 — `ON DELETE SET DEFAULT` means the same on the six engines in 2.0
+
+*change · scope `behaviour` · v2.0.0, no earlier than 2027-02-07 · source: `quark/docs/deprecations/DEP-2026-007-on-delete-set-default-mysql-mariadb.md`*
+
+**What changes**
+
+A foreign key declares its referential actions — `ForeignKey.OnDelete` and
+`OnUpdate` in a `Schema`, the `onDelete`/`onUpdate` arguments of
+`Client.AddForeignKey` — and the dialect writes them as its engine takes
+them (`quarkdriver.ReferentialActioner`, QK-49). `SET DEFAULT` is where the
+engines part (QK-60), measured on the six on 2026-10-16:
+
+| Engine | `ON DELETE SET DEFAULT` |
+|---|---|
+| PostgreSQL, SQLite, SQL Server | written and run: deleting the referenced row writes the column's default into the rows that referenced it |
+| MySQL, MariaDB | written, accepted, and not run: InnoDB refuses the delete, as `NO ACTION` would, and nothing says so. MySQL's catalog echoes `SET DEFAULT`, so the lie survives introspection; MariaDB's records `RESTRICT`, so `Diff` of a schema that declares `SET DEFAULT` re-plans the key — `DROP FOREIGN KEY` and `ADD FOREIGN KEY` — on every run, and the loop never converges |
+| Oracle | no such clause; the dialect refuses it before anything is sent, with `ErrUnsupportedFeature` naming the key and the clause |
+
+The owner decided on 2026-10-06 (QK-60) that in 2.0 the action means the
+same on the six. The plan is to **refuse** it on MySQL and MariaDB the way
+Oracle refuses it, not to emulate it. Refusing today would fail a statement
+that succeeds, which QADR-0010 keeps for the major.
+
+**At 2.0**
+
+The MySQL dialect answers `ActionUnsupported` for `SET DEFAULT` in both
+clauses. `AddForeignKey` and `ApplyPlan` then fail with an error wrapping
+`ErrUnsupportedFeature` that names the key and the clause, and send
+nothing — `ApplyPlan` asks about every key of the plan before it runs the
+first operation, so a plan with one such key changes nothing. This is what
+the Oracle dialect does today for `ON DELETE SET DEFAULT`, `ON DELETE
+RESTRICT` and every `ON UPDATE` action but `NO ACTION`.
+
+**Why refuse rather than emulate.** Emulating `SET DEFAULT` on InnoDB means
+a trigger per key — `BEFORE DELETE` on the parent, writing the default into
+the children — which the catalog does not list as part of the key, `Diff`
+cannot see, and the migration loop would then have to own. Quark declares
+an engine's gaps instead of papering over them: `FULL OUTER JOIN` is refused
+on MySQL and MariaDB, not rewritten, and Oracle's missing actions are
+refused, not simulated. Refusing turns a silent lie — a schema that says
+`SET DEFAULT` and an engine that does `NO ACTION` — into an error at plan
+time, before any statement runs.
+
+**How to migrate**
+
+- **Now (v1):** there is no switch — in v1 the clause keeps being written.
+  Replace the action where the schema targets MySQL or MariaDB:
+
+  ```go
+  // before: accepted by InnoDB, run as NO ACTION; re-planned on MariaDB on every diff
+  fk := quark.ForeignKey{Columns: []string{"parent_id"}, RefTable: "parents", RefColumns: []string{"id"}, OnDelete: "SET DEFAULT"}
+
+  // after: what the engine does today, said out loud — nothing changes at run time
+  fk := quark.ForeignKey{Columns: []string{"parent_id"}, RefTable: "parents", RefColumns: []string{"id"}, OnDelete: "NO ACTION"}
+
+  // or the action that runs on all six, if the column may be cleared
+  fk.OnDelete = "SET NULL"
+  ```
+
+  A schema shared across engines keeps `SET DEFAULT` where it runs and
+  declares `NO ACTION` or `SET NULL` for MySQL and MariaDB.
+- **At 2.0:** `SET DEFAULT` on MySQL and MariaDB is `ErrUnsupportedFeature`,
+  nothing sent.
+- **Behaviour differences, from the caller's side:** on MySQL and MariaDB a
+  plan, an `AddForeignKey` or a `CREATE TABLE` that declares the action
+  stops applying and returns an error naming it. On MariaDB a `Diff` that
+  re-planned the key on every run stops, because the desired schema no
+  longer declares an action the engine cannot hold.
+- **Required app changes:** none to keep compiling. Schemas and migrations
+  that declare `SET DEFAULT` for MySQL or MariaDB change the action before
+  the upgrade.
+
+**How to tell you rely on it**
+
+- Source scan, Go and SQL:
+
+  ```sh
+  grep -rniE 'SET DEFAULT' --include='*.go' --include='*.sql' .
+  ```
+
+  Among the Go hits, `OnDelete:`/`OnUpdate:` fields and the last two
+  arguments of `AddForeignKey`; a column default (`ALTER COLUMN … SET
+  DEFAULT`) is not a referential action and is not affected. Only schemas
+  that target MySQL or MariaDB change.
+- Runtime signature in v1: on MariaDB, a `PlanMigration` or `Diff` that
+  proposes `DROP FOREIGN KEY` and `ADD FOREIGN KEY` for the same key on
+  every run. On MySQL there is none: the catalog echoes the clause. The
+  introspected `ForeignKey.OnDelete` says `SET DEFAULT` on MySQL and
+  `RESTRICT` on MariaDB for the same declaration.
+
+**What breaks if ignored**
+
+At `v2.0.0`, on MySQL and MariaDB, a plan, an `AddForeignKey` or a
+`CREATE TABLE` that declares `SET DEFAULT` fails with
+`ErrUnsupportedFeature` before anything is sent, and a migration that used
+to apply stops applying until the action is changed. Foreign keys already
+in the database are untouched. Nothing changes on PostgreSQL, SQLite, SQL
+Server or Oracle, nor for any other action.
+
+### DEP-2026-008 — `GroupBy` without a projection is an error in 2.0
+
+*change · scope `behaviour` · v2.0.0, no earlier than 2027-02-07 · source: `quark/docs/deprecations/DEP-2026-008-group-by-without-select-error.md`*
+
+**What changes**
+
+`GroupBy` without `Select` or `SelectExpr` leaves the projection at
+`SELECT *`, so the statement is `SELECT * FROM t GROUP BY col`. PostgreSQL,
+SQL Server, Oracle and MySQL in its default strict mode
+(`ONLY_FULL_GROUP_BY`) reject it: the non-aggregated columns are not
+functionally dependent on the grouping key. SQLite and MySQL in its
+permissive mode run it and return an arbitrary row per group. The query
+passes in development on SQLite and fails on deploy, which is the worst
+shape a defect can take (QK-24, measured by the query bench as cases Q22 and
+Q23).
+
+Since quark#392 (`v1.14.0`) the builder says so: when a query carries a
+`GROUP BY` and no projection, `buildSelect` logs a `WARN` that names the fix
+and runs the query anyway. That is the detection in v1. Making it an error
+is the right end state and breaks the callers who rely on the permissive
+engines, so the owner decided on 2026-10-06 (QK-24) that it becomes an
+error in 2.0. QADR-0010 keeps that kind of change for the major.
+
+**At 2.0**
+
+A query with `GroupBy` and no projection returns an error wrapping
+`ErrInvalidQuery` from the builder, before any statement is sent, on every
+engine — SQLite and permissive MySQL included. The `WARN` goes away: there
+is nothing left to warn about.
+
+**How to migrate**
+
+- **Now (v1):** name the projection. With it the query is correct on every
+  engine today and does not change in 2.0.
+
+  ```go
+  // before: SELECT * … GROUP BY "status" — rows on SQLite, an error on PostgreSQL, a WARN from Quark
+  rows, err := quark.For[Order](ctx, client).GroupBy("status").List()
+
+  // after: the grouped column, and the aggregate as an expression
+  rows, err := quark.For[Order](ctx, client).
+      Select("status").
+      SelectExpr("total", quark.Func("COUNT", quark.Col("id"))).
+      GroupBy("status").
+      List()
+  ```
+
+  A result whose shape is not the model's goes through `FromTable` or a
+  DTO, as the querying guide shows.
+- **At 2.0:** the unprojected query is `ErrInvalidQuery`.
+- **Behaviour differences, from the caller's side:** on SQLite and
+  permissive MySQL a query that returned one arbitrary row per group returns
+  an error; on the other four engines the engine's error becomes Quark's and
+  arrives before the statement.
+- **Required app changes:** none to keep compiling. Every `GroupBy` gains
+  the `Select` or `SelectExpr` it needs — which is what the `WARN` has been
+  asking for since `v1.14.0`.
+
+**How to tell you rely on it**
+
+- Runtime signature in v1: the `WARN` line in the client's logger,
+
+  ```
+  GROUP BY without Select() or SelectExpr() emits SELECT *, which PostgreSQL, SQL Server, Oracle and MySQL in strict mode reject … table=<table> group_by=<columns>
+  ```
+
+  one per query built, with the table and the grouped columns as
+  attributes. Count them in the logs of a run that covers the application's
+  queries; each distinct `table`/`group_by` pair is a call site to fix.
+- Source scan, to find the candidates: every `GroupBy(` whose chain carries
+  no `Select(` or `SelectExpr(`:
+
+  ```sh
+  grep -rn 'GroupBy(' --include='*.go' .
+  ```
+
+  Chains span lines, so the hits are reviewed by hand; the log is the
+  reliable detector.
+
+**What breaks if ignored**
+
+At `v2.0.0` a `GroupBy` without a projection stops returning rows on SQLite
+and permissive MySQL and returns `ErrInvalidQuery` from `List`, `First` and
+the other paths above. A program that only ran on those engines, and
+ignored the warning, stops getting results from those queries until it
+names the projection. On the other four engines the query already failed;
+the error changes from the engine's to Quark's, so a program that matched
+the engine's error text has to match `ErrInvalidQuery` instead.
+
+### DEP-2026-009 — the plain `LIKE` declares its escape character on every engine in 2.0
+
+*change · scope `behaviour` · v2.0.0, no earlier than 2027-02-07 · source: `quark/docs/deprecations/DEP-2026-009-plain-like-declares-escape.md`*
+
+**What changes**
+
+The plain `LIKE` forms — `Where(col, "LIKE", pattern)` and
+`Where(col, "NOT LIKE", pattern)`, the typed `TypedStringColumn.Like` and
+`NotLike`, and the AST `Cmp(lhs, "LIKE", Lit(pattern))` — hand the engine
+the pattern as given, with no `ESCAPE` clause, under the engine's own
+default. That default is not the same on the six (QK-32, born in A8 when
+QK-25 was closed): PostgreSQL, MySQL and MariaDB read a backslash as an
+escape character; SQLite, SQL Server and Oracle read it as a character like
+any other (and SQL Server reads `[` as the start of a character class). The
+same published query means different things per engine — measured on the
+six on 2026-10-16: `Where("name", "LIKE", "%\%%")` finds the row named
+`100% off` on PostgreSQL, MySQL and MariaDB, and the row named `back\slash`
+on SQLite, SQL Server and Oracle.
+
+A8 (`v1.15.0`) added the portable forms by addition, without touching the
+plain one: `WhereLike`, `WhereNotLike`, `WhereContains`, `WhereStartsWith`,
+`WhereEndsWith`; the typed `LikeEscaped`, `NotLikeEscaped`, `Contains`,
+`StartsWith`, `EndsWith`; the AST `Like`, `NotLike`, `Contains`,
+`StartsWith`, `EndsWith`; and `EscapeLike` to compose a pattern from user
+text. Every one of them declares `ESCAPE '\'` on the statement (spelled
+`'\\'` on MySQL and MariaDB, whose string literals read a backslash as an
+escape), so `%` and `_` are wildcards and a backslash makes the next
+character literal, on every engine. Declaring the clause on the plain form
+too would have unified the meaning, and it changes what a backslash means
+on three engines for every query already published — so A8 left it, and the
+owner decided on 2026-10-06 (QK-32) that the plain forms declare the escape
+in 2.0. QADR-0010 keeps that kind of change for the major.
+
+**At 2.0**
+
+Every plain `LIKE` and `NOT LIKE` Quark renders declares `ESCAPE '\'`, the
+way the escaped forms do, and the pattern is validated the same way: a
+pattern that ends in a dangling backslash is `ErrInvalidQuery` before it
+reaches the engine. One meaning on the six engines: `%` and `_` are
+wildcards, `\%`, `\_` and `\\` are the literal characters.
+
+Per engine:
+
+| Engine | A backslash in a plain pattern today | In 2.0 |
+|---|---|---|
+| PostgreSQL, MySQL, MariaDB | an escape already (the engine's default) | an escape, declared — the statement text gains the tail, the rows do not change |
+| SQLite, SQL Server, Oracle | a character | an escape: `\%` stops meaning "a backslash, then anything" and means a literal `%`; `\\` is one backslash; a trailing `\` is refused |
+
+MySQL under `NO_BACKSLASH_ESCAPES`, where a bare backslash is a character
+today, follows the declared escape in 2.0 like the other engines.
+
+**How to migrate**
+
+- **Now (v1):** use the escaped forms, which are the portable ones and do
+  not change in 2.0.
+
+  ```go
+  // before: the engine's default decides what a backslash means
+  q.Where("title", "LIKE", "%"+text+"%")
+
+  // after: text the user typed, matched literally, on every engine
+  q.WhereContains("title", text)
+
+  // after: a pattern you composed yourself, with the escape declared
+  q.WhereLike("title", "%"+quark.EscapeLike(text)+"%")
+
+  // typed and AST counterparts
+  Title.Contains(text)                      // instead of Title.Like("%"+text+"%")
+  quark.Like(quark.Col("title"), pattern)   // instead of quark.Cmp(quark.Col("title"), "LIKE", quark.Lit(pattern))
+  ```
+
+  A literal backslash in a pattern is written `\\` on the escaped forms —
+  which is what the plain form reads in 2.0 as well.
+- **At 2.0:** the plain forms declare the escape; the escaped forms become
+  the same thing under another name and keep compiling.
+- **Behaviour differences, from the caller's side:** on SQLite, SQL Server
+  and Oracle a plain pattern that used a backslash as a character matches
+  different rows; a plain pattern ending in a backslash is refused. On
+  PostgreSQL, MySQL and MariaDB the rows do not change; the statement text
+  does, so a cache keyed on it misses once.
+- **Required app changes:** none to keep compiling. A plain pattern with a
+  backslash in it, on SQLite, SQL Server or Oracle, is rewritten to say what
+  it means under the declared escape — or moved to `WhereLike`, which says
+  it today.
+
+**How to tell you rely on it**
+
+- Source scan for the plain forms:
+
+  ```sh
+  grep -rnE '"(NOT )?LIKE"' --include='*.go' .        # Where / Or / WhereNot / Cmp with the operator as a string
+  grep -rnE '\.(Like|NotLike)\(' --include='*.go' .   # the typed plain forms
+  ```
+
+  Only the hits whose pattern can contain a backslash change meaning, and
+  only on SQLite, SQL Server and Oracle; a pattern composed from user text
+  can, so every hit that interpolates user text is a candidate.
+- Runtime signature in v1, through a `QueryObserver`: a statement with
+  `LIKE` and no ` ESCAPE '` is a plain form — the escaped ones always carry
+  the tail (`TestPlainLikeIsUnchanged` asserts exactly that absence).
+
+**What breaks if ignored**
+
+At `v2.0.0`, on SQLite, SQL Server and Oracle, a plain pattern that used a
+backslash to mean a backslash stops matching the rows it matched: `%\%%`
+stops finding `back\slash` and finds `100% off`, as it does on the other
+three engines today; a pattern ending in a backslash is refused before the
+engine with `ErrInvalidQuery`. On PostgreSQL, MySQL and MariaDB the rows do
+not change, and the statement text gains ` ESCAPE '\'` (`'\\'` on MySQL and
+MariaDB). Nothing changes for a call that already uses `WhereLike`,
+`WhereContains`, `WhereStartsWith`, `WhereEndsWith` or their typed and AST
+counterparts, nor for a plain pattern with no backslash in it.
+
+### DEP-2026-010 — on Oracle a sized string column counts characters in 2.0
+
+*change · scope `behaviour` (the DDL the migration plan renders)` · v2.0.0, no earlier than 2027-02-07 · source: `quark/docs/deprecations/DEP-2026-010-oracle-varchar2-char-semantics.md`*
+
+**What changes**
+
+A string field with a length — `db:"name,size=40"`, a `ColumnSpec` of
+`KindString` with `Size`, a string primary key, a uuid or an inet mapped to
+text — is rendered by the migration plan as the engine's sized string type:
+`VARCHAR(40)` on PostgreSQL, MySQL, MariaDB and SQLite, `NVARCHAR(40)` on SQL
+Server, and `VARCHAR2(40)` on Oracle (`internal/migrate/engines.go`,
+`engineBase` and `applySize`; the public entry points are `migrate.SQLType`,
+`migrate.SQLTypeWithOpts` and `migrate.EngineColumnType`). Five engines count
+that length in characters. Oracle counts `VARCHAR2(40)` in **bytes** unless the
+session or the database says otherwise (`NLS_LENGTH_SEMANTICS`, `BYTE` by
+default), so a value of 40 non-ASCII characters that fits everywhere else is
+`ORA-12899: value too large` on Oracle (QK-50, seen in A11 `Q4`). The
+introspection reads `CHAR_LENGTH` and never `CHAR_USED`, so `Diff` cannot
+tell a byte column from a character column either.
+
+The owner decided on 2026-10-16 (D7 of the suite's 2.0 contract) that in 2.0
+the length means the same on the six engines: the plan renders
+`VARCHAR2(40 CHAR)` on Oracle. It is a change of the DDL the plan emits, not
+of the data: a column created before the upgrade keeps the semantics it was
+created with until a migration touches it.
+
+**At 2.0**
+
+`engineBase` and `applySize` render `VARCHAR2(n CHAR)` for Oracle wherever
+they render `VARCHAR2(n)` today, the string primary key and the text forms of
+uuid and inet included. The Oracle introspection reads `CHAR_USED` beside
+`CHAR_LENGTH`, so `Diff` sees a `B` column under a model that declares a
+length as a type change and plans the `ALTER TABLE … MODIFY (col VARCHAR2(n
+CHAR))`, which Oracle runs in place. Introspection, verification and the
+CLI's scaffolds change in the same commit as the renderer.
+
+**How to migrate**
+
+- **Now (v1):** there is no switch in Quark; the semantics belong to the
+  session or the database. To get character semantics today, set them in
+  Oracle before the migrations run:
+
+  ```sql
+  ALTER SESSION SET NLS_LENGTH_SEMANTICS = CHAR;   -- for the connection that runs the plan
+  -- or, database-wide, by the DBA:
+  ALTER SYSTEM SET NLS_LENGTH_SEMANTICS = CHAR SCOPE = SPFILE;
+  ```
+
+  Under `CHAR` semantics the `VARCHAR2(40)` the plan renders already counts
+  characters, and the 2.0 DDL creates the same column: an application that
+  runs its migrations this way sees no change at the upgrade.
+- **At 2.0:** the plan writes the semantics into the DDL, so the column is a
+  character column whatever the session says.
+- **Behaviour differences, from the caller's side:** a new table created
+  after the upgrade on a `BYTE` database accepts 40 characters, not 40
+  bytes, in a `VARCHAR2(40 CHAR)`; `Diff` on an existing byte column proposes
+  one `MODIFY` per column the first time it runs, and converges afterwards.
+- **Required app changes:** none to keep compiling. Operators who rely on
+  byte semantics on purpose (a column sized for a fixed byte budget) size the
+  column accordingly or keep it out of the plan.
+
+**How to tell you rely on it**
+
+- Whether the database counts bytes or characters by default:
+
+  ```sql
+  SELECT value FROM nls_database_parameters WHERE parameter = 'NLS_LENGTH_SEMANTICS';
+  ```
+
+- Which existing columns are byte columns, and will be re-planned once at 2.0:
+
+  ```sql
+  SELECT table_name, column_name, char_length, char_used
+    FROM user_tab_columns
+   WHERE data_type IN ('VARCHAR2', 'CHAR') AND char_used = 'B';
+  ```
+
+- In Go, the type the plan renders today for an Oracle string of length n:
+  `migrate.SQLTypeWithOpts("oracle", reflect.TypeOf(""), migrate.TypeOptions{Size: n})`
+  returns `VARCHAR2(n)`; from 2.0, `VARCHAR2(n CHAR)`.
+
+**What breaks if ignored**
+
+Nothing fails at `v2.0.0`. The first `Diff` or `migrate diff` after the
+upgrade proposes a `MODIFY` for every sized string column that is a byte
+column, and a scripted migration pipeline that expects an empty plan sees a
+non-empty one. A column resized that way holds more bytes than before, never
+fewer, so no stored value is rejected by the change itself.
+
+### DEP-2026-011 — a `pkg/model` directive as a `db` tag is `ErrInvalidTag` in 2.0
+
+*change · scope `behaviour` · v2.0.0, no earlier than 2027-02-07 · source: `quark/docs/deprecations/DEP-2026-011-pkg-model-directive-in-db-tag.md`*
+
+**What changes**
+
+Quark and Nucleus's `pkg/model` both read a struct tag called `db`, with two
+different grammars. In Quark the tag holds the **column name**, plus
+comma-separated options (`db:"email,size=255"`); in `pkg/model` it holds
+**directives** separated by semicolons, the column name among them
+(`db:"column:email;unique;not null"`, `db:"pk"`, `db:"readonly"`).
+
+Since `v1.14.0` (quark#395, NU-50) Quark refuses a `db` tag whose column name
+cannot be an identifier — the semicolon form — with `ErrInvalidTag` and a
+message that spells the model in Quark's grammar. A tag whose column name is
+exactly one of the `pkg/model` directives is a legal identifier, so `v1.14.0`
+made it a warning and not an error: `Client.RegisterModel` and
+`Client.Migrate` log a `WARN`, and `Migrate` creates a column with that name.
+A model copied from `pkg/model` with `ID int64 \`db:"pk"\`` gets a column
+called `pk` that is not the primary key; one with `db:"readonly"` gets a
+column called `readonly`. The suite's re-audit of 1.42.0 measured it (QK-76)
+and put the hardening on the closed list of the major: a column really
+called `pk` is rare, a `db:"pk"` copied from `pkg/model` is not.
+
+The directives are the ones `internal/schema` lists in
+`nucleusDBDirectives`, compared without case: `pk`, `primarykey`,
+`primary_key`, `readonly`, `read_only`, `ro`, `index`, `unique`, `tenant`,
+`fk`, `required`, `autocreatetime` and `autoupdatetime`.
+
+**At 2.0**
+
+The directive-shaped column name joins the tag errors: `computeModelMeta`
+records it in `TagError`, and `RegisterModel` and `Migrate` return an error
+wrapping `ErrInvalidTag` that names the field, the directive and both ways
+to fix it, before any DDL is sent. The `WARN` goes away.
+
+**How to migrate**
+
+- **Now (v1), if the tag meant the directive:** write it in Quark's
+  grammar. The warning names the replacement for each directive:
+
+  ```go
+  // before: a column called "pk", not a key, and a WARN
+  ID int64 `db:"pk"`
+
+  // after
+  ID int64 `db:"id" pk:"true"`
+  ```
+
+  `unique`, `required` and `index` become `quark:"unique"`,
+  `quark:"not_null"` and `quark:"index"`;
+  `fk` becomes a `rel:"belongs_to"` relation with `join:"…"`; `readonly`,
+  `tenant` and the time directives have no tag in Quark (tenancy is set on
+  the client, timestamps in a hook).
+- **Now (v1), if the column really has that name:** add
+  `quark:"literal_column"` to the field. The column and the DDL do not
+  change, the warning stops, and the model stays valid in 2.0:
+
+  ```go
+  PK string `db:"pk" quark:"literal_column"`
+  ```
+
+  The token combines with the others (`quark:"not_null,literal_column"`) and
+  changes nothing on a field whose column name is not a directive. The token
+  is new in this release; an older Quark rejects it as an unknown token.
+- **At 2.0:** the bare directive is `ErrInvalidTag`; the two forms above are
+  what is accepted.
+- **Behaviour differences, from the caller's side:** a program whose models
+  are clean sees nothing. A program that ignored the warning stops at
+  `RegisterModel` or `Migrate` with an error instead of a log line.
+- **Required app changes:** none to keep compiling. Each field the warning
+  names gains either the Quark spelling or `quark:"literal_column"`.
+
+**How to tell you rely on it**
+
+- Runtime signature in v1: the `WARN` line in the client's logger, one per
+  field each time `RegisterModel` or `Migrate` sees the model,
+
+  ```
+  level=WARN msg="struct tag looks like the Nucleus pkg/model grammar" detail="<Model>.<Field>: db:\"pk\" names a column called \"pk\". … add quark:\"literal_column\" to the field. From v2.0.0 this tag is ErrInvalidTag without it (DEP-2026-011)."
+  ```
+
+  Search the logs for `DEP-2026-011`; the message header is shared with
+  other tag warnings, the id is not.
+- Without running the program: `GetModelMeta[T]().TagWarnings` lists the
+  same lines for a model, and a test can assert it is empty.
+- Source scan, to find the candidates:
+
+  ```sh
+  grep -rnE 'db:"(pk|primarykey|primary_key|readonly|read_only|ro|index|unique|tenant|fk|required|autocreatetime|autoupdatetime)[",]' --include='*.go' -i .
+  ```
+
+**What breaks if ignored**
+
+At `v2.0.0` a model with a bare directive as its column name no longer
+registers or migrates: `RegisterModel` and `Migrate` return `ErrInvalidTag`,
+and so does `EnableAuditLog`, `Sync` or `MigrateRegistered` over such a
+model. A program that starts by migrating its models stops at startup with
+the error naming every offending field. Queries through `quark.For[T]` on a
+model that is never registered or migrated are not checked and keep working.
 
 
 ## nucleus
@@ -790,8 +1577,10 @@ that enforcer all the same, and were ignored without a word:
 The rows mounted modules declare in `Module.Policies` ask for it too
 (NU-126). They are loaded into the default stack's enforcer; here there is
 none, and they were discarded without a word — deny rows included. A module
-that lets anonymous callers read and keeps writes for a role, which is what
-`nucleus generate module` writes, answered every write to anyone.
+that lets anonymous callers read and keeps writes for a role — what
+`nucleus generate module` wrote on such a root until decision D9 of the
+suite's 2.0 contract (2026-11-13; see Notes), and still writes on a root
+that builds an enforcer — answered every write to anyone.
 
 The application keeps starting with all of it ignored, as before, and now
 says so at boot: one ERROR line for the keys, and one for the module rows.
@@ -856,7 +1645,9 @@ What changes and when:
     remove them and refuse the callers in the module's own middleware or
     handlers. A module the application does not own — its rows cannot be
     removed from the composition root — needs `WithAuthz()` or the default
-    stack.
+    stack. A module `nucleus generate module` wrote on such a root declares
+    none: its rows are commented out until `WithAuthz()` is added (see
+    Notes).
 - Behavior differences: with `WithAuthz()`, as on the default stack, every
   route answers only to the callers a policy grants; a route nobody granted
   answers 403. With no policy file and no module rows that is every
@@ -1025,8 +1816,17 @@ dependencies the core carries for a feature most applications do not turn on.
 
 What changes and when:
 
-- **This release:** nothing. The provider stays where it is; this notice says
-  where it goes.
+- **The announcing release:** nothing. The provider stays where it is; this
+  notice says where it goes.
+- **The next minor after `v1.34.0`:** the module
+  `github.com/jcsvwinston/nucleus/providers/tasks-asynq` exists, as a
+  forwarding module: it imports `pkg/tasks/providers/asynq` and re-exports
+  its whole surface (the types as aliases, the same error values, thin
+  constructors), and `contracts/tasks_asynq_module_test.go` holds the two
+  surfaces equal. `nucleus add tasks-asynq` and the blank import work from
+  that minor on; the framework still links the provider, so the import is
+  optional until the major and nothing else changes. An application that
+  writes it now has only the version to change at v2.0.0.
 - **v2.0.0:** the provider lives in its own module,
   `github.com/jcsvwinston/nucleus/providers/tasks-asynq`, with its own tag,
   like the drivers, exporters and the other providers (ADR-030/031). The
@@ -1037,7 +1837,8 @@ What changes and when:
 
 **How to migrate**
 
-- Replacement: at the upgrade, `nucleus add tasks-asynq` (or a blank import of
+- Replacement: `nucleus add tasks-asynq`, available since the forwarding
+  module's first minor and required at the upgrade, (or a blank import of
   the new module in the composition root) and the import path
   `github.com/jcsvwinston/nucleus/providers/tasks-asynq` for code that names
   the provider's symbols.
@@ -1220,12 +2021,17 @@ v1.x.
 What changes and when:
 
 - **This release:** the package, `BaseModel`, `NewRegistry` and `NewCRUD`
-  carry the marker; everything keeps working. The starter (`nucleus new`),
-  `nucleus generate model` and `nucleus generate resource` still produce
-  `pkg/model`, and `nucleustest`'s factories use it; `nucleus generate
-  module` already builds on Quark. Moving the rest to Quark is the «DX al 5»
+  carry the marker; everything keeps working. At the time of this notice
+  `nucleus generate model` and `nucleus generate resource` still produced
+  `pkg/model`, and `nucleustest`'s factories used it; `nucleus generate
+  module` already built on Quark. Moving the rest to Quark is the «DX al 5»
   work of the suite's 2.0 contract (§2.1), additive, in 1.x minors before the
-  major.
+  major — done for the generators and the factory in NU-137: `generate
+  model`, `generate resource` and `startapp` write a Quark model and a Quark
+  repository, and `nucleustest.Make` persists a Quark model through Quark by
+  way of the `pkg/nucleustest/quarkmake` module, installed with
+  `srv.UseFactory` (D12: the framework's `go.mod` keeps Quark out of its
+  graph; a registered `pkg/model` model keeps its path until v2.0.0).
 - **v2.0.0:** `pkg/model` is no longer part of the public API. What the
   framework still needs internally — the migration scaffolds the generators
   render, the SQL observer — moves under `internal/`. `Runtime.Models()` and
@@ -1240,7 +2046,7 @@ What changes and when:
   in Nucleus' «Using Quark with Nucleus» and in Quark's `init --with nucleus`.
 - Behavior differences: Quark checks versions, scopes tenants and escapes
   `LIKE` by its own rules; the migration is a rewrite of the model layer, not
-  a rename. The generators of a later 1.x minor produce the Quark form.
+  a rename. The generators produce the Quark form since NU-137.
 - Required app changes: model definitions, the handlers that call
   `model.CRUD`, and tests that use `nucleustest`'s factories over
   `pkg/model`.
@@ -1250,8 +2056,8 @@ What changes and when:
 - Assistant spec: `docs/migration_assistants/MA-2026-024-pkg-model-to-quark.md`
 - Detection rule: `grep -rln 'nucleus/pkg/model"' --include='*.go'`;
   staticcheck SA1019 on the package.
-- Suggested rewrite: manual, with the generators of the minor that moves
-  them as the reference for the target form.
+- Suggested rewrite: manual, with `nucleus generate model <Name>` as the
+  reference for the target form.
 
 ### DEP-2026-025 — the untyped door of `pkg/signals` leaves at v2.0.0
 
@@ -1550,9 +2356,14 @@ What changes and when:
   agent.NewExtension(agent.ExtensionConfig{Endpoints: endpoints, DataSource: src}, stateDir, version)
   ```
 
-  See *Data Studio over Quark* in the features page for the options
-  `quarkdatasource` takes (searchable columns, per-model read-only, the
-  filter operators it answers).
+  The quick start (`website/docs/quick-start.md`, step 4, *With the Quark
+  ORM*) shows this path beside the default one. The adapter's README
+  (`quarkdatasource/README.md`: *Usage*, *In the fleet*, *Semantics*)
+  names the options it takes (`WithTenantColumn`,
+  `WithDatabaseAlias`) and what it answers: the filter operators, a missing
+  row as a `404`, a record it cannot write as a `422` per field, and the
+  tenant scoping it applies. The *Data Studio* section of the features page
+  says how the two adapters differ on validation, search and counts.
 - **At 2.0:** an application that still passes no `DataSource` does not
   start; the error names the field. There is no Nucleus adapter to fall back
   to, because there is no `pkg/model` registry to read.
@@ -1583,3 +2394,310 @@ At `v2.0.0`, an application that mounts the panel with a nil
 and no `DataSource` serves no Data Studio. Code that imports
 `orbit/datasource/nucleus` does not compile. Nothing changes for an
 application already on `quarkdatasource`.
+
+### DEP-2026-003 — an operator with no tenant is refused in a multi-tenant application at v2.0.0
+
+*change · scope `behaviour` · v2.0.0, no earlier than 2027-02-07 · source: `orbit/docs/deprecations/DEP-2026-003-operators-must-be-bound-to-a-tenant.md`*
+
+**What changes**
+
+With `multitenant_enabled` on, Data Studio is confined to the tenant the host
+application resolves for each request. Until this release that was the only
+input: the operator account had no tenant, so the panel confined an operator
+to whatever tenant the request resolved. With Nucleus' `header` resolver the
+tenant is the value of a header the client sends, and a plain operator of one
+tenant — no superuser rights, no `tenant_switch` — who was refused
+`?tenant=<other>` listed, exported, read by id and created rows in the other
+tenant by naming it in the header (OR-80). The `tenant_switch` gate and its
+`tenant.override` audit entry covered `?tenant=` only.
+
+The operator account now carries a tenant (`tenant_id`, a nullable column of
+`nucleus_admin_users`). An operator who is bound to one is confined to it by
+the panel itself, whatever the request resolves. The owner listed the binding
+for the major: in a multi-tenant application every operator who is not a
+superuser and holds no `tenant_switch` is bound to a tenant, and one who is
+not is refused rather than left to the resolver.
+
+What changes and when:
+
+- **This release:** the column, the `tenant_id` field of the operator API,
+  and the confinement. A bound operator who may not switch tenants works in
+  their tenant only: a request that resolves another tenant — from the header,
+  the subdomain or `?tenant=` — is refused with `403`, reads and writes alike;
+  a request that resolves no tenant gets theirs, ahead of
+  `multitenant_default`. An operator with **no** tenant keeps today's
+  behaviour — the resolver decides — and the panel logs one WARN per operator
+  per process naming this notice and how to set the tenant. A superuser or a
+  `tenant_switch` holder is not confined by the tenant on their account; the
+  switching rules, and the audit of every switch, are unchanged.
+- **v2.0.0:** in a multi-tenant application, a request from an operator with
+  no tenant, who is not a superuser and holds no `tenant_switch`, is refused
+  with `403` naming the missing tenant. A bound operator, a superuser and a
+  `tenant_switch` holder behave as in this release.
+
+Refused rather than silently confined: the host has already scoped the
+request to the tenant it resolved (its database alias, its storage prefix),
+and answering it with another tenant's rows would mix the two. The refusal is
+the one `?tenant=` naming another tenant has answered since OR-23.
+
+**At 2.0**
+
+| Operator, `multitenant_enabled` on | Today | At `v2.0.0` |
+|---|---|---|
+| bound to a tenant, may not switch | confined to it; a request resolving another tenant is `403` | unchanged |
+| **no tenant**, may not switch | follows the tenant each request resolves; one WARN per process | **`403`** on every request to the panel |
+| superuser or `tenant_switch`, with or without a tenant | the resolver's tenant; `?tenant=` allowed and audited | unchanged |
+| any, `multitenant_enabled` off | not confined | unchanged |
+
+**How to migrate**
+
+- **Now (v1):** give every operator who is not a superuser and holds no
+  `tenant_switch` the tenant they work in. From the panel's API, as an
+  operator with `operators_manage` on `admin:*`:
+
+  ```http
+  PUT /admin/api/admin-users/<id>
+  Content-Type: application/json
+
+  {"tenant_id": "acme"}
+  ```
+
+  or at creation, with `"tenant_id"` in the `POST /admin/api/admin-users`
+  body. `nucleus createuser` has no tenant flag: set the tenant of an operator
+  it created through the API afterwards, or in the table
+  (`UPDATE nucleus_admin_users SET tenant_id = 'acme' WHERE username = 'ana'`).
+  Write the tenant as the host resolves it: Nucleus lower-cases the tenant
+  it reads from a header or a subdomain, and the panel compares tenants
+  exactly. An operator who genuinely works across tenants gets
+  `tenant_switch` on `admin:*` instead, and every switch they make is
+  audited.
+- **At 2.0:** an operator left without a tenant and without either right is
+  refused by the panel; nothing else changes for them or anyone else.
+- **Behaviour differences, from the operator's side:** once bound, an
+  operator who relied on the header or the subdomain to reach another tenant
+  gets `403` there. That is the defect this closes; the tenant they are bound
+  to works as before, and a request that resolves no tenant now opens their
+  tenant instead of being refused.
+- **Required changes:** one value per affected operator account.
+
+**How to tell you rely on it**
+
+- In the log, once per operator per process:
+  `orbit: operator has no tenant in a multi-tenant application ...` with
+  `operator`, `operator_id` and a `hint` naming the API call. An operator who
+  never logs it is not affected.
+- In the table, the candidates:
+
+  ```sql
+  SELECT id, username FROM nucleus_admin_users
+   WHERE is_active = 1 AND is_superuser = 0
+     AND (tenant_id IS NULL OR tenant_id = '');
+  ```
+
+  minus the ones holding `tenant_switch` (or `*`) on `admin:*`, directly or
+  through a role (`GET /admin/api/rbac/policies`).
+
+**What breaks if ignored**
+
+At `v2.0.0`, in an application with `multitenant_enabled` on, every operator
+with no tenant who is not a superuser and holds no `tenant_switch` can no
+longer use the panel: each request answers `403`, naming the missing tenant.
+Operators who are bound, superusers and `tenant_switch` holders notice
+nothing.
+
+### DEP-2026-004 — `system_pulse` stops including the process environment at v2.0.0
+
+*change · scope `behaviour` (permissions)` · v2.0.0, no earlier than 2027-02-07 · source: `orbit/docs/deprecations/DEP-2026-004-system-pulse-drops-the-environment.md`*
+
+**What changes**
+
+The system snapshot (`GET <prefix>/api/system/snapshot`, behind the panel's
+System and Overview screens) carries the process environment in its
+`environment` field, and the snapshot is authorized by one action,
+`system_pulse` on `admin:*`. Values whose name looks secret-bearing (`*URL*`,
+`*TOKEN*`, `*PASS*`, `*KEY*`, `*AUTH*`, …) are masked and URL credentials
+are redacted, but the rest is served in clear: on the host the re-audit
+measured, 58 of 70 variables (`HOME`, `PATH`, `USER`, `TMPDIR` and, on
+that host, an email address). An operator granted
+`system_pulse` to watch goroutines and the connection pool reads all of it.
+
+The environment moves to its own action, **`system_env`** on `admin:*`.
+
+What changes and when:
+
+- **This release:** `system_env` exists. A superuser, or an operator who
+  holds `system_pulse` **and** `system_env`, reads the environment exactly as
+  before. An operator who holds `system_pulse` without `system_env` still
+  reads it — today's behaviour, unchanged — and the panel logs one WARN the
+  first time that operator does so in the process, naming `DEP-2026-004`,
+  the operator and the action to grant. The snapshot is polled by the
+  Overview and System screens, so the WARN is once per operator per process,
+  not per request. `system_env` widens `system_pulse` and opens nothing on
+  its own: without `system_pulse` the snapshot answers `403`, as today.
+- **v2.0.0:** an operator who holds `system_pulse` without `system_env` gets
+  the snapshot with `"environment": []`. Everything else in the snapshot
+  stays under `system_pulse`. The WARN goes away with the behaviour it
+  announces.
+
+**At 2.0**
+
+| Operator | Today | At `v2.0.0` |
+|---|---|---|
+| superuser | environment | environment (unchanged) |
+| `system_pulse` and `system_env` | environment | environment (unchanged) |
+| `system_pulse` only | environment, one WARN per operator per process | **`"environment": []`**, no WARN |
+| `system_env` only | `403` on the snapshot | `403` on the snapshot (unchanged) |
+| neither | `403` on the snapshot | `403` on the snapshot (unchanged) |
+| open posture (no auth provider) | environment | environment (unchanged) |
+
+**How to migrate**
+
+- **Now (v1):** decide who needs the environment and grant them
+  `system_env` on `admin:*`. The operators who only watch the runtime need
+  nothing; the WARN names each operator who reads the environment without
+  it, so the log is the list to decide on.
+
+  From the panel's Access Control screen, the policy
+  `(ops, admin:*, system_env)` — the screen posts
+  `{"sub":"ops","obj":"admin:*","act":"system_env"}` to
+  `<prefix>/api/rbac/policies`. In Go, on the application's authorizer:
+
+  ```go
+  enf.AddPolicy("ops", "admin:*", "system_env")
+  ```
+
+  In a Casbin policy file: `p, ops, admin:*, system_env`. An application
+  with its own `AdminAuth` provider and no enforcer answers
+  `Authorize(user, "*", "system_env")`.
+- **At 2.0:** nothing to do for an operator granted `system_env`. An
+  operator without it sees an empty environment list.
+- **Behaviour differences, from the operator's side:** at the major, an
+  operator with `system_pulse` alone sees the snapshot without the
+  environment. A client that reads `environment` gets an empty array, never
+  `null` and never a missing field.
+- **Required changes:** one policy row per subject that needs the
+  environment, or none.
+
+**How to tell you rely on it**
+
+- At runtime, the panel logs
+  `orbit: the system snapshot serves the process environment to an operator without system_env; system_pulse stops including it at Orbit 2.0 (DEP-2026-004)`
+  with `operator_id`, `operator`, `role` and a `hint` naming `system_env`,
+  once per operator per process. A panel that never logs it is not affected.
+- In the policies: the subjects granted `system_pulse` on `admin:*` without
+  `system_env` (or `*`) are the ones the change reaches —
+  `GET <prefix>/api/rbac/policies`, or
+  `grep -E 'system_pulse|system_env' policy.csv`.
+
+**What breaks if ignored**
+
+At `v2.0.0`, an operator granted `system_pulse` without `system_env` sees
+the System screen without the environment, and a script that reads
+`environment` from the snapshot under such an account gets an empty list.
+Nothing else in the snapshot changes, and no request that succeeds today is
+refused.
+
+### DEP-2026-005 — the mesh accepts only configured peers at v2.0.0
+
+*change · scope `behaviour` · v2.0.0, no earlier than 2027-02-07 · source: `orbit/docs/deprecations/DEP-2026-005-mesh-accepts-only-configured-peers.md`*
+
+**What changes**
+
+Servers of a fleet speak to each other on their agent listeners: each one
+dials the endpoints in its `--peers` and opens `PeerService.Sync`, and the
+other side records what it hears — the peer's nodes in its registry, its
+events in its bus and replay. Today the receiving side asks nothing beyond
+the agent listener's own authentication, and `PeerService` is mounted on
+every server, peers configured or not. A holder of the agent token, or of
+any certificate the agents' CA signed, can open `Sync`, announce a server
+that does not exist, and list nodes and relay events attributed to any
+`node_id` to every operator of that server.
+
+`server.Config.PeerAllowlist` (`--peer-allowlist`) closes it: a peer is
+accepted only when it is a server this one dials, and under mutual TLS
+only when its certificate names it. It is opt-in in `v1.x` because a
+fleet whose servers do not all list each other would lose the links the
+missing entries carry the day the default changed, and a published default
+does not change within `v1.x`.
+
+At the major every server applies the check.
+
+What changes and when:
+
+- **This release:** `server.Config.PeerAllowlist` (`--peer-allowlist`, env
+  `NUCLEUS_ADMIN_PEER_ALLOWLIST=1`) is added. With it, `Sync` accepts a peer
+  only when
+  1. the `server_id` it announces is the one that answered on this
+     server's own link to one of its `--peers` endpoints — the list names
+     endpoints, and dialling one is what says which server sits behind it;
+  2. when it arrived with a verified client certificate (an agent listener
+     with `--agent-client-ca`), the certificate's Common Name is that
+     `server_id`.
+
+  Anything else is refused with `PermissionDenied` and a WARN naming the
+  peer and the reason. A server with no `--peers` accepts no peer.
+  Without the flag nothing is refused: each peer the check would refuse is
+  accepted as before and logged **once per `server_id` per process** as a
+  WARN that names this notice and the flag.
+- **v2.0.0:** every server applies the check. `PeerAllowlist` and
+  `--peer-allowlist` then describe what the server does anyway; they stay
+  accepted, so a configuration that sets them keeps starting. There is no
+  setting that keeps today's regime: a server that must be a peer is listed
+  in `--peers`.
+
+**At 2.0**
+
+| Peer that opens `Sync` | Today, default | Today, `--peer-allowlist` | At `v2.0.0` |
+|---|---|---|---|
+| a server this one dials (`--peers`), certificate named after it or no certificate | accepted | accepted | accepted (unchanged) |
+| a server this one does not dial | accepted, WARN once | **refused** | **refused** |
+| a caller with the agent token or an agent certificate, announcing any `server_id` | accepted, WARN once | **refused** — except a token holder announcing the name of a server this one dials (below) | **refused**, same exception |
+| a certificate whose Common Name is not the announced `server_id` | accepted, WARN once | **refused** | **refused** |
+
+Without client certificates the check compares names, not credentials: a
+holder of the agent token who knows the `server_id` of a server this one
+dials can still announce it. Under mutual TLS the certificate decides.
+
+**How to migrate**
+
+- **Now (v1):** make every link a configured one, then turn the check on.
+
+  ```sh
+  # each server lists every other server it exchanges nodes with
+  admin-server --server-id a --peers https://b.internal:9090 ... --peer-allowlist
+  admin-server --server-id b --peers https://a.internal:9090 ... --peer-allowlist
+  ```
+
+  Under mutual TLS, name each server's client certificate after its
+  `--server-id` (or set `--server-id` to the certificate's Common Name).
+  In Go: `server.Config{PeerAddrs: ..., PeerAllowlist: true}`.
+- **At 2.0:** nothing more to do for a fleet that ran with the flag.
+- **Behaviour differences, from the operator's side:** a server that one
+  peer dials and that does not dial it back stops receiving that peer's
+  nodes and events: list it in `--peers` on both sides. A peer refused
+  logs `admin server: peer refused` with the reason on the refusing server,
+  and the link fails with `PermissionDenied` on the dialling one.
+- **Required changes:** at most one `--peers` entry per missing direction,
+  and certificates named after the servers.
+
+**How to tell you rely on it**
+
+- Per peer, once per process, on a server without the flag:
+  `admin server: accepted a peer that Orbit 2.0 refuses` with `peer`,
+  `agent_endpoint`, `certificate_cn` and `reason`. A server that never logs
+  it is not affected.
+- With the flag on, `admin server: peer refused` is what the major will
+  refuse; a fleet can run with it in staging first.
+- In configuration: `grep -E 'peer-allowlist|PEER_ALLOWLIST'` over the unit
+  files and environment files of each `admin-server` with `--peers`.
+
+The announcement is per peer rather than one WARN at start, unlike
+`DEP-2026-001`: what changes depends on who connects, which a server does
+not know until a peer does.
+
+**What breaks if ignored**
+
+At `v2.0.0`, a server that receives a peer it does not dial, or whose
+certificate names another server, refuses the link; the nodes and events
+that peer carried disappear from that server's views. The server says
+which peer and why on every refused attempt.

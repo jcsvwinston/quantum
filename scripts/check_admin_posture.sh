@@ -8,19 +8,21 @@
 # ausente o quitar un caso del banco, y el resultado seguiría leyéndose como
 # una medición.
 #
-#   orbit/internal/adminbench/           72 controles con su sonda y su veredicto
+#   orbit/internal/adminbench/           73 controles con su sonda y su veredicto
 #   orbit/internal/adminbench/browser/   el instrumento que corre en un navegador
 #   orbit/docs/admin-bench.md            la página que publica los dos numeradores
 #
 # A6 cerró el banco con 59 de 59; A11 (O1…O6, orbit v1.19.x) le añadió la
 # familia `extension` —13 controles— y lo cerró con 72 de 72, y llevó la
-# mitad de navegador de 7 controles a 13. Los suelos de abajo son los de A11.
+# mitad de navegador de 7 controles a 13. A12 `D10-O` (orbit v1.22.0, set
+# 1.45.0) añadió DS-18 —lo que el panel lista, busca, filtra y esconde es lo
+# que el modelo declara— y lo dejó en 73 de 73. Los suelos de abajo son esos.
 #
 # Lo que comprueba, en el ÁRBOL PINADO:
 #
-#   1. el banco existe, tiene sus 72 controles y cada uno que no está
+#   1. el banco existe, tiene sus 73 controles y cada uno que no está
 #      `present` lleva nota que diga qué falta;
-#   1b. el suelo: 72 controles `present` registrados. Bajar un veredicto
+#   1b. el suelo: 73 controles `present` registrados. Bajar un veredicto
 #      registrado para que el banco vuelva a verde exige bajar también este
 #      suelo, en el mismo cambio y a la vista;
 #   2. la cifra de la página coincide con la que la tabla del banco cuenta;
@@ -45,8 +47,8 @@ BENCH_DOC=orbit/docs/admin-bench.md
 BROWSER_DIR=orbit/internal/adminbench/browser
 BROWSER_HARNESS=orbit/internal/adminbench/browserbench_test.go
 ORBIT_CI=orbit/.github/workflows/ci.yml
-EXPECTED_CONTROLS=72
-PRESENT_FLOOR=72
+EXPECTED_CONTROLS=73
+PRESENT_FLOOR=73
 EXPECTED_UIX=13
 
 fail=0
