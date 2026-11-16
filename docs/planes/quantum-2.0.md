@@ -55,6 +55,16 @@
   `POLITICA_DEPRECACION.md` §4 se aplica tal como está aprobada (no es
   decisión). La fecha sigue siendo un suelo: no antes del 2027-02-07; desde el
   primer merge de un `!` en `main` no sale ningún set 1.x.
+- **Decididas el 2026-11-16 (D26…D38)**: las trece, una a una, la misma
+  tarde (§3.3, bloque `M1-S0`; ocho contra la recomendación). Sólo una mueve
+  fechas: D30 (`App.AutoMigrate` migra a quark en el 2.0) abre un aviso
+  nuevo de nucleus, DEP-2026-027, `por escribir` (fila 35 del §3.0; lo
+  escribe `V-N-AM` antes del set del 2026-11-23). Si ese set lo publica, su
+  ventana abre el 2027-02-21 y **el suelo del 2.0 pasa al 2027-02-21**; si
+  se retrasa un set, una semana más. El resto (Release-As en el `!`, rama
+  `major/2.0`, el lint, las correcciones que comparten ventana, el lag
+  declarado de los CLIs, el rediseño con la marca reabierta y la ventana
+  recortada hacia A13) no mueve ninguna fecha.
 - **El orden lo decidió Carlos: primero se termina lo pendiente**, después el
   2.0. Nada de este documento se empieza antes de que se cumpla el §2.
 
@@ -208,7 +218,11 @@ Quantum 1.45.0.
 > de nuevo las siete de quark al 2027-02-07: llevaban el 2027-01-17,
 > contado desde un set que no las publicó. El set que lleve las releases
 > de quark y orbit pasa las once a `publicado`. **Quantum 1.43.0
-> (2026-11-07)** las pasó: 34 `publicado`, 0 `en main`.
+> (2026-11-07)** las pasó: 34 `publicado`, 0 `en main`. **2026-11-16
+> (D30)**: fila 35 `por escribir` (DEP-2026-027 de nucleus:
+> `App.AutoMigrate` migra a quark en el 2.0); la escribe `V-N-AM` antes del
+> set del 2026-11-23, que es el que la lleva al pin con su ventana al
+> 2027-02-21: 34 `publicado`, 1 `por escribir`.
 
 | # | Producto | Qué cambia en el 2.0 | Tipo | Hallazgo | Aviso | Estado | Ventana abre | Sesión |
 |---|---|---|---|---|---|---|---|---|
@@ -246,6 +260,7 @@ Quantum 1.45.0.
 | 32 | orbit | el operador queda atado a su tenant (columna en la cuenta de operador): sin `tenant_switch` ni superusuario no lee ni escribe otro, venga de `?tenant=` o del resolver; en 1.x la columna es opcional y un operador sin tenant en una aplicación multi-tenant avisa | volteo (config) | OR-80 | DEP-2026-003 (orbit) | `publicado` | 2027-02-07 | `M0-R` |
 | 33 | orbit | el entorno del proceso sale del snapshot de `system_pulse` y pasa a un permiso propio (`system_env`); en 1.x el permiso existe y `system_pulse` sigue viéndolo con aviso | volteo (permisos) | OR-93 | DEP-2026-004 (orbit) | `publicado` | 2027-02-07 | `M0-R` |
 | 34 | orbit | `PeerService.Sync` sólo acepta peers configurados en `--peers` (y bajo mTLS, el CN del certificado ha de ser el `server_id` anunciado); en 1.x `--peer-allowlist` opt-in y un WARN por cada peer no configurado | volteo (fleet) | OR-103 | DEP-2026-005 (orbit) | `publicado` | 2027-02-07 | `M0-R` |
+| 35 | nucleus | `App.AutoMigrate` acepta modelos quark y migra por la ruta de `makemigrations`; deja de leer la gramática `db:` de `pkg/model` (D30) | volteo | — | DEP-2026-027 | `por escribir` | — | tramo 1.x (`V-N-AM`, antes del set del 2026-11-23) |
 
 Lo que esta tabla deja fuera a propósito: la migración de orbit (§2.4, es
 trabajo de 1.x, no un cambio del 2.0), la DX al 5 (§2.1, aditiva) y el
@@ -253,7 +268,8 @@ rediseño (§3.4, que llega como opción en una minor y se vuelve el defecto
 en el 2.0 sin retirar nada). Los ids `DEP-2026-010` y `019…026` de arriba
 y el `DEP-2026-002` de orbit son los siguientes libres de cada repo al 2026-10-16, y
 `DEP-2026-011` de quark y `DEP-2026-003…005` de orbit (filas 31–34) los
-siguientes libres al 2026-10-27; si una decisión se
+siguientes libres al 2026-10-27, y `DEP-2026-027` de nucleus (fila 35) el
+siguiente libre al 2026-11-16; si una decisión se
 cae, su número no se reutiliza (queda la fila como `descartado` con la
 fecha).
 
@@ -391,19 +407,19 @@ forma de D1…D25).
 
 | id | Qué decide | Propuesto | Decisión de Carlos |
 |---|---|---|---|
-| **D26** | El número 2.0.0 en los 24 módulos v0.x (con `bump-minor-pre-major` un `!` los deja en v0.(x+1).0, y un tag `v0.*` sobre `/v2` es inválido para Go) | (a) footer `Release-As: 2.0.0` en el squash del commit `!` de cada repo (ADR-032 veta `Release-As` para suplir un `!`, no para fijar el número junto a él); (b) `release-as` en los 24 paquetes + un `chore` que lo quite; (c) plugin `linked-versions`. **(a)**, con el manifiesto del release PR revisado antes de fusionarlo | |
-| **D27** | Cómo aterriza el major en `main` y cómo se llama la rama (desde el primer merge de un `!` en `main` no sale ningún set 1.x) | (a) rama `major/2.0` por repo con merge final; (b) sin rama. **(a) con merge commit**, los tres `!` seguidos tras el último set 1.x certificado, sin rama `release/1.x` | |
-| **D28** | El lint del `!` que ADR-032 regla 2 promete y no existe en ningún repo | construirlo (`M1-T-LINT-Q/N/O/P`, con excepción por rama del major) o corregir ADR-032:53-54. **Construirlo** | |
-| **D29** | Tres correcciones de avisos publicados amplían lo que dicen que rompe (DEP-2026-025 l.54, DEP-2026-024 `hooks.NewSQLObserver`, orbit DEP-2026-002 `agent.Config.Registry`/`Databases`); `POLITICA_DEPRECACION.md` §3 no las exime de ventana | (a) comparten la ventana del aviso que retira sus tipos (la regla, como enmienda del §3 de la política); (b) aviso propio con ventana nueva (mueve el 2.0 ≥ 90 días desde el set que lo publique, o capa de adaptación hasta el 3.0). **(a)** | |
-| **D30** | `App.AutoMigrate(models ...any)` en el 2.0 (sigue leyendo la gramática `db:` desde `internal/model`) | queda como la rama, anotado como deuda del 3.0. **Queda** | |
-| **D31** | DEP-2026-014 promete «ni siquiera se le preguntan sus capacidades» y `DiscoverExternal`/`Host.CollectInventory` siguen sondeando | parámetro de política aditivo en 1.x, o rebajar la promesa a «denegado, aunque sondeado». **Rebajar la promesa** (`M1-G-N`) | |
-| **D32** | La arista nueva raíz → `quarkdatasource` (D11) frente a ADR-006 l.97 | tolerancia en `check_internal_pins.sh`, corte de convergencia (7 extra medidos), o el experimento con `extra-files` de release-please sobre raíz → `ui` en 1.x. **El experimento primero** | |
-| **D33** | Un último tag v1 con `// Deprecated: use …/v2` en el `go.mod` (lo único que avisa a `go get @latest`; contradice `POLITICA_SOPORTE.md:62,240`) | **descartarlo por escrito**; la sección fija de la guía lo dice | |
-| **D34** | Dónde se publica la guía de migración y si `quark/README.md:24` cumple su promesa literal | una página en `/start/migrating-to-2.0` + `docs/MIGRATION_v2.0.0.md` como puntero, o una por producto. **Una página en `start` + el puntero** | |
-| **D35** | Los suelos de los drivers en `cmd/quark` y `cmd/nucleus` (QK-72/NU-147) | segunda pasada de suelos y segundo tag del CLI por tren (`M1-T-P`), o declarar el lag. **La segunda pasada** | |
-| **D36** | `nucleus add\|new` y la versión de orbit del set (NU-143; el CLI se taggea antes que orbit) | `versions.yaml` por red con caída a la tabla embebida, o «el set anterior». **Red con caída a la tabla** | |
-| **D37** | El rediseño (§3.4): (a) si un defecto visual que cambia es un volteo con aviso (`RD-2` al 2.1 si sí); (b) §4.4/§4.5 sin maquetas antes del corte; (c) partir de «el estado fijado» o reabrir la marca; (d) `RD-0` con las diez cortas abiertas; (e) AA en el sitio; (f) el look del fleet en el `server` o en el build (sin medir) | (a) sin aviso; (b)…(f) como «Lo que espera al propietario» 12 | |
-| **D38** | La ventana (D17): (a) QK-71 decimal; (b) MIG-05 sólo opt-in; (c) QM-37; (d) OR-94/ADR-007 y EXPLAIN desde el feed; (e) QM-34 «decir L2» o L3; (f) lo largo que la ventana no cubre; (g) PG-01…04/MY-01; (h) OR-71 sin tocar `datasource.Query`; (i) alcance de COPY; (j) NU-150 | como «Lo que espera al propietario» 13 | |
+| **D26** | El número 2.0.0 en los 24 módulos v0.x (con `bump-minor-pre-major` un `!` los deja en v0.(x+1).0, y un tag `v0.*` sobre `/v2` es inválido para Go) | (a) footer `Release-As: 2.0.0` en el squash del commit `!` de cada repo (ADR-032 veta `Release-As` para suplir un `!`, no para fijar el número junto a él); (b) `release-as` en los 24 paquetes + un `chore` que lo quite; (c) plugin `linked-versions`. **(a)**, con el manifiesto del release PR revisado antes de fusionarlo | **Release-As en el commit `!`** (2026-11-16): la opción (a), con el manifiesto del release PR revisado antes de fusionarlo. |
+| **D27** | Cómo aterriza el major en `main` y cómo se llama la rama (desde el primer merge de un `!` en `main` no sale ningún set 1.x) | (a) rama `major/2.0` por repo con merge final; (b) sin rama. **(a) con merge commit**, los tres `!` seguidos tras el último set 1.x certificado, sin rama `release/1.x` | **Rama `major/2.0` por repo con merge commit** (2026-11-16): los tres `!` seguidos tras el último set 1.x certificado, sin rama `release/1.x`. |
+| **D28** | El lint del `!` que ADR-032 regla 2 promete y no existe en ningún repo | construirlo (`M1-T-LINT-Q/N/O/P`, con excepción por rama del major) o corregir ADR-032:53-54. **Construirlo** | **Construirlo** (2026-11-16): `M1-T-LINT-Q/N/O/P`, con excepción por rama del major. |
+| **D29** | Tres correcciones de avisos publicados amplían lo que dicen que rompe (DEP-2026-025 l.54, DEP-2026-024 `hooks.NewSQLObserver`, orbit DEP-2026-002 `agent.Config.Registry`/`Databases`); `POLITICA_DEPRECACION.md` §3 no las exime de ventana | (a) comparten la ventana del aviso que retira sus tipos (la regla, como enmienda del §3 de la política); (b) aviso propio con ventana nueva (mueve el 2.0 ≥ 90 días desde el set que lo publique, o capa de adaptación hasta el 3.0). **(a)** | **Comparten la ventana del aviso que retira sus tipos** (2026-11-16): la regla se escribe como enmienda del §3 de `POLITICA_DEPRECACION.md` (`M1-G-N`/`M1-G-O`); nada se mueve. |
+| **D30** | `App.AutoMigrate(models ...any)` en el 2.0 (sigue leyendo la gramática `db:` desde `internal/model`) | queda como la rama, anotado como deuda del 3.0. **Queda** | **No se queda: migrarlo a quark** (2026-11-16, contra la recomendación): en el 2.0 `App.AutoMigrate` acepta modelos quark y migra por la ruta de `makemigrations`; la gramática `db:` de `pkg/model` deja de leerse. Exige un aviso DEP nuevo en nucleus (DEP-2026-027, fila 35 del §3.0, `por escribir`; lo escribe `V-N-AM` con su salida en 1.x, que ya existe: `makemigrations`). Si lo publica el set del 2026-11-23, su ventana abre el 2027-02-21 y el suelo del 2.0 pasa del 2027-02-07 al 2027-02-21; cada set que se retrase lo mueve una semana. |
+| **D31** | DEP-2026-014 promete «ni siquiera se le preguntan sus capacidades» y `DiscoverExternal`/`Host.CollectInventory` siguen sondeando | parámetro de política aditivo en 1.x, o rebajar la promesa a «denegado, aunque sondeado». **Rebajar la promesa** (`M1-G-N`) | **Rebajar la promesa** (2026-11-16): «denegado, aunque sondeado» (`M1-G-N`). |
+| **D32** | La arista nueva raíz → `quarkdatasource` (D11) frente a ADR-006 l.97 | tolerancia en `check_internal_pins.sh`, corte de convergencia (7 extra medidos), o el experimento con `extra-files` de release-please sobre raíz → `ui` en 1.x. **El experimento primero** | **El experimento con `extra-files` primero** (2026-11-16): si funciona, ADR-006 l.97 se mantiene y no hay tolerancia; si no, converger. |
+| **D33** | Un último tag v1 con `// Deprecated: use …/v2` en el `go.mod` (lo único que avisa a `go get @latest`; contradice `POLITICA_SOPORTE.md:62,240`) | **descartarlo por escrito**; la sección fija de la guía lo dice | **Descartarlo por escrito** (2026-11-16): la sección fija de la guía lo dice (`M1-G-P`(a)). |
+| **D34** | Dónde se publica la guía de migración y si `quark/README.md:24` cumple su promesa literal | una página en `/start/migrating-to-2.0` + `docs/MIGRATION_v2.0.0.md` como puntero, o una por producto. **Una página en `start` + el puntero** | **Una página en `/start/migrating-to-2.0` + `docs/MIGRATION_v2.0.0.md` en quark como puntero** (2026-11-16). |
+| **D35** | Los suelos de los drivers en `cmd/quark` y `cmd/nucleus` (QK-72/NU-147) | segunda pasada de suelos y segundo tag del CLI por tren (`M1-T-P`), o declarar el lag. **La segunda pasada** | **Declarar el lag** (2026-11-16, contra la recomendación): `declared_lags` de `versions.yaml` para `cmd/quark` y `cmd/nucleus`; sin segunda pasada de suelos ni segundo tag del CLI por tren; la guía de migración lo dice. |
+| **D36** | `nucleus add` y `nucleus new` y la versión de orbit del set (NU-143; el CLI se taggea antes que orbit) | `versions.yaml` por red con caída a la tabla embebida, o «el set anterior». **Red con caída a la tabla** | **`versions.yaml` por red con caída a la tabla embebida** (2026-11-16). |
+| **D37** | El rediseño (§3.4): (a) si un defecto visual que cambia es un volteo con aviso (`RD-2` al 2.1 si sí); (b) §4.4/§4.5 sin maquetas antes del corte; (c) partir de «el estado fijado» o reabrir la marca; (d) `RD-0` con las diez cortas abiertas; (e) AA en el sitio; (f) el look del fleet en el `server` o en el build (sin medir) | (a) sin aviso; (b)…(f) como «Lo que espera al propietario» 12 | **(a) sin aviso** (2026-11-16): `classic` sigue existiendo y nada se retira; **(b)** sin maquetas antes del corte, el 2.0.0 se certifica con la página «qué cambia en 2.0» y la guía, sin tema nuevo: el rediseño llega como opción en una 2.x y es el defecto en el 2.1 (§4.4/§4.5 enmendados); **(c) reabrir la marca** (contra la recomendación): `RD-0` puede proponer una marca nueva; **(d)** `RD-0` arranca ya, en paralelo a las diez cortas (§3.4 enmendado); **(e)** sí: un control AA nuevo sobre `website/build`; **(f)** medir primero la superficie del `server`, fuera del carril. |
+| **D38** | La ventana (D17): (a) QK-71 decimal; (b) MIG-05 sólo opt-in; (c) QM-37; (d) OR-94/ADR-007 y EXPLAIN desde el feed; (e) QM-34 «decir L2» o L3; (f) lo largo que la ventana no cubre; (g) PG-01…04/MY-01; (h) OR-71 sin tocar `datasource.Query`; (i) alcance de COPY; (j) NU-150 | como «Lo que espera al propietario» 13 | **(a) QK-71 → A13** (2026-11-16); **(b)** MIG-05 sólo opt-in en 1.x; **(c)** QM-37: retirar el punto (los snapshots no se reescriben; el guard avisa); **(d)** OR-94 y EXPLAIN desde el feed → ambos a A13 (contra la recomendación); **(e)** QM-34: subir a SLSA L3, en A13 (contra la recomendación); **(f)** lo largo: todo a A13; **(g)** PG-01…04/MY-01: retitular el criterio a lo medido (contra la recomendación; `criterios-5.csv` y la decisión 1 del arco); **(h)** OR-71: sin tocar el contrato `datasource.Query`; **(i)** QK-54 COPY → A13 (contra la recomendación); **(j)** NU-150: retitular el criterio de `N1` a ≤ 27 MB (contra la recomendación). |
 
 <!-- FIN BLOQUE DE DECISIÓN M1-S0 -->
 
@@ -429,6 +445,21 @@ Que el salto de versión **se note**:
   defecto, no uno impuesto), y los guards del sitio (páginas generadas, «Why
   Quantum», jerga, enlaces). Los specs del banco de navegador se rehacen a la
   vez.
+
+**Decidido el 2026-11-16 (D37)**: (a) un defecto visual que cambia NO es un
+volteo con aviso: `classic` sigue existiendo y nada se retira, así que
+`RD-2` no necesita un DEP; (b) sin maquetas elegidas antes del corte, el
+2.0.0 se certifica con la página «qué cambia en 2.0» y la guía, sin tema
+nuevo, y el rediseño llega como opción en una 2.x y es el defecto en el 2.1
+(los puntos 4 y 5 del §4 quedan enmendados así); (c) las direcciones pueden
+reabrir la marca (contra la recomendación): `RD-0` puede proponer una marca
+nueva, y el brand board (`docs/brand/`) deja de ser el límite; (d) `RD-0`
+arranca ya, en paralelo a las diez «sesiones cortas» del §2.2 («después de
+lo pendiente» deja de aplicarse al carril); (e) AA también en el sitio del
+paraguas: un control nuevo sobre `website/build` (hoy 0 instrumentos); (f)
+el look del fleet en el `server` o en el build se mide primero (la
+superficie de configuración del `server`), fuera del carril: no es sesión
+hasta que esté medido.
 
 ### 3.5 La ruta de módulo `/v2` (medido por `M0-E` el 2026-10-18 y vuelto a medir por `M1-S0` el 2026-11-16)
 
@@ -488,9 +519,15 @@ que `M1` lo presupueste.
    después y la salida que ya existía en 1.x.
 4. **Bancos y guards en verde** sobre el 2.0: ningún control ausente sin razón
    escrita, el banco de navegador en AA con el tema nuevo, el presupuesto del
-   panel cumplido.
+   panel cumplido (enmendado por D37 b: sin maquetas antes del corte, el
+   2.0.0 se certifica con la página «qué cambia en 2.0» y la guía; el tema
+   nuevo llega como opción en una 2.x y es el defecto en el 2.1, y el AA
+   «con el tema nuevo» se mide entonces).
 5. **Documentación 2.0 publicada** con el rediseño, la página «qué cambia en
-   2.0» y la guía de migración enlazada desde la portada.
+   2.0» y la guía de migración enlazada desde la portada (enmendado por D37
+   b: sin maquetas antes del corte, el 2.0.0 se certifica con la página «qué
+   cambia en 2.0» y la guía; el tema nuevo llega como opción en una 2.x y es
+   el defecto en el 2.1).
 6. **`R2` hecha**: el informe de madurez con todas las dimensiones a 5 salvo
    comunidad, o un A13 abierto con lo que falte. Con eso se cierran A12 y el
    plan 5 de 5.

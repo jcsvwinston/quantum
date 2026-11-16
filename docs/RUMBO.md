@@ -71,8 +71,10 @@ de abajo tiene más de un par de sets de antigüedad, desconfía y verifica.
   `M1-G-F1…F5`; el primero con fecha es `M1-G-P`, antes del set posterior al
   2026-12-08), lo aditivo de las 32 dimensiones que `M1-S0` marcó como corto
   (64 elementos en 42 sesiones `V-*`, D17) y las decisiones D26…D38 del
-  contrato (dos antes del primer commit del major); `M1` en enero de 2027 y el
-  2.0.0 no antes del 2027-02-07, como estaba.
+  contrato (dos antes del primer commit del major); `M1` en enero de 2027.
+  **D26…D38 decididas el 2026-11-16**; D30 abre DEP-2026-027 (por escribir:
+  `V-N-AM`, antes del set del 2026-11-23) y, si lo publica el set del
+  2026-11-23, el 2.0 no antes del 2027-02-21 (el suelo era el 2027-02-07).
 - 1.34.0 publicó el arco **A7** (jobs, eventos y tiempo real): una cola de
   trabajos DURABLE sobre la base de datos sin broker, un bus de eventos
   TIPADO con el outbox como transporte opcional, CANALES sobre WebSocket y

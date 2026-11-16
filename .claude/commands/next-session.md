@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-16, QUANTUM 1.45.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R`, `M0-F`, la DX al 5, `D9-N`, `D10-O` y **`M1-S0`** HECHAS; `M1` troceada; siguiente: **`M1-G-P`** —el generador de la guía por versión de ventana, antes del set posterior al 2026-12-08— y, en paralelo por repo, `M1-V2-P`(a), `M1-T-N`, `M1-T-Q`, `V-S2b` → `M1-T-O` y las diez cortas de D15)
+## 3. Estado al cierre (2026-11-16, QUANTUM 1.45.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R`, `M0-F`, la DX al 5, `D9-N`, `D10-O` y **`M1-S0`** HECHAS; `M1` troceada; D26…D38 decididas; siguiente: **`V-N-AM`** —el aviso DEP-2026-027 de nucleus, ANTES del set del 2026-11-23— y después **`M1-G-P`** —el generador de la guía por versión de ventana, antes del set posterior al 2026-12-08— y, en paralelo por repo, `M1-V2-P`(a), `M1-T-N`, `M1-T-Q`, `V-S2b` → `M1-T-O` y las diez cortas de D15)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -109,10 +109,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   antes de `M1-T-LINT-*`; D29…D33 —las tres correcciones que amplían avisos,
   `AutoMigrate`, DEP-014, la arista raíz → `quarkdatasource`, el último tag
   v1— delante de la sesión que las cita; la regla D2 de la política de
-  deprecación se aplica tal como está aprobada, con `M1-G-F1…F5`). La
-  secuencia es ahora: en paralelo por repo y en sets 1.x, las diez «sesiones
-  cortas» del §2.2 del contrato en sets 1.x (NU-129, NU-131, NU-108; OR-71,
-  OR-74, OR-75, OR-76; QK-54, QK-68, QK-69) → lo aditivo de las 32 dimensiones
+  deprecación se aplica tal como está aprobada, con `M1-G-F1…F5`).
+  **D26…D38 decididas el 2026-11-16**; D30 abre DEP-2026-027 (por escribir:
+  `V-N-AM`, antes del set del 2026-11-23) y, si lo publica el set del
+  2026-11-23, el 2.0 no antes del 2027-02-21 (el suelo era el 2027-02-07).
+  La secuencia es ahora: en paralelo por repo y en sets 1.x, las diez
+  «sesiones cortas» del §2.2 del contrato en sets 1.x (NU-129, NU-131,
+  NU-108; OR-71, OR-74, OR-75, OR-76; QK-54 —a A13 por D38 i—, QK-68,
+  QK-69) → lo aditivo de las 32 dimensiones
   por debajo del 5 que `M1-S0` marcó como corto (64 elementos en 42 sesiones
   `V-*`), en sets 1.x (QADR-0010: nada rompiente) → `M1` en enero de 2027 →
   2.0.0 no antes del 2027-02-07 → `R2` COMPLETA como `R1` → A13. **Lo que no
@@ -440,14 +444,19 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   deprecación no es pregunta: se aplica tal como está aprobada (`completed` al
   vencer: `M1-G-F1…F5`, con `M1-G-P`(a) antes del set posterior al
   2026-12-08).
-- **Lo siguiente**: primero las trece decisiones D26…D38 del contrato (bloque
-  `M1-S0` del §3.3 de `quantum-2.0.md`), planteadas al propietario UNA A UNA
-  con su recomendación, como quiso el 2026-11-16; después `M1-G-P` (quantum;
-  la única con fecha) y, en paralelo por
-  repo, `M1-V2-P`(a), `M1-T-N`, `M1-T-Q`, `V-S2b` (y tras ella `M1-T-O` →
-  `M1-V2-P`(b)) y los diez hallazgos de D15 en nueve sesiones (`V-Q7/Q8/Q9`,
-  `V-N3/N4/N5`, `V-O4/O14/O15`; `V-O15` lleva OR-75 y OR-76); `M1-G-F1`
-  (quark) el 2026-12-08; las sesiones de SPA de orbit agrupadas en un set.
+- **Lo siguiente**: `V-N-AM` (nucleus: el aviso DEP-2026-027 de
+  `App.AutoMigrate` → quark, ANTES del set del 2026-11-23 para que el suelo
+  del 2.0 quede en el 2027-02-21) y después `M1-G-P` (quantum; antes del set
+  posterior al 2026-12-08) y el tramo 1.x por producto: `M1-V2-P`(a),
+  `M1-T-N`, `M1-T-Q`, `V-S2b` (y tras ella `M1-T-O` → `M1-V2-P`(b)) y los
+  nueve hallazgos de D15 que quedan, en ocho sesiones (`V-Q8/Q9`,
+  `V-N3/N4/N5`, `V-O4/O14/O15`; `V-O15` lleva OR-75 y OR-76; QK-54/`V-Q7`
+  a A13 por D38 i); `RD-0` puede arrancar ya (D37 d); `M1-G-F1` (quark) el
+  2026-12-08; las sesiones de SPA de orbit agrupadas en un set.
+- **Las trece decisiones D26…D38 y el secreto de orbit**: respondidas la
+  misma tarde, una a una (quantum#__PR__); ocho contra la recomendación:
+  D30 (`AutoMigrate` migra a quark en el 2.0, con DEP-2026-027), D35 (lag
+  declarado de los CLIs), D37 c (reabrir la marca), D38 d, e, g, i, j.
 
 ## 4. Las fases (resumen; el detalle y el "hecho cuando" están en docs/ROADMAP.md)
 
@@ -513,6 +522,14 @@ No se abren sesiones ni arcos para ponerlo al día. El detalle está en
   conocida: exigir revisiones aprobadas bloquearía todos los merges (un
   solo humano); «rama al día» se conduce rebasando cada PR apilado antes
   de fusionarlo.
+- **El secreto `RELEASE_PR_TOKEN` de orbit (lo crea Carlos antes de
+  `V-O12`; respondido el 2026-11-16)**: un PAT fine-grained de jcsvwinston
+  sobre el repositorio orbit con permisos Contents: read/write y Pull
+  requests: read/write; después `gh secret set RELEASE_PR_TOKEN -R
+  jcsvwinston/orbit` (pega el PAT en el prompt; no va en ningún fichero).
+  Comprobable: `gh api repos/jcsvwinston/orbit/actions/secrets --jq
+  '.secrets[].name' | grep -qx RELEASE_PR_TOKEN`. Sin él, `V-O12` sólo abre
+  el PR de la matriz y `merge-bot-pr.sh` lo fusiona a mano.
 - **GO-2026-6909 (D19)**: el 2026-12-15, `curl -s
   https://vuln.go.dev/ID/GO-2026-6909.json` debe traer `fixed: 0.5.2`; si
   no, chore PR en nucleus moviendo la fecha de
