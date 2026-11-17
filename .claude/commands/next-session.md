@@ -64,35 +64,46 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-16, QUANTUM 1.45.0 CERTIFICADO — A11 CERRADO; A12 en curso: `M0`, `R1`, `M0-R`, `M0-F`, la DX al 5, `D9-N`, `D10-O` y **`M1-S0`** HECHAS; `M1` troceada; siguiente: **`M1-G-P`** —el generador de la guía por versión de ventana, antes del set posterior al 2026-12-08— y, en paralelo por repo, `M1-V2-P`(a), `M1-T-N`, `M1-T-Q`, `V-S2b` → `M1-T-O` y las diez cortas de D15)
+## 3. Estado al cierre (2026-11-17, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 hecha; siguiente: **F1**, la `S0` de la segunda generación —inventario hereda/tira y contrato—, en el repositorio nuevo)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
-- **REORIENTACIÓN DEL 2026-11-16 (tarde), ANTES QUE NADA**: Carlos dijo que
-  Quantum es un proyecto experimental que nadie ha usado y que el 2.0 lo
-  presentará en un REPO NUEVO sin histórico. Eso deja sin objeto casi todo
-  el aparato de `M0`/`M1` (avisos con ventana, ruta `/v2`, guía de
-  migración, Release-As, lag declarado, tren de cuatro repos) y las
-  decisiones D26…D38 de esa tarde (escritas en la rama
-  `docs/a12-decisiones-m1-s0`, SIN PR: no se fusionan hasta decidir el
-  corte limpio). La propuesta entregada: un QADR de corte limpio (los 34
-  avisos pasan a lista de decisiones de diseño; los repos actuales se
-  congelan como generación 1), monorepo Go con un `go.mod` por módulo
-  instalable (Quark en solitario sigue siendo un `go get` sin nada de
-  orbit: Go resuelve por módulo y poda el grafo), un solo número de
-  versión, diseñar y medir la primera hora antes de escribir código, y
-  una documentación con eje narrativo («construye una aplicación», ocho
-  capítulos), guías por tarea, referencia generada aparte, playgrounds y
-  versiones fuera de la navegación. Lienzo de la propuesta:
-  https://claude.ai/artifact/TguDkK4rqR4vhRQBGxDyB9 (privado; fuentes
-  en el stash de la sesión). **La siguiente sesión empieza por esto**:
-  confirmar con Carlos monorepo sí/no, Quark como paquete con nombre
-  propio, y nombre del repo nuevo y archivo de la generación 1
-  (recomendado: sí, sí, `quantum` nuevo y `quantum-gen1` archivado);
-  escribir el QADR; y una S0 del 2.0 de verdad (inventario hereda/tira,
-  objetivos medibles de la primera hora, arquitectura de la información,
-  tres direcciones visuales para elegir). Lo que sigue de este §3 describe
-  el estado del plan ANTERIOR a esa decisión.
+- **DESDE EL 2026-11-17, ANTES QUE NADA: la generación 1 está congelada y
+  el trabajo sigue en OTRO repositorio.** QADR-0011
+  ([`docs/adr/QADR-0011-segunda-generacion-en-repo-nuevo.md`](../../docs/adr/QADR-0011-segunda-generacion-en-repo-nuevo.md),
+  quantum#328): sin usuarios, el 2.0 deja de ser un major de estos repos y
+  pasa a ser la segunda generación, construida sin histórico en
+  **`github.com/the-quantum-platform/quantum`** (organización del
+  propietario; privado hasta que sirva para desarrollar aplicaciones;
+  Apache-2.0). Clon local: `~/GolandProjects/the-quantum-platform/quantum`
+  (NO confundir con este checkout, `~/GolandProjects/quantum`). **Quantum
+  1.45.0 es el último set: no hay más trenes**, ni `M1`, ni sesiones `V-*`;
+  la rama `docs/a12-decisiones-m1-s0` (D26…D38) se queda sin fusionar como
+  registro; los repos de la generación 1 se quedan en la cuenta del
+  propietario y de ellos se aprovecha por copia todo lo que se pueda.
+  **Dónde está el estado de la segunda generación**: en el repositorio
+  nuevo, rama `design/f1-foundations` (su `main` aún no existe: nace con el
+  esqueleto de F2) — once ADR en `docs/adr/` (un repo y un número de
+  versión con rutas `/v2`; Quark con vida propia; núcleo ligero con
+  capacidades como módulos por `nucleus.Part`; permisos propios con
+  denegar por defecto; sólo YAML y entorno; interfaz mínima de
+  observación; validador propio; `net/http`; carpeta `modules/` con
+  migraciones por módulo y división por tipo por defecto; nada oculto;
+  CRUD como atajo sobre modelos Quark), un prototipo que los puso a prueba
+  (`nucleus/`, `nucleus/data/`, `internal/spike/`, 19 tests) y la misma
+  aplicación en Gin, Echo y Fiber (`internal/spike/compare/`). El `go.work`
+  de esa rama apunta al quark de ESTE checkout y sólo compila en esta
+  máquina. **Las siete fases** (QADR-0011): F0 hecha; **la siguiente
+  sesión es F1** —inventario hereda/tira paquete a paquete sobre el pin de
+  1.45.0, la primera hora medida como línea base, API pública en papel,
+  arquitectura de la información, y el contrato y troceado— y se trabaja
+  en el repositorio nuevo. Presentación decidida: lema «The Power of
+  Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
+  organización, comparativas como apartado de la documentación, dirección
+  visual A («Calm teal»); maqueta en
+  https://claude.ai/artifact/NbGBKqLMPg5Kf9vGQikbac (privada). **Lo que
+  sigue de este §3 describe la generación 1 tal como quedó**: vale como
+  inventario de lo que hay para heredar, no como plan.
 
 - **Set certificado: Quantum 1.45.0** (2026-11-13/16, fuera de cadencia:
   el propietario pidió seguir avanzando el viernes 13 y el set adelanta la
@@ -355,66 +366,55 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-11-13/16 — **el tren de Quantum 1.45.0 conducido por el propietario, y las doce decisiones de la ventana hasta el 2.0 (quantum#319, D14…D25)**
+### Sesión 2026-11-17 — **F0 de la segunda generación: QADR-0011, el repositorio nuevo, once ADR y el prototipo del núcleo**
 
-- **Arranque**: Carlos, el viernes 2026-11-13 con `D9-N` y `D10-O` en
-  `main`: «vamos a ir avanzando». El set del lunes 2026-11-23 se adelanta
-  para publicar lo que `M1` espera.
-- **El tren (2026-11-13/16, pausado el 14 y retomado el 15)**: quark
-  v1.19.1 (quark#494 suelos → quark#493; prosa repuesta en la rama del
-  bot; siete tags), nucleus v1.36.0 (nucleus#665 suelos → nucleus#663/#664
-  notas y snapshot → nucleus#667 el test rancio de la lane suite-starter
-  → nucleus#668 el suelo de `tasks-asynq` → nucleus#669 notas re-fechadas
-  → nucleus#657; dieciocho tags con `cmd/nucleus`, 15 activos firmados),
-  orbit v1.22.0 (orbit#599 alineación —hecha a mano por la sesión calcando
-  `alinea_pines_orbit`, con las notas y el snapshot en la rama del bot por
-  `orbit-notes-apply.sh`— → orbit#598; cinco tags nuevos, 15 activos; sin
-  segundo corte), quantum#319 (set) y el cierre (60 de 60; reloj
-  1h33m39s conducido en once invocaciones y 62h54m18s de espera del
-  propietario, 64h27m57s de punta a punta; anuncio a quantum-app:
-  quantum-app#39, en borrador y con sus gates en rojo, deuda suya). **El clasificador de
-  permisos denegó a la sesión la fase de quark** («Create Public
-  Surface»), así que el propietario lanzó las cuatro fases que publican
-  desde su terminal y la sesión preparó suelos, notas, snapshots,
-  alineación, cifras de guards y prosa, y paró antes de cada una diciendo
-  el comando exacto. Los tres `fix(train)` que el tren obligó:
-  quantum#316 (govulncheck en el preflight con la toolchain declarada),
-  quantum#317 (`${var}` ante bytes no ASCII: bash 3.2 con locale UTF-8 dio
-  por anclada una rama que no lo estaba) y quantum#318 (el `require` de
-  UNA línea, invisible para los suelos y manifest-guard: `tasks-asynq`
-  llevaba dos minors de retraso sin aviso; fusionado tras el set). La lane
-  de integración de `main` cayó dos veces ese día y pasó al relanzar: por
-  el flake OR-149 (`EXT-10`) tras fusionar el set, y tras quantum#318 por
-  uno nuevo de `orbit/server`, registrado como **OR-151** (el servidor
-  rehúsa al peer y el cliente ve `write envelope: EOF` en vez de
-  PermissionDenied).
-- **La medición del arco** («¿qué nos queda para el 5 de 5 y para empezar
-  el 2.0?»): respondida desde el plan de A12, el contrato, el informe de
-  `R1` y el registro, con un verificador cruzándola contra los ficheros.
-  Lo que afloró: `M1` sin troceado (su fila decía «retirar los doce
-  símbolos»), el alcance de `R2` sin cerrar, la guía de migración rancia
-  (23 de 34), diez «sesiones cortas» del §2.2 abiertas que el plan no
-  nombraba, la excepción de GO-2026-6909 caducando antes del suelo del
-  2.0, y prosa que se contradecía (topics tipados de ciclo de vida frente
-  a DEP-2026-025; `/v2` «en 1.x» frente a «primer commit del major»;
-  `pkg/model` «no se retira» frente a D5; «raíz: fix» frente al MINOR de
-  orbit; la política de estabilidad de quark «pendiente» cuando ADR 0029
-  la adoptó el 2026-10-06; el reporte privado de vulnerabilidades ya
-  activo en los cuatro repos).
-- **Las doce decisiones, una a una (D14…D25)**: guía regenerada en el set
-  y guard aparte (D14); las diez cortas en 1.x antes de `M1` (D15); `M1-S0`
-  primero (D16); lo aditivo de las 32 en la ventana (D17); `R2` completa
-  (D18); GO-2026-6909 esperar hasta el 2026-12-15 (D19); señales según el
-  aviso publicado (D20); soporte publicada sin LTS (D21); la ventana de
-  suite manda (D22); `main` protegida en los cuatro con auto-merge (D23);
-  Discussions sólo en quantum (D24); Scorecard publicada (D25).
-  Registradas en el contrato (§3.3) y en el plan (quantum#322, con las
-  correcciones de prosa verificadas por tres lentes y una confirmación);
-  quantum#320 publica la nota de Scorecard; quantum#321 registra
-  `umbrella-migration-guide` (61 guards).
-- **Lo siguiente**: **`M1-S0`** (ver el bullet de la ventana); en
-  paralelo, lo del propietario del §5 (protección de rama, Discussions) y
-  la sesión de docs de la política de soporte.
+- **Arranque**: Carlos pidió la planificación del 2.0 antes de entrar en
+  materia; después, decisión a decisión, todo lo que sigue.
+- **Las cinco decisiones de base** (QADR-0011): organización
+  `the-quantum-platform`; monorepo `quantum` con un solo número de versión;
+  Quark con nombre y vida propia; ruta de GitHub sin dominio propio y «2»
+  como semver real (`…/quantum/quark/v2`, prelanzamientos
+  `v2.0.0-alpha.N`); el repositorio lo opera la cuenta del propietario.
+- **El núcleo ligero, medido**: importar `pkg/nucleus` 1.36.0 enlaza 430
+  paquetes, 167 de terceros; el prototipo deja una API mínima en 194 y UNO
+  (el parser de YAML), y 272/67 con quark y el driver de SQLite (el driver
+  pesa 37 de esos 67; quark sin driver, 30, la mitad
+  `go-playground/validator`: pendiente del inventario de quark). Cuatro
+  decisiones: permisos propios, sólo YAML, interfaz de observación propia
+  (con `traceparent`), validador propio.
+- **El router y el rendimiento**: grupos, middleware con la firma de
+  `net/http`, tags `path`/`query`/`header`, formas libres `Handle` y
+  `HandleFunc`. Carga real en un M4 Pro (loopback, 64 conexiones):
+  Quantum ≈ Gin ≈ Echo (133–140 mil req/s, 36–39 µs de CPU por petición);
+  Fiber un 4–8 % por delante. La diferencia está en `net/http`, no en la
+  capa propia (0,1–1,2 µs). Decidido: se queda `net/http`. Sin medir:
+  Linux, `net/http` desnudo, un endpoint con base de datos.
+- **La comparativa de scaffolds**: la misma aplicación de catálogo en los
+  cuatro, con respuestas idénticas a ocho peticiones: 48 líneas en Quantum
+  frente a 142 (Gin), 154 (Echo) y 152 (Fiber).
+- **Lo que Carlos pidió y condiciona el diseño**: que nada sea magia (cada
+  atajo con su forma explícita y un comando que imprima lo resuelto:
+  ADR-0010); `modules/` desde el principio; dentro de un módulo, las dos
+  divisiones, y `quantum new` genera la de tipo, «como Django»; migraciones
+  por módulo; «todo lo ligero que podamos, módulos según necesidad,
+  seguridad ante todo»; el norte es servir a un proyecto grande como
+  Django y a uno pequeño como FastAPI o Flask.
+- **Lo ejecutado**: quantum#328 (QADR-0011 y este handoff); en el
+  repositorio nuevo, la rama `design/f1-foundations` con los ADR, la
+  licencia, el prototipo y las aplicaciones de comparación; el lienzo de
+  la maqueta con tres direcciones (elegida la A).
+- **Lo que espera al propietario**: fusionar quantum#328; revisar la
+  maqueta en pantalla; confirmar dos elecciones de la sesión (los pilares
+  «Lightness by default.» y «Security above all.» en lugar de sus frases
+  originales, y el copyright «The Quantum Platform Authors»); el perfil
+  de la organización en GitHub; y apagar las lanes programadas de la
+  generación 1 cuando quiera (la excepción de GO-2026-6909 caduca el
+  2026-12-31 y sólo importa mientras corran).
+- **Trampas**: un submódulo con major lleva el `/v2` al final de SU ruta
+  (`…/nucleus/data/v2`); los módulos sin publicar necesitan un `replace`
+  con versión en el `go.work` para compilar entre sí; `(cd X && ./bin &)`
+  devuelve el pid del subshell y deja el servidor huérfano en el puerto;
+  el scratchpad es volátil (lo valioso está ya en el repositorio nuevo).
 
 ### Sesión 2026-11-16 — **`M1-S0`: el major medido y troceado**
 
