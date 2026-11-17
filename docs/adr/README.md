@@ -22,6 +22,7 @@
 | [QADR-0008](QADR-0008-cadencia-de-certificacion.md) | La certificación de un set va por cadencia, no por arco | Accepted | Auditoría integral (D1) |
 | [QADR-0009](QADR-0009-idioma-por-superficie.md) | Idioma por superficie: los productos en inglés, el paraguas en español | Accepted | Auditoría de madurez (QM-18) |
 | [QADR-0010](QADR-0010-rupturas-agrupadas-en-un-major.md) | Lo rompiente se acumula en un único major al cierre de A12 | Accepted | Plan a 5/5 (A4, A6, A10) |
+| [QADR-0011](QADR-0011-segunda-generacion-en-repo-nuevo.md) | El 2.0 es una segunda generación en un monorepo nuevo; la generación 1 se congela | Accepted | Cierre de A12 |
 
 ## Cómo añadir un QADR nuevo
 
