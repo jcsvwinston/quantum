@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-18, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0, F1-a y F1-b hechas; siguiente: **F1-c** —la API pública en papel— y F1-d, en el repositorio nuevo)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0, F1-a, F1-b y F1-c hechas; siguiente: **F1-d** —el troceado de F2 y F3—, en el repositorio nuevo)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -97,9 +97,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   2026-11-18** (inventario hereda/tira y sus 23 preguntas respondidas: PR 1
   del repositorio nuevo, con el contrato de sesión de la generación 2 en su
   `docs/plan/README.md` y los ADR-0012…0015); **F1-b hecha el mismo día** (la primera hora
-  medida: PR 2, con los objetivos de F5 aceptados); **la
-  siguiente sesión es F1-c** (API pública en papel y arquitectura de la
-  información) y después F1-d (troceado de
+  medida: PR 2, con los objetivos de F5 aceptados); **F1-c hecha el 2026-11-19** (la API
+  pública en papel con declaraciones que pasan `go vet`: PR 3; cuatro
+  enmiendas de ADR y nueve puntos esperan al propietario); **la siguiente
+  sesión es F1-d** (troceado de
   F2 y F3), y se trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
@@ -385,14 +386,14 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   otros módulos, orbit 2 / 41 / 16 más los 26 paquetes del fleet con
   cambio de forma. La condición de reapertura de QADR-0011 (que la copia
   equivalga a una migración) no se cumple. `nucleus.Part` cubre 3 de 19
-  enganches y al núcleo del prototipo le faltan 28 comportamientos, varios
+  enganches y al prototipo de nucleus le faltan 28 comportamientos, varios
   de seguridad.
 - **Las 23 preguntas, respondidas una a una por el propietario el
   2026-11-18.** Las que son ADR nuevo: ADR-0012 (registro explícito: nada
-  se registra desde `init()`), ADR-0013 (el RBAC del núcleo responde por
+  se registra desde `init()`), ADR-0013 (el RBAC de nucleus responde por
   recurso × acción, permisos en código, roles asignados en caliente),
   ADR-0014 (todo lo de datos es de quark; `nucleus/data` es sólo un
-  adaptador y el núcleo no tiene clave `database`), ADR-0015 (orbit es
+  adaptador y nucleus no tiene clave `database`), ADR-0015 (orbit es
   opcional entero y no se parte en módulos por peso; el fleet entra en la
   2.0.0 tras el panel) y las enmiendas de cifras de ADR-0002 y ADR-0003
   (22, 166 y 66 paquetes de terceros). El resto: quark sin terceros (sin
@@ -420,6 +421,31 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   dos mecanismos de migración en un mismo proyecto; añadir un campo son 16
   líneas a mano; el panel no se entera del modelo nuevo). Los objetivos
   de F5 los aceptó el propietario el mismo día. Siguiente: F1-c.
+- **F1-c hecha el 2026-11-18/19** (PR 3 del repositorio nuevo, apilado
+  sobre el 2; `docs/plan/api/` e `internal/paper/`): la API pública en
+  papel de quark, nucleus, las capacidades, orbit y la CLI única, más el
+  árbol de documentación, con 53 paquetes de declaraciones Go vacías que
+  pasan `go vet`. Cinco papeles en paralelo, una revisión adversarial de
+  coherencia, las 27 preguntas de diseño y los nombres públicos
+  respondidos uno a uno, y una pasada que aplicó las respuestas. Lo que
+  cambió el diseño: la declaración de modelo es `data.Model[T](opciones)`
+  en `module.go` y la leen el CRUD y el panel; `main.go` es una lista de
+  módulos (`data.Module(driver)`); **el entorno se elige al arrancar
+  (`--env` o `QUANTUM_ENV`) y `main.go` declara qué fichero corresponde a
+  cada uno** (respuesta del propietario fuera de las opciones: ningún
+  fichero se lee por su nombre); la CLI compila y ejecuta el binario de la
+  aplicación; un comodín único de permisos; el validador corre también al
+  escribir; auth en dos módulos; orbit con un solo `go.mod`; sin
+  proveedor de secretos de AWS. Enmendados ADR-0003, 0005, 0007, 0011,
+  0012, 0013 y 0014. Medido: los dialectos no se mueven del paquete raíz
+  de quark (el enlazador quita los no usados si el driver devuelve su
+  constructor) y AG Grid es el 42 % del JavaScript del panel (tabla
+  propia). La primera hora sobre el papel: 15 comandos y 2 líneas por
+  campo, sin margen. Esperan al propietario cuatro enmiendas de ADR
+  (0004, 0006, 0009 y la segunda mitad de 0011) y nueve puntos surgidos
+  al aplicar (README §3.3 de `docs/plan/api/`). Siguiente: F1-d.
+- **Corrección de vocabulario del propietario**: se dice nucleus, no «el
+  núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
   dejaron nada; relanzados con `model: opus` y escribiendo su fichero
   desde el principio, funcionaron. `scripts/estado.sh` sigue anunciando
