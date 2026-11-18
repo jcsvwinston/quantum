@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-17, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 hecha; siguiente: **F1**, la `S0` de la segunda generación —inventario hereda/tira y contrato—, en el repositorio nuevo)
+## 3. Estado al cierre (2026-11-18, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a hechas; siguiente: **F1-b** —la primera hora medida— y **F1-c** —la API en papel—, en el repositorio nuevo)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -83,7 +83,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   propietario y de ellos se aprovecha por copia todo lo que se pueda.
   **Dónde está el estado de la segunda generación**: en el repositorio
   nuevo, rama `design/f1-foundations` (su `main` aún no existe: nace con el
-  esqueleto de F2) — once ADR en `docs/adr/` (un repo y un número de
+  esqueleto de F2) — quince ADR en `docs/adr/` (los once fundacionales: un repo y un número de
   versión con rutas `/v2`; Quark con vida propia; núcleo ligero con
   capacidades como módulos por `nucleus.Part`; permisos propios con
   denegar por defecto; sólo YAML y entorno; interfaz mínima de
@@ -93,11 +93,13 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   (`nucleus/`, `nucleus/data/`, `internal/spike/`, 19 tests) y la misma
   aplicación en Gin, Echo y Fiber (`internal/spike/compare/`). El `go.work`
   de esa rama apunta al quark de ESTE checkout y sólo compila en esta
-  máquina. **Las siete fases** (QADR-0011): F0 hecha; **la siguiente
-  sesión es F1** —inventario hereda/tira paquete a paquete sobre el pin de
-  1.45.0, la primera hora medida como línea base, API pública en papel,
-  arquitectura de la información, y el contrato y troceado— y se trabaja
-  en el repositorio nuevo. Presentación decidida: lema «The Power of
+  máquina. **Las siete fases** (QADR-0011): F0 hecha y **F1-a hecha el
+  2026-11-18** (inventario hereda/tira y sus 23 preguntas respondidas: PR 1
+  del repositorio nuevo, con el contrato de sesión de la generación 2 en su
+  `docs/plan/README.md` y los ADR-0012…0015); **la siguiente sesión es
+  F1-b** (la primera hora medida como línea base) **y después F1-c** (API
+  pública en papel y arquitectura de la información) y F1-d (troceado de
+  F2 y F3), y se trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
   visual A («Calm teal»); maqueta en
@@ -366,6 +368,53 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
+### Sesión 2026-11-17/18 — **F1-a de la segunda generación: el inventario hereda/tira y las 23 preguntas respondidas**
+
+- **Arranque**: `/next-session auto`; foco propuesto y confirmado: F1-a, el
+  inventario. Todo el trabajo está en el repositorio nuevo,
+  `the-quantum-platform/quantum`, PR 1 (rama `plan/f1-inventory` →
+  `design/f1-foundations`), sin fusionar al cierre.
+- **Método**: un inventario por pilar sobre el pin de 1.45.0, en sólo
+  lectura, y un revisor adversarial por inventario que reprodujo los
+  comandos y corrigió el fichero (cada uno termina en una sección
+  `Review`). Sin ejecutar tests, bancos ni builds de la generación 1.
+- **Resultado** (`docs/plan/inventory/` del repositorio nuevo): casi nada
+  es copia directa salvo en quark — quark 14 / 30 / 5 (copia / con cambio
+  de forma / se tira), nucleus 5 / 44 / 19 en la raíz y 0 / 14 / 5 en los
+  otros módulos, orbit 2 / 41 / 16 más los 26 paquetes del fleet con
+  cambio de forma. La condición de reapertura de QADR-0011 (que la copia
+  equivalga a una migración) no se cumple. `nucleus.Part` cubre 3 de 19
+  enganches y al núcleo del prototipo le faltan 28 comportamientos, varios
+  de seguridad.
+- **Las 23 preguntas, respondidas una a una por el propietario el
+  2026-11-18.** Las que son ADR nuevo: ADR-0012 (registro explícito: nada
+  se registra desde `init()`), ADR-0013 (el RBAC del núcleo responde por
+  recurso × acción, permisos en código, roles asignados en caliente),
+  ADR-0014 (todo lo de datos es de quark; `nucleus/data` es sólo un
+  adaptador y el núcleo no tiene clave `database`), ADR-0015 (orbit es
+  opcional entero y no se parte en módulos por peso; el fleet entra en la
+  2.0.0 tras el panel) y las enmiendas de cifras de ADR-0002 y ADR-0003
+  (22, 166 y 66 paquetes de terceros). El resto: quark sin terceros (sin
+  tags `validate:`, singleflight propio, sin codegen), `quark/otel`
+  anidado, una sola CLI `quantum`, cuatro motores en la alfa y seis en la
+  beta, migraciones por módulo en el migrador de quark, tablas propias
+  como modelos Quark, sin plugins ejecutables, un módulo de Redis, auth
+  partido en verificación y cuentas, validador de seis reglas, la lista de
+  comportamientos por entorno se queda en tres, SPA rehecha.
+- **Dos respuestas fueron un principio y no una opción** (datos → quark;
+  orbit opcional entero): se registraron como ADR y se enseñó la
+  redacción al propietario.
+- **Lo siguiente**: fusionar el PR 1; F1-b (la primera hora medida sobre
+  la generación 1) y F1-c (API pública en papel), con seis encargos
+  anotados en `inventory/README.md` (tag `validate:` inerte, tamaño de
+  cada área de quark y dialectos, `dumpdata`/`loaddata`, nombres de los
+  módulos de Redis y auth, peso de AG Grid). El prototipo aún no cumple
+  ADR-0012…0014.
+- **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
+  dejaron nada; relanzados con `model: opus` y escribiendo su fichero
+  desde el principio, funcionaron. `scripts/estado.sh` sigue anunciando
+  «Siguiente: A12»: no conoce QADR-0011.
+
 ### Sesión 2026-11-17 — **F0 de la segunda generación: QADR-0011, el repositorio nuevo, once ADR y el prototipo del núcleo**
 
 - **Arranque**: Carlos pidió la planificación del 2.0 antes de entrar en
@@ -416,61 +465,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   devuelve el pid del subshell y deja el servidor huérfano en el puerto;
   el scratchpad es volátil (lo valioso está ya en el repositorio nuevo).
 
-### Sesión 2026-11-16 — **`M1-S0`: el major medido y troceado**
+### Pendientes y régimen de la generación 1 (tal como quedó; inventario, no plan)
 
-- **Arranque**: Carlos, con 1.45.0 certificado: «arranca en paralelo `M1-S0`»
-  (y la pregunta de qué era «el clic de Discussions»: el ajuste de D24 en
-  GitHub → Settings → General → Features; ya estaba activo en quantum,
-  `has_discussions: true` el 2026-11-16 —la fecha del clic no sale de ningún
-  comando—, y no en los productos: QM-42 hecho, quantum#324).
-- **Método**: nueve áreas medidas en sólo lectura sobre `main` de los tres (=
-  el pin de 1.45.0) y las ramas `dry-run/2.0`, cada una con dos refutaciones
-  (reproducir cada comando; buscar lo no medido) y una síntesis; donde el
-  refutador demostró otra cifra vale la suya. Apuntes en el scratchpad de la
-  sesión (`m1s0/`); el producto es la sección «`M1-S0` — el major, medido y
-  troceado» del plan de A12 (su PR, en el registro de sesiones del plan).
-- **Lo que cambió del contrato**: el §3.5 son 41 `go.mod` y 2 156 líneas (no
-  39 y ~2 100), `cmd/nucleus` pasa a `…/nucleus/cmd/nucleus/v2`, el workspace
-  compila contra `/v2` sin `replace`; las 34 filas están `publicado`, 30
-  ensayadas y 4 sin commit (31/83/37 ficheros a rehacer); `pkg/model` son 36 +
-  13 símbolos; asynq deja 4 módulos y go-redis se queda; D11 cuesta 7 cortes
-  de convergencia y ADR-006 lo contradice; Discussions hecho.
-- **Lo que nadie había visto y bloquea**: el job `verify` de `release.yml` de
-  nucleus (informe de compatibilidad con `go test ./pkg/model` y un baseline
-  con 2 525 rutas v1) dejaría v2.0.0 sin activos; los ldflags de quark y
-  nucleus publicarían binarios «devel»/«dev»; con `bump-minor-pre-major` un
-  `!` deja 24 módulos v0.x sin el número 2.0.0; el lint del `!` de ADR-032 no
-  existe; quark y nucleus no tienen CI en PRs contra otra rama; cinco lectores
-  de ruta del paraguas callan con `/v2` (`align-module-floors` da «0 módulos»
-  en verde) y nueve mueren (`site-pages.py` tumba `bump-set`); la guía queda
-  vacía con avisos `completed` y la regla D2 de la política de deprecación lo
-  adelanta al 2026-12-08; `cmd/quark` no va en lockstep (falta la anotación de
-  release-please); la fila 30 y el `go.mod` de D11 son un solo PR; `ui` es
-  módulo con tag y cada cambio de SPA es un segundo corte de orbit.
-- **El troceado**: 23 sesiones más el tren, con un tramo 1.x de 18 sesiones
-  como precondición (`M1-V2-P`, `M1-T-P/O/N/Q`, `M1-T-LINT-Q/N/O/P`, `M1-G-P`,
-  `M1-G-Q/N/O`, `M1-G-F1…F5`); major por repo (`M1-V2-Q` → `M1-R-Q1…Q4`;
-  `M1-V2-N` → `M1-R-N1…N6`, `M1-AS-N`, `M1-PM-N`; `M1-V2-O` → `M1-AD-O`,
-  `M1-D11-O`, `M1-R-O1/O2`; `M1-D-Q/N/O`), `M1-G-S` → `M1-TREN`; 42 sesiones
-  `V-*` de la ventana (D17; las diez de D15 dentro) y el carril `RD-0 →
-  RD-1o-ui → RD-1o-root ∥ RD-1q → RD-2`.
-- **Lo que espera a Carlos**: 13 preguntas en «Lo que espera al propietario»,
-  con fila D26…D38 en el §3.3 del contrato; 2 antes del primer commit del
-  major (D26, el número 2.0.0 en los 24 módulos v0.x —recomendación: footer
-  `Release-As: 2.0.0` por repo—; D27, cómo aterriza el major —rama `major/2.0`
-  con merge commit—) y D28…D38 delante de la sesión que las cita (el lint del
-  `!` —construirlo—, las tres correcciones que amplían avisos publicados
-  —comparten la ventana—, `AutoMigrate` —se queda—, DEP-014 —rebajar la
-  promesa—, la arista raíz → quarkdatasource —el experimento con `extra-files`
-  primero—, el último tag v1 —descartar—); la regla D2 de la política de
-  deprecación no es pregunta: se aplica tal como está aprobada (`completed` al
-  vencer: `M1-G-F1…F5`, con `M1-G-P`(a) antes del set posterior al
-  2026-12-08).
-- **Lo siguiente**: ver la REORIENTACIÓN al principio del «Estado vigente»:
-  la siguiente sesión no es `V-N-AM` ni `M1-G-P`, es el QADR del corte
-  limpio y la S0 del 2.0 como segunda generación. Las trece decisiones
-  D26…D38 se respondieron esa tarde (transcripción en el stash de la
-  sesión) y están escritas en la rama `docs/a12-decisiones-m1-s0`, sin PR.
 - **El próximo tren** (el set del lunes 2026-11-23, o el siguiente que
   tenga algo que publicar): quark, nucleus y orbit no se han movido desde
   1.45.0 salvo lo que las sesiones de la ventana fusionen; los suelos
