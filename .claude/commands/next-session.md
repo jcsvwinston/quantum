@@ -97,7 +97,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   2026-11-18** (inventario hereda/tira y sus 23 preguntas respondidas: PR 1
   del repositorio nuevo, con el contrato de sesión de la generación 2 en su
   `docs/plan/README.md` y los ADR-0012…0015); **F1-b hecha el mismo día** (la primera hora
-  medida: PR 2, con los objetivos de F5 propuestos y sin decidir); **la
+  medida: PR 2, con los objetivos de F5 aceptados); **la
   siguiente sesión es F1-c** (API pública en papel y arquitectura de la
   información) y después F1-d (troceado de
   F2 y F3), y se trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
@@ -419,7 +419,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   paquetes. Diez tropiezos anotados (dos layouts, dos accesos a datos y
   dos mecanismos de migración en un mismo proyecto; añadir un campo son 16
   líneas a mano; el panel no se entera del modelo nuevo). Los objetivos
-  de F5 están propuestos y esperan al propietario. Siguiente: F1-c.
+  de F5 los aceptó el propietario el mismo día. Siguiente: F1-c.
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
   dejaron nada; relanzados con `model: opus` y escribiendo su fichero
   desde el principio, funcionaron. `scripts/estado.sh` sigue anunciando
