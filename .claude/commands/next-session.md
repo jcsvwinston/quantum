@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-18, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a hechas; siguiente: **F1-b** —la primera hora medida— y **F1-c** —la API en papel—, en el repositorio nuevo)
+## 3. Estado al cierre (2026-11-18, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0, F1-a y F1-b hechas; siguiente: **F1-c** —la API pública en papel— y F1-d, en el repositorio nuevo)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -96,9 +96,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   máquina. **Las siete fases** (QADR-0011): F0 hecha y **F1-a hecha el
   2026-11-18** (inventario hereda/tira y sus 23 preguntas respondidas: PR 1
   del repositorio nuevo, con el contrato de sesión de la generación 2 en su
-  `docs/plan/README.md` y los ADR-0012…0015); **la siguiente sesión es
-  F1-b** (la primera hora medida como línea base) **y después F1-c** (API
-  pública en papel y arquitectura de la información) y F1-d (troceado de
+  `docs/plan/README.md` y los ADR-0012…0015); **F1-b hecha el mismo día** (la primera hora
+  medida: PR 2, con los objetivos de F5 propuestos y sin decidir); **la
+  siguiente sesión es F1-c** (API pública en papel y arquitectura de la
+  información) y después F1-d (troceado de
   F2 y F3), y se trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
@@ -410,6 +411,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   cada área de quark y dialectos, `dumpdata`/`loaddata`, nombres de los
   módulos de Redis y auth, peso de AG Grid). El prototipo aún no cumple
   ADR-0012…0014.
+- **F1-b hecha el mismo 2026-11-18** (PR 2 del repositorio nuevo, apilado
+  sobre el 1; `docs/plan/first-hour/`): el recorrido del recién llegado
+  sobre 1.45.0 en once pasos, como script con las ediciones a mano en
+  parches. 77,2 s en frío y 27,9 s en caliente (M4 Pro, SQLite), 21
+  comandos y 20 líneas a mano; la aplicación resultante enlaza 498
+  paquetes. Diez tropiezos anotados (dos layouts, dos accesos a datos y
+  dos mecanismos de migración en un mismo proyecto; añadir un campo son 16
+  líneas a mano; el panel no se entera del modelo nuevo). Los objetivos
+  de F5 están propuestos y esperan al propietario. Siguiente: F1-c.
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
   dejaron nada; relanzados con `model: opus` y escribiendo su fichero
   desde el principio, funcionaron. `scripts/estado.sh` sigue anunciando
