@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; siguiente: **las decisiones del propietario previas a F2 y después F2-a**, en el repositorio nuevo)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; siguiente: **fusionar la pila de F1 (PR 1…4, el propietario), renombrar la rama por defecto a `main` y F2-a**, en el repositorio nuevo)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -101,9 +101,10 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   pública en papel con declaraciones que pasan `go vet`: PR 3; las cuatro
   enmiendas de ADR y los nueve puntos, decididos el 2026-11-19); **F1-d
   hecha el 2026-11-19** (125 sesiones de F2, F3 y F4 en
-  `docs/plan/sessions/`: PR 4); **la siguiente sesión abre con las
-  decisiones del propietario previas a F2** (X-1, X-2 y F2-A1…A10 de
-  `docs/plan/sessions/README.md` §4, una a una) **y sigue con F2-a**; se
+  `docs/plan/sessions/`: PR 4); las doce decisiones previas a F2,
+  respondidas el mismo día; **la siguiente sesión es F2-a**, tras
+  fusionar el propietario los PR 1…4 y renombrar la rama por defecto a
+  `main`; se
   trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
@@ -462,8 +463,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `main` en origin; el camino de la primera hora no funciona tal como
   está escrito el scaffold (falta el autenticador de API key, la fuente
   de roles de la sesión y la configuración de accounts: decisión C-A2);
-  faltan por listar los proveedores distintos de Redis. Siguiente: las
-  decisiones previas a F2, y F2-a.
+  faltan por listar los proveedores distintos de Redis.
+- **Las doce decisiones previas a F2, respondidas una a una el
+  2026-11-19** (todas la opción recomendada): el panel arranca en
+  «panel-ready» y la CLI en la puerta del panel; bancos y guards donde
+  propone el plan; fusionar la pila de F1 y renombrar a `main`; privado
+  y gratuito, CI que informa; `go 1.26.0` sin `toolchain`; prototipo y
+  spike fuera, tras una etiqueta; CLI de mentira (`version`); squash;
+  firma con par de claves hasta publicar y sin claves después, seis
+  plataformas; cortar `v2.0.0-alpha.0` al final de F2; sin Node en F2;
+  `x/mod` sólo en `internal/guard`. Quedan abiertas las de capas
+  posteriores (`sessions/README.md` §4). Siguiente: fusionar PR 1…4
+  (antes, leer ADR-0014 y ADR-0015), renombrar la rama, y F2-a.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
