@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a (PR 5, fusionado) y F2-b (PR 6) hechas; siguiente: **F2-c**, el carril «Quark alone», y los guards)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) y F2-c (PR 7) hechas; siguiente: **F2-d**, el guard del grafo de módulos)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -103,9 +103,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   hecha el 2026-11-19** (125 sesiones de F2, F3 y F4 en
   `docs/plan/sessions/`: PR 4); las doce decisiones previas a F2,
   respondidas el mismo día; los PR 1…4 fusionados con squash y la rama por defecto
-  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); y F2-b (PR 6); **la siguiente sesión es
-  F2-c** (`docs/plan/sessions/f2.md`; c, d, f y j van en cualquier
-  orden tras b); se
+  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); F2-b (PR 6) y F2-c (PR 7); **la siguiente
+  sesión es F2-d** (`docs/plan/sessions/f2.md`; d, f y j van en
+  cualquier orden); se
   trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
@@ -495,7 +495,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   ejecuta sólo ese script en Linux, en go 1.26.0 y en stable (1.27.4 ese
   día), con `GOTOOLCHAIN=local`, acciones fijadas por commit y permisos
   de sólo lectura. Primera ejecución del CI del repositorio: verde en
-  los dos trabajos, unos 40 s cada uno. Siguiente: F2-c.
+  los dos trabajos, unos 40 s cada uno. PR 6 fusionado.
+- **F2-c hecha el 2026-11-19** (PR 7): `scripts/lanes/quark-alone.sh`
+  (quark compila, pasa vet y tests con `GOWORK=off` y `GOPROXY=off`; su
+  `go.mod` sin `require` ni `replace`; nada enlazado fuera de la
+  biblioteca estándar y de quark), cuatro fixtures que el carril debe
+  rechazar y el trabajo `quark alone` del CI. Trampa: dentro de `if` y
+  de `$( )` bash apaga `set -e`; la autoprueba lo cazó (tres fixtures
+  pasaban) y cada fixture corre ahora en un proceso nuevo. Siguiente:
+  F2-d.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
