@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) y F2-c (PR 7) hechas; siguiente: **F2-d**, el guard del grafo de módulos)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c (PR 7, fusionado) y F2-d (PR 8) hechas; siguiente: **F2-e**, el guard de reglas de código fuente)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -103,9 +103,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   hecha el 2026-11-19** (125 sesiones de F2, F3 y F4 en
   `docs/plan/sessions/`: PR 4); las doce decisiones previas a F2,
   respondidas el mismo día; los PR 1…4 fusionados con squash y la rama por defecto
-  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); F2-b (PR 6) y F2-c (PR 7); **la siguiente
-  sesión es F2-d** (`docs/plan/sessions/f2.md`; d, f y j van en
-  cualquier orden); se
+  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); F2-b, F2-c y F2-d (PR 6, 7 y 8); **la
+  siguiente sesión es F2-e** (`docs/plan/sessions/f2.md`; e, f, g y j
+  van en cualquier orden); se
   trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
@@ -502,8 +502,19 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   biblioteca estándar y de quark), cuatro fixtures que el carril debe
   rechazar y el trabajo `quark alone` del CI. Trampa: dentro de `if` y
   de `$( )` bash apaga `set -e`; la autoprueba lo cazó (tres fixtures
-  pasaban) y cada fixture corre ahora en un proceso nuevo. Siguiente:
-  F2-d.
+  pasaban) y cada fixture corre ahora en un proceso nuevo. PR 7
+  fusionado.
+- **F2-d hecha el 2026-11-19** (PR 8): `internal/guard`, módulo de
+  herramientas fuera del workspace (sólo requiere `golang.org/x/mod`),
+  con `guard graph` y la tabla `modules.rules` (23 líneas: qué módulos
+  y qué terceros puede requerir cada módulo). Rechaza un módulo sin
+  línea, un `require` no permitido (directo o indirecto), un `replace`,
+  una ruta sin `/v2`. Quince árboles que debe rechazar y tres que debe
+  admitir; la tabla se comprueba contra sí misma y contra los ADR.
+  Donde el papel no da la ruta exacta de un tercero, y en orbit y la
+  CLI, la línea dice `?` y la sesión que añada el primer requisito la
+  declara. Sin línea: drivers y módulos anidados de quark y proveedores
+  distintos de Redis. Siguiente: F2-e.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
