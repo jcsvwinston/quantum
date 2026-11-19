@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) F2-h (PR 12, fusionado) y F2-j (PR 13) hechas; siguiente: **F2-i**, la publicación firmada, la última de F2)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) F2-j (PR 13, fusionado) y F2-i escrita (PR 14, flujo sin ejecutar); siguiente: **el propietario crea el par de claves y lanza `v2.0.0-alpha.0`**, y después las decisiones de quark)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -103,9 +103,11 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   hecha el 2026-11-19** (125 sesiones de F2, F3 y F4 en
   `docs/plan/sessions/`: PR 4); las doce decisiones previas a F2,
   respondidas el mismo día; los PR 1…4 fusionados con squash y la rama por defecto
-  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); F2-b…F2-h y F2-j (PR 6 a 13); **queda
-  F2-i** (`docs/plan/sessions/f2.md`; el propietario crea el par de
-  claves y lanza `v2.0.0-alpha.0`); se
+  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); F2-b…F2-j (PR 6 a 14); **falta que el
+  propietario cree el par de claves, suba `scripts/release/cosign.pub`
+  y lance el flujo `release` con `v2.0.0-alpha.0`** (`RELEASING.md` del
+  repositorio nuevo); con eso F2 cumple su criterio de salida y lo
+  siguiente son las decisiones de quark (Q-A1 la primera) y F3-Q1; se
   trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
@@ -558,8 +560,22 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   estable). En el CI, con go1.27.4: sin hallazgos. En local, con
   go1.26.0 —el mínimo declarado—, el carril falla por fallos de la
   biblioteca estándar corregidos en parches posteriores de 1.26, uno
-  alcanzable desde el guard. Sin lista de excepciones todavía.
-  Siguiente: F2-i.
+  alcanzable desde el guard. Sin lista de excepciones todavía. PR 13
+  fusionado.
+- **F2-i escrita el 2026-11-19** (PR 14), **flujo sin ejecutar**:
+  `.github/workflows/release.yml` (manual, desde `main`),
+  `scripts/release/assets.sh` (seis binarios con la versión sellada y
+  `SHA256SUMS`), `scripts/release/sign.sh` (cosign 3.1.4 con par de
+  claves, verificado al momento contra la pública), `rehearse.sh
+  --assets` y `RELEASING.md`. Medido con la red bloqueada: con
+  `signing-config.none.json` cosign firma sin contactar con nada; sin
+  ese fichero, cosign 3 baja la configuración pública y subiría la
+  firma al registro (la opción `--tlog-upload` ya no existe). Falta del
+  propietario: `GITHUB_TOKEN="$(gh auth token)" cosign generate-key-pair
+  github://the-quantum-platform/quantum`, subir `cosign.pub` como
+  `scripts/release/cosign.pub` y lanzar `gh workflow run release -f
+  version=v2.0.0-alpha.0`. Context7 no respondió (clave inválida): la
+  documentación de cosign se leyó de su repositorio con `gh api`.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
