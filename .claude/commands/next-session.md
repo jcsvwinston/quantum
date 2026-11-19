@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) F2-g (PR 11, fusionado) y F2-h (PR 12) hechas; siguiente: **F2-j**, higiene de la cadena de suministro, y **F2-i**, la publicación firmada)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) F2-h (PR 12, fusionado) y F2-j (PR 13) hechas; siguiente: **F2-i**, la publicación firmada, la última de F2)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -103,9 +103,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   hecha el 2026-11-19** (125 sesiones de F2, F3 y F4 en
   `docs/plan/sessions/`: PR 4); las doce decisiones previas a F2,
   respondidas el mismo día; los PR 1…4 fusionados con squash y la rama por defecto
-  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); F2-b…F2-h (PR 6 a 12); **quedan F2-j y
-  F2-i** (`docs/plan/sessions/f2.md`; para F2-i el propietario crea el
-  par de claves y lanza `v2.0.0-alpha.0`); se
+  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); F2-b…F2-h y F2-j (PR 6 a 13); **queda
+  F2-i** (`docs/plan/sessions/f2.md`; el propietario crea el par de
+  claves y lanza `v2.0.0-alpha.0`); se
   trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
@@ -549,7 +549,17 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   módulos que se requieren entre sí se resuelven sin `replace` y sin
   `go.sum` para sus hermanos; con un `replace` en el `go.mod` de la CLI,
   `go install` la rechaza (probado a mano). No ejercita `GOPRIVATE` ni
-  credenciales. Siguiente: F2-j y F2-i.
+  credenciales. PR 12 fusionado.
+- **F2-j hecha el 2026-11-19** (PR 13): `guard actions` (acciones de
+  los flujos fijadas por commit; todos los módulos listados en
+  `.github/dependabot.yml`), dependabot semanal con un PR agrupado por
+  ecosistema, y `scripts/lanes/vuln.sh` con su trabajo de CI
+  (govulncheck v1.10.0 en cada módulo salvo `internal/paper`, con Go
+  estable). En el CI, con go1.27.4: sin hallazgos. En local, con
+  go1.26.0 —el mínimo declarado—, el carril falla por fallos de la
+  biblioteca estándar corregidos en parches posteriores de 1.26, uno
+  alcanzable desde el guard. Sin lista de excepciones todavía.
+  Siguiente: F2-i.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
