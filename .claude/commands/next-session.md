@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c (PR 7, fusionado) y F2-d (PR 8) hechas; siguiente: **F2-e**, el guard de reglas de código fuente)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) y F2-e (PR 9) hechas; siguiente: **F2-f**, Conventional Commits)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -103,9 +103,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   hecha el 2026-11-19** (125 sesiones de F2, F3 y F4 en
   `docs/plan/sessions/`: PR 4); las doce decisiones previas a F2,
   respondidas el mismo día; los PR 1…4 fusionados con squash y la rama por defecto
-  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); F2-b, F2-c y F2-d (PR 6, 7 y 8); **la
-  siguiente sesión es F2-e** (`docs/plan/sessions/f2.md`; e, f, g y j
-  van en cualquier orden); se
+  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); F2-b…F2-e (PR 6 a 9); **la siguiente
+  sesión es F2-f** (`docs/plan/sessions/f2.md`; f, g y j van en
+  cualquier orden); se
   trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
@@ -514,7 +514,18 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   Donde el papel no da la ruta exacta de un tercero, y en orbit y la
   CLI, la línea dice `?` y la sesión que añada el primer requisito la
   declara. Sin línea: drivers y módulos anidados de quark y proveedores
-  distintos de Redis. Siguiente: F2-e.
+  distintos de Redis. PR 8 fusionado.
+- **F2-e hecha el 2026-11-19** (PR 9): `guard source`, dos reglas. Sin
+  `func init()` ni imports en blanco (salvo `embed`) fuera de tests en
+  los módulos publicados (ADR-0012); ninguna palabra con letra o signo
+  del español en ficheros versionados. Excepciones con motivo en
+  `internal/guard/source.allow`; ninguna. La regla cazó una cita en
+  español en el inventario. Trampas de la sesión: un `python3 - <<EOF`
+  con error de sintaxis no detuvo la cadena y se abrió el PR sin parte
+  del cambio; `comando | tail` tapa el código de salida, así que se
+  empujó con la comprobación en rojo (corregido antes del CI); y el
+  canal de herramientas convierte los escapes `\uXXXX` de un heredoc
+  en caracteres reales. Siguiente: F2-f.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
