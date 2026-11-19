@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) F2-f (PR 10, fusionado) y F2-g (PR 11) hechas; siguiente: **F2-j**, higiene de la cadena de suministro, o **F2-h**, el ensayo de publicación)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) F2-g (PR 11, fusionado) y F2-h (PR 12) hechas; siguiente: **F2-j**, higiene de la cadena de suministro, y **F2-i**, la publicación firmada)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -103,9 +103,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   hecha el 2026-11-19** (125 sesiones de F2, F3 y F4 en
   `docs/plan/sessions/`: PR 4); las doce decisiones previas a F2,
   respondidas el mismo día; los PR 1…4 fusionados con squash y la rama por defecto
-  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); F2-b…F2-g (PR 6 a 11); **quedan F2-j,
-  F2-h y F2-i** (`docs/plan/sessions/f2.md`; j es independiente, h va
-  antes que i); se
+  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); F2-b…F2-h (PR 6 a 12); **quedan F2-j y
+  F2-i** (`docs/plan/sessions/f2.md`; para F2-i el propietario crea el
+  par de claves y lanza `v2.0.0-alpha.0`); se
   trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
@@ -537,8 +537,19 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   la forma `v2.x.y` o `-alpha.N`/`-beta.N`/`-rc.N`), `guard set-version
   <v>` y `guard tags <v>` (una etiqueta por módulo publicado). Hoy
   ningún módulo requiere a otro, así que la regla no compara nada sobre
-  el árbol real; sus tests usan árboles con requisitos. Siguiente: F2-j
-  o F2-h.
+  el árbol real; sus tests usan árboles con requisitos. PR 11
+  fusionado.
+- **F2-h hecha el 2026-11-19** (PR 12): `guard proxy <v> <dir>` y
+  `scripts/release/rehearse.sh <v>`, con su trabajo de CI. Desde un
+  directorio vacío, sin workspace y con la caché de módulos vacía,
+  `go install …/cmd/quantum/v2@<v>` instala la CLI y un módulo vacío
+  requiere todos los módulos de biblioteca. Corre sobre el árbol real y
+  sobre `testdata/chain`, donde la CLI requiere nucleus y nucleus
+  requiere quark. **Resuelve lo que el ADR-0001 dejó al esqueleto**: los
+  módulos que se requieren entre sí se resuelven sin `replace` y sin
+  `go.sum` para sus hermanos; con un `replace` en el `go.mod` de la CLI,
+  `go install` la rechaza (probado a mano). No ejercita `GOPRIVATE` ni
+  credenciales. Siguiente: F2-j y F2-i.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
