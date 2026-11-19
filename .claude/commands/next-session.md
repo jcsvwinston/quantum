@@ -98,8 +98,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   del repositorio nuevo, con el contrato de sesión de la generación 2 en su
   `docs/plan/README.md` y los ADR-0012…0015); **F1-b hecha el mismo día** (la primera hora
   medida: PR 2, con los objetivos de F5 aceptados); **F1-c hecha el 2026-11-19** (la API
-  pública en papel con declaraciones que pasan `go vet`: PR 3; cuatro
-  enmiendas de ADR y nueve puntos esperan al propietario); **la siguiente
+  pública en papel con declaraciones que pasan `go vet`: PR 3; las cuatro
+  enmiendas de ADR y los nueve puntos, decididos el 2026-11-19); **la siguiente
   sesión es F1-d** (troceado de
   F2 y F3), y se trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
@@ -441,9 +441,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   de quark (el enlazador quita los no usados si el driver devuelve su
   constructor) y AG Grid es el 42 % del JavaScript del panel (tabla
   propia). La primera hora sobre el papel: 15 comandos y 2 líneas por
-  campo, sin margen. Esperan al propietario cuatro enmiendas de ADR
-  (0004, 0006, 0009 y la segunda mitad de 0011) y nueve puntos surgidos
-  al aplicar (README §3.3 de `docs/plan/api/`). Siguiente: F1-d.
+  campo, sin margen. El 2026-11-19 el propietario aceptó las cuatro
+  enmiendas de ADR (0004, 0006, 0009 y la segunda mitad de 0011) y
+  decidió los nueve puntos surgidos al aplicar (README §3.3 de
+  `docs/plan/api/`): siete como estaban; `--env` gana a `QUANTUM_ENV`;
+  `data.Module` acepta el driver y después las opciones de `data.Open`.
+  F1-c no deja nada pendiente del propietario. Siguiente: F1-d.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
