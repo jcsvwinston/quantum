@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; siguiente: **fusionar la pila de F1 (PR 1…4, el propietario), renombrar la rama por defecto a `main` y F2-a**, en el repositorio nuevo)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo; siguiente: **F2-a**, el workspace del esqueleto)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -102,9 +102,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   enmiendas de ADR y los nueve puntos, decididos el 2026-11-19); **F1-d
   hecha el 2026-11-19** (125 sesiones de F2, F3 y F4 en
   `docs/plan/sessions/`: PR 4); las doce decisiones previas a F2,
-  respondidas el mismo día; **la siguiente sesión es F2-a**, tras
-  fusionar el propietario los PR 1…4 y renombrar la rama por defecto a
-  `main`; se
+  respondidas el mismo día; los PR 1…4 fusionados con squash y la rama por defecto
+  renombrada a `main` el 2026-11-19; **la siguiente sesión es F2-a**
+  (`docs/plan/sessions/f2.md`); se
   trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
@@ -473,8 +473,15 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   firma con par de claves hasta publicar y sin claves después, seis
   plataformas; cortar `v2.0.0-alpha.0` al final de F2; sin Node en F2;
   `x/mod` sólo en `internal/guard`. Quedan abiertas las de capas
-  posteriores (`sessions/README.md` §4). Siguiente: fusionar PR 1…4
-  (antes, leer ADR-0014 y ADR-0015), renombrar la rama, y F2-a.
+  posteriores (`sessions/README.md` §4).
+- **F1 fusionada el 2026-11-19 por la sesión, con el sí del
+  propietario**: PR 1…4 con squash, en orden, y `design/f1-foundations`
+  renombrada a `main` (cuatro commits, uno por sesión de F1; ramas de F1
+  borradas). Trampa: `--delete-branch` en el PR 1 cerró el PR 2, cuya
+  base era esa rama; se restauró la rama, se reabrió y se reapuntó. Para
+  el resto: reapuntar la base, `git merge -s ours origin/<base>` en la
+  rama del PR (tras comprobar que el árbol de la base es el de la rama
+  anterior) y fusionar sin borrar ramas hasta el final. Siguiente: F2-a.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
