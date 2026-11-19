@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0, F1-a, F1-b y F1-c hechas; siguiente: **F1-d** —el troceado de F2 y F3—, en el repositorio nuevo)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; siguiente: **las decisiones del propietario previas a F2 y después F2-a**, en el repositorio nuevo)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -99,9 +99,12 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `docs/plan/README.md` y los ADR-0012…0015); **F1-b hecha el mismo día** (la primera hora
   medida: PR 2, con los objetivos de F5 aceptados); **F1-c hecha el 2026-11-19** (la API
   pública en papel con declaraciones que pasan `go vet`: PR 3; las cuatro
-  enmiendas de ADR y los nueve puntos, decididos el 2026-11-19); **la siguiente
-  sesión es F1-d** (troceado de
-  F2 y F3), y se trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
+  enmiendas de ADR y los nueve puntos, decididos el 2026-11-19); **F1-d
+  hecha el 2026-11-19** (125 sesiones de F2, F3 y F4 en
+  `docs/plan/sessions/`: PR 4); **la siguiente sesión abre con las
+  decisiones del propietario previas a F2** (X-1, X-2 y F2-A1…A10 de
+  `docs/plan/sessions/README.md` §4, una a una) **y sigue con F2-a**; se
+  trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
   visual A («Calm teal»); maqueta en
@@ -446,7 +449,21 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   decidió los nueve puntos surgidos al aplicar (README §3.3 de
   `docs/plan/api/`): siete como estaban; `--env` gana a `QUANTUM_ENV`;
   `data.Module` acepta el driver y después las opciones de `data.Open`.
-  F1-c no deja nada pendiente del propietario. Siguiente: F1-d.
+  F1-c no deja nada pendiente del propietario.
+- **F1-d hecha el 2026-11-19** (PR 4 del repositorio nuevo, apilado
+  sobre el 3): `docs/plan/sessions/` con 125 sesiones, cada una con lo
+  que deja, su precondición y un comando de comprobación —F2 10, quark
+  18, nucleus 16, capacidades 33, orbit 26, CLI y starter 10,
+  documentación 12—, y un README con el orden entre capas, trece reglas
+  comunes y las decisiones del propietario ordenadas por cuándo hacen
+  falta (ninguna decidida; doce antes de F2). Ningún comando de
+  comprobación se ha ejecutado: el código no existe. Hallazgos: CI no
+  puede bloquear merges (repositorio privado en plan Free); no hay rama
+  `main` en origin; el camino de la primera hora no funciona tal como
+  está escrito el scaffold (falta el autenticador de API key, la fuente
+  de roles de la sesión y la configuración de accounts: decisión C-A2);
+  faltan por listar los proveedores distintos de Redis. Siguiente: las
+  decisiones previas a F2, y F2-a.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
