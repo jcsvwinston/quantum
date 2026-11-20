@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; decisiones de quark respondidas (PR 17); F3-Q1 (PR 18) y **F3-Q2 (PR 19) hechas el 2026-11-20**; siguiente: **F3-Q2b**)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; decisiones de quark respondidas (PR 17); **F3-Q1, Q2 y Q2b hechas el 2026-11-20 (PR 18, 19, 20)**; siguiente: **F3-Q3**, y decidir qué se hace con los 26 tests perdidos)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -587,23 +587,23 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   con la red bloqueada, las seis sumas casan y el binario responde
   `quantum v2.0.0-alpha.0`. PR 15 (README y cierre de F2
   en el plan) fusionado.
-- **F4-1 hecha (PR 16)**: `website/` (Docusaurus arranca en la sesión),
-  `bash scripts/docs/check.sh`. No se publica (Pages). Abierto: notas
-  de publicación, canal de `SECURITY.md`, «Calm teal».
-- **Decisiones de quark, 2026-11-20 (PR 17)**: A1 (b) tests con SQLite
-  en `quark/internal/tests` (sesión F3-Q2b; `go.mod` sin `require`);
-  A3 (b); A7 (a); A8 (b); A4 (a); A5 (b); A6 (b) Q17 programada. 19
-  sesiones de quark.
-- **F3-Q1 hecha (PR 18)**: `quarkdriver` y los paquetes internos;
-  conformidad con el papel (`P` sobre `./quark/`).
-- **F3-Q2 hecha el 2026-11-20 (PR 19)**: paquete raíz copiado (26 717
-  líneas), `quark.New(sqlite.Driver(), dsn)`, `go.mod` sin `require`,
-  módulo `quark/drivers/sqlite`, punta a punta en verde; pendientes del
-  papel 300 → 124. **`go.work` lleva `replace <ruta> <versión> =>
-  ./dir`** por cada hermano requerido (corrige el hecho 3 de F2; el
-  guard lo vigila); versión del árbol `v2.0.0-alpha.1`. Q2b crece a 37
-  ficheros de test (9 292 líneas). Interino hasta Q7:
-  `classifiers_interim.go`.
+- **F4-1 (PR 16)**: `website/` y `bash scripts/docs/check.sh`; no se
+  publica (Pages). Abierto: notas de publicación, canal de
+  `SECURITY.md`, «Calm teal».
+- **Decisiones de quark (PR 17)**: A1 (b), A3 (b), A7 (a), A8 (b),
+  A4 (a), A5 (b), A6 (b).
+- **F3-Q1 (PR 18)**: `quarkdriver`, paquetes internos y la conformidad
+  con el papel (`P` sobre `./quark/`).
+- **F3-Q2 hecha (PR 19)**: paquete raíz copiado, `quark.New(
+  sqlite.Driver(), dsn)`, `go.mod` sin `require`, módulo
+  `quark/drivers/sqlite`. **`go.work` lleva `replace <ruta> <versión>
+  => ./dir`** por hermano requerido (el guard lo vigila); árbol en
+  `v2.0.0-alpha.1`. Interino hasta Q7: `classifiers_interim.go`.
+- **F3-Q2b hecha (PR 20)**: módulo no publicado `quark/internal/tests`
+  (108 tests sobre SQLite real); 37 en el raíz sobre `stubDriver`; **26
+  PERDIDOS** (7 de caché de sentencias, 5 de réplicas…), listados en
+  `docs/plan/sessions/quark-q2b-lost.md`; el propietario decide si se
+  reescriben en sesión propia o al rehacer cada área.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
