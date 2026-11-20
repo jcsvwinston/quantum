@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; decisiones de quark respondidas (PR 17); **F3-Q1, Q2 y Q2b hechas el 2026-11-20 (PR 18, 19, 20)**; siguiente: **F3-Q3**, y decidir qué se hace con los 26 tests perdidos)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; decisiones de quark respondidas (PR 17); **F3-Q1, Q2 y Q2b hechas el 2026-11-20 (PR 18, 19, 20)**; siguiente: **F3-Q3**)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -600,10 +600,9 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   => ./dir`** por hermano requerido (el guard lo vigila); árbol en
   `v2.0.0-alpha.1`. Interino hasta Q7: `classifiers_interim.go`.
 - **F3-Q2b hecha (PR 20)**: módulo no publicado `quark/internal/tests`
-  (108 tests sobre SQLite real); 37 en el raíz sobre `stubDriver`; **26
-  PERDIDOS** (7 de caché de sentencias, 5 de réplicas…), listados en
-  `docs/plan/sessions/quark-q2b-lost.md`; el propietario decide si se
-  reescriben en sesión propia o al rehacer cada área.
+  (130 tests sobre SQLite real), 38 en el raíz sobre `stubDriver`; de
+  los 26 que tocaban internos, 23 reescritos desde fuera por orden del
+  propietario y 3 perdidos (`docs/plan/sessions/quark-q2b-lost.md`).
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
