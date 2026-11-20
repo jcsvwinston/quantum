@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; decisiones de quark respondidas (PR 17); **F3-Q1…Q5 hechas el 2026-11-20 (PR 18…23)**; siguiente: **F3-Q6**)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; decisiones de quark respondidas (PR 17); **F3-Q1…Q6 hechas (PR 18…23 y 25)**; siguiente: **F3-Q7**)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -591,24 +591,25 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   publicar. Abierto: notas de publicación, canal de
   `SECURITY.md`, «Calm teal».
 - **Quark, 2026-11-20** (decisiones en PR 17: A1 b, A3 b, A7 a, A8 b,
-  A4 a, A5 b, A6 b). Q1 (PR 18): `quarkdriver`, internos, conformidad
-  con el papel (`P` sobre `./quark/`). Q2 (PR 19): paquete raíz,
-  `go.mod` sin `require`;
+  A4 a, A5 b, A6 b). Q1 (PR 18): `quarkdriver`, `P` sobre
+  `./quark/`. Q2 (PR 19): paquete raíz, `go.mod` sin `require`;
   **`go.work` lleva `replace <ruta> <versión> => ./dir`** por hermano
   requerido; árbol en `v2.0.0-alpha.1`; interino hasta Q7:
   `classifiers_interim.go`. Q2b (PR 20): `quark/internal/tests` (SQLite
   real), 3 tests perdidos (`quark-q2b-lost.md`). Q3 (PR 21):
   `Register(namespace, …)`, `ErrModelNotRegistered`. Q4 (PR 22): drivers postgres/mysql/mssql/
   oracle, `Client.Listen`, carril `engines`. Q5 (PR 23): kit
-  `quarkdriver/drivertest` (43 subpruebas, verdes en los seis motores)
-  y plantilla `quark/internal/drivertemplate`; el kit cazó en Oracle
-  que la introspección no leía `CHAR_USED`. Pendientes del papel: 83. Abierto: `Limits.SafeMigrations`
+  `quarkdriver/drivertest` y plantilla de driver.
+  Q6 (PR 25, 2026-11-21): `quark/internal/enginesuite` (61 ficheros),
+  fugas y paridad (A3); verde en los seis motores; migraciones,
+  tenencia, caché y otel siguen en gen1 para Q10/Q12/Q13; un test
+  que ignora el error esconde un modelo sin registrar. Pendientes del
+  papel: 83. Abierto: `Limits.SafeMigrations`
   sin lector; opciones de driver (A7) sin proponer.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
-- **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
-  dejaron nada; relanzados con `model: opus` y escribiendo su fichero
-  desde el principio, funcionaron. `scripts/estado.sh` sigue anunciando
+- **Trampas**: subagentes en Fable caídos por límite de uso; con
+  `model: opus` funcionaron. `scripts/estado.sh` sigue anunciando
   «Siguiente: A12»: no conoce QADR-0011.
 
 ### Sesión 2026-11-17 — **F0 de la segunda generación: QADR-0011, el repositorio nuevo, once ADR y el prototipo del núcleo**
