@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; siguiente: **las decisiones de quark (Q-A1 la primera) y F3-Q1**)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; **las siete decisiones de quark respondidas el 2026-11-20 (PR 17)**; siguiente: **F3-Q1**)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -587,22 +587,17 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   con la red bloqueada, las seis sumas casan y el binario responde
   `quantum v2.0.0-alpha.0`. PR 15 (README y cierre de F2
   en el plan) fusionado.
-- **F4-1 hecha el 2026-11-19 (PR 16)**: `website/` (Docusaurus 3.10.2,
-  un árbol, `sidebars.json`), las 68 páginas del diseño como borradores
-  (`draft: true` y una frase; el build no las sirve), portada, y
-  decisiones, Contributing, Security y notas copiadas por `guard
-  docs-generate` (no versionadas). `bash
-  scripts/docs/check.sh` y el trabajo `docs` del CI; `guard docs` (en
-  `scripts/check.sh`, sin Node) y `guard docs-built`; importación de
-  listados propia (`file=<ruta>`). **Docusaurus SÍ arranca en la
-  sesión** (instalar 33 s, construir 6 s): la pregunta A12 queda
-  respondida. El sitio se construye y NO se publica (Pages). Abierto
-  para el propietario: qué son las notas de una publicación y quién las
-  escribe (`docs/releases/` vacío); el canal de `SECURITY.md` (el aviso
-  privado de GitHub sólo existe con el repositorio público); la paleta
-  («Calm teal» no está, tema por defecto). Trampas: Docusaurus quita
-  el prefijo numérico (`numberPrefixParser: false`); la cabecera de los
-  ADR no es YAML válido.
+- **F4-1 hecha el 2026-11-19 (PR 16, fusionado)**: `website/`
+  (Docusaurus 3.10.2, que SÍ arranca en la sesión), 68 páginas borrador
+  (`draft: true`), decisiones/Contributing/Security copiadas por `guard
+  docs-generate`, `bash scripts/docs/check.sh` y el trabajo `docs`. Se
+  construye y NO se publica (Pages). Abierto: qué son las notas de una
+  publicación, el canal de `SECURITY.md`, la paleta «Calm teal».
+- **Decisiones de quark, 2026-11-20 (PR 17)**: A1 (b) tests con SQLite
+  en un módulo no publicado `quark/internal/tests` (sesión nueva
+  F3-Q2b; el `go.mod` de quark sin `require`); A3 (b); A7 (a); A8 (b);
+  A4 (a); A5 (b); A6 (b) Q17 se programa. Contra la recomendación: A1 y
+  A6. Quark: 19 sesiones; el plan, 126.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
 - **Trampas**: los subagentes en Fable cayeron por el límite de uso y no
