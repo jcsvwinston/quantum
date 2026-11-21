@@ -600,7 +600,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   oracle, `Client.Listen`, carril `engines`. Q5 (PR 23): kit
   `quarkdriver/drivertest`, plantilla de driver.
   Q6 (PR 25): `quark/internal/enginesuite`, fugas y paridad (A3);
-  migraciones, tenencia, caché y otel siguen en gen1 (Q10/Q12/Q13).
+  migraciones, tenencia, caché y otel, en gen1 (Q10/Q12/Q13).
   Q7 (PR 26, 2026-11-21): `Classify` por cliente (sin lista global;
   SQLSTATE en el driver postgres), `WithValidator`,
   `ObserveQuery(ctx, …)`. Pendientes del papel: 63. Abierto: el
@@ -608,8 +608,8 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   sin lector; opciones de driver (A7) sin proponer.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
-- **Trampas**: subagentes en Fable caídos por límite de uso; con
-  `model: opus` funcionaron. `scripts/estado.sh` sigue anunciando
+- **Trampas**: subagentes en Fable caídos por límite de uso;
+  con `model: opus`, no. `scripts/estado.sh` sigue anunciando
   «Siguiente: A12»: no conoce QADR-0011.
 
 ### Sesión 2026-11-17 — **F0 de la segunda generación: QADR-0011, el repositorio nuevo, once ADR y el prototipo del núcleo**
