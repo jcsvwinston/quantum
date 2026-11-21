@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; decisiones de quark respondidas (PR 17); **F3-Q1…Q7 hechas (PR 18…23, 25, 26)**; siguiente: **F3-Q8**)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; decisiones de quark respondidas (PR 17); **F3-Q1…Q8 hechas (PR 18…23, 25…27)**; siguiente: **A9 → F3-Q8b**)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -595,16 +595,17 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   `./quark/`. Q2 (PR 19): paquete raíz, `go.mod` sin `require`;
   **`go.work` lleva `replace <ruta> <versión> => ./dir`** por hermano
   requerido; árbol en `v2.0.0-alpha.1`. Q2b (PR 20): `quark/internal/tests`,
-  3 tests perdidos (`quark-q2b-lost.md`). Q3 (PR 21):
-  `Register(namespace, …)`, `ErrModelNotRegistered`. Q4 (PR 22): drivers postgres/mysql/mssql/
-  oracle, `Client.Listen`, carril `engines`. Q5 (PR 23): kit
-  `quarkdriver/drivertest`, plantilla de driver.
-  Q6 (PR 25): `quark/internal/enginesuite`, fugas y paridad (A3);
-  migraciones, tenencia, caché y otel, en gen1 (Q10/Q12/Q13).
-  Q7 (PR 26, 2026-11-21): `Classify` por cliente (sin lista global;
-  SQLSTATE en el driver postgres), `WithValidator`,
-  `ObserveQuery(ctx, …)`. Pendientes del papel: 63. Abierto: el
-  ejemplo del papel lee `ClassNone` como éxito; `Limits.SafeMigrations`
+  3 tests perdidos (`quark-q2b-lost.md`). Q3 (PR 21): `Register(namespace, …)`. Q4 (PR 22): drivers de
+  servidor, carril `engines`. Q5 (PR 23): kit
+  `quarkdriver/drivertest`.
+  Q6 (PR 25): `quark/internal/enginesuite`; migraciones, tenencia,
+  caché y otel, en gen1 (Q10/Q12/Q13).
+  Q7 (PR 26): `Classify` por cliente, `WithValidator`,
+  `ObserveQuery(ctx, …)`. Q8 (PR 27, 2026-11-21, EN PARTE): DEP-003,
+  004, 005, 008, 009 y `CountEstimate`; **el upsert (DEP-006) es
+  F3-Q8b y espera la decisión A9** (`quark.md` §A). Pendientes del
+  papel: 62. Abierto: el papel lee `ClassNone` como éxito;
+  `Limits.SafeMigrations`
   sin lector; opciones de driver (A7) sin proponer.
 - **Corrección de vocabulario del propietario**: se dice nucleus, no «el
   núcleo».
