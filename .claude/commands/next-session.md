@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; decisiones de quark respondidas (PR 17); **F3-Q1…Q9 hechas (PR 18…23, 25…30)**; siguiente: **F3-Q10**)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; decisiones de quark respondidas (PR 17); **F3-Q1…Q10b hechas (PR 18…23, 25…32)**; siguiente: **F3-Q11**)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -598,17 +598,16 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   3 tests perdidos (`quark-q2b-lost.md`). Q3 (PR 21): `Register(namespace, …)`. Q4 (PR 22): drivers de
   servidor, carril `engines`. Q5 (PR 23): kit
   `quarkdriver/drivertest`.
-  Q6 (PR 25): `quark/internal/enginesuite`; migraciones, tenencia,
-  caché y otel, en gen1 (Q10/Q12/Q13).
+  Q6 (PR 25): `quark/internal/enginesuite`; tenencia, caché y otel,
+  en gen1 (Q12/Q13).
   Q7 (PR 26): `Classify` por cliente, `WithValidator`,
   `ObserveQuery(ctx, …)`. Q8 (PR 27) y Q8b (PR 29, 2026-11-22): los seis
-  DEP y `CountEstimate`; un solo `Upsert`. Q9 (PR 30): dialectos. **A9…A11 decididas** (`quark.md` §A). Pendientes del papel: 61. Los cabos sueltos, en A10, para F3-Q18.
-  **Regla (2026-11-22): cada decisión del propietario se le plantea
-  ANTES de pedir la fusión, una a una.**
-- **Corrección de vocabulario del propietario**: se dice nucleus, no «el
-  núcleo».
-- **Trampas**: subagentes en Fable caídos por límite de uso;
-  con `model: opus`, no. `scripts/estado.sh` sigue anunciando
+  DEP y `CountEstimate`; un solo `Upsert`. Q9 (PR 30): dialectos. Q10/Q10b (PR 31, 32): plan por espacio de nombres, `Migrate` sólo añade. **A9…A13 decididas** (`quark.md` §A). Pendientes del papel: 56. Cabos sueltos, en A10, para F3-Q18. El 2.0, sin fecha mínima.
+  **Regla: cada decisión del propietario, una a una y ANTES de pedir
+  la fusión.**
+- **Vocabulario**: se dice nucleus, no «el núcleo».
+- **Trampas**: subagentes en Fable caen por límite;
+  con `model: opus`, no. `scripts/estado.sh` anuncia
   «Siguiente: A12»: no conoce QADR-0011.
 
 ### Sesión 2026-11-17 — **F0 de la segunda generación: QADR-0011, el repositorio nuevo, once ADR y el prototipo del núcleo**
