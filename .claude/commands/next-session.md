@@ -64,7 +64,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
 6. **Quark sigue usable en solitario**; nada lo obliga a depender de Nucleus/Orbit.
 7. **Conventional Commits**; trabaja en rama y abre PR (no commitees directo a `main`).
 
-## 3. Estado al cierre (2026-11-17, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 hecha; siguiente: **F1**, la `S0` de la segunda generación —inventario hereda/tira y contrato—, en el repositorio nuevo)
+## 3. Estado al cierre (2026-11-19, GENERACIÓN 1 CONGELADA EN QUANTUM 1.45.0 — QADR-0011: el 2.0 es una segunda generación en `the-quantum-platform/quantum`; F0 y F1-a…F1-d hechas; F1 fusionada en `main` del repositorio nuevo y F2-a, F2-b (PR 5 y 6, fusionados) F2-c, F2-d (PR 7 y 8, fusionados) **F2 CERRADA: `v2.0.0-alpha.0` del esqueleto publicada y verificada**; **F4-1 hecha (PR 16): el esqueleto del sitio de documentación**; decisiones de quark respondidas (PR 17); **F3-Q1…Q16 hechas (PR 18…23, 25…38; los PR 36, 37 y 38, de Q14, Q15 y Q16, abiertos, apilados y sin fusionar a 2026-11-25: el CI espera a la cuota del 2026-12-01; el PR 38 espera además dos decisiones de Carlos)**; siguiente: **F3-Q17**)
 
 ### Estado vigente (léelo entero; es lo único que hace falta para arrancar)
 
@@ -83,7 +83,7 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   propietario y de ellos se aprovecha por copia todo lo que se pueda.
   **Dónde está el estado de la segunda generación**: en el repositorio
   nuevo, rama `design/f1-foundations` (su `main` aún no existe: nace con el
-  esqueleto de F2) — once ADR en `docs/adr/` (un repo y un número de
+  esqueleto de F2) — quince ADR en `docs/adr/` (los once fundacionales: un repo y un número de
   versión con rutas `/v2`; Quark con vida propia; núcleo ligero con
   capacidades como módulos por `nucleus.Part`; permisos propios con
   denegar por defecto; sólo YAML y entorno; interfaz mínima de
@@ -93,11 +93,22 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   (`nucleus/`, `nucleus/data/`, `internal/spike/`, 19 tests) y la misma
   aplicación en Gin, Echo y Fiber (`internal/spike/compare/`). El `go.work`
   de esa rama apunta al quark de ESTE checkout y sólo compila en esta
-  máquina. **Las siete fases** (QADR-0011): F0 hecha; **la siguiente
-  sesión es F1** —inventario hereda/tira paquete a paquete sobre el pin de
-  1.45.0, la primera hora medida como línea base, API pública en papel,
-  arquitectura de la información, y el contrato y troceado— y se trabaja
-  en el repositorio nuevo. Presentación decidida: lema «The Power of
+  máquina. **Las siete fases** (QADR-0011): F0 hecha y **F1-a hecha el
+  2026-11-18** (inventario hereda/tira y sus 23 preguntas respondidas: PR 1
+  del repositorio nuevo, con el contrato de sesión de la generación 2 en su
+  `docs/plan/README.md` y los ADR-0012…0015); **F1-b hecha el mismo día** (la primera hora
+  medida: PR 2, con los objetivos de F5 aceptados); **F1-c hecha el 2026-11-19** (la API
+  pública en papel con declaraciones que pasan `go vet`: PR 3; las cuatro
+  enmiendas de ADR y los nueve puntos, decididos el 2026-11-19); **F1-d
+  hecha el 2026-11-19** (125 sesiones de F2, F3 y F4 en
+  `docs/plan/sessions/`: PR 4); las doce decisiones previas a F2,
+  respondidas el mismo día; los PR 1…4 fusionados con squash y la rama por defecto
+  renombrada a `main` el 2026-11-19; **F2-a hecha el mismo día** (PR 5); F2-b…F2-j (PR 6 a 14, fusionados); **F2
+  cerrada el 2026-11-19 con `v2.0.0-alpha.0` publicada**; lo siguiente
+  son las decisiones de quark (Q-A1 la primera) y F3-Q1, o F4-1 (el
+  esqueleto del sitio, que no necesita producto; Pages no está
+  disponible en privado y faltan los valores de «Calm teal»); se
+  trabaja en el repositorio nuevo. Presentación decidida: lema «The Power of
   Simplicity.», todo lo público en inglés, sitio en GitHub Pages de la
   organización, comparativas como apartado de la documentación, dirección
   visual A («Calm teal»); maqueta en
@@ -366,111 +377,238 @@ y **Orbit** (admin que monta in-process en Nucleus). El repo `quantum`
   memoria de la sesión de Claude → `~/.claude/projects/.../memory/`.
 - **Pendientes con destinatario**: §5.
 
-### Sesión 2026-11-17 — **F0 de la segunda generación: QADR-0011, el repositorio nuevo, once ADR y el prototipo del núcleo**
+### Sesión 2026-11-17/18 — **F1-a de la segunda generación: el inventario hereda/tira y las 23 preguntas respondidas**
 
-- **Arranque**: Carlos pidió la planificación del 2.0 antes de entrar en
-  materia; después, decisión a decisión, todo lo que sigue.
-- **Las cinco decisiones de base** (QADR-0011): organización
-  `the-quantum-platform`; monorepo `quantum` con un solo número de versión;
-  Quark con nombre y vida propia; ruta de GitHub sin dominio propio y «2»
-  como semver real (`…/quantum/quark/v2`, prelanzamientos
-  `v2.0.0-alpha.N`); el repositorio lo opera la cuenta del propietario.
-- **El núcleo ligero, medido**: importar `pkg/nucleus` 1.36.0 enlaza 430
-  paquetes, 167 de terceros; el prototipo deja una API mínima en 194 y UNO
-  (el parser de YAML), y 272/67 con quark y el driver de SQLite (el driver
-  pesa 37 de esos 67; quark sin driver, 30, la mitad
-  `go-playground/validator`: pendiente del inventario de quark). Cuatro
-  decisiones: permisos propios, sólo YAML, interfaz de observación propia
-  (con `traceparent`), validador propio.
-- **El router y el rendimiento**: grupos, middleware con la firma de
-  `net/http`, tags `path`/`query`/`header`, formas libres `Handle` y
-  `HandleFunc`. Carga real en un M4 Pro (loopback, 64 conexiones):
-  Quantum ≈ Gin ≈ Echo (133–140 mil req/s, 36–39 µs de CPU por petición);
-  Fiber un 4–8 % por delante. La diferencia está en `net/http`, no en la
-  capa propia (0,1–1,2 µs). Decidido: se queda `net/http`. Sin medir:
-  Linux, `net/http` desnudo, un endpoint con base de datos.
-- **La comparativa de scaffolds**: la misma aplicación de catálogo en los
-  cuatro, con respuestas idénticas a ocho peticiones: 48 líneas en Quantum
-  frente a 142 (Gin), 154 (Echo) y 152 (Fiber).
-- **Lo que Carlos pidió y condiciona el diseño**: que nada sea magia (cada
-  atajo con su forma explícita y un comando que imprima lo resuelto:
-  ADR-0010); `modules/` desde el principio; dentro de un módulo, las dos
-  divisiones, y `quantum new` genera la de tipo, «como Django»; migraciones
-  por módulo; «todo lo ligero que podamos, módulos según necesidad,
-  seguridad ante todo»; el norte es servir a un proyecto grande como
-  Django y a uno pequeño como FastAPI o Flask.
-- **Lo ejecutado**: quantum#328 (QADR-0011 y este handoff); en el
-  repositorio nuevo, la rama `design/f1-foundations` con los ADR, la
-  licencia, el prototipo y las aplicaciones de comparación; el lienzo de
-  la maqueta con tres direcciones (elegida la A).
-- **Lo que espera al propietario**: fusionar quantum#328; revisar la
-  maqueta en pantalla; confirmar dos elecciones de la sesión (los pilares
-  «Lightness by default.» y «Security above all.» en lugar de sus frases
-  originales, y el copyright «The Quantum Platform Authors»); el perfil
-  de la organización en GitHub; y apagar las lanes programadas de la
-  generación 1 cuando quiera (la excepción de GO-2026-6909 caduca el
-  2026-12-31 y sólo importa mientras corran).
-- **Trampas**: un submódulo con major lleva el `/v2` al final de SU ruta
-  (`…/nucleus/data/v2`); los módulos sin publicar necesitan un `replace`
-  con versión en el `go.work` para compilar entre sí; `(cd X && ./bin &)`
-  devuelve el pid del subshell y deja el servidor huérfano en el puerto;
-  el scratchpad es volátil (lo valioso está ya en el repositorio nuevo).
+- **Arranque**: `/next-session auto`; foco propuesto y confirmado: F1-a, el
+  inventario. Todo el trabajo está en el repositorio nuevo,
+  `the-quantum-platform/quantum`, PR 1 (rama `plan/f1-inventory` →
+  `design/f1-foundations`), sin fusionar al cierre.
+- **Método**: un inventario por pilar sobre el pin de 1.45.0, en sólo
+  lectura, y un revisor adversarial por inventario que reprodujo los
+  comandos y corrigió el fichero (cada uno termina en una sección
+  `Review`). Sin ejecutar tests, bancos ni builds de la generación 1.
+- **Resultado** (`docs/plan/inventory/` del repositorio nuevo): casi nada
+  es copia directa salvo en quark — quark 14 / 30 / 5 (copia / con cambio
+  de forma / se tira), nucleus 5 / 44 / 19 en la raíz y 0 / 14 / 5 en los
+  otros módulos, orbit 2 / 41 / 16 más los 26 paquetes del fleet con
+  cambio de forma. La condición de reapertura de QADR-0011 (que la copia
+  equivalga a una migración) no se cumple. `nucleus.Part` cubre 3 de 19
+  enganches y al prototipo de nucleus le faltan 28 comportamientos, varios
+  de seguridad.
+- **Las 23 preguntas, respondidas una a una por el propietario el
+  2026-11-18.** Las que son ADR nuevo: ADR-0012 (registro explícito: nada
+  se registra desde `init()`), ADR-0013 (el RBAC de nucleus responde por
+  recurso × acción, permisos en código, roles asignados en caliente),
+  ADR-0014 (todo lo de datos es de quark; `nucleus/data` es sólo un
+  adaptador y nucleus no tiene clave `database`), ADR-0015 (orbit es
+  opcional entero y no se parte en módulos por peso; el fleet entra en la
+  2.0.0 tras el panel) y las enmiendas de cifras de ADR-0002 y ADR-0003
+  (22, 166 y 66 paquetes de terceros). El resto: quark sin terceros (sin
+  tags `validate:`, singleflight propio, sin codegen), `quark/otel`
+  anidado, una sola CLI `quantum`, cuatro motores en la alfa y seis en la
+  beta, migraciones por módulo en el migrador de quark, tablas propias
+  como modelos Quark, sin plugins ejecutables, un módulo de Redis, auth
+  partido en verificación y cuentas, validador de seis reglas, la lista de
+  comportamientos por entorno se queda en tres, SPA rehecha.
+- **Dos respuestas fueron un principio y no una opción** (datos → quark;
+  orbit opcional entero): se registraron como ADR y se enseñó la
+  redacción al propietario.
+- **Lo siguiente**: fusionar el PR 1; F1-b (la primera hora medida sobre
+  la generación 1) y F1-c (API pública en papel), con seis encargos
+  anotados en `inventory/README.md` (tag `validate:` inerte, tamaño de
+  cada área de quark y dialectos, `dumpdata`/`loaddata`, nombres de los
+  módulos de Redis y auth, peso de AG Grid). El prototipo aún no cumple
+  ADR-0012…0014.
+- **F1-b hecha el mismo 2026-11-18** (PR 2 del repositorio nuevo, apilado
+  sobre el 1; `docs/plan/first-hour/`): el recorrido del recién llegado
+  sobre 1.45.0 en once pasos, como script con las ediciones a mano en
+  parches. 77,2 s en frío y 27,9 s en caliente (M4 Pro, SQLite), 21
+  comandos y 20 líneas a mano; la aplicación resultante enlaza 498
+  paquetes. Diez tropiezos anotados (dos layouts, dos accesos a datos y
+  dos mecanismos de migración en un mismo proyecto; añadir un campo son 16
+  líneas a mano; el panel no se entera del modelo nuevo). Los objetivos
+  de F5 los aceptó el propietario el mismo día. Siguiente: F1-c.
+- **F1-c hecha el 2026-11-18/19** (PR 3 del repositorio nuevo, apilado
+  sobre el 2; `docs/plan/api/` e `internal/paper/`): la API pública en
+  papel de quark, nucleus, las capacidades, orbit y la CLI única, más el
+  árbol de documentación, con 53 paquetes de declaraciones Go vacías que
+  pasan `go vet`. Cinco papeles en paralelo, una revisión adversarial de
+  coherencia, las 27 preguntas de diseño y los nombres públicos
+  respondidos uno a uno, y una pasada que aplicó las respuestas. Lo que
+  cambió el diseño: la declaración de modelo es `data.Model[T](opciones)`
+  en `module.go` y la leen el CRUD y el panel; `main.go` es una lista de
+  módulos (`data.Module(driver)`); **el entorno se elige al arrancar
+  (`--env` o `QUANTUM_ENV`) y `main.go` declara qué fichero corresponde a
+  cada uno** (respuesta del propietario fuera de las opciones: ningún
+  fichero se lee por su nombre); la CLI compila y ejecuta el binario de la
+  aplicación; un comodín único de permisos; el validador corre también al
+  escribir; auth en dos módulos; orbit con un solo `go.mod`; sin
+  proveedor de secretos de AWS. Enmendados ADR-0003, 0005, 0007, 0011,
+  0012, 0013 y 0014. Medido: los dialectos no se mueven del paquete raíz
+  de quark (el enlazador quita los no usados si el driver devuelve su
+  constructor) y AG Grid es el 42 % del JavaScript del panel (tabla
+  propia). La primera hora sobre el papel: 15 comandos y 2 líneas por
+  campo, sin margen. El 2026-11-19 el propietario aceptó las cuatro
+  enmiendas de ADR (0004, 0006, 0009 y la segunda mitad de 0011) y
+  decidió los nueve puntos surgidos al aplicar (README §3.3 de
+  `docs/plan/api/`): siete como estaban; `--env` gana a `QUANTUM_ENV`;
+  `data.Module` acepta el driver y después las opciones de `data.Open`.
+  F1-c no deja nada pendiente del propietario.
+- **F1-d hecha el 2026-11-19** (PR 4 del repositorio nuevo, apilado
+  sobre el 3): `docs/plan/sessions/` con 125 sesiones, cada una con lo
+  que deja, su precondición y un comando de comprobación —F2 10, quark
+  18, nucleus 16, capacidades 33, orbit 26, CLI y starter 10,
+  documentación 12—, y un README con el orden entre capas, trece reglas
+  comunes y las decisiones del propietario ordenadas por cuándo hacen
+  falta (ninguna decidida; doce antes de F2). Ningún comando de
+  comprobación se ha ejecutado: el código no existe. Hallazgos: CI no
+  puede bloquear merges (repositorio privado en plan Free); no hay rama
+  `main` en origin; el camino de la primera hora no funciona tal como
+  está escrito el scaffold (falta el autenticador de API key, la fuente
+  de roles de la sesión y la configuración de accounts: decisión C-A2);
+  faltan por listar los proveedores distintos de Redis.
+- **Las doce decisiones previas a F2, respondidas una a una el
+  2026-11-19** (todas la opción recomendada): el panel arranca en
+  «panel-ready» y la CLI en la puerta del panel; bancos y guards donde
+  propone el plan; fusionar la pila de F1 y renombrar a `main`; privado
+  y gratuito, CI que informa; `go 1.26.0` sin `toolchain`; prototipo y
+  spike fuera, tras una etiqueta; CLI de mentira (`version`); squash;
+  firma con par de claves hasta publicar y sin claves después, seis
+  plataformas; cortar `v2.0.0-alpha.0` al final de F2; sin Node en F2;
+  `x/mod` sólo en `internal/guard`. Quedan abiertas las de capas
+  posteriores (`sessions/README.md` §4).
+- **F1 fusionada el 2026-11-19 por la sesión, con el sí del
+  propietario**: PR 1…4 con squash, en orden, y `design/f1-foundations`
+  renombrada a `main` (cuatro commits, uno por sesión de F1; ramas de F1
+  borradas). Trampa: `--delete-branch` en el PR 1 cerró el PR 2, cuya
+  base era esa rama; se restauró la rama, se reabrió y se reapuntó. Para
+  el resto: reapuntar la base, `git merge -s ours origin/<base>` en la
+  rama del PR (tras comprobar que el árbol de la base es el de la rama
+  anterior) y fusionar sin borrar ramas hasta el final.
+- **F2-a hecha el 2026-11-19** (PR 5 del repositorio nuevo, sin
+  fusionar): cuatro módulos vacíos (`quark/`, `nucleus/`, `orbit/`,
+  `cmd/quantum/` con una CLI que sólo dice su versión), `go.work` sólo
+  con `use`, `go 1.26.0` sin `toolchain`, prototipo y spike retirados
+  tras la etiqueta `prototype-2026-11-17`, y `CONTRIBUTING.md`. La
+  comprobación (`go vet work && go test work` y el `go vet` del papel)
+  pasa en esta máquina. PR 5 fusionado.
+- **F2-b hecha el 2026-11-19** (PR 6): `scripts/check.sh` (gofmt, vet y
+  tests del workspace, vet del papel) y `.github/workflows/ci.yml`, que
+  ejecuta sólo ese script en Linux, en go 1.26.0 y en stable (1.27.4 ese
+  día), con `GOTOOLCHAIN=local`, acciones fijadas por commit y permisos
+  de sólo lectura. Primera ejecución del CI del repositorio: verde en
+  los dos trabajos, unos 40 s cada uno. PR 6 fusionado.
+- **F2-c hecha el 2026-11-19** (PR 7): `scripts/lanes/quark-alone.sh`
+  (quark compila, pasa vet y tests con `GOWORK=off` y `GOPROXY=off`; su
+  `go.mod` sin `require` ni `replace`; nada enlazado fuera de la
+  biblioteca estándar y de quark), cuatro fixtures que el carril debe
+  rechazar y el trabajo `quark alone` del CI. Trampa: dentro de `if` y
+  de `$( )` bash apaga `set -e`; la autoprueba lo cazó (tres fixtures
+  pasaban) y cada fixture corre ahora en un proceso nuevo. PR 7
+  fusionado.
+- **F2-d hecha el 2026-11-19** (PR 8): `internal/guard`, módulo de
+  herramientas fuera del workspace (sólo requiere `golang.org/x/mod`),
+  con `guard graph` y la tabla `modules.rules` (23 líneas: qué módulos
+  y qué terceros puede requerir cada módulo). Rechaza un módulo sin
+  línea, un `require` no permitido (directo o indirecto), un `replace`,
+  una ruta sin `/v2`. Quince árboles que debe rechazar y tres que debe
+  admitir; la tabla se comprueba contra sí misma y contra los ADR.
+  Donde el papel no da la ruta exacta de un tercero, y en orbit y la
+  CLI, la línea dice `?` y la sesión que añada el primer requisito la
+  declara. Sin línea: drivers y módulos anidados de quark y proveedores
+  distintos de Redis. PR 8 fusionado.
+- **F2-e hecha el 2026-11-19** (PR 9): `guard source`, dos reglas. Sin
+  `func init()` ni imports en blanco (salvo `embed`) fuera de tests en
+  los módulos publicados (ADR-0012); ninguna palabra con letra o signo
+  del español en ficheros versionados. Excepciones con motivo en
+  `internal/guard/source.allow`; ninguna. La regla cazó una cita en
+  español en el inventario. Trampas de la sesión: un `python3 - <<EOF`
+  con error de sintaxis no detuvo la cadena y se abrió el PR sin parte
+  del cambio; `comando | tail` tapa el código de salida, así que se
+  empujó con la comprobación en rojo (corregido antes del CI); y el
+  canal de herramientas convierte los escapes `\uXXXX` de un heredoc
+  en caracteres reales. PR 9 fusionado.
+- **F2-f hecha el 2026-11-19** (PR 10): `guard title` y el flujo
+  `pr-title`, que comprueba el título del PR al abrirlo, editarlo o
+  actualizarlo y el asunto del commit en cada push a `main`. Tipos:
+  feat, fix, docs, test, refactor, perf, build, ci, chore, revert. Los
+  commits internos de una rama no se comprueban (squash). PR 10
+  fusionado.
+- **F2-g hecha el 2026-11-19** (PR 11): `guard version` (todos los
+  `require` entre módulos del repositorio nombran la misma versión, con
+  la forma `v2.x.y` o `-alpha.N`/`-beta.N`/`-rc.N`), `guard set-version
+  <v>` y `guard tags <v>` (una etiqueta por módulo publicado). Hoy
+  ningún módulo requiere a otro, así que la regla no compara nada sobre
+  el árbol real; sus tests usan árboles con requisitos. PR 11
+  fusionado.
+- **F2-h hecha el 2026-11-19** (PR 12): `guard proxy <v> <dir>` y
+  `scripts/release/rehearse.sh <v>`, con su trabajo de CI. Desde un
+  directorio vacío, sin workspace y con la caché de módulos vacía,
+  `go install …/cmd/quantum/v2@<v>` instala la CLI y un módulo vacío
+  requiere todos los módulos de biblioteca. Corre sobre el árbol real y
+  sobre `testdata/chain`, donde la CLI requiere nucleus y nucleus
+  requiere quark. **Resuelve lo que el ADR-0001 dejó al esqueleto**: los
+  módulos que se requieren entre sí se resuelven sin `replace` y sin
+  `go.sum` para sus hermanos; con un `replace` en el `go.mod` de la CLI,
+  `go install` la rechaza (probado a mano). No ejercita `GOPRIVATE` ni
+  credenciales. PR 12 fusionado.
+- **F2-j hecha el 2026-11-19** (PR 13): `guard actions` (acciones de
+  los flujos fijadas por commit; todos los módulos listados en
+  `.github/dependabot.yml`), dependabot semanal con un PR agrupado por
+  ecosistema, y `scripts/lanes/vuln.sh` con su trabajo de CI
+  (govulncheck v1.10.0 en cada módulo salvo `internal/paper`, con Go
+  estable). En el CI, con go1.27.4: sin hallazgos. En local, con
+  go1.26.0 —el mínimo declarado—, el carril falla por fallos de la
+  biblioteca estándar corregidos en parches posteriores de 1.26, uno
+  alcanzable desde el guard. Sin lista de excepciones todavía. PR 13
+  fusionado.
+- **F2-i escrita el 2026-11-19** (PR 14), **flujo sin ejecutar**:
+  `.github/workflows/release.yml` (manual, desde `main`),
+  `scripts/release/assets.sh` (seis binarios con la versión sellada y
+  `SHA256SUMS`), `scripts/release/sign.sh` (cosign 3.1.4 con par de
+  claves, verificado al momento contra la pública), `rehearse.sh
+  --assets` y `RELEASING.md`. Medido con la red bloqueada: con
+  `signing-config.none.json` cosign firma sin contactar con nada; sin
+  ese fichero, cosign 3 baja la configuración pública y subiría la
+  firma al registro (la opción `--tlog-upload` ya no existe). Falta del
+  propietario: `GITHUB_TOKEN="$(gh auth token)" cosign generate-key-pair
+  github://the-quantum-platform/quantum`, subir `cosign.pub` como
+  `scripts/release/cosign.pub` y lanzar `gh workflow run release -f
+  version=v2.0.0-alpha.0`. Context7 no respondió (clave inválida): la
+  documentación de cosign se leyó de su repositorio con `gh api`.
+- **F2 cerrada el 2026-11-19**: el propietario creó el par de claves
+  (el comando se lanzó tres veces y cada vez sustituyó los secretos; la
+  clave pública del repositorio es la del tercer par, y `cosign
+  generate-key-pair github://…` PIDE contraseña, no la genera). PR 14
+  fusionado; el flujo `release` corrió una vez, verde al primer
+  intento, y publicó `v2.0.0-alpha.0`: cuatro etiquetas sobre el mismo
+  commit y una prepublicación con seis binarios, `SHA256SUMS`, su firma
+  y la clave pública. Verificado desde una descarga: la firma verifica
+  con la red bloqueada, las seis sumas casan y el binario responde
+  `quantum v2.0.0-alpha.0`. PR 15 (README y cierre de F2
+  en el plan) fusionado.
+- **F4-1 (PR 16)**: `website/`, `bash scripts/docs/check.sh`; sin
+  publicar. Abierto: notas, canal de `SECURITY.md`, «Calm teal».
+- **Quark, 2026-11-20** (decisiones en PR 17: A1 b, A3 b, A7 a, A8 b,
+  A4 a, A5 b, A6 b). Q1 (PR 18): `quarkdriver`, `P` sobre
+  `./quark/`. Q2 (PR 19): paquete raíz, `go.mod` sin `require`;
+  **`go.work` lleva `replace <ruta> <versión> => ./dir`** por hermano
+  requerido; árbol en `v2.0.0-alpha.1`. Q2b (PR 20): `quark/internal/tests`,
+  3 tests perdidos (`quark-q2b-lost.md`). Q3 (PR 21): `Register(namespace, …)`. Q4 (PR 22): drivers,
+  carril. Q5 (PR 23): kit `drivertest`.
+  Q6 (PR 25): `quark/internal/enginesuite`.
+  Q7 (PR 26): `Classify` por cliente, `WithValidator`,
+  `ObserveQuery(ctx, …)`. Q8 (PR 27) y Q8b (PR 29, 2026-11-22): los seis
+  DEP y `CountEstimate`; un solo `Upsert`. Q9 (PR 30). Q10/Q10b (PR 31, 32): el plan. Q11 (PR 33): `migrate`, `seed`, `Tx.Exec`. Q12 (PR 34): tenencia, `quarktenant`. Q13 (PR 35): `quark/otel`, `quark/cache/redis`; Redis en el carril. Q14 (PR 36, 2026-11-24): el banco de capacidades en `quark/internal/tests/enterprisebench`, 68 controles (49/16/3; gen1 48/17/4 de 69), suelo de A5 (b) en `testdata/gen1-floor.txt` con `TestEnterpriseBenchFloor`, job `gate` en `ci.yml`; `LIKE-09` queda por debajo del suelo (SQL Server y Oracle semanales) como excepción anotada con `below` (A17). El CI del PR 36 NO HA CORRIDO: GitHub no arranca jobs por la facturación de la cuenta (cuota mensual del plan gratuito agotada; Carlos decidió el 2026-11-24 no pagar y ESPERAR AL 2026-12-01; hasta entonces se construye en ramas apiladas, sin fusionar; el día 1, relanzar la pila en orden y fusionar sólo en verde). Q15 (PR 37, 2026-11-24, apilado sobre el 36): el banco de extensión en `quark/internal/tests/extbench`, 18 controles (11/6/1; gen1 22/22), familia de drivers medida sobre `internal/drivertemplate`, suelo propio y registro `testdata/extension-points.txt` (56 tipos, 110 miembros, sin generador, `TestExtensionPointsFrozen`); fixtures en el módulo no publicado `quark/internal/integrations` (`example.com/integrations`, `GOWORK=off`, sin `withnucleus`); los drivers de servidor corren la mitad `contract` del kit sin motor. Quitados con decisión: `CON-08`, `DRV-01`, `INT-05`, `INT-06`. Bajo el suelo por A11 (2): `DRV-04`, `DRV-07`. `INT-01…04` DECIDIDOS (A18, 2026-11-24: parciales como excepción anotada hasta que F4-2 escriba `with-a-router` y su prueba). `CON-01` DECIDIDO (A19, 2026-11-24: ausente como excepción anotada hasta que F4-3 escriba la página de los puntos de extensión, sujeta por una prueba al registro). Nada del PR 37 espera ya a Carlos. Q16 (PR 38, 2026-11-25, apilado sobre el 37): el módulo no publicado `quark/benchmarks` con tres bancos — la comparación con `database/sql` a mano en SQLite (sin cifras registradas), el banco de motores `engines/` (nueve controles en PostgreSQL 16 y MySQL 8.4, `run.sh`, `RECORD.md` escrito desde el catálogo, workflow `engine-bench` aparte de `ci.yml`) y el banco de consultas `querybench/` (60 de 60 tipadas; gen1 58: v2 niega el GROUP BY sin proyección); sin GORM/ent/sqlc (A4 (a)). Medido dos veces con Docker en local: las asignaciones de ocho controles son las de gen1 y `PG-01` baja de 79 a 73; **los ratios de tiempo siguen siendo los de gen1 y NO están re-medidos**: se registran desde la máquina de referencia (el runner), que no corre hasta el 2026-12-01; las primeras corridas de `engine-bench` los re-registran (y `referenceCPUs`). No portados: `benchmarks/stress` y `PROFILING.md`. **A20 decidida y construida el 2026-11-25** (en el mismo PR 38): un tipo de proyección NO se registra; una lectura con `FromTable` o `FromCTE` corre sobre un tipo no registrado, sin ellos sigue siendo `ErrModelNotRegistered` y toda escritura también. **A21 decidida y construida el 2026-11-26** (mismo PR): el banco de motores se corre con `run.sh` en local cuando convenga (afirma asignaciones, informa ratios) y el workflow `engine-bench` arranca SÓLO a mano (`workflow_dispatch`); es la máquina de referencia y la primera corrida manual tras el 2026-12-01 re-registra los ratios. **El PR 38 no tiene decisiones pendientes**: sólo espera al CI. **A9…A21 decididas** (`quark.md` §A; A16, 2026-11-24: `redis.Store.Close()` se queda; A17, 2026-11-24: un control puede quedar bajo su suelo si una decisión del propietario lo explica). La sesión de F0 (2026-11-17), en `docs/handoff/sesion-2026-11-17-f0-segunda-generacion.md`. Pendientes del papel: 6. Cabos sueltos, en A10, para F3-Q18. El 2.0, sin fecha mínima.
+  **Regla: cada decisión del propietario, una a una y ANTES de pedir
+  la fusión.**
+- **Vocabulario**: se dice nucleus, no «el núcleo».
+- **Trampas**: subagentes en Fable caen por límite;
+  con `model: opus`, no. `scripts/estado.sh` anuncia
+  «Siguiente: A12»: no conoce QADR-0011.
 
-### Sesión 2026-11-16 — **`M1-S0`: el major medido y troceado**
+### Pendientes y régimen de la generación 1 (tal como quedó; inventario, no plan)
 
-- **Arranque**: Carlos, con 1.45.0 certificado: «arranca en paralelo `M1-S0`»
-  (y la pregunta de qué era «el clic de Discussions»: el ajuste de D24 en
-  GitHub → Settings → General → Features; ya estaba activo en quantum,
-  `has_discussions: true` el 2026-11-16 —la fecha del clic no sale de ningún
-  comando—, y no en los productos: QM-42 hecho, quantum#324).
-- **Método**: nueve áreas medidas en sólo lectura sobre `main` de los tres (=
-  el pin de 1.45.0) y las ramas `dry-run/2.0`, cada una con dos refutaciones
-  (reproducir cada comando; buscar lo no medido) y una síntesis; donde el
-  refutador demostró otra cifra vale la suya. Apuntes en el scratchpad de la
-  sesión (`m1s0/`); el producto es la sección «`M1-S0` — el major, medido y
-  troceado» del plan de A12 (su PR, en el registro de sesiones del plan).
-- **Lo que cambió del contrato**: el §3.5 son 41 `go.mod` y 2 156 líneas (no
-  39 y ~2 100), `cmd/nucleus` pasa a `…/nucleus/cmd/nucleus/v2`, el workspace
-  compila contra `/v2` sin `replace`; las 34 filas están `publicado`, 30
-  ensayadas y 4 sin commit (31/83/37 ficheros a rehacer); `pkg/model` son 36 +
-  13 símbolos; asynq deja 4 módulos y go-redis se queda; D11 cuesta 7 cortes
-  de convergencia y ADR-006 lo contradice; Discussions hecho.
-- **Lo que nadie había visto y bloquea**: el job `verify` de `release.yml` de
-  nucleus (informe de compatibilidad con `go test ./pkg/model` y un baseline
-  con 2 525 rutas v1) dejaría v2.0.0 sin activos; los ldflags de quark y
-  nucleus publicarían binarios «devel»/«dev»; con `bump-minor-pre-major` un
-  `!` deja 24 módulos v0.x sin el número 2.0.0; el lint del `!` de ADR-032 no
-  existe; quark y nucleus no tienen CI en PRs contra otra rama; cinco lectores
-  de ruta del paraguas callan con `/v2` (`align-module-floors` da «0 módulos»
-  en verde) y nueve mueren (`site-pages.py` tumba `bump-set`); la guía queda
-  vacía con avisos `completed` y la regla D2 de la política de deprecación lo
-  adelanta al 2026-12-08; `cmd/quark` no va en lockstep (falta la anotación de
-  release-please); la fila 30 y el `go.mod` de D11 son un solo PR; `ui` es
-  módulo con tag y cada cambio de SPA es un segundo corte de orbit.
-- **El troceado**: 23 sesiones más el tren, con un tramo 1.x de 18 sesiones
-  como precondición (`M1-V2-P`, `M1-T-P/O/N/Q`, `M1-T-LINT-Q/N/O/P`, `M1-G-P`,
-  `M1-G-Q/N/O`, `M1-G-F1…F5`); major por repo (`M1-V2-Q` → `M1-R-Q1…Q4`;
-  `M1-V2-N` → `M1-R-N1…N6`, `M1-AS-N`, `M1-PM-N`; `M1-V2-O` → `M1-AD-O`,
-  `M1-D11-O`, `M1-R-O1/O2`; `M1-D-Q/N/O`), `M1-G-S` → `M1-TREN`; 42 sesiones
-  `V-*` de la ventana (D17; las diez de D15 dentro) y el carril `RD-0 →
-  RD-1o-ui → RD-1o-root ∥ RD-1q → RD-2`.
-- **Lo que espera a Carlos**: 13 preguntas en «Lo que espera al propietario»,
-  con fila D26…D38 en el §3.3 del contrato; 2 antes del primer commit del
-  major (D26, el número 2.0.0 en los 24 módulos v0.x —recomendación: footer
-  `Release-As: 2.0.0` por repo—; D27, cómo aterriza el major —rama `major/2.0`
-  con merge commit—) y D28…D38 delante de la sesión que las cita (el lint del
-  `!` —construirlo—, las tres correcciones que amplían avisos publicados
-  —comparten la ventana—, `AutoMigrate` —se queda—, DEP-014 —rebajar la
-  promesa—, la arista raíz → quarkdatasource —el experimento con `extra-files`
-  primero—, el último tag v1 —descartar—); la regla D2 de la política de
-  deprecación no es pregunta: se aplica tal como está aprobada (`completed` al
-  vencer: `M1-G-F1…F5`, con `M1-G-P`(a) antes del set posterior al
-  2026-12-08).
-- **Lo siguiente**: ver la REORIENTACIÓN al principio del «Estado vigente»:
-  la siguiente sesión no es `V-N-AM` ni `M1-G-P`, es el QADR del corte
-  limpio y la S0 del 2.0 como segunda generación. Las trece decisiones
-  D26…D38 se respondieron esa tarde (transcripción en el stash de la
-  sesión) y están escritas en la rama `docs/a12-decisiones-m1-s0`, sin PR.
 - **El próximo tren** (el set del lunes 2026-11-23, o el siguiente que
   tenga algo que publicar): quark, nucleus y orbit no se han movido desde
   1.45.0 salvo lo que las sesiones de la ventana fusionen; los suelos
